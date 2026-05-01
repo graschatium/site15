@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>INTRANET — Département Scientifique // Site-15</title>
+<link rel="stylesheet" href="../shared.css"/>
+<style>
+:root { --dept-color: #aa66ff; --dept-glow: rgba(170,102,255,0.15); }
+.topbar-dept { color: var(--dept-color) !important; }
+.widget-hdr::before { background: var(--dept-color) !important; }
+.dept-badge { color: var(--dept-color) !important; border-color: var(--dept-color) !important; }
+.btn-dept { border-color: var(--dept-color); color: var(--dept-color); background: rgba(170,102,255,0.06); }
+.btn-dept:hover { background: rgba(170,102,255,0.14); }
+.score-row input[type=range] { accent-color: var(--dept-color) !important; }
+.score-val { color: var(--dept-color) !important; }
+.eval-total-score { color: var(--dept-color) !important; }
+
+.exp-card { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--dept-color); padding:16px; transition:all 0.2s; margin-bottom:4px; }
+.exp-card:hover { background:var(--surface2); }
+.exp-card.status-success { border-left-color:var(--safe); }
+.exp-card.status-failure { border-left-color:var(--danger); }
+.exp-card.status-ongoing { border-left-color:var(--warn); }
+.exp-card.status-pending { border-left-color:var(--border2); }
+.exp-title { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; color:var(--white); text-transform:uppercase; }
+.exp-id { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--dept-color); letter-spacing:0.12em; }
+.exp-status { font-family:'Share Tech Mono',monospace; font-size:9px; padding:2px 8px; border:1px solid; text-transform:uppercase; display:inline-block; margin:4px 0; }
+.exp-status.success { color:var(--safe); border-color:var(--safe); }
+.exp-status.failure { color:var(--danger); border-color:var(--danger); }
+.exp-status.ongoing { color:var(--warn); border-color:var(--warn); }
+.exp-status.pending { color:var(--text-dim); border-color:var(--border2); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <a href="../index.html" class="topbar-back">← Site-15</a>
+    <div class="topbar-divider"></div>
+    <div>
+      <div class="topbar-title">🔬 Scientifique</div>
+      <div class="topbar-dept">DEPT-SCI // RESEARCH-ALPHA — NIV.3</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-status" style="color:var(--dept-color)"><div class="status-dot" style="background:var(--dept-color)"></div>OPÉRATIONNEL</div>
+    <div class="topbar-clearance dept-badge">NIVEAU 3</div>
+  </div>
+</header>
+
+<nav class="dept-nav">
+  <button class="nav-tab active" data-view="protocoles"><span class="nav-tab-icon">▢</span> Protocoles</button>
+  <button class="nav-tab" data-view="experiences"><span class="nav-tab-icon">🧪</span> Expériences</button>
+  <button class="nav-tab" data-view="morphs"><span class="nav-tab-icon">◈</span> Morphs</button>
+  <button class="nav-tab" data-view="evaluations"><span class="nav-tab-icon">✦</span> Évaluations</button>
+  <button class="nav-tab" data-view="rapports"><span class="nav-tab-icon">📋</span> Rapports</button>
+</nav>
+
+<div class="app-layout">
+<main class="main-content">
+
+  <!-- ▸ PROTOCOLES -->
+  <section class="view active" id="view-protocoles">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Base de données scientifique</div>
+        <div class="sec-title">PROTOCOLES <span>RECHERCHE</span></div>
+        <div class="sec-sub" id="protoCount">0 protocoles</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-dept btn-sm" id="btnNewProto">+ Nouveau</button>
+      </div>
+    </div>
+    <div class="search-row">
+      <div class="search-wrap"><span class="search-icon">⌕</span><input class="search-input" id="protoSearch" placeholder="Rechercher un protocole de recherche…"/></div>
+    </div>
+    <div class="filter-row" id="protoFilters">
+      <button class="pill active" data-cat="all">Tous <span class="pill-n" id="cnt-all">0</span></button>
+      <button class="pill" data-cat="test-scp">Test SCP <span class="pill-n" id="cnt-test-scp">0</span></button>
+      <button class="pill" data-cat="scp-914">SCP-914 <span class="pill-n" id="cnt-scp-914">0</span></button>
+      <button class="pill" data-cat="anomalique">Anomalique <span class="pill-n" id="cnt-anomalique">0</span></button>
+      <button class="pill" data-cat="classe-d">Classe-D <span class="pill-n" id="cnt-classe-d">0</span></button>
+      <button class="pill" data-cat="observation">Observation <span class="pill-n" id="cnt-observation">0</span></button>
+    </div>
+    <div class="item-list" id="protoList">
+      <div class="empty-state"><div class="empty-icon">🔬</div><div class="empty-text">Aucun protocole de recherche</div></div>
+    </div>
+    <div class="modal-ov" id="modalProto">
+      <div class="modal-box">
+        <div class="modal-hdr">
+          <div class="modal-title" id="protoModalTitle">Nouveau protocole</div>
+          <button class="modal-close" data-close-modal="modalProto">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-field full"><label>Titre *</label><input id="pTitle" type="text" placeholder="Ex: Protocole Test SCP-914 — Réglage Fin"/></div>
+            <div class="form-field">
+              <label>Catégorie</label>
+              <select id="pCat">
+                <option value="test-scp">Test SCP</option>
+                <option value="scp-914">SCP-914</option>
+                <option value="anomalique">Anomalique</option>
+                <option value="classe-d">Classe-D</option>
+                <option value="observation">Observation</option>
+              </select>
+            </div>
+            <div class="form-field"><label>SCP concerné</label><input id="pSCP" placeholder="Ex: SCP-914"/></div>
+            <div class="form-field"><label>Statut</label><input id="pStatus" value="Actif"/></div>
+            <div class="form-field full"><label>Procédure *</label><textarea id="pContent" rows="8" placeholder="Décrivez le protocole de recherche, les étapes, les risques…"></textarea></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost btn-sm" data-close-modal="modalProto">Annuler</button>
+          <button class="btn btn-dept btn-sm" id="saveProtoBtn">💾 Sauvegarder</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ EXPÉRIENCES -->
+  <section class="view" id="view-experiences">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Journal des expériences</div>
+        <div class="sec-title">EXPÉRIENCES <span>ENREGISTRÉES</span></div>
+        <div class="sec-sub" id="expCount">0 expériences</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-dept btn-sm" id="btnNewExp">+ Nouvelle expérience</button>
+      </div>
+    </div>
+    <div class="form-panel" id="expFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="expFormTitle">Nouvelle expérience</span>
+        <button class="btn btn-ghost btn-sm" id="expCancelBtn">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field full"><label>Titre *</label><input id="exTitle" placeholder="Ex: Test SCP-914 [Réglage: Fin] — Sujet: Couteau"/></div>
+        <div class="form-field">
+          <label>SCP concerné</label>
+          <select id="exSCP">
+            <option value="SCP-914">SCP-914</option>
+            <option value="SCP-173">SCP-173</option>
+            <option value="SCP-049">SCP-049</option>
+            <option value="SCP-106">SCP-106</option>
+            <option value="SCP-096">SCP-096</option>
+            <option value="SCP-682">SCP-682</option>
+            <option value="Autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Statut</label>
+          <select id="exStatus">
+            <option value="pending">En attente</option>
+            <option value="ongoing">En cours</option>
+            <option value="success">Réussi</option>
+            <option value="failure">Échec</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Chercheur responsable *</label><input id="exResearcher" placeholder="Ex: « Élégant »"/></div>
+        <div class="form-field"><label>Sujets Classe-D utilisés</label><input id="exSubjects" placeholder="Ex: CD-088, CD-092"/></div>
+        <div class="form-field"><label>Date *</label><input id="exDate" type="date"/></div>
+        <div class="form-field full"><label>Description & procédure *</label><textarea id="exDesc" rows="5" placeholder="Décrivez l'expérience, le protocole suivi, les observations…"></textarea></div>
+        <div class="form-field full"><label>Résultats & conclusions</label><textarea id="exResults" rows="4" placeholder="Résultats observés, anomalies notées, conclusions scientifiques…"></textarea></div>
+        <div class="form-field full"><label>Niveau de risque observé</label>
+          <select id="exRisk">
+            <option value="negligeable">Négligeable</option>
+            <option value="faible">Faible</option>
+            <option value="modere">Modéré</option>
+            <option value="eleve">Élevé</option>
+            <option value="critique">Critique</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="expCancelBtn2">Annuler</button>
+        <button class="btn btn-dept btn-sm" id="expSaveBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+    <div class="filter-row" id="expFilters">
+      <button class="pill active" data-ex-filter="all">Tous</button>
+      <button class="pill" data-ex-filter="success">Réussis</button>
+      <button class="pill" data-ex-filter="failure">Échecs</button>
+      <button class="pill" data-ex-filter="ongoing">En cours</button>
+      <button class="pill" data-ex-filter="pending">En attente</button>
+    </div>
+    <div id="expList">
+      <div class="empty-state"><div class="empty-icon">🧪</div><div class="empty-text">Aucune expérience enregistrée</div></div>
+    </div>
+  </section>
+
+  <!-- ▸ MORPHS -->
+  <section class="view" id="view-morphs">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Commandes Roblox</div>
+        <div class="sec-title">MORPHS <span>SCIENTIFIQUE</span></div>
+      </div>
+    </div>
+    <div class="item-list" id="morphList"></div>
+  </section>
+
+  <!-- ▸ ÉVALUATIONS -->
+  <section class="view" id="view-evaluations">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// RH Scientifique</div>
+        <div class="sec-title">ÉVALUATIONS <span>CHERCHEURS</span></div>
+        <div class="sec-sub" id="evalCount">0 évaluations</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-dept btn-sm" id="btnNewEval">+ Nouvelle évaluation</button>
+      </div>
+    </div>
+    <div class="form-panel" id="evalFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="evalFormTitle">Nouvelle évaluation</span>
+        <button class="btn btn-ghost btn-sm" id="evalCancelBtn">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Nom *</label><input id="evalName" type="text"/></div>
+        <div class="form-field"><label>Username Roblox</label><input id="evalUser" type="text"/></div>
+        <div class="form-field"><label>Grade</label><input id="evalRank" type="text" placeholder="Ex: [D.SCI-DIR.] Directeur des recherches"/></div>
+        <div class="form-field"><label>Évaluateur *</label><input id="evalAuthor" type="text"/></div>
+        <div class="form-field"><label>Date *</label><input id="evalDate" type="date"/></div>
+        <div class="form-field"><label>Décision</label>
+          <select id="evalDecision">
+            <option value="promu">✅ Promu</option>
+            <option value="valide" selected>✔ Validé</option>
+            <option value="avertissement">⚠ Avertissement</option>
+            <option value="recale">❌ Recalé</option>
+            <option value="expulse">🚫 Expulsion</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:10px;">Critères (0–10)</div>
+      <div class="eval-crit-grid">
+        <div class="eval-crit"><label>Discipline</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreDisc"/><span class="score-val" id="valDisc">5</span></div></div>
+        <div class="eval-crit"><label>Connaissance protocoles</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreProto"/><span class="score-val" id="valProto">5</span></div></div>
+        <div class="eval-crit"><label>Réactivité</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreReact"/><span class="score-val" id="valReact">5</span></div></div>
+        <div class="eval-crit"><label>Communication</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreComm"/><span class="score-val" id="valComm">5</span></div></div>
+        <div class="eval-crit"><label>Respect hiérarchie</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreHier"/><span class="score-val" id="valHier">5</span></div></div>
+        <div class="eval-crit"><label>Rigueur scientifique</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreComp"/><span class="score-val" id="valComp">5</span></div></div>
+      </div>
+      <div class="eval-total">
+        <div><div class="eval-total-lbl">SCORE TOTAL</div><div class="eval-total-score" id="evalTotalScore">30 / 60</div></div>
+        <div class="eval-total-mention" id="evalTotalMention">— SATISFAISANT</div>
+      </div>
+      <div class="form-field full" style="margin-bottom:0"><label>Commentaires</label><textarea id="evalComments" rows="3"></textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="evalCancelBtn2">Annuler</button>
+        <button class="btn btn-dept btn-sm" id="evalSaveBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+    <div class="card-grid" id="evalList">
+      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation</div></div>
+    </div>
+  </section>
+
+  <!-- ▸ RAPPORTS -->
+  <section class="view" id="view-rapports">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Publications internes</div>
+        <div class="sec-title">RAPPORTS <span>SCIENTIFIQUES</span></div>
+        <div class="sec-sub" id="rapportCount">0 rapports</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-dept btn-sm" id="btnNewRapport">+ Nouveau rapport</button>
+      </div>
+    </div>
+    <div class="form-panel" id="rapportFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="rapportFormTitle">Nouveau rapport</span>
+        <button class="btn btn-ghost btn-sm" id="rapportCancelBtn">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field full"><label>Titre *</label><input id="rTitle" placeholder="Ex: Rapport d'expérience SCP-914 #12"/></div>
+        <div class="form-field"><label>Type</label>
+          <select id="rType">
+            <option value="experience">🧪 Rapport d'expérience</option>
+            <option value="observation">👁 Rapport d'observation</option>
+            <option value="incident">⚠ Incident de recherche</option>
+            <option value="classement">📊 Rapport de classement</option>
+            <option value="publication">📄 Publication interne</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Sévérité</label><select id="rSev"></select></div>
+        <div class="form-field"><label>Chercheur *</label><input id="rAuthor" placeholder="Ex: « Élégant »"/></div>
+        <div class="form-field"><label>SCP concerné</label><input id="rSCP" placeholder="Ex: SCP-914"/></div>
+        <div class="form-field"><label>Date *</label><input id="rDate" type="date"/></div>
+        <div class="form-field full"><label>Contenu *</label><textarea id="rDesc" rows="6" placeholder="Rapport de recherche complet…"></textarea></div>
+        <div class="form-field full"><label>Conclusions</label><textarea id="rConc" rows="3"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="rapportCancelBtn2">Annuler</button>
+        <button class="btn btn-dept btn-sm" id="rapportSaveBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+    <div class="filter-row" id="rapportFilters">
+      <button class="pill active" data-r-filter="all">Tous</button>
+      <button class="pill" data-r-filter="experience">Expériences</button>
+      <button class="pill" data-r-filter="observation">Observations</button>
+      <button class="pill" data-r-filter="incident">Incidents</button>
+    </div>
+    <div class="card-grid" id="rapportList">
+      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📄</div><div class="empty-text">Aucun rapport scientifique</div></div>
+    </div>
+  </section>
+
+</main>
+
+<aside class="sidebar">
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Statistiques — Scientifique</span></div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val" style="color:var(--dept-color)" id="statProto">0</div><div class="stat-lbl">Protocoles</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--dept-color)" id="statExp">0</div><div class="stat-lbl">Expériences</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--dept-color)" id="statEval">0</div><div class="stat-lbl">Évaluations</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:var(--dept-color)" id="statRapport">0</div><div class="stat-lbl">Rapports</div></div>
+    </div>
+  </div>
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Terminal Scientifique</span></div>
+    <div class="terminal">
+      <div><span class="t-prompt">SCI@SITE-15:~$ </span><span class="t-dim">status</span></div>
+      <div><span class="t-out">▶ SCP-914 : OPÉRATIONNEL</span></div>
+      <div><span class="t-out">▶ Laboratoire A : DISPONIBLE</span></div>
+      <div><span class="t-warn">▶ Sujets Classe-D : 3 disponibles</span></div>
+      <div><span class="t-out">▶ Chercheurs actifs : 2</span></div>
+      <div><span class="t-prompt">SCI@SITE-15:~$ </span><span class="cursor"></span></div>
+    </div>
+  </div>
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Journal</span></div>
+    <div class="hlog" id="historyList">
+      <div class="hline"><span class="hts">[--:--]</span><span>Intranet Scientifique initialisé.</span></div>
+    </div>
+  </div>
+</aside>
+</div>
+
+<script src="../shared.js"></script>
+<script>
+const MORPH_DATA_SCI = [
+  {name:'"Élégant"',username:'gaziakzebibou',rank:'[D.SCI-DIR.] Directeur des recherches',date:'',command:`run permntag gaziakzebibou M.Élégant & permrtag gaziakzebibou [D.SCI-DIR.] Directeur des recherches & startergear gaziakzebibou O & startergear gaziakzebibou clipboard & startergear gaziakzebibou auth & startergear gaziakzebibou det`},
+];
+
+let protocols=SCPIntranet.store.get('sci_protocols',[]);
+let experiences=SCPIntranet.store.get('sci_experiences',[]);
+let evaluations=SCPIntranet.store.get('sci_evals',[]);
+let rapports=SCPIntranet.store.get('sci_rapports',[]);
+let editingProtoId=null,editingExpId=null,editingEvalId=null,editingRapportId=null;
+let protoFilter='all',expFilter='all',rapportFilter='all';
+
+function save(){
+  SCPIntranet.store.set('sci_protocols',protocols);
+  SCPIntranet.store.set('sci_experiences',experiences);
+  SCPIntranet.store.set('sci_evals',evaluations);
+  SCPIntranet.store.set('sci_rapports',rapports);
+  updateStats();
+}
+function updateStats(){
+  SCPIntranet.updateStat('statProto',protocols.length);
+  SCPIntranet.updateStat('statExp',experiences.length);
+  SCPIntranet.updateStat('statEval',evaluations.length);
+  SCPIntranet.updateStat('statRapport',rapports.length);
+  SCPIntranet.updateStat('protoCount',protocols.length+' protocoles');
+  SCPIntranet.updateStat('expCount',experiences.length+' expériences');
+  SCPIntranet.updateStat('evalCount',evaluations.length+' évaluations');
+  SCPIntranet.updateStat('rapportCount',rapports.length+' rapports');
+}
+
+// MORPHS
+function renderMorphs(){
+  const el=document.getElementById('morphList');if(!el)return;
+  el.innerHTML=MORPH_DATA_SCI.map((m,i)=>`
+    <div class="item-card">
+      <div class="item-head"><div class="item-title" style="color:var(--dept-color)">${m.name}</div></div>
+      <div class="item-meta">${m.rank} — @${m.username}</div>
+      <div class="item-body" style="overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${m.command.substring(0,80)}…</div>
+      <div class="item-actions"><button class="btn btn-xs btn-dept" data-morph-i="${i}">⧉ Copier morph</button></div>
+    </div>
+  `).join('');
+}
+document.addEventListener('click',async e=>{
+  const mb=e.target.closest('[data-morph-i]');if(!mb)return;
+  const m=MORPH_DATA_SCI[parseInt(mb.dataset.morphI)];if(!m)return;
+  await SCPIntranet.copyText(m.command,mb,'Copié !');
+  SCPIntranet.addHistory('Morph copié: '+m.name);
+});
+
+// PROTOCOLS
+const PROTO_CATS=['test-scp','scp-914','anomalique','classe-d','observation'];
+function renderProtocols(){
+  const el=document.getElementById('protoList');if(!el)return;
+  const q=document.getElementById('protoSearch')?.value.toLowerCase()||'';
+  let list=protocols.filter(p=>protoFilter==='all'||p.category===protoFilter);
+  if(q)list=list.filter(p=>(p.title+p.content).toLowerCase().includes(q));
+  ['all',...PROTO_CATS].forEach(c=>{const n=document.getElementById('cnt-'+c);if(n)n.textContent=c==='all'?protocols.length:protocols.filter(p=>p.category===c).length;});
+  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🔬</div><div class="empty-text">Aucun protocole</div></div>';return;}
+  el.innerHTML=list.map(p=>`
+    <div class="item-card">
+      <div class="item-head">
+        <div class="item-title">${p.title}</div>
+        <div class="item-tags">
+          <span class="tag tag-accent">${p.category}</span>
+          ${p.scp?`<span class="tag">${p.scp}</span>`:''}
+          ${p.status?`<span class="tag">${p.status}</span>`:''}
+        </div>
+      </div>
+      <div class="item-meta">ID: ${p.id} · ${p.date}</div>
+      <div class="item-body">${p.content.substring(0,200)}${p.content.length>200?'…':''}</div>
+      <div class="item-actions">
+        <button class="btn btn-xs btn-ghost" data-copy-p="${p.id}">⧉</button>
+        <button class="btn btn-xs btn-dept" data-edit-p="${p.id}">✎</button>
+        <button class="btn btn-xs btn-danger" data-del-p="${p.id}">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+document.getElementById('protoSearch')?.addEventListener('input',renderProtocols);
+document.getElementById('protoFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill');if(!pill)return;
+  document.querySelectorAll('#protoFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');protoFilter=pill.dataset.cat;renderProtocols();
+});
+document.addEventListener('click',e=>{
+  const cp=e.target.closest('[data-copy-p]');if(cp){const p=protocols.find(x=>x.id===cp.dataset.copyP);if(p)SCPIntranet.copyText(p.content,cp,'Copié');return;}
+  const ep=e.target.closest('[data-edit-p]');if(ep){openProtoModal(protocols.find(x=>x.id===ep.dataset.editP));return;}
+  const dp=e.target.closest('[data-del-p]');if(dp){if(!confirm('Supprimer ?'))return;protocols=protocols.filter(x=>x.id!==dp.dataset.delP);save();renderProtocols();return;}
+});
+document.getElementById('btnNewProto')?.addEventListener('click',()=>openProtoModal(null));
+function openProtoModal(p=null){
+  editingProtoId=p?.id||null;
+  document.getElementById('protoModalTitle').textContent=p?'Modifier':'Nouveau protocole';
+  document.getElementById('pTitle').value=p?.title||'';
+  document.getElementById('pCat').value=p?.category||'test-scp';
+  document.getElementById('pSCP').value=p?.scp||'';
+  document.getElementById('pStatus').value=p?.status||'Actif';
+  document.getElementById('pContent').value=p?.content||'';
+  SCPIntranet.openModal('modalProto');
+}
+document.getElementById('saveProtoBtn')?.addEventListener('click',()=>{
+  const title=document.getElementById('pTitle').value.trim();const content=document.getElementById('pContent').value.trim();
+  if(!title||!content){alert('Titre et contenu requis.');return;}
+  const data={title,category:document.getElementById('pCat').value,scp:document.getElementById('pSCP').value.trim(),status:document.getElementById('pStatus').value,content,date:SCPIntranet.fmtDate(SCPIntranet.today())};
+  if(editingProtoId){const i=protocols.findIndex(x=>x.id===editingProtoId);if(i!==-1)protocols[i]={...protocols[i],...data};}
+  else protocols.push({id:SCPIntranet.genId('SCI-P'),...data});
+  save();renderProtocols();SCPIntranet.closeModal('modalProto');SCPIntranet.addHistory('Protocole: '+title);
+});
+
+// EXPERIENCES
+function renderExperiences(){
+  const el=document.getElementById('expList');if(!el)return;
+  let list=expFilter==='all'?experiences:experiences.filter(e=>e.status===expFilter);
+  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">🧪</div><div class="empty-text">Aucune expérience</div></div>';return;}
+  const riskColor={negligeable:'var(--safe)',faible:'var(--safe)',modere:'var(--warn)',eleve:'var(--warn)',critique:'var(--danger)'};
+  el.innerHTML=[...list].reverse().map(ex=>`
+    <div class="exp-card status-${ex.status}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px">
+        <div>
+          <div class="exp-title">${ex.title}</div>
+          <div class="exp-id">${ex.id} · ${ex.scp} · Dr. ${ex.researcher}</div>
+        </div>
+        <div class="exp-status ${ex.status}">${ex.status}</div>
+      </div>
+      <div style="font-family:'Courier Prime',monospace;font-size:11px;color:var(--text-dim);line-height:1.6;margin-bottom:6px">${ex.description.substring(0,180)}…</div>
+      ${ex.results?`<div style="font-family:'Courier Prime',monospace;font-size:11px;color:var(--text);border-left:2px solid var(--dept-color);padding-left:10px;margin-bottom:8px">${ex.results.substring(0,150)}…</div>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:${riskColor[ex.risk]||'var(--text-dim)'}">RISQUE: ${ex.risk?.toUpperCase()||'—'}</div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-xs btn-dept" data-edit-ex="${ex.id}">✎</button>
+          <button class="btn btn-xs btn-danger" data-del-ex="${ex.id}">✕</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+document.getElementById('expFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill');if(!pill)return;
+  document.querySelectorAll('#expFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');expFilter=pill.dataset.exFilter;renderExperiences();
+});
+document.addEventListener('click',e=>{
+  const eb=e.target.closest('[data-edit-ex]');if(eb){openExpForm(experiences.find(x=>x.id===eb.dataset.editEx));return;}
+  const db=e.target.closest('[data-del-ex]');if(db){if(!confirm('Supprimer ?'))return;experiences=experiences.filter(x=>x.id!==db.dataset.delEx);save();renderExperiences();return;}
+});
+document.getElementById('btnNewExp')?.addEventListener('click',()=>openExpForm(null));
+['expCancelBtn','expCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('expFormPanel').style.display='none';}));
+function openExpForm(ex=null){
+  editingExpId=ex?.id||null;
+  document.getElementById('expFormTitle').textContent=ex?'Modifier — '+ex.id:'Nouvelle expérience';
+  document.getElementById('exTitle').value=ex?.title||'';
+  document.getElementById('exSCP').value=ex?.scp||'SCP-914';
+  document.getElementById('exStatus').value=ex?.status||'pending';
+  document.getElementById('exResearcher').value=ex?.researcher||'';
+  document.getElementById('exSubjects').value=ex?.subjects||'';
+  document.getElementById('exDate').value=ex?.date||SCPIntranet.today();
+  document.getElementById('exDesc').value=ex?.description||'';
+  document.getElementById('exResults').value=ex?.results||'';
+  document.getElementById('exRisk').value=ex?.risk||'negligeable';
+  const p=document.getElementById('expFormPanel');p.style.display='block';p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.getElementById('expSaveBtn')?.addEventListener('click',()=>{
+  const title=document.getElementById('exTitle').value.trim();const researcher=document.getElementById('exResearcher').value.trim();const desc=document.getElementById('exDesc').value.trim();const date=document.getElementById('exDate').value;
+  if(!title||!researcher||!desc||!date){alert('Champs requis.');return;}
+  const data={title,scp:document.getElementById('exSCP').value,status:document.getElementById('exStatus').value,researcher,subjects:document.getElementById('exSubjects').value.trim(),date,description:desc,results:document.getElementById('exResults').value.trim(),risk:document.getElementById('exRisk').value};
+  if(editingExpId){const i=experiences.findIndex(x=>x.id===editingExpId);if(i!==-1)experiences[i]={...experiences[i],...data};}
+  else experiences.push({id:SCPIntranet.genId('EXP'),...data,createdAt:new Date().toISOString()});
+  save();renderExperiences();document.getElementById('expFormPanel').style.display='none';editingExpId=null;
+  SCPIntranet.addHistory('Expérience: '+title);
+});
+
+// EVALS
+SCPIntranet.initEvalSliders();
+function renderEvals(){
+  const el=document.getElementById('evalList');if(!el)return;
+  SCPIntranet.updateStat('evalCount',evaluations.length+' évaluations');
+  if(!evaluations.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation</div></div>';return;}
+  const dec={promu:'✅ Promu',valide:'✔ Validé',avertissement:'⚠ Avertissement',recale:'❌ Recalé',expulse:'🚫 Expulsé'};
+  el.innerHTML=[...evaluations].reverse().map(ev=>{
+    const m=SCPIntranet.getEvalMention(ev.total);
+    return`<div class="card">
+      <div class="card-hdr"><div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white)">${ev.name}</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:${m.color}">${ev.total}/60</div></div>
+      <div class="card-type">${ev.rank} — @${ev.username||'—'}</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:${m.color};text-transform:uppercase">${m.text}</div>
+      <div class="card-meta"><span>${dec[ev.decision]}</span><span>${ev.date}</span></div>
+      ${ev.comments?`<div class="card-excerpt">${ev.comments}</div>`:''}
+      <div class="card-acts"><button class="btn btn-xs btn-dept" data-edit-ev="${ev.id}">✎</button><button class="btn btn-xs btn-danger" data-del-ev="${ev.id}">✕</button></div>
+    </div>`;
+  }).join('');
+}
+document.getElementById('btnNewEval')?.addEventListener('click',()=>openEvalForm(null));
+['evalCancelBtn','evalCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('evalFormPanel').style.display='none';}));
+document.addEventListener('click',e=>{
+  const eb=e.target.closest('[data-edit-ev]');if(eb){openEvalForm(evaluations.find(x=>x.id===eb.dataset.editEv));return;}
+  const db=e.target.closest('[data-del-ev]');if(db){if(!confirm('Supprimer ?'))return;evaluations=evaluations.filter(x=>x.id!==db.dataset.delEv);save();renderEvals();return;}
+});
+function openEvalForm(ev=null){
+  document.getElementById('evalFormTitle').textContent=ev?'Modifier — '+ev.name:'Nouvelle évaluation';
+  document.getElementById('evalName').value=ev?.name||'';document.getElementById('evalUser').value=ev?.username||'';
+  document.getElementById('evalRank').value=ev?.rank||'';document.getElementById('evalAuthor').value=ev?.author||'';
+  document.getElementById('evalDate').value=ev?.date||SCPIntranet.today();document.getElementById('evalDecision').value=ev?.decision||'valide';
+  document.getElementById('evalComments').value=ev?.comments||'';
+  SCPIntranet.EVAL_CRITERIA.forEach(k=>{const s=document.getElementById('score'+k);const v=document.getElementById('val'+k);if(s)s.value=ev?.scores?.[k]||5;if(v)v.textContent=ev?.scores?.[k]||5;});
+  SCPIntranet.updateEvalUI();editingEvalId=ev?.id||null;
+  const p=document.getElementById('evalFormPanel');p.style.display='block';p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.getElementById('evalSaveBtn')?.addEventListener('click',()=>{
+  const name=document.getElementById('evalName').value.trim();const author=document.getElementById('evalAuthor').value.trim();const date=document.getElementById('evalDate').value;
+  if(!name||!author||!date){alert('Champs requis.');return;}
+  const scores={};SCPIntranet.EVAL_CRITERIA.forEach(k=>scores[k]=parseInt(document.getElementById('score'+k).value));
+  const total=Object.values(scores).reduce((a,b)=>a+b,0);
+  const data={name,username:document.getElementById('evalUser').value.trim(),rank:document.getElementById('evalRank').value.trim(),author,date,decision:document.getElementById('evalDecision').value,comments:document.getElementById('evalComments').value.trim(),scores,total};
+  if(editingEvalId){const i=evaluations.findIndex(x=>x.id===editingEvalId);if(i!==-1)evaluations[i]={...evaluations[i],...data};}
+  else evaluations.push({id:SCPIntranet.genId('SCI-EVAL'),...data,createdAt:new Date().toISOString()});
+  save();renderEvals();document.getElementById('evalFormPanel').style.display='none';editingEvalId=null;
+});
+
+// RAPPORTS
+function renderRapports(){
+  const el=document.getElementById('rapportList');if(!el)return;
+  let list=rapportFilter==='all'?rapports:rapports.filter(r=>r.type===rapportFilter);
+  SCPIntranet.updateStat('rapportCount',rapports.length+' rapports');
+  if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📄</div><div class="empty-text">Aucun rapport</div></div>';return;}
+  el.innerHTML=[...list].reverse().map(r=>{
+    const sev=SCPIntranet.getSevStyle(r.severity);
+    return`<div class="card">
+      <div class="card-hdr"><div class="card-id">${r.id}</div><div class="card-sev" style="color:${sev.color};border-color:${sev.color}">${sev.label}</div></div>
+      <div class="card-type">${r.type}</div>
+      <div class="card-title">${r.title}</div>
+      <div class="card-meta"><span>${r.author}</span><span>${r.date}</span>${r.scp?`<span style="color:var(--dept-color)">${r.scp}</span>`:''}</div>
+      <div class="card-excerpt">${r.description.substring(0,100)}…</div>
+      <div class="card-acts">
+        <button class="btn btn-xs btn-dept" data-edit-r="${r.id}">✎</button>
+        <button class="btn btn-xs btn-ghost" data-exp-r="${r.id}">⬇</button>
+        <button class="btn btn-xs btn-danger" data-del-r="${r.id}">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+document.getElementById('rapportFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill');if(!pill)return;
+  document.querySelectorAll('#rapportFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');rapportFilter=pill.dataset.rFilter;renderRapports();
+});
+document.addEventListener('click',e=>{
+  const eb=e.target.closest('[data-edit-r]');if(eb){openRapportForm(rapports.find(x=>x.id===eb.dataset.editR));return;}
+  const xb=e.target.closest('[data-exp-r]');if(xb){const r=rapports.find(x=>x.id===xb.dataset.expR);if(r)SCPIntranet.exportRapport(r);return;}
+  const db=e.target.closest('[data-del-r]');if(db){if(!confirm('Supprimer ?'))return;rapports=rapports.filter(x=>x.id!==db.dataset.delR);save();renderRapports();return;}
+});
+document.getElementById('btnNewRapport')?.addEventListener('click',()=>openRapportForm(null));
+['rapportCancelBtn','rapportCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('rapportFormPanel').style.display='none';}));
+function openRapportForm(r=null){
+  editingRapportId=r?.id||null;
+  document.getElementById('rapportFormTitle').textContent=r?'Modifier':'Nouveau rapport';
+  document.getElementById('rTitle').value=r?.title||'';document.getElementById('rType').value=r?.type||'experience';
+  document.getElementById('rSev').value=r?.severity||'low';document.getElementById('rAuthor').value=r?.author||'';
+  document.getElementById('rSCP').value=r?.scp||'';document.getElementById('rDate').value=r?.date||SCPIntranet.today();
+  document.getElementById('rDesc').value=r?.description||'';document.getElementById('rConc').value=r?.conclusion||'';
+  const p=document.getElementById('rapportFormPanel');p.style.display='block';p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.getElementById('rapportSaveBtn')?.addEventListener('click',()=>{
+  const title=document.getElementById('rTitle').value.trim();const author=document.getElementById('rAuthor').value.trim();const desc=document.getElementById('rDesc').value.trim();const date=document.getElementById('rDate').value;
+  if(!title||!author||!desc||!date){alert('Champs requis.');return;}
+  const data={title,type:document.getElementById('rType').value,severity:document.getElementById('rSev').value,author,scp:document.getElementById('rSCP').value.trim(),date,description:desc,conclusion:document.getElementById('rConc').value.trim(),dept:'Département Scientifique'};
+  if(editingRapportId){const i=rapports.findIndex(x=>x.id===editingRapportId);if(i!==-1)rapports[i]={...rapports[i],...data};}
+  else rapports.push({id:SCPIntranet.genId('SCI-RPT'),...data,createdAt:new Date().toISOString()});
+  save();renderRapports();document.getElementById('rapportFormPanel').style.display='none';editingRapportId=null;
+});
+
+document.addEventListener('DOMContentLoaded',()=>{
+  SCPIntranet.initTabs('.nav-tab','view-');
+  SCPIntranet.initModalClose();
+  SCPIntranet.fillSelect('rSev',SCPIntranet.RAPPORT_SEV);
+  renderMorphs();renderProtocols();renderExperiences();renderEvals();renderRapports();
+  updateStats();SCPIntranet.addHistory('Intranet Scientifique chargé.');
+});
+</script>
+</body>
+</html>

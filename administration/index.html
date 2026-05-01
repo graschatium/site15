@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>INTRANET — Département Administratif // Site-15</title>
+<link rel="stylesheet" href="../shared.css"/>
+<style>
+/* Requête cards */
+.req-list { display: flex; flex-direction: column; gap: 4px; }
+.req-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--border2); padding: 14px 18px; transition: all 0.2s;
+}
+.req-card:hover { background: var(--surface2); border-color: var(--border2); border-left-color: var(--accent2); }
+.req-card.prio-haute   { border-left-color: rgba(192,57,43,0.6); }
+.req-card.prio-haute:hover { border-left-color: var(--danger); box-shadow: -3px 0 10px rgba(192,57,43,0.12); }
+.req-card.prio-normale { border-left-color: rgba(232,200,74,0.5); }
+.req-card.prio-normale:hover { border-left-color: var(--accent); }
+.req-card.prio-basse   { border-left-color: rgba(39,174,96,0.4); }
+.req-card.prio-basse:hover { border-left-color: var(--safe); }
+
+.req-head  { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 5px; }
+.req-id    { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.15em; }
+.req-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.05em; }
+.req-badges { display: flex; gap: 4px; flex-shrink: 0; }
+.req-badge { font-family: 'Share Tech Mono', monospace; font-size: 9px; padding: 2px 8px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.1em; }
+.req-badge.haute    { color: var(--danger); border-color: rgba(192,57,43,0.5); }
+.req-badge.normale  { color: var(--accent); border-color: rgba(232,200,74,0.4); }
+.req-badge.basse    { color: var(--safe);   border-color: rgba(39,174,96,0.4); }
+.req-badge.en-attente { color: var(--warn); border-color: rgba(230,126,34,0.4); }
+.req-badge.approuve   { color: var(--safe); border-color: rgba(39,174,96,0.4); }
+.req-badge.refuse     { color: var(--danger); border-color: rgba(192,57,43,0.5); }
+.req-badge.en-cours   { color: var(--accent); border-color: rgba(232,200,74,0.4); }
+.req-meta  { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 5px; }
+.req-body  { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 8px; }
+.req-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+
+/* Directive cards */
+.dir-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid rgba(232,200,74,0.3); padding: 14px 18px; transition: all 0.2s; margin-bottom: 4px; }
+.dir-card:hover { background: var(--surface2); border-color: var(--border2); border-left-color: var(--accent); }
+.dir-code  { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.15em; }
+.dir-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.04em; margin: 3px 0; }
+.dir-meta  { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--text-dim); margin-bottom: 5px; }
+.dir-body  { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 8px; }
+
+/* Personnel table */
+.pers-table { width: 100%; border-collapse: collapse; }
+.pers-table th { font-family: 'Share Tech Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-dim); padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; background: var(--surface); }
+.pers-table td { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--text); padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.pers-table tr:hover td { background: var(--surface2); }
+.pers-status { font-family: 'Share Tech Mono', monospace; font-size: 9px; padding: 2px 8px; border: 1px solid; text-transform: uppercase; }
+.pers-status.actif    { color: var(--safe);     border-color: rgba(39,174,96,0.4); }
+.pers-status.inactif  { color: var(--text-dim); border-color: var(--border2); }
+.pers-status.suspendu { color: var(--danger);   border-color: rgba(192,57,43,0.5); }
+</style>
+</head>
+<body>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <a href="../index.html" class="topbar-back">← Site-15</a>
+    <div class="topbar-divider"></div>
+    <div>
+      <div class="topbar-title">🏛️ Administration</div>
+      <div class="topbar-dept">DEPT-ADM // O5-ADVISORY — NIV.3</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-status"><div class="status-dot"></div>OPÉRATIONNEL</div>
+    <div class="topbar-clearance">NIVEAU 3</div>
+  </div>
+</header>
+
+<!-- ══ NAV ══ -->
+<nav class="dept-nav">
+  <button class="nav-tab active" data-view="requetes"><span class="nav-tab-icon">📨</span> Requêtes</button>
+  <button class="nav-tab" data-view="directives"><span class="nav-tab-icon">📜</span> Directives</button>
+  <button class="nav-tab" data-view="personnel"><span class="nav-tab-icon">👤</span> Personnel</button>
+  <button class="nav-tab" data-view="evaluations"><span class="nav-tab-icon">✦</span> Évaluations</button>
+  <button class="nav-tab" data-view="rapports"><span class="nav-tab-icon">📋</span> Rapports</button>
+</nav>
+
+<div class="app-layout">
+<main class="main-content">
+
+  <!-- ▸ REQUÊTES -->
+  <section class="view active" id="view-requetes">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Département Administratif</div>
+        <div class="sec-title">REQUÊTES <span>INTERNES</span></div>
+        <div class="sec-sub" id="reqCount">0 requêtes</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm" id="btnNewReq">+ Nouvelle requête</button>
+      </div>
+    </div>
+
+    <div class="form-panel" id="reqFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="reqFormTitle">Nouvelle requête</span>
+        <button class="btn btn-ghost btn-xs" id="reqCancelBtn">✕ Annuler</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Objet *</label><input id="reqTitre" type="text" placeholder="Ex: Demande de mutation — Secteur B"/></div>
+        <div class="form-field"><label>Type</label>
+          <select id="reqType">
+            <option value="mutation">Demande de mutation</option>
+            <option value="promotion">Demande de promotion</option>
+            <option value="sanction">Signalement / Sanction</option>
+            <option value="budget">Requête budgétaire</option>
+            <option value="acces">Accès / Accréditation</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Priorité</label>
+          <select id="reqPrio">
+            <option value="basse">Basse</option>
+            <option value="normale" selected>Normale</option>
+            <option value="haute">Haute</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Demandeur *</label><input id="reqAuteur" type="text" placeholder="Ex: M.NOWAK"/></div>
+        <div class="form-field"><label>Username Roblox</label><input id="reqUsername" type="text" placeholder="Ex: FlofloParis"/></div>
+        <div class="form-field"><label>Département demandeur</label>
+          <select id="reqDeptDemandeur">
+            <option value="Sécurité">Sécurité</option>
+            <option value="Administration" selected>Administration</option>
+            <option value="Scientifique">Scientifique</option>
+            <option value="Médical">Médical</option>
+            <option value="Staff">Staff</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Date *</label><input id="reqDate" type="date"/></div>
+        <div class="form-field full"><label>Description *</label><textarea id="reqDesc" rows="4" placeholder="Détaillez votre demande, le contexte et les justifications…"></textarea></div>
+        <div class="form-field full"><label>Notes / Pièces justificatives</label><textarea id="reqNotes" rows="2" placeholder="Documents joints, références, témoins…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="reqCancelBtn2">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="reqSaveBtn">💾 Soumettre</button>
+      </div>
+    </div>
+
+    <div class="filter-row" id="reqFilters">
+      <button class="pill active" data-cat="all">Toutes <span class="pill-n" id="rc-all">0</span></button>
+      <button class="pill" data-cat="en-attente">En attente <span class="pill-n" id="rc-en-attente">0</span></button>
+      <button class="pill" data-cat="en-cours">En cours <span class="pill-n" id="rc-en-cours">0</span></button>
+      <button class="pill" data-cat="approuve">Approuvées <span class="pill-n" id="rc-approuve">0</span></button>
+      <button class="pill" data-cat="refuse">Refusées <span class="pill-n" id="rc-refuse">0</span></button>
+    </div>
+    <div class="req-list" id="reqList">
+      <div class="empty-state"><div class="empty-icon">📨</div><div class="empty-text">Aucune requête enregistrée</div></div>
+    </div>
+  </section>
+
+  <!-- ▸ DIRECTIVES -->
+  <section class="view" id="view-directives">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Directives O5 & Administration</div>
+        <div class="sec-title">DIRECTIVES <span>OFFICIELLES</span></div>
+        <div class="sec-sub" id="dirCount">0 directives</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm" id="btnNewDir">+ Nouvelle directive</button>
+      </div>
+    </div>
+
+    <div class="form-panel" id="dirFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="dirFormTitle">Nouvelle directive</span>
+        <button class="btn btn-ghost btn-xs" id="dirCancelBtn">✕ Annuler</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Titre *</label><input id="dirTitre" type="text" placeholder="Ex: Protocole de mutation inter-département"/></div>
+        <div class="form-field"><label>Catégorie</label>
+          <select id="dirCat">
+            <option value="rh">Ressources Humaines</option>
+            <option value="securite">Sécurité interne</option>
+            <option value="budget">Budget & Ressources</option>
+            <option value="o5">Ordre du Conseil O5</option>
+            <option value="confinement">Confinement</option>
+            <option value="general">Général</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Émis par</label><input id="dirAuteur" type="text" placeholder="Ex: Conseil O5 / Directeur ADM"/></div>
+        <div class="form-field"><label>Date</label><input id="dirDate" type="date"/></div>
+        <div class="form-field full"><label>Contenu *</label><textarea id="dirContenu" rows="6" placeholder="Contenu officiel de la directive…"></textarea></div>
+        <div class="form-field full"><label>Destinataires</label><input id="dirDest" type="text" placeholder="Ex: Tous les départements / Sécurité uniquement"/></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="dirCancelBtn2">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="dirSaveBtn">💾 Publier</button>
+      </div>
+    </div>
+
+    <div class="filter-row" id="dirFilters">
+      <button class="pill active" data-dcat="all">Toutes <span class="pill-n" id="dc-all">0</span></button>
+      <button class="pill" data-dcat="rh">RH <span class="pill-n" id="dc-rh">0</span></button>
+      <button class="pill" data-dcat="securite">Sécurité <span class="pill-n" id="dc-securite">0</span></button>
+      <button class="pill" data-dcat="budget">Budget <span class="pill-n" id="dc-budget">0</span></button>
+      <button class="pill" data-dcat="o5">O5 <span class="pill-n" id="dc-o5">0</span></button>
+      <button class="pill" data-dcat="confinement">Confinement <span class="pill-n" id="dc-confinement">0</span></button>
+    </div>
+    <div class="search-row">
+      <div class="search-wrap"><span class="search-icon">⌕</span><input class="search-input" id="dirSearch" placeholder="Rechercher une directive…"/></div>
+    </div>
+    <div id="dirList">
+      <div class="empty-state"><div class="empty-icon">📜</div><div class="empty-text">Aucune directive publiée</div></div>
+    </div>
+  </section>
+
+  <!-- ▸ PERSONNEL -->
+  <section class="view" id="view-personnel">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Registre du Personnel</div>
+        <div class="sec-title">GESTION DU <span>PERSONNEL</span></div>
+        <div class="sec-sub" id="persCount">0 agents</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm" id="btnNewPers">+ Ajouter un agent</button>
+      </div>
+    </div>
+
+    <div class="form-panel" id="persFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="persFormTitle">Ajouter un agent</span>
+        <button class="btn btn-ghost btn-xs" id="persCancelBtn">✕ Annuler</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Nom *</label><input id="persNom" type="text" placeholder="Ex: M.NOWAK"/></div>
+        <div class="form-field"><label>Username Roblox *</label><input id="persUsername" type="text" placeholder="Ex: FlofloParis"/></div>
+        <div class="form-field"><label>Département</label>
+          <select id="persDept">
+            <option value="Sécurité">Sécurité</option>
+            <option value="Administration" selected>Administration</option>
+            <option value="Scientifique">Scientifique</option>
+            <option value="Médical">Médical</option>
+            <option value="Staff">Staff</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Grade / Poste</label><input id="persGrade" type="text" placeholder="Ex: [D.ADM] Responsable RH"/></div>
+        <div class="form-field"><label>Accréditation</label>
+          <select id="persAccred">
+            <option value="1">Niveau 1</option>
+            <option value="2">Niveau 2</option>
+            <option value="3" selected>Niveau 3</option>
+            <option value="4">Niveau 4</option>
+            <option value="5">Niveau 5</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Statut</label>
+          <select id="persStatut">
+            <option value="actif" selected>Actif</option>
+            <option value="inactif">Inactif</option>
+            <option value="suspendu">Suspendu</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Date d'intégration</label><input id="persDateInteg" type="date"/></div>
+        <div class="form-field full"><label>Notes internes</label><textarea id="persNotes" rows="2" placeholder="Remarques, historique disciplinaire…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="persCancelBtn2">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="persSaveBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+
+    <div class="search-row">
+      <div class="search-wrap"><span class="search-icon">⌕</span><input class="search-input" id="persSearch" placeholder="Rechercher un agent…"/></div>
+    </div>
+    <div class="filter-row" id="persFilters">
+      <button class="pill active" data-pf="all">Tous <span class="pill-n" id="pc-all">0</span></button>
+      <button class="pill" data-pf="Sécurité">Sécurité <span class="pill-n" id="pc-sec">0</span></button>
+      <button class="pill" data-pf="Administration">Administration <span class="pill-n" id="pc-adm">0</span></button>
+      <button class="pill" data-pf="Scientifique">Scientifique <span class="pill-n" id="pc-sci">0</span></button>
+      <button class="pill" data-pf="Médical">Médical <span class="pill-n" id="pc-med">0</span></button>
+      <button class="pill" data-pf="Staff">Staff <span class="pill-n" id="pc-staff">0</span></button>
+    </div>
+    <div id="persTableWrap">
+      <div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">Aucun agent enregistré</div></div>
+    </div>
+  </section>
+
+  <!-- ▸ ÉVALUATIONS -->
+  <section class="view" id="view-evaluations">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Notation & Classement</div>
+        <div class="sec-title">ÉVALUATIONS <span>AGENTS</span></div>
+        <div class="sec-sub" id="evalCount">0 évaluations</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm" id="btnNewEval">+ Nouvelle évaluation</button>
+      </div>
+    </div>
+
+    <div class="form-panel" id="evalFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="evalFormTitle">Nouvelle évaluation</span>
+        <button class="btn btn-ghost btn-xs" id="evalCancelBtn">✕ Annuler</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Nom de l'agent *</label><input id="evalNom" type="text" placeholder="Ex: M.NOWAK"/></div>
+        <div class="form-field"><label>Username Roblox</label><input id="evalUsername" type="text" placeholder="Ex: FlofloParis"/></div>
+        <div class="form-field"><label>Département</label>
+          <select id="evalDept">
+            <option value="Sécurité">Sécurité</option>
+            <option value="Administration" selected>Administration</option>
+            <option value="Scientifique">Scientifique</option>
+            <option value="Médical">Médical</option>
+            <option value="Staff">Staff</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Grade actuel</label><input id="evalGrade" type="text" placeholder="Ex: [D.ADM] Cadet"/></div>
+        <div class="form-field"><label>Évaluateur *</label><input id="evalAuteur" type="text" placeholder="Votre nom"/></div>
+        <div class="form-field"><label>Date *</label><input id="evalDate" type="date"/></div>
+      </div>
+
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);margin-bottom:10px;">Critères de notation (0–10)</div>
+      <div class="eval-crit-grid">
+        <div class="eval-crit"><label>Discipline</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreDisc"/><span class="score-val" id="valDisc">5</span></div></div>
+        <div class="eval-crit"><label>Connaissance protocoles</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreProto"/><span class="score-val" id="valProto">5</span></div></div>
+        <div class="eval-crit"><label>Réactivité</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreReact"/><span class="score-val" id="valReact">5</span></div></div>
+        <div class="eval-crit"><label>Communication</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreComm"/><span class="score-val" id="valComm">5</span></div></div>
+        <div class="eval-crit"><label>Respect hiérarchie</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreHier"/><span class="score-val" id="valHier">5</span></div></div>
+        <div class="eval-crit"><label>Comportement</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreComp"/><span class="score-val" id="valComp">5</span></div></div>
+      </div>
+      <div class="eval-total">
+        <div><div class="eval-total-lbl">Score total</div><div class="eval-total-score" id="evalTotalScore">30 / 60</div></div>
+        <div class="eval-total-mention" id="evalTotalMention">— SATISFAISANT</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Décision</label>
+          <select id="evalDecision">
+            <option value="promu">✅ Promu</option>
+            <option value="valide" selected>✔ Validé — maintien</option>
+            <option value="avertissement">⚠ Avertissement</option>
+            <option value="recale">❌ Recalé</option>
+            <option value="expulse">🚫 Expulsé</option>
+          </select>
+        </div>
+        <div class="form-field full"><label>Commentaires</label><textarea id="evalComments" rows="3" placeholder="Observations de l'évaluateur…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="evalCancelBtn2">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="evalSaveBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+
+    <div class="filter-row" id="evalFilters">
+      <button class="pill active" data-ef="all">Tous <span class="pill-n" id="ec-all">0</span></button>
+      <button class="pill" data-ef="Sécurité">Sécurité</button>
+      <button class="pill" data-ef="Administration">Administration</button>
+      <button class="pill" data-ef="Scientifique">Scientifique</button>
+      <button class="pill" data-ef="Médical">Médical</button>
+      <button class="pill" data-ef="Staff">Staff</button>
+    </div>
+    <div class="card-grid" id="evalList">
+      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation</div></div>
+    </div>
+  </section>
+
+  <!-- ▸ RAPPORTS -->
+  <section class="view" id="view-rapports">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Rapports opérationnels</div>
+        <div class="sec-title">RAPPORTS <span>ADMIN</span></div>
+        <div class="sec-sub" id="rapCount">0 rapports</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm" id="btnNewRap">+ Nouveau rapport</button>
+      </div>
+    </div>
+
+    <div class="form-panel" id="rapFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="rapFormTitle">Nouveau rapport</span>
+        <button class="btn btn-ghost btn-xs" id="rapCancelBtn">✕ Annuler</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Titre *</label><input id="rapTitre" type="text" placeholder="Ex: Rapport mensuel — Mutations Q1"/></div>
+        <div class="form-field"><label>Type</label>
+          <select id="rapType">
+            <option value="incident">⚠ Incident</option>
+            <option value="personnel">👤 Personnel</option>
+            <option value="disciplinary">📋 Disciplinaire</option>
+            <option value="budget">💼 Budget</option>
+            <option value="mensuel">📅 Mensuel</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Sévérité</label>
+          <select id="rapSev">
+            <option value="low">Faible</option>
+            <option value="moderate" selected>Modérée</option>
+            <option value="high">Élevée</option>
+            <option value="critical">Critique</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Auteur *</label><input id="rapAuteur" type="text" placeholder="Ex: Directeur ADM"/></div>
+        <div class="form-field"><label>Username Roblox</label><input id="rapUsername" type="text" placeholder="Ex: mrgraschat"/></div>
+        <div class="form-field"><label>Date *</label><input id="rapDate" type="date"/></div>
+        <div class="form-field full"><label>Description *</label><textarea id="rapDesc" rows="5" placeholder="Détail des événements, personnes impliquées, contexte…"></textarea></div>
+        <div class="form-field full"><label>Conclusion & Mesures</label><textarea id="rapConclusion" rows="3" placeholder="Actions entreprises, recommandations…"></textarea></div>
+        <div class="form-field full"><label>Témoins</label><input id="rapTemoins" type="text" placeholder="Ex: M.NOWAK, E.TERNON"/></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="rapCancelBtn2">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="rapSaveBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+
+    <div class="filter-row" id="rapFilters">
+      <button class="pill active" data-rf="all">Tous <span class="pill-n" id="rpc-all">0</span></button>
+      <button class="pill" data-rf="incident">Incident</button>
+      <button class="pill" data-rf="personnel">Personnel</button>
+      <button class="pill" data-rf="disciplinary">Disciplinaire</button>
+      <button class="pill" data-rf="budget">Budget</button>
+      <button class="pill" data-rf="mensuel">Mensuel</button>
+    </div>
+    <div class="card-grid" id="rapList">
+      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport</div></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Tableau de bord</span></div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val" id="statReq">0</div><div class="stat-lbl">Requêtes</div></div>
+      <div class="stat-box"><div class="stat-val" id="statPending">0</div><div class="stat-lbl">En attente</div></div>
+      <div class="stat-box"><div class="stat-val" id="statPersonnel">0</div><div class="stat-lbl">Agents</div></div>
+      <div class="stat-box"><div class="stat-val" id="statEval">0</div><div class="stat-lbl">Évals</div></div>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Statut Site-15</span></div>
+    <div class="widget-body">
+      <div class="terminal">
+        <div><span class="t-prompt">ADM@SITE-15:~$ </span>status</div>
+        <div><span class="t-out">▶ DEPT-ADM : OPÉRATIONNEL</span></div>
+        <div><span class="t-out">▶ Conseil O5 : JOIGNABLE</span></div>
+        <div id="termReqLine" class="t-dim">▶ En attente : 0</div>
+        <div id="termPersLine" class="t-dim">▶ Agents : 0</div>
+        <div><span class="t-prompt">ADM@SITE-15:~$ </span><span class="cursor"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Journal</span></div>
+    <div class="hlog" id="historyList">
+      <div class="hline"><span class="hts">[00:00]</span><span>Système initialisé.</span></div>
+    </div>
+  </div>
+</aside>
+</div>
+
+<!-- ══ MODAL — Voir Requête ══ -->
+<div class="modal-ov" id="reqViewModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div><div class="card-id" id="reqViewId">REQ-XXXXX</div><div class="card-type" id="reqViewType">—</div></div>
+      <button class="modal-close" data-close-modal="reqViewModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="card-title" style="font-size:22px;margin-bottom:14px" id="reqViewTitre">—</div>
+      <div class="meta-grid">
+        <div class="meta-item"><label>Demandeur</label><span id="reqViewAuteur">—</span></div>
+        <div class="meta-item"><label>Département</label><span id="reqViewDept">—</span></div>
+        <div class="meta-item"><label>Priorité</label><span id="reqViewPrio">—</span></div>
+        <div class="meta-item"><label>Date</label><span id="reqViewDate">—</span></div>
+        <div class="meta-item"><label>Statut</label><span id="reqViewStatut">—</span></div>
+      </div>
+      <div class="msec"><div class="msec-lbl">Description</div><div class="msec-content" id="reqViewDesc">—</div></div>
+      <div class="msec"><div class="msec-lbl">Notes</div><div class="msec-content" id="reqViewNotes">—</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-close-modal="reqViewModal">Fermer</button>
+      <button class="btn btn-safe btn-sm" id="reqApprouverBtn">✔ Approuver</button>
+      <button class="btn btn-danger btn-sm" id="reqRefuserBtn">✕ Refuser</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL — Voir Rapport ══ -->
+<div class="modal-ov" id="rapViewModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div><div class="card-id" id="rapViewId">RPT-XXXXX</div><div class="card-type" id="rapViewType">—</div></div>
+      <button class="modal-close" data-close-modal="rapViewModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="card-title" style="font-size:22px;margin-bottom:14px" id="rapViewTitre">—</div>
+      <div class="meta-grid">
+        <div class="meta-item"><label>Sévérité</label><span id="rapViewSev">—</span></div>
+        <div class="meta-item"><label>Date</label><span id="rapViewDate">—</span></div>
+        <div class="meta-item"><label>Auteur</label><span id="rapViewAuteur">—</span></div>
+        <div class="meta-item"><label>Témoins</label><span id="rapViewTemoins">—</span></div>
+      </div>
+      <div class="msec"><div class="msec-lbl">Description</div><div class="msec-content" id="rapViewDesc">—</div></div>
+      <div class="msec"><div class="msec-lbl">Conclusion & Mesures</div><div class="msec-content" id="rapViewConclusion">—</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-close-modal="rapViewModal">Fermer</button>
+      <button class="btn btn-primary btn-sm" id="rapViewExportBtn" style="margin-left:auto">⬇ Exporter</button>
+    </div>
+  </div>
+</div>
+
+<script src="../shared.js"></script>
+<script>
+const S = SCPIntranet;
+const STORE_REQ  = 'scp19_adm_requetes';
+const STORE_DIR  = 'scp19_adm_directives';
+const STORE_PERS = 'scp19_adm_personnel';
+const STORE_EVAL = 'scp19_adm_evals';
+const STORE_RAP  = 'scp19_adm_rapports';
+
+let requetes    = S.store.get(STORE_REQ,  []);
+let directives  = S.store.get(STORE_DIR,  []);
+let personnel   = S.store.get(STORE_PERS, []);
+let evaluations = S.store.get(STORE_EVAL, []);
+let rapports    = S.store.get(STORE_RAP,  []);
+
+let editingReqId = null, editingDirId = null, editingPersId = null, editingRapId = null;
+let activeReqCat = 'all', activeDirCat = 'all', activePersFil = 'all';
+let activeEvalFil = 'all', activeRapFil = 'all';
+let viewingReqId = null, viewingRapId = null;
+
+const SEV_COLORS = { low:'var(--safe)', moderate:'var(--warn)', high:'#e67e22', critical:'var(--danger)' };
+const SEV_LABELS = { low:'FAIBLE', moderate:'MODÉRÉE', high:'ÉLEVÉE', critical:'CRITIQUE' };
+
+// Init
+S.initTabs('.nav-tab', 'view-');
+S.initModalClose();
+S.initEvalSliders();
+['evalDate','reqDate','dirDate','rapDate','persDateInteg'].forEach(id => {
+  document.getElementById(id).value = S.today();
+});
+renderAll();
+S.addHistory('Intranet ADM — Système opérationnel.');
+
+function renderAll() { renderRequetes(); renderDirectives(); renderPersonnel(); renderEvaluations(); renderRapports(); updateStats(); }
+
+function updateStats() {
+  const pending = requetes.filter(r => r.statut === 'en-attente').length;
+  S.updateStat('statReq', requetes.length);
+  S.updateStat('statPending', pending);
+  S.updateStat('statPersonnel', personnel.length);
+  S.updateStat('statEval', evaluations.length);
+  document.getElementById('termReqLine').textContent  = '▶ En attente : ' + pending;
+  document.getElementById('termPersLine').textContent = '▶ Agents : ' + personnel.length;
+}
+
+// ── REQUÊTES ──
+function renderRequetes() {
+  const el = document.getElementById('reqList');
+  const counts = { all: requetes.length, 'en-attente':0,'en-cours':0,'approuve':0,'refuse':0 };
+  requetes.forEach(r => { if (counts[r.statut] !== undefined) counts[r.statut]++; });
+  document.getElementById('reqCount').textContent = requetes.length + ' requête' + (requetes.length > 1 ? 's' : '');
+  ['all','en-attente','en-cours','approuve','refuse'].forEach(k => {
+    const n = document.getElementById('rc-' + k); if (n) n.textContent = counts[k] || 0;
+  });
+  let list = activeReqCat === 'all' ? requetes : requetes.filter(r => r.statut === activeReqCat);
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📨</div><div class="empty-text">Aucune requête dans cette catégorie</div></div>'; updateStats(); return; }
+  el.innerHTML = [...list].reverse().map(r => `
+    <div class="req-card prio-${r.prio}">
+      <div class="req-head">
+        <div><div class="req-id">${r.id}</div><div class="req-title">${r.titre}</div></div>
+        <div class="req-badges"><span class="req-badge ${r.prio}">${r.prio}</span><span class="req-badge ${r.statut}">${r.statut.replace('-',' ')}</span></div>
+      </div>
+      <div class="req-meta">${r.auteur}${r.username?' (@'+r.username+')':''} — ${r.deptDemandeur} — ${S.fmtDate(r.date)} — ${r.type}</div>
+      <div class="req-body">${r.desc.substring(0,180)}${r.desc.length>180?'…':''}</div>
+      <div class="req-actions">
+        <button class="btn btn-ghost btn-xs" data-req-view="${r.id}">📄 Voir</button>
+        <button class="btn btn-safe btn-xs" data-req-approve="${r.id}">✔ Approuver</button>
+        <button class="btn btn-danger btn-xs" data-req-refuse="${r.id}">✕ Refuser</button>
+        <button class="btn btn-ghost btn-xs" data-req-edit="${r.id}">✎</button>
+        <button class="btn btn-ghost btn-xs" data-req-del="${r.id}">🗑</button>
+      </div>
+    </div>`).join('');
+  updateStats();
+}
+
+function openReqForm(id=null) {
+  editingReqId = id;
+  if (id) {
+    const r = requetes.find(x=>x.id===id); if(!r) return;
+    document.getElementById('reqFormTitle').textContent = 'Modifier — '+r.id;
+    document.getElementById('reqTitre').value = r.titre; document.getElementById('reqType').value = r.type;
+    document.getElementById('reqPrio').value = r.prio; document.getElementById('reqAuteur').value = r.auteur;
+    document.getElementById('reqUsername').value = r.username||''; document.getElementById('reqDeptDemandeur').value = r.deptDemandeur;
+    document.getElementById('reqDate').value = r.date; document.getElementById('reqDesc').value = r.desc;
+    document.getElementById('reqNotes').value = r.notes||'';
+  } else {
+    document.getElementById('reqFormTitle').textContent = 'Nouvelle requête';
+    ['reqTitre','reqAuteur','reqUsername','reqDesc','reqNotes'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('reqDate').value = S.today();
+  }
+  const p = document.getElementById('reqFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function saveRequete() {
+  const titre=document.getElementById('reqTitre').value.trim(), auteur=document.getElementById('reqAuteur').value.trim();
+  const desc=document.getElementById('reqDesc').value.trim(), date=document.getElementById('reqDate').value;
+  if(!titre||!auteur||!desc||!date){alert('Remplir les champs obligatoires.');return;}
+  const data = { titre, auteur, desc, date, type:document.getElementById('reqType').value, prio:document.getElementById('reqPrio').value,
+    username:document.getElementById('reqUsername').value.trim(), deptDemandeur:document.getElementById('reqDeptDemandeur').value,
+    notes:document.getElementById('reqNotes').value.trim(), statut:'en-attente' };
+  if(editingReqId){ const i=requetes.findIndex(x=>x.id===editingReqId); if(i!==-1) requetes[i]={...requetes[i],...data}; }
+  else requetes.push({id:S.genId('REQ'),...data,createdAt:new Date().toISOString()});
+  S.store.set(STORE_REQ, requetes); renderRequetes();
+  document.getElementById('reqFormPanel').style.display='none'; editingReqId=null;
+  S.addHistory('Requête enregistrée : '+titre);
+}
+
+function setReqStatut(id, statut) {
+  const r=requetes.find(x=>x.id===id); if(!r) return;
+  r.statut=statut; S.store.set(STORE_REQ, requetes); renderRequetes();
+  S.addHistory('Requête '+statut+' : '+r.titre);
+  document.getElementById('reqViewModal').classList.remove('open');
+}
+
+function viewRequete(id) {
+  const r=requetes.find(x=>x.id===id); if(!r) return; viewingReqId=id;
+  document.getElementById('reqViewId').textContent=r.id; document.getElementById('reqViewType').textContent=r.type;
+  document.getElementById('reqViewTitre').textContent=r.titre; document.getElementById('reqViewAuteur').textContent=r.auteur+(r.username?' (@'+r.username+')':'');
+  document.getElementById('reqViewDept').textContent=r.deptDemandeur; document.getElementById('reqViewPrio').textContent=r.prio;
+  document.getElementById('reqViewDate').textContent=S.fmtDate(r.date); document.getElementById('reqViewStatut').textContent=r.statut;
+  document.getElementById('reqViewDesc').textContent=r.desc; document.getElementById('reqViewNotes').textContent=r.notes||'—';
+  document.getElementById('reqViewModal').classList.add('open');
+}
+
+// ── DIRECTIVES ──
+function renderDirectives() {
+  const el=document.getElementById('dirList');
+  const cats=['all','rh','securite','budget','o5','confinement'];
+  const counts={all:directives.length}; cats.slice(1).forEach(c=>counts[c]=0);
+  directives.forEach(d=>{ if(counts[d.cat]!==undefined) counts[d.cat]++; });
+  document.getElementById('dirCount').textContent=directives.length+' directive'+(directives.length>1?'s':'');
+  cats.forEach(c=>{ const n=document.getElementById('dc-'+c); if(n) n.textContent=counts[c]||0; });
+  const q=(document.getElementById('dirSearch')?.value||'').toLowerCase();
+  let list = activeDirCat==='all' ? directives : directives.filter(d=>d.cat===activeDirCat);
+  if(q) list=list.filter(d=>d.titre.toLowerCase().includes(q)||d.contenu.toLowerCase().includes(q));
+  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📜</div><div class="empty-text">Aucune directive trouvée</div></div>';return;}
+  const catL={rh:'RH',securite:'Sécurité',budget:'Budget',o5:'O5',confinement:'Confinement',general:'Général'};
+  el.innerHTML=[...list].reverse().map(d=>`
+    <div class="dir-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px">
+        <div><div class="dir-code">${d.id}</div><div class="dir-title">${d.titre}</div></div>
+        <span class="tag tag-accent">${catL[d.cat]||d.cat}</span>
+      </div>
+      <div class="dir-meta">${d.auteur} — ${S.fmtDate(d.date)}${d.dest?' — Dest: '+d.dest:''}</div>
+      <div class="dir-body">${d.contenu.substring(0,200)}${d.contenu.length>200?'…':''}</div>
+      <div class="item-actions">
+        <button class="btn btn-ghost btn-xs" data-dir-edit="${d.id}">✎ Modifier</button>
+        <button class="btn btn-ghost btn-xs" data-dir-copy="${d.id}">⧉ Copier</button>
+        <button class="btn btn-danger btn-xs" data-dir-del="${d.id}">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function openDirForm(id=null) {
+  editingDirId=id;
+  if(id){
+    const d=directives.find(x=>x.id===id); if(!d) return;
+    document.getElementById('dirFormTitle').textContent='Modifier — '+d.id;
+    document.getElementById('dirTitre').value=d.titre; document.getElementById('dirCat').value=d.cat;
+    document.getElementById('dirAuteur').value=d.auteur; document.getElementById('dirDate').value=d.date;
+    document.getElementById('dirContenu').value=d.contenu; document.getElementById('dirDest').value=d.dest||'';
+  } else {
+    document.getElementById('dirFormTitle').textContent='Nouvelle directive';
+    ['dirTitre','dirAuteur','dirContenu','dirDest'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('dirDate').value=S.today();
+  }
+  const p=document.getElementById('dirFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function saveDirective() {
+  const titre=document.getElementById('dirTitre').value.trim(), contenu=document.getElementById('dirContenu').value.trim();
+  if(!titre||!contenu){alert('Titre et contenu obligatoires.');return;}
+  const data={titre,contenu,cat:document.getElementById('dirCat').value,auteur:document.getElementById('dirAuteur').value.trim(),
+    date:document.getElementById('dirDate').value,dest:document.getElementById('dirDest').value.trim()};
+  if(editingDirId){const i=directives.findIndex(x=>x.id===editingDirId);if(i!==-1)directives[i]={...directives[i],...data};}
+  else directives.push({id:S.genId('DIR'),...data,createdAt:new Date().toISOString()});
+  S.store.set(STORE_DIR,directives); renderDirectives();
+  document.getElementById('dirFormPanel').style.display='none'; editingDirId=null;
+  S.addHistory('Directive publiée : '+titre);
+}
+
+// ── PERSONNEL ──
+function renderPersonnel() {
+  const wrap=document.getElementById('persTableWrap');
+  const q=(document.getElementById('persSearch')?.value||'').toLowerCase();
+  const depts=['Sécurité','Administration','Scientifique','Médical','Staff'];
+  const counts={all:personnel.length}; depts.forEach(d=>counts[d]=0);
+  personnel.forEach(p=>{ if(counts[p.dept]!==undefined) counts[p.dept]++; });
+  document.getElementById('persCount').textContent=personnel.length+' agent'+(personnel.length>1?'s':'');
+  document.getElementById('pc-all').textContent=counts.all;
+  document.getElementById('pc-sec').textContent=counts['Sécurité']||0;
+  document.getElementById('pc-adm').textContent=counts['Administration']||0;
+  document.getElementById('pc-sci').textContent=counts['Scientifique']||0;
+  document.getElementById('pc-med').textContent=counts['Médical']||0;
+  document.getElementById('pc-staff').textContent=counts['Staff']||0;
+  let list=activePersFil==='all'?personnel:personnel.filter(p=>p.dept===activePersFil);
+  if(q) list=list.filter(p=>p.nom.toLowerCase().includes(q)||p.username.toLowerCase().includes(q));
+  if(!list.length){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">Aucun agent trouvé</div></div>';updateStats();return;}
+  wrap.innerHTML=`<table class="pers-table"><thead><tr>
+    <th>Nom</th><th>Username</th><th>Département</th><th>Grade</th><th>Accréd.</th><th>Intégration</th><th>Statut</th><th>Actions</th>
+  </tr></thead><tbody>
+  ${list.map(p=>`<tr>
+    <td style="color:var(--white);font-weight:600">${p.nom}</td>
+    <td>@${p.username}</td><td>${p.dept}</td>
+    <td style="font-size:11px">${p.grade}</td>
+    <td style="text-align:center">NIV.${p.accred}</td>
+    <td>${S.fmtDate(p.dateInteg)}</td>
+    <td><span class="pers-status ${p.statut}">${p.statut}</span></td>
+    <td><div style="display:flex;gap:4px">
+      <button class="btn btn-ghost btn-xs" data-pers-edit="${p.id}">✎</button>
+      <button class="btn btn-danger btn-xs" data-pers-del="${p.id}">🗑</button>
+    </div></td>
+  </tr>`).join('')}
+  </tbody></table>`;
+  updateStats();
+}
+
+function openPersForm(id=null) {
+  editingPersId=id;
+  if(id){
+    const p=personnel.find(x=>x.id===id); if(!p) return;
+    document.getElementById('persFormTitle').textContent='Modifier — '+p.nom;
+    document.getElementById('persNom').value=p.nom; document.getElementById('persUsername').value=p.username;
+    document.getElementById('persDept').value=p.dept; document.getElementById('persGrade').value=p.grade;
+    document.getElementById('persAccred').value=p.accred; document.getElementById('persStatut').value=p.statut;
+    document.getElementById('persDateInteg').value=p.dateInteg; document.getElementById('persNotes').value=p.notes||'';
+  } else {
+    document.getElementById('persFormTitle').textContent='Ajouter un agent';
+    ['persNom','persUsername','persGrade','persNotes'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('persDateInteg').value=S.today();
+  }
+  const p=document.getElementById('persFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function savePersonnel() {
+  const nom=document.getElementById('persNom').value.trim(), username=document.getElementById('persUsername').value.trim();
+  if(!nom||!username){alert('Nom et username obligatoires.');return;}
+  const data={nom,username,dept:document.getElementById('persDept').value,grade:document.getElementById('persGrade').value.trim(),
+    accred:document.getElementById('persAccred').value,statut:document.getElementById('persStatut').value,
+    dateInteg:document.getElementById('persDateInteg').value,notes:document.getElementById('persNotes').value.trim()};
+  if(editingPersId){const i=personnel.findIndex(x=>x.id===editingPersId);if(i!==-1)personnel[i]={...personnel[i],...data};}
+  else personnel.push({id:S.genId('AGT'),...data,createdAt:new Date().toISOString()});
+  S.store.set(STORE_PERS,personnel); renderPersonnel();
+  document.getElementById('persFormPanel').style.display='none'; editingPersId=null;
+  S.addHistory('Agent enregistré : '+nom);
+}
+
+// ── ÉVALUATIONS ──
+function renderEvaluations() {
+  const el=document.getElementById('evalList');
+  S.updateStat('statEval',evaluations.length);
+  document.getElementById('evalCount').textContent=evaluations.length+' évaluation'+(evaluations.length>1?'s':'');
+  document.getElementById('ec-all').textContent=evaluations.length;
+  let list=activeEvalFil==='all'?evaluations:evaluations.filter(e=>e.dept===activeEvalFil);
+  if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation</div></div>';return;}
+  const DEC={promu:'✅ Promu',valide:'✔ Validé',avertissement:'⚠ Avertissement',recale:'❌ Recalé',expulse:'🚫 Expulsé'};
+  el.innerHTML=[...list].reverse().map(ev=>{
+    const m=S.getEvalMention(ev.total);
+    return`<div class="card">
+      <div class="card-hdr"><div class="card-id">${ev.id}</div><div class="card-sev" style="color:${m.color};border-color:${m.color}">${ev.total}/60</div></div>
+      <div class="card-type">${ev.dept}</div>
+      <div class="card-title">${ev.nom}</div>
+      <div class="card-meta"><span>@${ev.username}</span><span>${ev.grade}</span><span>Éval: ${ev.auteur}</span><span>${S.fmtDate(ev.date)}</span></div>
+      <div class="card-excerpt">${DEC[ev.decision]||ev.decision} — ${m.text}${ev.comments?'\n"'+ev.comments+'"':''}</div>
+      <div class="card-acts"><button class="btn btn-danger btn-xs" data-eval-del="${ev.id}">🗑 Supprimer</button></div>
+    </div>`;
+  }).join('');
+}
+
+function saveEval() {
+  const nom=document.getElementById('evalNom').value.trim(), auteur=document.getElementById('evalAuteur').value.trim();
+  const date=document.getElementById('evalDate').value;
+  if(!nom||!auteur||!date){alert('Champs obligatoires manquants.');return;}
+  const scores={}; S.EVAL_CRITERIA.forEach(k=>scores[k]=parseInt(document.getElementById('score'+k).value));
+  const total=Object.values(scores).reduce((a,b)=>a+b,0);
+  const data={nom,auteur,date,scores,total,username:document.getElementById('evalUsername').value.trim(),
+    dept:document.getElementById('evalDept').value,grade:document.getElementById('evalGrade').value.trim(),
+    decision:document.getElementById('evalDecision').value,comments:document.getElementById('evalComments').value.trim()};
+  evaluations.push({id:S.genId('EVAL'),...data,createdAt:new Date().toISOString()});
+  S.store.set(STORE_EVAL,evaluations); renderEvaluations();
+  document.getElementById('evalFormPanel').style.display='none';
+  S.addHistory('Évaluation enregistrée : '+nom);
+}
+
+// ── RAPPORTS ──
+function renderRapports() {
+  const el=document.getElementById('rapList');
+  document.getElementById('rapCount').textContent=rapports.length+' rapport'+(rapports.length>1?'s':'');
+  document.getElementById('rpc-all').textContent=rapports.length;
+  let list=activeRapFil==='all'?rapports:rapports.filter(r=>r.type===activeRapFil);
+  if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport</div></div>';return;}
+  el.innerHTML=[...list].reverse().map(r=>{
+    const color=SEV_COLORS[r.sev]||'var(--text-dim)', label=SEV_LABELS[r.sev]||r.sev;
+    return`<div class="card">
+      <div class="card-hdr"><div class="card-id">${r.id}</div><div class="card-sev" style="color:${color};border-color:${color}">${label}</div></div>
+      <div class="card-type">${r.type}</div><div class="card-title">${r.titre}</div>
+      <div class="card-meta"><span>${r.auteur}${r.username?' (@'+r.username+')':''}</span><span>${S.fmtDate(r.date)}</span></div>
+      <div class="card-excerpt">${r.desc.substring(0,120)}${r.desc.length>120?'…':''}</div>
+      <div class="card-acts">
+        <button class="btn btn-ghost btn-xs" data-rap-view="${r.id}">📄 Voir</button>
+        <button class="btn btn-primary btn-xs" data-rap-export="${r.id}">⬇</button>
+        <button class="btn btn-danger btn-xs" data-rap-del="${r.id}">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveRapport() {
+  const titre=document.getElementById('rapTitre').value.trim(), auteur=document.getElementById('rapAuteur').value.trim();
+  const desc=document.getElementById('rapDesc').value.trim(), date=document.getElementById('rapDate').value;
+  if(!titre||!auteur||!desc||!date){alert('Champs obligatoires manquants.');return;}
+  const data={titre,auteur,desc,date,type:document.getElementById('rapType').value,sev:document.getElementById('rapSev').value,
+    username:document.getElementById('rapUsername').value.trim(),conclusion:document.getElementById('rapConclusion').value.trim(),
+    temoins:document.getElementById('rapTemoins').value.split(',').map(t=>t.trim()).filter(Boolean),dept:'Département Administratif'};
+  if(editingRapId){const i=rapports.findIndex(x=>x.id===editingRapId);if(i!==-1)rapports[i]={...rapports[i],...data};}
+  else rapports.push({id:S.genId('RPT'),...data,createdAt:new Date().toISOString()});
+  S.store.set(STORE_RAP,rapports); renderRapports();
+  document.getElementById('rapFormPanel').style.display='none'; editingRapId=null;
+  S.addHistory('Rapport enregistré : '+titre);
+}
+
+function viewRapport(id) {
+  const r=rapports.find(x=>x.id===id); if(!r) return; viewingRapId=id;
+  document.getElementById('rapViewId').textContent=r.id; document.getElementById('rapViewType').textContent=r.type;
+  document.getElementById('rapViewTitre').textContent=r.titre;
+  document.getElementById('rapViewSev').textContent=SEV_LABELS[r.sev]||r.sev;
+  document.getElementById('rapViewSev').style.color=SEV_COLORS[r.sev]||'';
+  document.getElementById('rapViewAuteur').textContent=r.auteur+(r.username?' (@'+r.username+')':'');
+  document.getElementById('rapViewDate').textContent=S.fmtDate(r.date);
+  document.getElementById('rapViewTemoins').textContent=r.temoins?.join(', ')||'—';
+  document.getElementById('rapViewDesc').textContent=r.desc;
+  document.getElementById('rapViewConclusion').textContent=r.conclusion||'—';
+  document.getElementById('rapViewModal').classList.add('open');
+}
+
+function exportRapport(id) {
+  const r=rapports.find(x=>x.id===id); if(!r) return;
+  S.exportRapport({...r,severity:r.sev,witnesses:r.temoins,author:r.auteur,title:r.titre,description:r.desc});
+}
+
+// ── EVENT DELEGATION ──
+document.addEventListener('click', e => {
+  // Requêtes
+  if(e.target.id==='btnNewReq'){ openReqForm(); return; }
+  if(e.target.id==='reqSaveBtn'){ saveRequete(); return; }
+  if(e.target.id==='reqCancelBtn'||e.target.id==='reqCancelBtn2'){ document.getElementById('reqFormPanel').style.display='none'; editingReqId=null; return; }
+  if(e.target.id==='reqApprouverBtn'){ if(viewingReqId) setReqStatut(viewingReqId,'approuve'); return; }
+  if(e.target.id==='reqRefuserBtn'){ if(viewingReqId) setReqStatut(viewingReqId,'refuse'); return; }
+  const rv=e.target.closest('[data-req-view]'); if(rv){ viewRequete(rv.dataset.reqView); return; }
+  const ra=e.target.closest('[data-req-approve]'); if(ra){ setReqStatut(ra.dataset.reqApprove,'approuve'); return; }
+  const rrf=e.target.closest('[data-req-refuse]'); if(rrf){ setReqStatut(rrf.dataset.reqRefuse,'refuse'); return; }
+  const re=e.target.closest('[data-req-edit]'); if(re){ openReqForm(re.dataset.reqEdit); return; }
+  const rd=e.target.closest('[data-req-del]'); if(rd){ if(!confirm('Supprimer ?')) return; requetes=requetes.filter(x=>x.id!==rd.dataset.reqDel); S.store.set(STORE_REQ,requetes); renderRequetes(); return; }
+  // Directives
+  if(e.target.id==='btnNewDir'){ openDirForm(); return; }
+  if(e.target.id==='dirSaveBtn'){ saveDirective(); return; }
+  if(e.target.id==='dirCancelBtn'||e.target.id==='dirCancelBtn2'){ document.getElementById('dirFormPanel').style.display='none'; editingDirId=null; return; }
+  const de=e.target.closest('[data-dir-edit]'); if(de){ openDirForm(de.dataset.dirEdit); return; }
+  const dc=e.target.closest('[data-dir-copy]'); if(dc){ const d=directives.find(x=>x.id===dc.dataset.dirCopy); if(d) S.copyText(d.contenu,dc,'Copié'); return; }
+  const dd=e.target.closest('[data-dir-del]'); if(dd){ if(!confirm('Supprimer ?')) return; directives=directives.filter(x=>x.id!==dd.dataset.dirDel); S.store.set(STORE_DIR,directives); renderDirectives(); return; }
+  // Personnel
+  if(e.target.id==='btnNewPers'){ openPersForm(); return; }
+  if(e.target.id==='persSaveBtn'){ savePersonnel(); return; }
+  if(e.target.id==='persCancelBtn'||e.target.id==='persCancelBtn2'){ document.getElementById('persFormPanel').style.display='none'; editingPersId=null; return; }
+  const pee=e.target.closest('[data-pers-edit]'); if(pee){ openPersForm(pee.dataset.persEdit); return; }
+  const ped=e.target.closest('[data-pers-del]'); if(ped){ if(!confirm('Supprimer cet agent ?')) return; personnel=personnel.filter(x=>x.id!==ped.dataset.persDel); S.store.set(STORE_PERS,personnel); renderPersonnel(); return; }
+  // Évaluations
+  if(e.target.id==='btnNewEval'){ const p=document.getElementById('evalFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if(e.target.id==='evalSaveBtn'){ saveEval(); return; }
+  if(e.target.id==='evalCancelBtn'||e.target.id==='evalCancelBtn2'){ document.getElementById('evalFormPanel').style.display='none'; return; }
+  const evd=e.target.closest('[data-eval-del]'); if(evd){ if(!confirm('Supprimer ?')) return; evaluations=evaluations.filter(x=>x.id!==evd.dataset.evalDel); S.store.set(STORE_EVAL,evaluations); renderEvaluations(); return; }
+  // Rapports
+  if(e.target.id==='btnNewRap'){ const p=document.getElementById('rapFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if(e.target.id==='rapSaveBtn'){ saveRapport(); return; }
+  if(e.target.id==='rapCancelBtn'||e.target.id==='rapCancelBtn2'){ document.getElementById('rapFormPanel').style.display='none'; editingRapId=null; return; }
+  const rpv=e.target.closest('[data-rap-view]'); if(rpv){ viewRapport(rpv.dataset.rapView); return; }
+  const rpe=e.target.closest('[data-rap-export]'); if(rpe){ exportRapport(rpe.dataset.rapExport); return; }
+  if(e.target.id==='rapViewExportBtn'){ if(viewingRapId) exportRapport(viewingRapId); return; }
+  const rpd=e.target.closest('[data-rap-del]'); if(rpd){ if(!confirm('Supprimer ?')) return; rapports=rapports.filter(x=>x.id!==rpd.dataset.rapDel); S.store.set(STORE_RAP,rapports); renderRapports(); return; }
+});
+
+// Filtres
+document.getElementById('reqFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#reqFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeReqCat=p.dataset.cat;renderRequetes(); });
+document.getElementById('dirFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#dirFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeDirCat=p.dataset.dcat;renderDirectives(); });
+document.getElementById('persFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#persFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activePersFil=p.dataset.pf;renderPersonnel(); });
+document.getElementById('evalFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#evalFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeEvalFil=p.dataset.ef;renderEvaluations(); });
+document.getElementById('rapFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#rapFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeRapFil=p.dataset.rf;renderRapports(); });
+document.getElementById('dirSearch').addEventListener('input',renderDirectives);
+document.getElementById('persSearch').addEventListener('input',renderPersonnel);
+</script>
+</body>
+</html>

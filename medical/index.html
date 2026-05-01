@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>INTRANET — Département Médical // Site-15</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Share+Tech+Mono&family=Courier+Prime&display=swap');
+:root {
+  --bg:#0a0e13; --surface:#111820; --surface2:#161f2b; --surface3:#1c2736;
+  --border:#1e2d3d; --border2:#253546;
+  --white:#e8f0f8; --text:#b8c8d8; --text-dim:#5a7a9a;
+  --accent:#e8c84a; --accent2:#7ab0ff;
+  --safe:#00d97e; --warn:#ffaa00; --danger:#ff3355;
+  --dept-color:#00e676; --dept-glow:rgba(0,230,118,0.15);
+  --promo:#a855f7;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Share Tech Mono',monospace;background:var(--bg);color:var(--text);font-size:12px}
+a{color:inherit;text-decoration:none}
+input,select,textarea,button{font-family:inherit;font-size:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* TOPBAR */
+.topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-back{font-size:10px;letter-spacing:.1em;color:var(--text-dim);padding:4px 8px;border:1px solid var(--border2);transition:all .2s}
+.topbar-back:hover{border-color:var(--dept-color);color:var(--dept-color)}
+.topbar-divider{width:1px;height:28px;background:var(--border2)}
+.topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.05em}
+.topbar-dept{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-status{font-size:9px;letter-spacing:.15em;text-transform:uppercase;display:flex;align-items:center;gap:6px;color:var(--dept-color)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--dept-color);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.topbar-clearance{font-size:9px;letter-spacing:.18em;padding:3px 10px;border:1px solid var(--dept-color);color:var(--dept-color);text-transform:uppercase}
+.auth-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;padding:6px 14px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .2s}
+.auth-btn:hover{border-color:var(--dept-color);color:var(--dept-color)}
+.auth-btn.connected{border-color:var(--safe);color:var(--safe);background:rgba(0,230,118,.06)}
+.auth-btn.connected:hover{background:rgba(0,230,118,.12)}
+
+/* AUTH FLYOUT */
+.auth-flyout{position:fixed;top:52px;right:16px;width:300px;z-index:400;background:var(--surface);border:1px solid var(--border2);border-top:2px solid var(--dept-color);box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 20px var(--dept-glow);display:none;padding:20px}
+.auth-flyout.open{display:block;animation:flyout-in .18s ease}
+@keyframes flyout-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.auth-flyout-title{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--dept-color);margin-bottom:14px}
+.af-field{margin-bottom:10px}
+.af-field label{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim);display:block;margin-bottom:5px}
+.af-field input{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:12px;padding:8px 10px;outline:none;transition:border-color .2s}
+.af-field input:focus{border-color:var(--dept-color)}
+.auth-flyout-err{font-size:10px;color:var(--danger);min-height:14px;margin-bottom:8px}
+.auth-flyout-submit{width:100%;padding:9px;background:rgba(0,230,118,.08);border:1px solid var(--dept-color);color:var(--dept-color);font-size:11px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.auth-flyout-submit:hover{background:rgba(0,230,118,.18)}
+.auth-flyout-loading{text-align:center;font-size:10px;color:var(--text-dim);padding:8px;letter-spacing:.15em;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:.3}}
+.auth-user-panel{text-align:center;padding:4px 0}
+.auth-user-name{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--white);text-transform:uppercase;margin-bottom:4px}
+.auth-user-role{font-size:9px;letter-spacing:.2em;padding:2px 10px;border:1px solid;text-transform:uppercase;display:inline-block;margin-bottom:14px}
+.auth-user-role.admin{color:var(--danger);border-color:rgba(192,57,43,.5);background:rgba(192,57,43,.08)}
+.auth-user-role.moderateur{color:var(--accent);border-color:rgba(232,200,74,.4);background:rgba(232,200,74,.06)}
+.auth-logout-btn{width:100%;padding:8px;background:rgba(192,57,43,.06);border:1px solid rgba(192,57,43,.4);color:var(--danger);font-size:10px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.auth-logout-btn:hover{background:rgba(192,57,43,.14)}
+.ro-lock{display:none;align-items:center;gap:8px;font-size:10px;color:var(--text-dim);background:rgba(0,230,118,.04);border:1px solid rgba(0,230,118,.15);padding:8px 14px;margin-bottom:16px;letter-spacing:.1em}
+.ro-lock.visible{display:flex}
+.ro-lock-link{color:var(--dept-color);cursor:pointer;text-decoration:underline;margin-left:4px}
+
+/* NAV */
+.dept-nav{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto}
+.nav-tab{font-size:9px;letter-spacing:.15em;text-transform:uppercase;padding:12px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-dim);cursor:pointer;transition:all .2s;white-space:nowrap}
+.nav-tab:hover{color:var(--white)}
+.nav-tab.active{color:var(--dept-color);border-bottom-color:var(--dept-color)}
+
+/* LAYOUT */
+.app-layout{display:flex;height:calc(100vh - 104px);overflow:hidden}
+.main-content{flex:1;overflow-y:auto;padding:20px}
+.sidebar{width:260px;flex-shrink:0;overflow-y:auto;padding:14px;background:var(--surface);border-left:1px solid var(--border)}
+.view{display:none}
+.view.active{display:block}
+
+/* SECTIONS */
+.sec-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.sec-tag{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.04em}
+.sec-title span{color:var(--dept-color)}
+.sec-sub{font-size:10px;color:var(--text-dim);margin-top:2px}
+.sec-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* ALERT BANNER */
+.alert-banner{padding:8px 14px;border:1px solid;font-size:10px;letter-spacing:.1em;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.alert-banner.safe{border-color:rgba(0,217,126,.3);background:rgba(0,217,126,.05);color:var(--safe)}
+
+/* BTNS */
+.btn{padding:8px 16px;border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;transition:all .2s}
+.btn-sm{padding:6px 12px;font-size:9px}
+.btn-xs{padding:3px 8px;font-size:8px;letter-spacing:.08em}
+.btn-ghost{border-color:var(--border2);color:var(--text-dim)}
+.btn-ghost:hover{border-color:var(--white);color:var(--white)}
+.btn-dept{border-color:var(--dept-color);color:var(--dept-color);background:rgba(0,230,118,.06)}
+.btn-dept:hover{background:rgba(0,230,118,.14)}
+.btn-danger{border-color:rgba(255,51,85,.4);color:var(--danger);background:rgba(255,51,85,.04)}
+.btn-danger:hover{background:rgba(255,51,85,.12)}
+.btn-warn{border-color:rgba(255,170,0,.4);color:var(--warn);background:rgba(255,170,0,.04)}
+.btn-warn:hover{background:rgba(255,170,0,.12)}
+.action-locked{opacity:.35;pointer-events:none;cursor:not-allowed}
+
+/* SEARCH */
+.search-row{margin-bottom:12px}
+.search-wrap{position:relative}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:14px}
+.search-input{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--white);padding:8px 12px 8px 36px;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--dept-color)}
+
+/* FILTERS */
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.pill{padding:4px 12px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);cursor:pointer;font-size:9px;letter-spacing:.1em;text-transform:uppercase;transition:all .2s}
+.pill:hover{border-color:var(--dept-color);color:var(--dept-color)}
+.pill.active{border-color:var(--dept-color);color:var(--dept-color);background:rgba(0,230,118,.06)}
+.pill-n{opacity:.6}
+
+/* ITEM LIST */
+.item-list{display:flex;flex-direction:column;gap:8px}
+.item-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border2);padding:14px 16px;transition:all .2s}
+.item-card:hover{background:var(--surface2)}
+.item-card.cat-urgence,.item-card.cat-contamination{border-left-color:var(--danger)}
+.item-card.cat-quarantaine{border-left-color:var(--warn)}
+.item-card.cat-chirurgie,.item-card.cat-psychologie{border-left-color:var(--safe)}
+.item-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.item-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--white);text-transform:uppercase}
+.item-tags{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.item-meta{font-size:9px;color:var(--text-dim);letter-spacing:.08em;margin-bottom:6px}
+.item-body{font-family:'Courier Prime',monospace;font-size:11px;color:var(--text);line-height:1.6;margin-bottom:10px}
+.item-actions{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--border2);color:var(--text-dim)}
+.tag-urgent{border-color:rgba(255,51,85,.4);color:var(--danger);background:rgba(255,51,85,.05)}
+.tag-warn{border-color:rgba(255,170,0,.4);color:var(--warn)}
+.tag-safe{border-color:rgba(0,217,126,.4);color:var(--safe)}
+.tag-accent{border-color:rgba(232,200,74,.4);color:var(--accent)}
+.tag-info{border-color:rgba(122,176,255,.4);color:var(--accent2)}
+
+/* MODALES */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.open{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-top:2px solid var(--dept-color);width:100%;max-width:640px;max-height:90vh;display:flex;flex-direction:column}
+.modal-box.wide{max-width:820px}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);text-transform:uppercase}
+.modal-close{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;padding:4px 8px;transition:color .2s}
+.modal-close:hover{color:var(--white)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+/* ORDONNANCE FORM */
+.ordo-stepper{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border2);overflow:hidden}
+.ordo-step{flex:1;padding:10px 14px;background:var(--surface2);border-right:1px solid var(--border2);cursor:pointer;transition:all .2s;text-align:center}
+.ordo-step:last-child{border-right:none}
+.ordo-step.active{background:rgba(0,230,118,.08);border-bottom:2px solid var(--dept-color)}
+.ordo-step-num{font-size:9px;color:var(--text-dim);letter-spacing:.15em;display:block;margin-bottom:2px}
+.ordo-step-lbl{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em}
+.ordo-step.active .ordo-step-lbl{color:var(--dept-color)}
+.ordo-step.done .ordo-step-num{color:var(--safe)}
+.ordo-step.done .ordo-step-lbl{color:var(--safe)}
+.ordo-panel{display:none}
+.ordo-panel.active{display:block}
+.ordo-section{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--dept-color);padding:14px 16px;margin-bottom:14px}
+.ordo-section-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.ordo-section-title::after{content:'';flex:1;height:1px;background:rgba(0,230,118,.15)}
+.ordo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ordo-grid.triple{grid-template-columns:1fr 1fr 1fr}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:8px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim)}
+.form-field input,.form-field select,.form-field textarea{background:var(--surface);border:1px solid var(--border2);color:var(--white);padding:7px 10px;outline:none;transition:border-color .2s}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--dept-color)}
+.form-field textarea{resize:vertical}
+.form-field input.required-error,.form-field select.required-error,.form-field textarea.required-error{border-color:var(--danger)}
+
+/* PRESCRIPTIONS DYNAMIQUES */
+.rx-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.rx-item{background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--accent2);padding:10px 12px;display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:start}
+.rx-item-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:4px;align-self:center}
+.rx-add-btn{border:1px dashed var(--border2);padding:8px;text-align:center;cursor:pointer;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);background:transparent;transition:all .2s;width:100%}
+.rx-add-btn:hover{border-color:var(--dept-color);color:var(--dept-color)}
+
+/* SIGNALEMENT BIOHAZARD */
+.bio-selector{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.bio-opt{padding:10px 6px;border:1px solid var(--border2);background:var(--surface);text-align:center;cursor:pointer;transition:all .2s}
+.bio-opt:hover{border-color:var(--dept-color)}
+.bio-opt.selected{border-color:var(--dept-color);background:rgba(0,230,118,.08)}
+.bio-opt[data-lvl="3"].selected{border-color:var(--warn);background:rgba(255,170,0,.08)}
+.bio-opt[data-lvl="4"].selected{border-color:var(--danger);background:rgba(255,51,85,.08)}
+.bio-lvl{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--dept-color)}
+.bio-opt[data-lvl="3"] .bio-lvl{color:var(--warn)}
+.bio-opt[data-lvl="4"] .bio-lvl{color:var(--danger)}
+.bio-lbl{font-size:8px;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase;display:block;margin-top:2px}
+
+/* PREVIEW ORDONNANCE */
+.ordo-preview{background:var(--surface2);border:1px solid var(--border2);padding:16px;font-family:'Courier Prime',monospace;font-size:11px;line-height:1.9}
+.ordo-preview-hdr{text-align:center;border-bottom:1px solid var(--border2);padding-bottom:10px;margin-bottom:12px}
+.ordo-preview-hdr .title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.1em}
+.ordo-preview-hdr .sub{font-size:9px;color:var(--text-dim);letter-spacing:.15em}
+.ordo-preview-row{display:flex;gap:16px;margin-bottom:4px}
+.ordo-preview-lbl{color:var(--text-dim);min-width:100px;flex-shrink:0}
+.ordo-preview-val{color:var(--white)}
+.ordo-preview-rx{margin-top:10px;border-top:1px dashed var(--border2);padding-top:10px}
+.ordo-preview-rx-title{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dept-color);margin-bottom:8px}
+.rx-preview-line{display:flex;gap:10px;padding:4px 0;border-bottom:1px solid var(--border);align-items:baseline}
+.rx-num{color:var(--dept-color);min-width:20px}
+
+/* FORMS GENERAL */
+.form-panel{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--dept-color);padding:16px;margin-bottom:16px}
+.form-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--white);text-transform:uppercase}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+/* CARDS GRID */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--border);padding:16px;transition:all .2s}
+.card:hover{background:var(--surface2)}
+.card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.card-id{font-size:9px;color:var(--text-dim);letter-spacing:.1em}
+.card-sev{font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border:1px solid}
+.card-type{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.card-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--white);text-transform:uppercase;margin-bottom:6px}
+.card-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:9px;color:var(--text-dim);margin-bottom:8px}
+.card-excerpt{font-family:'Courier Prime',monospace;font-size:11px;color:var(--text);line-height:1.5;margin-bottom:10px}
+.card-acts{display:flex;gap:5px;flex-wrap:wrap}
+
+/* FICHES MEDICALES */
+.fiche-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.fiche-card{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--dept-color);padding:0;overflow:hidden;transition:all .2s}
+.fiche-card:hover{background:var(--surface2)}
+.fiche-card.sev-critique{border-top-color:var(--danger)}
+.fiche-card.sev-eleve{border-top-color:var(--warn)}
+.fiche-card.sev-modere{border-top-color:var(--accent2)}
+.fiche-card.sev-faible{border-top-color:var(--safe)}
+.fiche-header{padding:14px 16px;border-bottom:1px solid var(--border)}
+.fiche-header-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.fiche-id{font-size:9px;color:var(--dept-color);letter-spacing:.12em}
+.fiche-badge{font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border:1px solid}
+.fiche-badge.sev-critique{color:var(--danger);border-color:rgba(255,51,85,.4);background:rgba(255,51,85,.06)}
+.fiche-badge.sev-eleve{color:var(--warn);border-color:rgba(255,170,0,.4);background:rgba(255,170,0,.06)}
+.fiche-badge.sev-modere{color:var(--accent2);border-color:rgba(122,176,255,.4);background:rgba(122,176,255,.06)}
+.fiche-badge.sev-faible{color:var(--safe);border-color:rgba(0,217,126,.4);background:rgba(0,217,126,.06)}
+.fiche-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--white);text-transform:uppercase}
+.fiche-body{padding:12px 16px}
+.fiche-row{display:flex;gap:8px;margin-bottom:5px;font-size:10px}
+.fiche-lbl{color:var(--text-dim);min-width:80px;flex-shrink:0;letter-spacing:.05em}
+.fiche-val{color:var(--white)}
+.fiche-diag{font-family:'Courier Prime',monospace;font-size:11px;color:var(--text);line-height:1.6;margin:8px 0;padding:8px 10px;background:var(--surface2);border-left:2px solid var(--dept-color)}
+.fiche-footer{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:6px;background:var(--surface2)}
+
+/* PATIENTS */
+.patient-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.patient-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--dept-color);padding:16px;transition:all .2s}
+.patient-card:hover{background:var(--surface2)}
+.patient-card.status-critical{border-left-color:var(--danger)}
+.patient-card.status-stable{border-left-color:var(--safe)}
+.patient-card.status-quarantine{border-left-color:var(--warn)}
+.patient-card.status-observation{border-left-color:var(--accent2)}
+.patient-name{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white)}
+.patient-id{font-size:10px;color:var(--dept-color);letter-spacing:.1em}
+.patient-status{font-size:9px;padding:2px 8px;border:1px solid;text-transform:uppercase;letter-spacing:.1em;display:inline-block;margin:6px 0}
+.patient-status.critical{color:var(--danger);border-color:var(--danger);background:rgba(255,51,85,.08)}
+.patient-status.stable{color:var(--safe);border-color:var(--safe)}
+.patient-status.quarantine{color:var(--warn);border-color:var(--warn)}
+.patient-status.observation{color:var(--accent2);border-color:var(--accent2)}
+.patient-diag{font-family:'Courier Prime',monospace;font-size:11px;color:var(--text-dim);line-height:1.6;margin:6px 0}
+
+/* EVALS */
+.eval-crit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.eval-crit{background:var(--surface2);border:1px solid var(--border);padding:10px}
+.eval-crit label{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);display:block;margin-bottom:6px}
+.score-row{display:flex;align-items:center;gap:10px}
+.score-row input[type=range]{flex:1;accent-color:var(--dept-color)}
+.score-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--dept-color);min-width:20px;text-align:right}
+.eval-total{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--dept-color);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.eval-total-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:3px}
+.eval-total-score{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--dept-color)}
+.eval-total-mention{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700}
+
+/* WIDGET / SIDEBAR */
+.widget{margin-bottom:14px;border:1px solid var(--border)}
+.widget-hdr{padding:8px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.widget-hdr::before{content:'';width:3px;height:14px;background:var(--dept-color);flex-shrink:0}
+.widget-title{font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:var(--text-dim)}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.stat-box{background:var(--surface2);padding:12px 14px}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--dept-color);line-height:1}
+.stat-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-top:2px}
+.terminal{padding:12px 14px;font-size:10px;line-height:2}
+.t-prompt{color:var(--dept-color)}
+.t-dim{color:var(--text-dim)}
+.t-out{color:var(--text)}
+.t-warn{color:var(--warn)}
+.t-err{color:var(--danger)}
+.cursor{display:inline-block;width:7px;height:11px;background:var(--dept-color);animation:blink 1s step-end infinite;vertical-align:middle}
+.hlog{padding:10px 14px;max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.hline{font-size:9px;line-height:1.5;display:flex;gap:6px}
+.hts{color:var(--text-dim);flex-shrink:0}
+
+/* EMPTY */
+.empty-state{padding:40px;text-align:center}
+.empty-icon{font-size:32px;margin-bottom:8px;opacity:.4}
+.empty-text{font-size:10px;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase}
+
+/* MORPH VIEW */
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.meta-item{background:var(--surface2);border:1px solid var(--border);padding:8px 12px}
+.meta-item label{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);display:block;margin-bottom:3px}
+.meta-item span{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white)}
+.msec{margin-bottom:14px}
+.msec-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:6px}
+.msec-content{font-family:'Courier Prime',monospace;font-size:12px;color:var(--text);line-height:1.7;background:var(--surface2);border:1px solid var(--border);padding:12px}
+
+/* SIDEBAR AUTH */
+.widget-body{padding:12px 14px}
+
+/* STEP NAV */
+.step-nav{display:flex;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* FICHE VIEW MODAL */
+.fiche-view-section{margin-bottom:16px}
+.fiche-view-section-title{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dept-color);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.fiche-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.fiche-meta-box{background:var(--surface2);border:1px solid var(--border);padding:8px 10px}
+.fiche-meta-box label{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);display:block;margin-bottom:2px}
+.fiche-meta-box span{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--white)}
+.fiche-rx-table{width:100%;border-collapse:collapse;font-size:10px}
+.fiche-rx-table th{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);padding:5px 8px;text-align:left;border-bottom:1px solid var(--border)}
+.fiche-rx-table td{padding:7px 8px;border-bottom:1px solid var(--border);color:var(--text)}
+.fiche-rx-table tr:hover td{background:var(--surface2)}
+
+/* ═══ ROSTER / AGENTS ═══ */
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.agent-card{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--dept-color);padding:0;overflow:hidden;transition:all .2s;position:relative}
+.agent-card:hover{background:var(--surface2);transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.agent-card.status-actif{border-top-color:var(--safe)}
+.agent-card.status-inactif{border-top-color:var(--text-dim)}
+.agent-card.status-suspendu{border-top-color:var(--danger)}
+.agent-card.status-conge{border-top-color:var(--warn)}
+.agent-card-header{padding:16px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.agent-avatar{width:44px;height:44px;border:2px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--dept-color);flex-shrink:0;text-transform:uppercase}
+.agent-identity{flex:1;min-width:0}
+.agent-name{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--white);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agent-username{font-size:9px;color:var(--dept-color);letter-spacing:.1em;margin-top:1px}
+.agent-status-badge{font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border:1px solid;white-space:nowrap;flex-shrink:0}
+.agent-status-badge.actif{color:var(--safe);border-color:rgba(0,217,126,.4);background:rgba(0,217,126,.06)}
+.agent-status-badge.inactif{color:var(--text-dim);border-color:var(--border2)}
+.agent-status-badge.suspendu{color:var(--danger);border-color:rgba(255,51,85,.4);background:rgba(255,51,85,.06)}
+.agent-status-badge.conge{color:var(--warn);border-color:rgba(255,170,0,.4);background:rgba(255,170,0,.06)}
+.agent-card-body{padding:12px 16px}
+.agent-info-row{display:flex;gap:8px;margin-bottom:6px;font-size:10px;align-items:flex-start}
+.agent-info-lbl{color:var(--text-dim);min-width:76px;flex-shrink:0;letter-spacing:.05em;font-size:9px}
+.agent-info-val{color:var(--white);line-height:1.4}
+.agent-rank-badge{display:inline-block;font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:1px solid rgba(122,176,255,.4);color:var(--accent2);background:rgba(122,176,255,.06)}
+.agent-spec-badge{display:inline-block;font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border:1px solid rgba(232,200,74,.35);color:var(--accent);background:rgba(232,200,74,.05)}
+.agent-card-footer{padding:8px 16px;border-top:1px solid var(--border);display:flex;gap:5px;background:var(--surface2)}
+
+/* Roster table view */
+.roster-table-wrap{overflow-x:auto}
+.roster-table{width:100%;border-collapse:collapse;font-size:10px}
+.roster-table th{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap}
+.roster-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.roster-table tr:hover td{background:var(--surface2)}
+.roster-table .td-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);text-transform:uppercase}
+.roster-table .td-id{font-size:9px;color:var(--dept-color);letter-spacing:.1em}
+
+/* View toggle */
+.view-toggle{display:flex;gap:0;border:1px solid var(--border2)}
+.view-toggle-btn{padding:5px 10px;background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:12px;transition:all .2s}
+.view-toggle-btn.active{background:rgba(0,230,118,.08);color:var(--dept-color)}
+
+@media(max-width:768px){.sidebar{display:none}.form-grid{grid-template-columns:1fr}.ordo-grid{grid-template-columns:1fr}.rx-item{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <a href="../index.html" class="topbar-back">← Site-15</a>
+    <div class="topbar-divider"></div>
+    <div>
+      <div class="topbar-title">⚕️ Médical</div>
+      <div class="topbar-dept">DEPT-MED // BIO-HAZARD — NIV.2</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-status"><div class="status-dot"></div>OPÉRATIONNEL</div>
+    <div class="topbar-clearance">NIVEAU 2</div>
+    <button class="auth-btn" id="authBtn" onclick="toggleAuthFlyout()">🔑 Connexion</button>
+  </div>
+  <!-- Ajouter juste après le bouton #authBtn -->
+<a href="espace-personnel.html" id="monEspaceBtn" style="display:none">
+  <button class="auth-btn connected" style="background:rgba(0,230,118,.08)">
+    👤 Mon Espace
+  </button>
+</a>
+</header>
+
+<div class="auth-flyout" id="authFlyout">
+  <div id="afLoginPanel">
+    <div class="auth-flyout-title">// Authentification médecin</div>
+    <div class="af-field"><label>Nom d'utilisateur</label><input type="text" id="afUsername" placeholder="Ex: M.KOLIANSKY" autocomplete="username" spellcheck="false"/></div>
+    <div class="af-field"><label>Mot de passe</label><input type="password" id="afPassword" placeholder="••••••••" autocomplete="current-password"/></div>
+    <div class="auth-flyout-err" id="afError"></div>
+    <button class="auth-flyout-submit" onclick="doAuthLogin()">→ Accéder</button>
+  </div>
+  <div id="afLoadingPanel" style="display:none" class="auth-flyout-loading">AUTHENTIFICATION…</div>
+  <div id="afUserPanel" style="display:none">
+    <div class="auth-flyout-title">// Médecin authentifié</div>
+    <div class="auth-user-panel">
+      <div class="auth-user-name" id="afUserName">—</div>
+      <div class="auth-user-role" id="afUserRole">—</div>
+    </div>
+    <button class="auth-logout-btn" onclick="doAuthLogout()">↩ Déconnexion</button>
+  </div>
+</div>
+
+<nav class="dept-nav">
+  <button class="nav-tab active" data-view="protocoles"><span>▢</span> Ordonnances</button>
+  <button class="nav-tab" data-view="fiches"><span>🗂</span> Fiches Médicales</button>
+  <button class="nav-tab" data-view="patients"><span>🏥</span> Patients</button>
+  <button class="nav-tab" data-view="evaluations"><span>✦</span> Évaluations</button>
+  <button class="nav-tab" data-view="rapports"><span>📋</span> Rapports</button>
+  <button class="nav-tab" data-view="roster"><span>👥</span> Roster</button>
+</nav>
+
+<div class="app-layout">
+<main class="main-content">
+
+  <!-- ▸ ORDONNANCES -->
+  <section class="view active" id="view-protocoles">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Base de données médicale</div>
+        <div class="sec-title">Ordonnances <span>MÉDICAL</span></div>
+        <div class="sec-sub" id="protoCount">0 protocoles chargés</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-dept btn-sm action-write" id="btnNewProto">+ Nouvelle ordonnance</button>
+      </div>
+    </div>
+    <div class="ro-lock" id="roProto">
+      <span>🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier des ordonnances</span>
+    </div>
+    <div class="alert-banner safe"><span>✓</span> Unité médicale opérationnelle — Niveau de contamination nominal — Zone de quarantaine active</div>
+    <div class="search-row">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" id="protoSearch" placeholder="Rechercher une ordonnance…" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="filter-row" id="protoFilters">
+      <button class="pill active" data-cat="all">Tous <span class="pill-n" id="cnt-all">0</span></button>
+      <button class="pill" data-cat="urgence">Urgence <span class="pill-n" id="cnt-urgence">0</span></button>
+      <button class="pill" data-cat="quarantaine">Quarantaine <span class="pill-n" id="cnt-quarantaine">0</span></button>
+      <button class="pill" data-cat="contamination">Contamination <span class="pill-n" id="cnt-contamination">0</span></button>
+      <button class="pill" data-cat="chirurgie">Chirurgie <span class="pill-n" id="cnt-chirurgie">0</span></button>
+      <button class="pill" data-cat="psychologie">Psychologie <span class="pill-n" id="cnt-psychologie">0</span></button>
+    </div>
+    <div class="item-list" id="protoList">
+      <div class="empty-state"><div class="empty-icon">⚕️</div><div class="empty-text">Aucune ordonnance médicale enregistrée</div></div>
+    </div>
+
+    <!-- MODAL ORDONNANCE -->
+    <div class="modal-ov" id="modalProto">
+      <div class="modal-box wide">
+        <div class="modal-hdr">
+          <div>
+            <div class="modal-title" id="protoModalTitle">Nouvelle ordonnance</div>
+            <div style="font-size:9px;color:var(--text-dim);letter-spacing:.1em;margin-top:2px" id="protoModalSub">Formulaire médical structuré — Site-15</div>
+          </div>
+          <button class="modal-close" data-close-modal="modalProto">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="ordo-stepper">
+            <div class="ordo-step active" data-pstep="1" onclick="gotoProtoStep(1)"><span class="ordo-step-num">ÉTAPE 01</span><div class="ordo-step-lbl">Identification</div></div>
+            <div class="ordo-step" data-pstep="2" onclick="gotoProtoStep(2)"><span class="ordo-step-num">ÉTAPE 02</span><div class="ordo-step-lbl">Prescriptions</div></div>
+            <div class="ordo-step" data-pstep="3" onclick="gotoProtoStep(3)"><span class="ordo-step-num">ÉTAPE 03</span><div class="ordo-step-lbl">Procédure</div></div>
+            <div class="ordo-step" data-pstep="4" onclick="gotoProtoStep(4)"><span class="ordo-step-num">ÉTAPE 04</span><div class="ordo-step-lbl">Aperçu</div></div>
+          </div>
+          <div class="ordo-panel active" id="ordo-panel-1">
+            <div class="ordo-section">
+              <div class="ordo-section-title">Informations générales</div>
+              <div class="ordo-grid">
+                <div class="form-field full"><label>Titre de l'ordonnance *</label><input id="pTitle" type="text" placeholder="Ex: Protocole Décontamination CODE GREEN — Chambre B4"/></div>
+                <div class="form-field"><label>Catégorie</label><select id="pCat"><option value="urgence">🔴 Urgence</option><option value="quarantaine">🟡 Quarantaine</option><option value="contamination">☣ Contamination</option><option value="chirurgie">🔬 Chirurgie</option><option value="psychologie">🧠 Psychologie</option></select></div>
+                <div class="form-field"><label>Statut</label><select id="pStatus"><option value="Actif">Actif</option><option value="En attente">En attente</option><option value="Suspendu">Suspendu</option><option value="Archivé">Archivé</option></select></div>
+                <div class="form-field"><label>Médecin prescripteur *</label><input id="pDoctor" type="text" placeholder="Ex: Dr. M.KOLIANSKY"/></div>
+                <div class="form-field"><label>Patient / Désignation</label><input id="pPatient" type="text" placeholder="Ex: M.NOWAK — MED-00423"/></div>
+                <div class="form-field"><label>Date d'émission</label><input id="pDate" type="date"/></div>
+                <div class="form-field"><label>Date d'expiration</label><input id="pExpire" type="text" placeholder="Ex: 7 jours / Jusqu'à guérison"/></div>
+              </div>
+            </div>
+            <div class="ordo-section">
+              <div class="ordo-section-title">Niveau biohazard</div>
+              <div class="bio-selector" id="bioSelector">
+                <div class="bio-opt selected" data-lvl="0" onclick="selectBio(0)"><div class="bio-lvl">0</div><span class="bio-lbl">Aucun</span></div>
+                <div class="bio-opt" data-lvl="1" onclick="selectBio(1)"><div class="bio-lvl">1</div><span class="bio-lbl">Faible</span></div>
+                <div class="bio-opt" data-lvl="2" onclick="selectBio(2)"><div class="bio-lvl">2</div><span class="bio-lbl">Modéré</span></div>
+                <div class="bio-opt" data-lvl="3" onclick="selectBio(3)"><div class="bio-lvl" style="color:var(--warn)">3</div><span class="bio-lbl">Élevé</span></div>
+                <div class="bio-opt" data-lvl="4" onclick="selectBio(4)"><div class="bio-lvl" style="color:var(--danger)">4</div><span class="bio-lbl">Critique</span></div>
+              </div>
+              <input type="hidden" id="pBio" value="0"/>
+            </div>
+            <div class="step-nav"><div></div><button class="btn btn-dept btn-sm" onclick="gotoProtoStep(2)">Suivant → Prescriptions</button></div>
+          </div>
+          <div class="ordo-panel" id="ordo-panel-2">
+            <div class="ordo-section">
+              <div class="ordo-section-title">Médicaments & traitements prescrits</div>
+              <div class="rx-list" id="rxList"></div>
+              <button class="rx-add-btn" onclick="addRxLine()">+ Ajouter un médicament / traitement</button>
+            </div>
+            <div class="ordo-section">
+              <div class="ordo-section-title">Équipements de protection requis</div>
+              <div class="ordo-grid"><div class="form-field full"><label>EPI & précautions spéciales</label><textarea id="pEpi" rows="3" placeholder="Ex: Combinaison NIV.3, masque P3, double gantage…"></textarea></div></div>
+            </div>
+            <div class="step-nav"><button class="btn btn-ghost btn-sm" onclick="gotoProtoStep(1)">← Retour</button><button class="btn btn-dept btn-sm" onclick="gotoProtoStep(3)">Suivant → Procédure</button></div>
+          </div>
+          <div class="ordo-panel" id="ordo-panel-3">
+            <div class="ordo-section">
+              <div class="ordo-section-title">Procédure médicale détaillée</div>
+              <div class="ordo-grid">
+                <div class="form-field full"><label>Description & procédure *</label><textarea id="pContent" rows="8" placeholder="Décrivez la procédure médicale en détail…"></textarea></div>
+                <div class="form-field full"><label>Contre-indications</label><textarea id="pContra" rows="3" placeholder="Ex: Ne pas administrer en cas d'exposition SCP-049 active…"></textarea></div>
+                <div class="form-field full"><label>Notes & observations complémentaires</label><textarea id="pNotes" rows="3" placeholder="Informations supplémentaires…"></textarea></div>
+              </div>
+            </div>
+            <div class="step-nav"><button class="btn btn-ghost btn-sm" onclick="gotoProtoStep(2)">← Retour</button><button class="btn btn-dept btn-sm" onclick="gotoProtoStep(4)">Suivant → Aperçu</button></div>
+          </div>
+          <div class="ordo-panel" id="ordo-panel-4">
+            <div class="ordo-preview" id="ordoPreview">
+              <div class="ordo-preview-hdr">
+                <div class="title">SCP FOUNDATION — SITE-15</div>
+                <div class="sub">ORDONNANCE MÉDICALE — DÉPARTEMENT MÉDICAL</div>
+                <div style="font-size:9px;color:var(--text-dim);margin-top:4px;letter-spacing:.12em" id="prevId">—</div>
+              </div>
+              <div id="prevMeta"></div>
+              <div class="ordo-preview-rx"><div class="ordo-preview-rx-title">// Prescriptions</div><div id="prevRx"></div></div>
+              <div style="margin-top:10px;border-top:1px dashed var(--border2);padding-top:10px">
+                <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dept-color);margin-bottom:6px">// Procédure</div>
+                <div id="prevContent" style="font-size:11px;color:var(--text);line-height:1.7;white-space:pre-wrap"></div>
+              </div>
+              <div id="prevContra" style="display:none;margin-top:8px;padding:8px;background:rgba(255,51,85,.06);border:1px solid rgba(255,51,85,.2)">
+                <div style="font-size:8px;letter-spacing:.15em;color:var(--danger);margin-bottom:4px">⚠ CONTRE-INDICATIONS</div>
+                <div id="prevContraText" style="font-size:10px;color:var(--text)"></div>
+              </div>
+            </div>
+            <div class="step-nav"><button class="btn btn-ghost btn-sm" onclick="gotoProtoStep(3)">← Modifier</button><button class="btn btn-dept btn-sm" id="saveProtoBtn">💾 Sauvegarder l'ordonnance</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ FICHES MEDICALES -->
+  <section class="view" id="view-fiches">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Dossiers patients — Médical</div>
+        <div class="sec-title">Fiches <span>MÉDICALES</span></div>
+        <div class="sec-sub" id="ficheCount">0 fiches enregistrées</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-dept btn-sm action-write" id="btnNewFiche">+ Nouvelle fiche</button>
+      </div>
+    </div>
+    <div class="ro-lock" id="roFiche"><span>🔒</span><span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier des fiches</span></div>
+    <div class="form-panel" id="ficheFormPanel" style="display:none">
+      <div class="form-title"><span id="ficheFormTitle">Nouvelle fiche médicale</span><button class="btn btn-ghost btn-sm" id="ficheCancelBtn">✕</button></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color);margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid rgba(0,230,118,.15)">Identité du patient</div>
+          <div class="form-grid" style="margin-bottom:12px">
+            <div class="form-field"><label>Nom / Désignation *</label><input id="fiNom" type="text" placeholder="Ex: M.NOWAK"/></div>
+            <div class="form-field"><label>ID Fiche</label><input id="fiId" type="text" placeholder="Auto-généré"/></div>
+            <div class="form-field"><label>Âge / Espèce</label><input id="fiAge" type="text" placeholder="Ex: 34 ans — Humain"/></div>
+            <div class="form-field"><label>Genre</label><select id="fiGenre"><option value="M">Masculin</option><option value="F">Féminin</option><option value="I">Indéterminé</option><option value="NA">Non applicable</option></select></div>
+            <div class="form-field"><label>Médecin référent *</label><input id="fiMedecin" type="text" placeholder="Ex: Dr. M.KOLIANSKY"/></div>
+            <div class="form-field"><label>Unité / Zone</label><input id="fiZone" type="text" placeholder="Ex: Zone Méd. B — Chambre 3"/></div>
+            <div class="form-field"><label>Date d'admission</label><input id="fiAdmission" type="date"/></div>
+            <div class="form-field"><label>Groupe sanguin</label><select id="fiBlood"><option value="—">Non déterminé</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option><option value="O+">O+</option><option value="O-">O-</option><option value="N/A">N/A (Non-humain)</option></select></div>
+          </div>
+          <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color);margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid rgba(0,230,118,.15)">Statut & sévérité</div>
+          <div class="form-grid">
+            <div class="form-field"><label>Statut médical</label><select id="fiStatut"><option value="stable">Stable</option><option value="critique">Critique</option><option value="quarantaine">Quarantaine</option><option value="observation">Observation</option><option value="guerison">En guérison</option><option value="decede">Décédé</option></select></div>
+            <div class="form-field"><label>Sévérité</label><select id="fiSeverite"><option value="faible">Faible</option><option value="modere">Modérée</option><option value="eleve">Élevée</option><option value="critique">Critique</option></select></div>
+            <div class="form-field full"><label>Allergies connues</label><input id="fiAllergies" type="text" placeholder="Ex: Pénicilline…"/></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color);margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid rgba(0,230,118,.15)">Données médicales</div>
+          <div class="form-grid" style="margin-bottom:12px">
+            <div class="form-field full"><label>Diagnostic principal *</label><textarea id="fiDiag" rows="4" placeholder="Symptômes, diagnostic…"></textarea></div>
+            <div class="form-field full"><label>Antécédents médicaux</label><textarea id="fiAntecedents" rows="3" placeholder="Maladies préexistantes…"></textarea></div>
+            <div class="form-field full"><label>Traitement en cours</label><textarea id="fiTraitement" rows="3" placeholder="Médicaments administrés…"></textarea></div>
+            <div class="form-field full"><label>Ordonnances liées</label><input id="fiOrdonnances" type="text" placeholder="Ex: PROT-a1b2c3 (IDs séparés par virgule)"/></div>
+          </div>
+          <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color);margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid rgba(0,230,118,.15)">Paramètres vitaux</div>
+          <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr">
+            <div class="form-field"><label>Tension</label><input id="fiTension" type="text" placeholder="120/80"/></div>
+            <div class="form-field"><label>Pouls (bpm)</label><input id="fiPouls" type="text" placeholder="72"/></div>
+            <div class="form-field"><label>Temp. (°C)</label><input id="fiTemp" type="text" placeholder="37.2"/></div>
+          </div>
+          <div class="form-field" style="margin-top:8px"><label>Notes cliniques</label><textarea id="fiNotes" rows="3" placeholder="Observations supplémentaires…"></textarea></div>
+        </div>
+      </div>
+      <div class="form-actions"><button class="btn btn-ghost btn-sm" id="ficheCancelBtn2">Annuler</button><button class="btn btn-dept btn-sm" id="ficheSaveBtn">💾 Enregistrer la fiche</button></div>
+    </div>
+    <div class="filter-row" id="ficheFilters">
+      <button class="pill active" data-fi-filter="all">Tous</button>
+      <button class="pill" data-fi-filter="critique">Critique</button>
+      <button class="pill" data-fi-filter="quarantaine">Quarantaine</button>
+      <button class="pill" data-fi-filter="observation">Observation</button>
+      <button class="pill" data-fi-filter="stable">Stable</button>
+      <button class="pill" data-fi-filter="guerison">Guérison</button>
+    </div>
+    <div class="search-row"><div class="search-wrap"><span class="search-icon">⌕</span><input class="search-input" id="ficheSearch" placeholder="Rechercher une fiche médicale…" autocomplete="off"/></div></div>
+    <div class="fiche-grid" id="ficheList"><div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗂</div><div class="empty-text">Aucune fiche médicale enregistrée</div></div></div>
+
+    <div class="modal-ov" id="modalFicheView">
+      <div class="modal-box wide">
+        <div class="modal-hdr">
+          <div><div style="font-size:11px;color:var(--dept-color);letter-spacing:.15em" id="fvId">—</div><div class="modal-title" id="fvName">—</div></div>
+          <div style="display:flex;gap:8px;align-items:center"><span id="fvBadge" class="fiche-badge">—</span><button class="modal-close" data-close-modal="modalFicheView">×</button></div>
+        </div>
+        <div class="modal-body">
+          <div class="fiche-view-section"><div class="fiche-view-section-title">Identité & statut</div>
+            <div class="fiche-meta-grid">
+              <div class="fiche-meta-box"><label>ID Fiche</label><span id="fvIdBox">—</span></div>
+              <div class="fiche-meta-box"><label>Admission</label><span id="fvAdmission">—</span></div>
+              <div class="fiche-meta-box"><label>Médecin référent</label><span id="fvMedecin">—</span></div>
+              <div class="fiche-meta-box"><label>Zone / Chambre</label><span id="fvZone">—</span></div>
+              <div class="fiche-meta-box"><label>Âge / Espèce</label><span id="fvAge">—</span></div>
+              <div class="fiche-meta-box"><label>Groupe sanguin</label><span id="fvBlood">—</span></div>
+              <div class="fiche-meta-box"><label>Statut</label><span id="fvStatut">—</span></div>
+              <div class="fiche-meta-box"><label>Allergies</label><span id="fvAllergies">—</span></div>
+            </div>
+          </div>
+          <div class="fiche-view-section"><div class="fiche-view-section-title">Paramètres vitaux</div>
+            <div class="fiche-meta-grid">
+              <div class="fiche-meta-box"><label>Tension artérielle</label><span id="fvTension">—</span></div>
+              <div class="fiche-meta-box"><label>Pouls</label><span id="fvPouls">—</span></div>
+              <div class="fiche-meta-box"><label>Température</label><span id="fvTemp">—</span></div>
+            </div>
+          </div>
+          <div class="fiche-view-section"><div class="fiche-view-section-title">Diagnostic & traitement</div>
+            <div class="msec-content" id="fvDiag" style="margin-bottom:10px">—</div>
+            <div style="font-size:9px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Antécédents</div>
+            <div class="msec-content" id="fvAntecedents" style="margin-bottom:10px">—</div>
+            <div style="font-size:9px;letter-spacing:.15em;color:var(--text-dim);text-transform:uppercase;margin-bottom:6px">Traitement en cours</div>
+            <div class="msec-content" id="fvTraitement">—</div>
+          </div>
+          <div class="fiche-view-section" id="fvNotesSection"><div class="fiche-view-section-title">Notes cliniques</div><div class="msec-content" id="fvNotes">—</div></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost btn-sm" data-close-modal="modalFicheView">Fermer</button>
+          <button class="btn btn-warn btn-sm action-write" id="fvEditBtn">✎ Modifier</button>
+          <button class="btn btn-dept btn-sm" id="fvExportBtn">⬇ Exporter</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ PATIENTS -->
+  <section class="view" id="view-patients">
+    <div class="sec-hdr">
+      <div><div class="sec-tag">// Registre des patients</div><div class="sec-title">PATIENTS <span>ACTIFS</span></div><div class="sec-sub" id="patientCount">0 patients enregistrés</div></div>
+      <div class="sec-actions"><button class="btn btn-dept btn-sm action-write" id="btnNewPatient">+ Nouveau patient</button></div>
+    </div>
+    <div class="ro-lock" id="roPatient"><span>🔒</span><span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour gérer les patients</span></div>
+    <div class="form-panel" id="patientFormPanel" style="display:none">
+      <div class="form-title"><span id="patientFormTitle">Nouveau patient</span><button class="btn btn-ghost btn-sm" id="patientCancelBtn">✕</button></div>
+      <div class="form-grid">
+        <div class="form-field"><label>Nom / Désignation *</label><input id="ptName" type="text" placeholder="Ex: M.NOWAK ou SCP-049-2"/></div>
+        <div class="form-field"><label>ID Patient</label><input id="ptId" type="text" placeholder="Auto-généré si vide"/></div>
+        <div class="form-field"><label>Statut</label><select id="ptStatus"><option value="stable">Stable</option><option value="critical">Critique</option><option value="quarantine">Quarantaine</option><option value="observation">Observation</option></select></div>
+        <div class="form-field"><label>Médecin responsable</label><input id="ptDoctor" placeholder="Ex: M.KOLIANSKY"/></div>
+        <div class="form-field"><label>Date admission</label><input id="ptDate" type="date"/></div>
+        <div class="form-field"><label>Chambre / Zone</label><input id="ptRoom" placeholder="Ex: Zone Médicale B — Chambre 3"/></div>
+        <div class="form-field full"><label>Diagnostic / Notes *</label><textarea id="ptDiag" rows="4" placeholder="Symptômes, diagnostic…"></textarea></div>
+        <div class="form-field full"><label>Traitement en cours</label><textarea id="ptTreatment" rows="3" placeholder="Médicaments, procédures…"></textarea></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-ghost btn-sm" id="patientCancelBtn2">Annuler</button><button class="btn btn-dept btn-sm" id="patientSaveBtn">💾 Enregistrer</button></div>
+    </div>
+    <div class="filter-row" id="patientFilters">
+      <button class="pill active" data-pt-filter="all">Tous</button>
+      <button class="pill" data-pt-filter="critical">Critique</button>
+      <button class="pill" data-pt-filter="quarantine">Quarantaine</button>
+      <button class="pill" data-pt-filter="observation">Observation</button>
+      <button class="pill" data-pt-filter="stable">Stable</button>
+    </div>
+    <div class="patient-grid" id="patientList"><div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏥</div><div class="empty-text">Aucun patient enregistré</div></div></div>
+  </section>
+
+  <!-- ▸ ÉVALUATIONS -->
+  <section class="view" id="view-evaluations">
+    <div class="sec-hdr">
+      <div><div class="sec-tag">// Ressources humaines médicales</div><div class="sec-title">ÉVALUATIONS <span>PERSONNEL</span></div><div class="sec-sub" id="evalCount">0 évaluations</div></div>
+      <div class="sec-actions"><button class="btn btn-dept btn-sm action-write" id="btnNewEval">+ Nouvelle évaluation</button></div>
+    </div>
+    <div class="ro-lock" id="roEval"><span>🔒</span><span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer des évaluations</span></div>
+    <div class="form-panel" id="evalFormPanel" style="display:none">
+      <div class="form-title"><span id="evalFormTitle">Nouvelle évaluation</span><button class="btn btn-ghost btn-sm" id="evalCancelBtn">✕ Annuler</button></div>
+      <div class="form-grid">
+        <div class="form-field"><label>Nom *</label><input id="evalName" type="text"/></div>
+        <div class="form-field"><label>Username Roblox</label><input id="evalUser" type="text"/></div>
+        <div class="form-field"><label>Grade</label><input id="evalRank" type="text" placeholder="Ex: [D.M-PSY] Psychologue"/></div>
+        <div class="form-field"><label>Évaluateur *</label><input id="evalAuthor" type="text"/></div>
+        <div class="form-field"><label>Date *</label><input id="evalDate" type="date"/></div>
+        <div class="form-field"><label>Décision</label><select id="evalDecision"><option value="promu">✅ Promu</option><option value="valide" selected>✔ Validé</option><option value="avertissement">⚠ Avertissement</option><option value="recale">❌ Recalé</option><option value="expulse">🚫 Expulsion</option></select></div>
+      </div>
+      <div style="font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px">Critères (0–10)</div>
+      <div class="eval-crit-grid">
+        <div class="eval-crit"><label>Discipline</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreDisc"/><span class="score-val" id="valDisc">5</span></div></div>
+        <div class="eval-crit"><label>Connaissance protocoles</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreProto"/><span class="score-val" id="valProto">5</span></div></div>
+        <div class="eval-crit"><label>Réactivité</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreReact"/><span class="score-val" id="valReact">5</span></div></div>
+        <div class="eval-crit"><label>Communication</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreComm"/><span class="score-val" id="valComm">5</span></div></div>
+        <div class="eval-crit"><label>Respect hiérarchie</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreHier"/><span class="score-val" id="valHier">5</span></div></div>
+        <div class="eval-crit"><label>Comportement</label><div class="score-row"><input type="range" min="0" max="10" value="5" id="scoreComp"/><span class="score-val" id="valComp">5</span></div></div>
+      </div>
+      <div class="eval-total">
+        <div><div class="eval-total-lbl">SCORE TOTAL</div><div class="eval-total-score" id="evalTotalScore">30 / 60</div></div>
+        <div class="eval-total-mention" id="evalTotalMention">— SATISFAISANT</div>
+      </div>
+      <div class="form-field full" style="margin-bottom:0"><label>Commentaires</label><textarea id="evalComments" rows="3"></textarea></div>
+      <div class="form-actions"><button class="btn btn-ghost btn-sm" id="evalCancelBtn2">Annuler</button><button class="btn btn-dept btn-sm" id="evalSaveBtn">💾 Enregistrer</button></div>
+    </div>
+    <div class="card-grid" id="evalList"><div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation</div></div></div>
+  </section>
+
+  <!-- ▸ RAPPORTS -->
+  <section class="view" id="view-rapports">
+    <div class="sec-hdr">
+      <div><div class="sec-tag">// Journaux médicaux</div><div class="sec-title">RAPPORTS <span>MÉDICAUX</span></div><div class="sec-sub" id="rapportCount">0 rapports</div></div>
+      <div class="sec-actions"><button class="btn btn-dept btn-sm action-write" id="btnNewRapport">+ Nouveau rapport</button></div>
+    </div>
+    <div class="ro-lock" id="roRapport"><span>🔒</span><span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour rédiger des rapports</span></div>
+    <div class="form-panel" id="rapportFormPanel" style="display:none">
+      <div class="form-title"><span id="rapportFormTitle">Nouveau rapport</span><button class="btn btn-ghost btn-sm" id="rapportCancelBtn">✕</button></div>
+      <div class="form-grid">
+        <div class="form-field full"><label>Titre *</label><input id="rTitle" type="text" placeholder="Ex: Rapport d'exposition SCP-049 — M.NOWAK"/></div>
+        <div class="form-field"><label>Type</label><select id="rType"><option value="incident">⚠ Incident médical</option><option value="exposure">☣ Exposition anomalique</option><option value="quarantine">🔒 Mise en quarantaine</option><option value="operation">🔬 Rapport opératoire</option><option value="psychology">🧠 Rapport psychologique</option><option value="death">💀 Rapport de décès</option></select></div>
+        <div class="form-field"><label>Sévérité</label><select id="rSev"><option value="low">FAIBLE</option><option value="moderate" selected>MODÉRÉE</option><option value="high">ÉLEVÉE</option><option value="critical">CRITIQUE</option></select></div>
+        <div class="form-field"><label>Médecin responsable *</label><input id="rAuthor" type="text" placeholder="Ex: M.KOLIANSKY"/></div>
+        <div class="form-field"><label>Patient concerné</label><input id="rPatient" type="text" placeholder="Ex: M.NOWAK — ID: MED-XXXXX"/></div>
+        <div class="form-field"><label>Date *</label><input id="rDate" type="date"/></div>
+        <div class="form-field full"><label>Description *</label><textarea id="rDesc" rows="5" placeholder="Détaillez les événements médicaux…"></textarea></div>
+        <div class="form-field full"><label>Pronostic & suivi</label><textarea id="rConc" rows="3" placeholder="Pronostic, traitement prescrit…"></textarea></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-ghost btn-sm" id="rapportCancelBtn2">Annuler</button><button class="btn btn-dept btn-sm" id="rapportSaveBtn">💾 Enregistrer</button></div>
+    </div>
+    <div class="filter-row" id="rapportFilters">
+      <button class="pill active" data-r-filter="all">Tous</button>
+      <button class="pill" data-r-filter="incident">Incidents</button>
+      <button class="pill" data-r-filter="exposure">Expositions</button>
+      <button class="pill" data-r-filter="quarantine">Quarantaines</button>
+      <button class="pill" data-r-filter="psychology">Psy</button>
+      <button class="pill" data-r-filter="death">Décès</button>
+    </div>
+    <div class="card-grid" id="rapportList"><div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport médical</div></div></div>
+  </section>
+
+  <!-- Modal vue rapport -->
+  <div class="modal-ov" id="modalRapportView">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <div><div style="font-size:11px;color:var(--dept-color);letter-spacing:.15em" id="rvId">—</div><div style="font-size:9px;color:var(--text-dim);text-transform:uppercase" id="rvType">—</div></div>
+        <button class="modal-close" data-close-modal="modalRapportView">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--white);margin-bottom:14px" id="rvTitle">—</div>
+        <div class="meta-grid">
+          <div class="meta-item"><label>Sévérité</label><span id="rvSev">—</span></div>
+          <div class="meta-item"><label>Date</label><span id="rvDate">—</span></div>
+          <div class="meta-item"><label>Médecin</label><span id="rvAuthor">—</span></div>
+          <div class="meta-item"><label>Patient</label><span id="rvPatient">—</span></div>
+        </div>
+        <div class="msec"><div class="msec-lbl">Description</div><div class="msec-content" id="rvDesc">—</div></div>
+        <div class="msec"><div class="msec-lbl">Pronostic & suivi</div><div class="msec-content" id="rvConc">—</div></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost btn-sm" data-close-modal="modalRapportView">Fermer</button><button class="btn btn-dept btn-sm" id="rvExportBtn">⬇ Exporter</button></div>
+    </div>
+  </div>
+
+  <!-- ▸ ROSTER -->
+  <section class="view" id="view-roster">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Personnel — Département Médical</div>
+        <div class="sec-title">EFFECTIF <span>PERSONNEL</span></div>
+        <div class="sec-sub" id="rosterCount">0 personnels enregistrés</div>
+      </div>
+      <div class="sec-actions">
+        <div class="view-toggle" id="rosterViewToggle">
+          <button class="view-toggle-btn active" data-rv="cards" title="Cartes">⊞</button>
+          <button class="view-toggle-btn" data-rv="table" title="Tableau">☰</button>
+        </div>
+        <!-- Visible uniquement pour admin -->
+        <button class="btn btn-dept btn-sm action-admin" id="btnNewAgent" style="display:none">+ Ajouter un agent</button>
+      </div>
+    </div>
+
+    <!-- Lock si non admin -->
+    <div id="roRoster" style="display:none;align-items:center;gap:8px;font-size:10px;color:var(--text-dim);background:rgba(255,51,85,.04);border:1px solid rgba(255,51,85,.15);padding:8px 14px;margin-bottom:16px;letter-spacing:.1em">
+      <span>🔐</span>
+      <span>Gestion réservée aux <strong style="color:var(--danger)">Administrateurs</strong> — vous êtes en lecture seule</span>
+    </div>
+
+    <!-- Formulaire agent (admin only) -->
+    <div class="form-panel" id="agentFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="agentFormTitle">Nouvel agent</span>
+        <button class="btn btn-ghost btn-sm" id="agentCancelBtn">✕</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Nom Prénom RP *</label><input id="agNom" type="text" placeholder="Ex: Marius KOLIANSKY"/></div>
+        <div class="form-field"><label>Username Roblox *</label><input id="agUsername" type="text" placeholder="Ex: Koliansky_RP"/></div>
+        <div class="form-field"><label>Grade / Rang *</label><input id="agRank" type="text" placeholder="Ex: [D.M-CHI] Chirurgien Senior"/></div>
+        <div class="form-field"><label>Spécialité médicale</label>
+          <select id="agSpec">
+            <option value="">— Non spécifiée —</option>
+            <option value="Médecine générale">Médecine générale</option>
+            <option value="Chirurgie">Chirurgie</option>
+            <option value="Psychiatrie / Psychologie">Psychiatrie / Psychologie</option>
+            <option value="Décontamination">Décontamination</option>
+            <option value="Urgences">Urgences</option>
+            <option value="Biologie anomalique">Biologie anomalique</option>
+            <option value="Pharmacologie">Pharmacologie</option>
+            <option value="Quarantaine">Quarantaine</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Statut</label>
+          <select id="agStatus">
+            <option value="actif">✅ Actif</option>
+            <option value="inactif">⬜ Inactif</option>
+            <option value="suspendu">🚫 Suspendu</option>
+            <option value="conge">🟡 En congé</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Date de recrutement</label><input id="agDate" type="date"/></div>
+        <div class="form-field full"><label>Notes / Informations complémentaires</label><textarea id="agNotes" rows="3" placeholder="Informations RP supplémentaires, mentions spéciales…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="agentCancelBtn2">Annuler</button>
+        <button class="btn btn-dept btn-sm" id="agentSaveBtn">💾 Enregistrer l'agent</button>
+      </div>
+    </div>
+
+    <!-- Filtres & recherche -->
+    <div class="filter-row" id="rosterFilters">
+      <button class="pill active" data-ag-filter="all">Tous <span class="pill-n" id="ag-cnt-all">0</span></button>
+      <button class="pill" data-ag-filter="actif">Actifs <span class="pill-n" id="ag-cnt-actif">0</span></button>
+      <button class="pill" data-ag-filter="inactif">Inactifs <span class="pill-n" id="ag-cnt-inactif">0</span></button>
+      <button class="pill" data-ag-filter="suspendu">Suspendus <span class="pill-n" id="ag-cnt-suspendu">0</span></button>
+      <button class="pill" data-ag-filter="conge">En congé <span class="pill-n" id="ag-cnt-conge">0</span></button>
+    </div>
+    <div class="search-row"><div class="search-wrap"><span class="search-icon">⌕</span><input class="search-input" id="rosterSearch" placeholder="Rechercher un agent (nom, username, grade…)" autocomplete="off"/></div></div>
+
+    <!-- Vue cartes -->
+    <div id="rosterCardsView">
+      <div class="roster-grid" id="agentList">
+        <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><div class="empty-text">Aucun agent enregistré</div></div>
+      </div>
+    </div>
+
+    <!-- Vue tableau -->
+    <div id="rosterTableView" style="display:none">
+      <div class="roster-table-wrap">
+        <table class="roster-table">
+          <thead>
+            <tr>
+              <th>NOM RP</th>
+              <th>USERNAME</th>
+              <th>GRADE</th>
+              <th>SPÉCIALITÉ</th>
+              <th>STATUT</th>
+              <th>RECRUTEMENT</th>
+              <th>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="agentTableBody">
+            <tr><td colspan="7" class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">Aucun agent</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Modal vue agent -->
+    <div class="modal-ov" id="modalAgentView">
+      <div class="modal-box">
+        <div class="modal-hdr">
+          <div>
+            <div style="font-size:9px;color:var(--dept-color);letter-spacing:.15em" id="avUsername">—</div>
+            <div class="modal-title" id="avName">—</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="avStatusBadge" class="agent-status-badge">—</span>
+            <button class="modal-close" data-close-modal="modalAgentView">×</button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="fiche-view-section">
+            <div class="fiche-view-section-title">Identité & grade</div>
+            <div class="fiche-meta-grid">
+              <div class="fiche-meta-box"><label>Nom Prénom RP</label><span id="avNom">—</span></div>
+              <div class="fiche-meta-box"><label>Username Roblox</label><span id="avUser">—</span></div>
+              <div class="fiche-meta-box"><label>Grade / Rang</label><span id="avRank">—</span></div>
+              <div class="fiche-meta-box"><label>Spécialité</label><span id="avSpec">—</span></div>
+              <div class="fiche-meta-box"><label>Statut</label><span id="avStatus">—</span></div>
+              <div class="fiche-meta-box"><label>Date de recrutement</label><span id="avDate">—</span></div>
+            </div>
+          </div>
+          <div class="fiche-view-section" id="avNotesSection">
+            <div class="fiche-view-section-title">Notes</div>
+            <div class="msec-content" id="avNotes">—</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost btn-sm" data-close-modal="modalAgentView">Fermer</button>
+          <button class="btn btn-warn btn-sm" id="avEditBtn" style="display:none">✎ Modifier</button>
+          <button class="btn btn-danger btn-sm" id="avDeleteBtn" style="display:none">✕ Supprimer</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<aside class="sidebar">
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Statistiques — Médical</span></div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val" id="statProto">0</div><div class="stat-lbl">Ordonnances</div></div>
+      <div class="stat-box"><div class="stat-val" id="statFiches">0</div><div class="stat-lbl">Fiches</div></div>
+      <div class="stat-box"><div class="stat-val" id="statPatients">0</div><div class="stat-lbl">Patients</div></div>
+      <div class="stat-box"><div class="stat-val" id="statEval">0</div><div class="stat-lbl">Évaluations</div></div>
+      <div class="stat-box"><div class="stat-val" id="statRapport">0</div><div class="stat-lbl">Rapports</div></div>
+      <div class="stat-box"><div class="stat-val" id="statCritique">0</div><div class="stat-lbl" style="color:var(--danger)">Critiques</div></div>
+      <div class="stat-box"><div class="stat-val" id="statAgents">0</div><div class="stat-lbl">Agents</div></div>
+      <div class="stat-box"><div class="stat-val" id="statAgentsActifs">0</div><div class="stat-lbl" style="color:var(--safe)">Actifs</div></div>
+    </div>
+  </div>
+
+  <div class="widget" id="sidebarAuthWidget">
+    <div class="widget-hdr"><span class="widget-title">Accès</span></div>
+    <div class="widget-body">
+      <div style="font-size:10px;color:var(--text-dim);line-height:2.2">
+        <div>STATUT : <span id="sidebarAuthStatus" style="color:var(--text-dim)">NON CONNECTÉ</span></div>
+        <div>AGENT  : <span id="sidebarAuthName" style="color:var(--white)">—</span></div>
+        <div>RÔLE   : <span id="sidebarAuthRole" style="color:var(--text-dim)">LECTURE</span></div>
+        <div>ACCÈS  : <span id="sidebarAuthLevel" style="color:var(--text-dim)">PUBLIC</span></div>
+      </div>
+      <button class="auth-btn" style="width:100%;margin-top:10px;text-align:center" id="sidebarAuthBtn" onclick="toggleAuthFlyout()">🔑 Se connecter</button>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Terminal Médical</span></div>
+    <div class="terminal">
+      <div><span class="t-prompt">MED@SITE-15:~$ </span><span class="t-dim">status</span></div>
+      <div><span class="t-out">▶ Salle de chirurgie : DISPONIBLE</span></div>
+      <div><span class="t-out">▶ Zone quarantaine : ACTIVE</span></div>
+      <div><span class="t-warn">▶ Stock sérum anti-SCP-049 : 60%</span></div>
+      <div><span class="t-out">▶ Personnel médical : actif</span></div>
+      <div><span class="t-prompt">MED@SITE-15:~$ </span><span class="cursor"></span></div>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Journal</span></div>
+    <div class="hlog" id="historyList">
+      <div class="hline"><span class="hts">[--:--]</span><span>Intranet Médical initialisé.</span></div>
+    </div>
+  </div>
+</aside>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc,
+  addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain: "scp-site19.firebaseapp.com",
+  projectId: "scp-site19",
+  storageBucket: "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId: "1:245750946774:web:821944a85e207094b22277"
+});
+const db = getFirestore(app);
+
+async function fbAdd(col, data)        { return await addDoc(collection(db, col), { ...data, createdAt: new Date().toISOString() }); }
+async function fbUpdate(col, id, data) { await updateDoc(doc(db, col, id), data); }
+async function fbDelete(col, id)       { await deleteDoc(doc(db, col, id)); }
+function fbListen(col, cb) {
+  const q = query(collection(db, col), orderBy('createdAt', 'asc'));
+  return onSnapshot(q, snap => cb(snap.docs.map(d => ({ _id: d.id, ...d.data() }))));
+}
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ══ AUTH ══
+const SESSION_KEY = 'scp_med_session';
+let currentUser = null, currentRole = null, isAuthenticated = false;
+function loadSession() { try { const r = localStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+function saveSession(u) { localStorage.setItem(SESSION_KEY, JSON.stringify(u)); }
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+async function initApp() {
+  const saved = loadSession();
+  if (saved?.username && saved?.password) {
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      let found = null;
+      snap.forEach(d => { const u = d.data(); if ((u.username||'').toLowerCase() === saved.username.toLowerCase()) found = { _id: d.id, ...u }; });
+      if (found && found.password === saved.password) {
+        currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
+        onAuthChange(found.displayName || found.username || found.name, currentRole); return;
+      }
+    } catch(e) { console.warn('Session restore failed:', e); }
+    clearSession();
+  }
+  onAuthChange(null, null);
+}
+
+function onAuthChange(name, role) {
+// Afficher/masquer le bouton "Mon Espace"
+const btn = document.getElementById('monEspaceBtn');
+if (btn) btn.style.display = name ? 'inline-flex' : 'none';
+  applyPermissions(name, role);
+  updateSidebarAuth(name, role);
+  updateAuthButton(name, role);
+  addHistory(name ? 'Connecté : ' + name : 'Mode lecture seule');
+  if (name) showAuthUserPanel(name, role); else showAuthLoginPanel();
+  renderProtocols(); renderFiches(); renderPatients(); renderEvals(); renderRapports(); renderAgents();
+}
+
+function applyPermissions(name, role) {
+  const canWrite = !!name;
+  const isAdmin = role === 'admin';
+  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !canWrite));
+  ['roProto','roFiche','roPatient','roEval','roRapport'].forEach(id => document.getElementById(id)?.classList.toggle('visible', !canWrite));
+
+  // Roster: seuls les admins peuvent modifier
+  const btnNewAgent = document.getElementById('btnNewAgent');
+  if (btnNewAgent) btnNewAgent.style.display = isAdmin ? 'inline-flex' : 'none';
+  const roRoster = document.getElementById('roRoster');
+  if (roRoster) roRoster.style.display = (!isAdmin && canWrite) ? 'flex' : (!canWrite ? 'flex' : 'none');
+}
+
+function updateSidebarAuth(name, role) {
+  const s=document.getElementById('sidebarAuthStatus'), n=document.getElementById('sidebarAuthName'),
+        r=document.getElementById('sidebarAuthRole'), l=document.getElementById('sidebarAuthLevel'),
+        b=document.getElementById('sidebarAuthBtn');
+  if (name) {
+    if(s){s.textContent='CONNECTÉ';s.style.color='var(--safe)'}
+    if(n)n.textContent=name;
+    if(r){r.textContent=role?.toUpperCase()||'MODÉRATEUR';r.style.color=role==='admin'?'var(--danger)':'var(--dept-color)'}
+    if(l){l.textContent=role==='admin'?'ADMIN COMPLET':'ÉCRITURE';l.style.color='var(--safe)'}
+    if(b){b.textContent='↩ Déconnexion';b.className='auth-btn connected';b.onclick=doAuthLogout}
+  } else {
+    if(s){s.textContent='NON CONNECTÉ';s.style.color='var(--text-dim)'}
+    if(n)n.textContent='—';
+    if(r){r.textContent='LECTURE';r.style.color='var(--text-dim)'}
+    if(l){l.textContent='PUBLIC';l.style.color='var(--text-dim)'}
+    if(b){b.textContent='🔑 Se connecter';b.className='auth-btn';b.onclick=toggleAuthFlyout}
+  }
+}
+
+function updateAuthButton(name) {
+  const btn=document.getElementById('authBtn'); if(!btn) return;
+  if(name){btn.textContent='✓ '+name.split(' ')[0];btn.className='auth-btn connected';}
+  else{btn.textContent='🔑 Connexion';btn.className='auth-btn';}
+}
+
+let flyoutOpen = false;
+window.toggleAuthFlyout = function() { flyoutOpen=!flyoutOpen; document.getElementById('authFlyout').classList.toggle('open', flyoutOpen); };
+window.openAuthFlyout = function() { flyoutOpen=true; document.getElementById('authFlyout').classList.add('open'); document.getElementById('afUsername')?.focus(); };
+
+document.addEventListener('mousedown', e => {
+  if(!flyoutOpen) return;
+  const flyout=document.getElementById('authFlyout'), btn=document.getElementById('authBtn'), sideBtn=document.getElementById('sidebarAuthBtn');
+  if(!flyout?.contains(e.target)&&!btn?.contains(e.target)&&!sideBtn?.contains(e.target)){flyoutOpen=false;flyout?.classList.remove('open');}
+});
+document.getElementById('afPassword')?.addEventListener('keydown', e => { if(e.key==='Enter') doAuthLogin(); });
+document.getElementById('afUsername')?.addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('afPassword')?.focus(); });
+
+function showAuthLoginPanel() {
+  document.getElementById('afLoginPanel').style.display='block';
+  document.getElementById('afLoadingPanel').style.display='none';
+  document.getElementById('afUserPanel').style.display='none';
+  document.getElementById('afError').textContent='';
+}
+function showAuthUserPanel(name, role) {
+  document.getElementById('afLoginPanel').style.display='none';
+  document.getElementById('afLoadingPanel').style.display='none';
+  document.getElementById('afUserPanel').style.display='block';
+  document.getElementById('afUserName').textContent=name;
+  const roleEl=document.getElementById('afUserRole');
+  roleEl.textContent=role==='admin'?'🔐 Administrateur':'⚕️ Médecin';
+  roleEl.className='auth-user-role '+(role||'moderateur');
+}
+
+window.doAuthLogin = async function() {
+  const username=document.getElementById('afUsername').value.trim();
+  const pass=document.getElementById('afPassword').value;
+  const errEl=document.getElementById('afError');
+  errEl.textContent='';
+  if(!username||!pass){errEl.textContent='⚠ Nom d\'utilisateur et mot de passe requis.';return;}
+  document.getElementById('afLoginPanel').style.display='none';
+  document.getElementById('afLoadingPanel').style.display='block';
+  try {
+    const snap=await getDocs(collection(db,'users'));
+    let found=null;
+    snap.forEach(d=>{const u=d.data();if((u.username||'').toLowerCase()===username.toLowerCase())found={_id:d.id,...u};});
+    if(!found){showAuthLoginPanel();errEl.textContent='⚠ Nom d\'utilisateur introuvable.';return;}
+    if(found.password!==pass){showAuthLoginPanel();errEl.textContent='⚠ Mot de passe incorrect.';return;}
+    currentUser=found;currentRole=found.role||'moderateur';isAuthenticated=true;
+    saveSession({username:found.username,password:found.password});
+    onAuthChange(found.displayName||found.username,currentRole);
+  } catch(e){showAuthLoginPanel();errEl.textContent='⚠ Erreur : '+e.message;}
+};
+
+window.doAuthLogout = function() {
+  const btn = document.getElementById('monEspaceBtn');
+if (btn) btn.style.display = 'none';
+  currentUser=null;currentRole=null;isAuthenticated=false;
+  clearSession();onAuthChange(null,null);
+  flyoutOpen=true;document.getElementById('authFlyout').classList.add('open');
+};
+
+function requireAuth(action) {
+  if(!isAuthenticated){openAuthFlyout();addHistory('⚠ Connexion requise pour: '+action);return false;}
+  return true;
+}
+function requireAdmin(action) {
+  if(currentRole!=='admin'){alert('⚠ Action réservée aux administrateurs.');addHistory('⚠ Accès admin requis: '+action);return false;}
+  return true;
+}
+
+// HELPERS
+function addHistory(msg) {
+  const c=document.getElementById('historyList'); if(!c) return;
+  const now=new Date();
+  const ts=`[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}]`;
+  const div=document.createElement('div'); div.className='hline';
+  div.innerHTML=`<span class="hts">${ts}</span><span>${msg}</span>`;
+  c.prepend(div);
+  while(c.children.length>30)c.removeChild(c.lastChild);
+}
+function setStat(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtDate(d){if(!d)return '—';try{return new Date(d).toLocaleDateString('fr-FR');}catch{return d;}}
+function openModal(id){document.getElementById(id)?.classList.add('open');}
+function closeModal(id){document.getElementById(id)?.classList.remove('open');}
+
+document.addEventListener('click', e => {
+  if(e.target.dataset.closeModal)closeModal(e.target.dataset.closeModal);
+  if(e.target.classList.contains('modal-ov'))closeModal(e.target.id);
+});
+document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.modal-ov.open').forEach(m=>m.classList.remove('open')); });
+
+const EVAL_KEYS=['Disc','Proto','React','Comm','Hier','Comp'];
+const SEV_MAP={low:{label:'FAIBLE',color:'var(--safe)'},moderate:{label:'MODÉRÉE',color:'var(--warn)'},high:{label:'ÉLEVÉE',color:'#e67e22'},critical:{label:'CRITIQUE',color:'var(--danger)'}};
+const TYPE_LABELS={incident:'⚠ Incident médical',exposure:'☣ Exposition anomalique',quarantine:'🔒 Quarantaine',operation:'🔬 Opératoire',psychology:'🧠 Psychologique',death:'💀 Décès'};
+function getSev(val){return SEV_MAP[val]||SEV_MAP.low;}
+function getTypeLabel(val){return TYPE_LABELS[val]||val;}
+function getEvalMention(score){const p=score/60;if(p>=.9)return{text:'EXCELLENT',color:'var(--safe)'};if(p>=.75)return{text:'TRÈS BON',color:'var(--dept-color)'};if(p>=.6)return{text:'SATISFAISANT',color:'var(--accent)'};if(p>=.45)return{text:'INSUFFISANT',color:'var(--warn)'};return{text:'RECALÉ',color:'var(--danger)'};}
+
+function computeEvalTotal(){return EVAL_KEYS.reduce((s,k)=>{const el=document.getElementById('score'+k);return s+(el?parseInt(el.value):0);},0);}
+function updateEvalUI(){
+  const total=computeEvalTotal();const m=getEvalMention(total);
+  setStat('evalTotalScore',total+' / 60');
+  const me=document.getElementById('evalTotalMention');
+  if(me){me.textContent='— '+m.text;me.style.color=m.color;}
+}
+EVAL_KEYS.forEach(k=>{
+  const slider=document.getElementById('score'+k);const val=document.getElementById('val'+k);if(!slider||!val)return;
+  slider.addEventListener('input',()=>{val.textContent=slider.value;updateEvalUI();});
+});
+
+// TABS
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+    document.getElementById('view-'+tab.dataset.view)?.classList.add('active');
+    addHistory('Vue: '+tab.textContent.trim());
+  });
+});
+
+// DATA
+let protocols=[],fiches=[],patients=[],evaluations=[],rapports=[],agents=[];
+let protoFilter='all',ficheFilter='all',patientFilter='all',rapportFilter='all',agentFilter='all';
+let editingProtoId=null,editingFicheId=null,editingPatientId=null,editingEvalId=null,editingRapportId=null,editingAgentId=null;
+let currentRapport=null,currentFiche=null,currentAgent=null;
+let rxLines=[];
+let currentProtoStep=1;
+let rosterView='cards';
+
+fbListen('med_protocols', d=>{protocols=d;renderProtocols();updateStats();});
+fbListen('med_fiches',    d=>{fiches=d;renderFiches();updateStats();});
+fbListen('med_patients',  d=>{patients=d;renderPatients();updateStats();});
+fbListen('med_evals',     d=>{evaluations=d;renderEvals();updateStats();});
+fbListen('med_rapports',  d=>{rapports=d;renderRapports();updateStats();});
+fbListen('user-rp',       d=>{agents=d;renderAgents();updateStats();});
+
+function updateStats(){
+  setStat('statProto',protocols.length);
+  setStat('statFiches',fiches.length);
+  setStat('statPatients',patients.length);
+  setStat('statEval',evaluations.length);
+  setStat('statRapport',rapports.length);
+  setStat('statCritique',fiches.filter(f=>f.statut==='critique').length+patients.filter(p=>p.status==='critical').length);
+  setStat('statAgents',agents.length);
+  setStat('statAgentsActifs',agents.filter(a=>a.statut==='actif').length);
+  setStat('protoCount',protocols.length+' ordonnances chargées');
+  setStat('ficheCount',fiches.length+' fiches enregistrées');
+  setStat('patientCount',patients.length+' patients enregistrés');
+  setStat('evalCount',evaluations.length+' évaluations');
+  setStat('rapportCount',rapports.length+' rapports');
+  setStat('rosterCount',agents.length+' agents enregistrés');
+  // Counts filtres roster
+  ['actif','inactif','suspendu','conge'].forEach(s=>{
+    setStat('ag-cnt-'+s, agents.filter(a=>a.statut===s).length);
+  });
+  setStat('ag-cnt-all', agents.length);
+}
+
+// ══ ORDONNANCES (STEPPER) ══
+window.gotoProtoStep = function(n) {
+  currentProtoStep=n;
+  document.querySelectorAll('.ordo-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ordo-panel-'+n)?.classList.add('active');
+  document.querySelectorAll('.ordo-step').forEach(s=>{
+    const sn=parseInt(s.dataset.pstep);
+    s.classList.remove('active','done');
+    if(sn===n)s.classList.add('active');
+    else if(sn<n)s.classList.add('done');
+  });
+  if(n===4)buildPreview();
+};
+
+window.selectBio = function(lvl) {
+  document.querySelectorAll('.bio-opt').forEach(o=>o.classList.remove('selected'));
+  document.querySelector(`.bio-opt[data-lvl="${lvl}"]`)?.classList.add('selected');
+  document.getElementById('pBio').value=lvl;
+};
+
+window.addRxLine = function(rx=null) {
+  const id=Date.now();
+  rxLines.push({id, med:rx?.med||'', dose:rx?.dose||'', duree:rx?.duree||''});
+  renderRxLines();
+};
+
+function renderRxLines(){
+  const el=document.getElementById('rxList'); if(!el)return;
+  if(!rxLines.length){el.innerHTML='<div style="font-size:10px;color:var(--text-dim);text-align:center;padding:12px">Aucune prescription ajoutée</div>';return;}
+  el.innerHTML=rxLines.map((rx,i)=>`
+    <div class="rx-item">
+      <div class="form-field"><label>Médicament / Traitement ${i+1}</label><input type="text" value="${esc(rx.med)}" placeholder="Ex: Sérum anti-SCP-049, Morphine…" onchange="updateRx(${rx.id},'med',this.value)"/></div>
+      <div class="form-field"><label>Dose / Quantité</label><input type="text" value="${esc(rx.dose)}" placeholder="Ex: 10mg" onchange="updateRx(${rx.id},'dose',this.value)"/></div>
+      <div class="form-field"><label>Durée / Fréquence</label><input type="text" value="${esc(rx.duree)}" placeholder="Ex: 3×/jour" onchange="updateRx(${rx.id},'duree',this.value)"/></div>
+      <button class="rx-item-del" onclick="removeRx(${rx.id})" title="Supprimer">×</button>
+    </div>
+  `).join('');
+}
+
+window.updateRx = function(id,field,val){const rx=rxLines.find(r=>r.id===id);if(rx)rx[field]=val;};
+window.removeRx = function(id){rxLines=rxLines.filter(r=>r.id!==id);renderRxLines();};
+
+function buildPreview(){
+  const title=document.getElementById('pTitle')?.value||'Sans titre';
+  const doc2=document.getElementById('pDoctor')?.value||'—';
+  const patient=document.getElementById('pPatient')?.value||'—';
+  const date=document.getElementById('pDate')?.value||today();
+  const expire=document.getElementById('pExpire')?.value||'—';
+  const cat=document.getElementById('pCat')?.value||'—';
+  const bio=document.getElementById('pBio')?.value||'0';
+  const status=document.getElementById('pStatus')?.value||'Actif';
+  const content=document.getElementById('pContent')?.value||'';
+  const contra=document.getElementById('pContra')?.value||'';
+  const epi=document.getElementById('pEpi')?.value||'';
+  document.getElementById('prevId').textContent='ID: '+(editingProtoId||'NOUVEAU — '+Date.now().toString(36).toUpperCase());
+  document.getElementById('prevMeta').innerHTML=`
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">TITRE :</span><span class="ordo-preview-val">${esc(title)}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">CATÉGORIE :</span><span class="ordo-preview-val">${esc(cat).toUpperCase()} ${bio!=='0'?'— BIO-NIV.'+bio:''}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">MÉDECIN :</span><span class="ordo-preview-val">${esc(doc2)}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">PATIENT :</span><span class="ordo-preview-val">${esc(patient)}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">DATE :</span><span class="ordo-preview-val">${fmtDate(date)} — Expiration: ${esc(expire)}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">STATUT :</span><span class="ordo-preview-val">${esc(status)}</span></div>
+    ${epi?`<div class="ordo-preview-row"><span class="ordo-preview-lbl">EPI :</span><span class="ordo-preview-val">${esc(epi)}</span></div>`:''}
+  `;
+  const rxEl=document.getElementById('prevRx');
+  if(rxLines.length){rxEl.innerHTML=rxLines.map((rx,i)=>`<div class="rx-preview-line"><span class="rx-num">${i+1}.</span><span style="flex:2;color:var(--white)">${esc(rx.med)||'—'}</span><span style="flex:1;color:var(--accent2)">${esc(rx.dose)}</span><span style="flex:1;color:var(--text-dim)">${esc(rx.duree)}</span></div>`).join('');}
+  else{rxEl.innerHTML='<div style="font-size:10px;color:var(--text-dim)">Aucune prescription médicamenteuse</div>';}
+  document.getElementById('prevContent').textContent=content||'—';
+  const contraEl=document.getElementById('prevContra');
+  if(contra){contraEl.style.display='block';document.getElementById('prevContraText').textContent=contra;}
+  else{contraEl.style.display='none';}
+}
+
+function openProtoModal(p=null){
+  editingProtoId=p?._id||null;
+  rxLines=p?.prescriptions?[...p.prescriptions.map((r,i)=>({...r,id:i}))]:[];
+  document.getElementById('protoModalTitle').textContent=p?'Modifier l\'ordonnance':'Nouvelle ordonnance';
+  document.getElementById('pTitle').value=p?.title||'';
+  document.getElementById('pCat').value=p?.category||'urgence';
+  document.getElementById('pStatus').value=p?.status||'Actif';
+  document.getElementById('pDoctor').value=p?.doctor||'';
+  document.getElementById('pPatient').value=p?.patient||'';
+  document.getElementById('pDate').value=p?.date||today();
+  document.getElementById('pExpire').value=p?.expire||'';
+  document.getElementById('pContent').value=p?.content||'';
+  document.getElementById('pContra').value=p?.contraindications||'';
+  document.getElementById('pNotes').value=p?.notes||'';
+  document.getElementById('pEpi').value=p?.epi||'';
+  document.getElementById('pBio').value=p?.bio||'0';
+  document.querySelectorAll('.bio-opt').forEach(o=>o.classList.remove('selected'));
+  document.querySelector(`.bio-opt[data-lvl="${p?.bio||'0'}"]`)?.classList.add('selected');
+  renderRxLines();
+  gotoProtoStep(1);
+  openModal('modalProto');
+}
+
+document.getElementById('saveProtoBtn')?.addEventListener('click', async()=>{
+  if(!requireAuth('sauvegarder une ordonnance'))return;
+  const title=document.getElementById('pTitle').value.trim();
+  const content=document.getElementById('pContent').value.trim();
+  if(!title||!content){alert('Titre et procédure requis.');return;}
+  const data={title,category:document.getElementById('pCat').value,bio:document.getElementById('pBio').value,status:document.getElementById('pStatus').value,doctor:document.getElementById('pDoctor').value.trim(),patient:document.getElementById('pPatient').value.trim(),date:document.getElementById('pDate').value||today(),expire:document.getElementById('pExpire').value.trim(),content,contraindications:document.getElementById('pContra').value.trim(),notes:document.getElementById('pNotes').value.trim(),epi:document.getElementById('pEpi').value.trim(),prescriptions:rxLines.map(({med,dose,duree})=>({med,dose,duree}))};
+  if(editingProtoId){await fbUpdate('med_protocols',editingProtoId,data);}
+  else{await fbAdd('med_protocols',data);}
+  editingProtoId=null;closeModal('modalProto');addHistory('Ordonnance: '+title);
+});
+
+function renderProtocols(){
+  const el=document.getElementById('protoList'); if(!el)return;
+  const q=(document.getElementById('protoSearch')?.value||'').toLowerCase();
+  let list=protocols.filter(p=>protoFilter==='all'||p.category===protoFilter);
+  if(q)list=list.filter(p=>(p.title+p.content).toLowerCase().includes(q));
+  const cats=['all','urgence','quarantaine','contamination','chirurgie','psychologie'];
+  cats.forEach(c=>{const n=document.getElementById('cnt-'+c);if(n)n.textContent=c==='all'?protocols.length:protocols.filter(p=>p.category===c).length;});
+  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">⚕️</div><div class="empty-text">Aucune ordonnance trouvée</div></div>';return;}
+  const catColor={urgence:'tag-urgent',quarantaine:'tag-warn',contamination:'tag-urgent',chirurgie:'tag-safe',psychologie:'tag-accent'};
+  el.innerHTML=[...list].reverse().map(p=>`
+    <div class="item-card cat-${p.category}">
+      <div class="item-head">
+        <div class="item-title">${esc(p.title)}</div>
+        <div class="item-tags">
+          <span class="tag ${catColor[p.category]||''}">${p.category}</span>
+          ${p.bio&&p.bio!=='0'?`<span class="tag tag-urgent">BIO-NIV.${p.bio}</span>`:''}
+          ${p.status?`<span class="tag">${esc(p.status)}</span>`:''}
+          ${p.prescriptions?.length?`<span class="tag tag-info">${p.prescriptions.length} rx</span>`:''}
+        </div>
+      </div>
+      <div class="item-meta">${p.doctor?'Dr. '+esc(p.doctor)+' · ':''} ${p.patient?'Patient: '+esc(p.patient)+' · ':''} ${p.date||'—'}</div>
+      <div class="item-body">${esc(p.content.substring(0,200))}${p.content.length>200?'…':''}</div>
+      ${p.prescriptions?.length?`<div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">${p.prescriptions.slice(0,3).map(rx=>`<span style="font-size:9px;padding:2px 8px;background:rgba(122,176,255,.08);border:1px solid rgba(122,176,255,.2);color:var(--accent2)">💊 ${esc(rx.med)}</span>`).join('')}${p.prescriptions.length>3?`<span style="font-size:9px;color:var(--text-dim)">+${p.prescriptions.length-3} autre(s)</span>`:''}</div>`:''}
+      <div class="item-actions">
+        <button class="btn btn-xs btn-ghost" data-copy-p="${p._id}">⧉ Copier</button>
+        ${isAuthenticated?`<button class="btn btn-xs btn-dept" data-edit-p="${p._id}">✎ Modifier</button><button class="btn btn-xs btn-danger" data-del-p="${p._id}">✕</button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('protoSearch')?.addEventListener('input',renderProtocols);
+document.getElementById('protoFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill');if(!pill)return;
+  document.querySelectorAll('#protoFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');protoFilter=pill.dataset.cat;renderProtocols();
+});
+document.getElementById('btnNewProto')?.addEventListener('click',()=>{if(!requireAuth('créer une ordonnance'))return;openProtoModal(null);});
+
+// ══ FICHES MÉDICALES ══
+function renderFiches(){
+  const el=document.getElementById('ficheList'); if(!el)return;
+  const q=(document.getElementById('ficheSearch')?.value||'').toLowerCase();
+  let list=ficheFilter==='all'?fiches:fiches.filter(f=>f.statut===ficheFilter);
+  if(q)list=list.filter(f=>(f.nom+f.diagnostic+f.medecin).toLowerCase().includes(q));
+  if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗂</div><div class="empty-text">Aucune fiche médicale</div></div>';return;}
+  const statutLabel={stable:'STABLE',critique:'CRITIQUE',quarantaine:'QUARANTAINE',observation:'OBSERVATION',guerison:'EN GUÉRISON',decede:'DÉCÉDÉ'};
+  el.innerHTML=[...list].reverse().map(f=>`
+    <div class="fiche-card sev-${f.severite||'faible'}">
+      <div class="fiche-header">
+        <div class="fiche-header-top"><div class="fiche-id">${esc(f.customId||f._id?.slice(-8)||'—')}</div><div class="fiche-badge sev-${f.severite||'faible'}">${f.severite?.toUpperCase()||'FAIBLE'}</div></div>
+        <div class="fiche-name">${esc(f.nom)}</div>
+      </div>
+      <div class="fiche-body">
+        <div class="fiche-row"><span class="fiche-lbl">Statut</span><span class="fiche-val" style="color:${f.statut==='critique'?'var(--danger)':f.statut==='quarantaine'?'var(--warn)':f.statut==='stable'?'var(--safe)':'var(--text)'}">${statutLabel[f.statut]||esc(f.statut)}</span></div>
+        <div class="fiche-row"><span class="fiche-lbl">Médecin</span><span class="fiche-val">${esc(f.medecin||'—')}</span></div>
+        <div class="fiche-row"><span class="fiche-lbl">Zone</span><span class="fiche-val">${esc(f.zone||'—')}</span></div>
+        <div class="fiche-row"><span class="fiche-lbl">Admission</span><span class="fiche-val">${fmtDate(f.admission)||'—'}</span></div>
+        ${f.vitaux?.tension?`<div class="fiche-row"><span class="fiche-lbl">Vitaux</span><span class="fiche-val" style="color:var(--dept-color)">T: ${esc(f.vitaux.tension)} · P: ${esc(f.vitaux.pouls)} bpm</span></div>`:''}
+        <div class="fiche-diag">${esc((f.diagnostic||'').substring(0,120))}${(f.diagnostic||'').length>120?'…':''}</div>
+      </div>
+      <div class="fiche-footer">
+        <button class="btn btn-xs btn-dept" data-view-fi="${f._id}">📄 Voir</button>
+        ${isAuthenticated?`<button class="btn btn-xs btn-warn" data-edit-fi="${f._id}">✎</button><button class="btn btn-xs btn-danger" data-del-fi="${f._id}">✕</button>`:''}
+        <button class="btn btn-xs btn-ghost" data-exp-fi="${f._id}">⬇</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('ficheSearch')?.addEventListener('input',renderFiches);
+document.getElementById('ficheFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill');if(!pill)return;
+  document.querySelectorAll('#ficheFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');ficheFilter=pill.dataset.fiFilter;renderFiches();
+});
+document.getElementById('btnNewFiche')?.addEventListener('click',()=>{if(!requireAuth('créer une fiche'))return;openFicheForm(null);});
+['ficheCancelBtn','ficheCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('ficheFormPanel').style.display='none';editingFicheId=null;}));
+
+function openFicheForm(f=null){
+  editingFicheId=f?._id||null;
+  document.getElementById('ficheFormTitle').textContent=f?'Modifier — '+f.nom:'Nouvelle fiche médicale';
+  document.getElementById('fiNom').value=f?.nom||'';
+  document.getElementById('fiId').value=f?.customId||'';
+  document.getElementById('fiAge').value=f?.age||'';
+  document.getElementById('fiGenre').value=f?.genre||'M';
+  document.getElementById('fiMedecin').value=f?.medecin||'';
+  document.getElementById('fiZone').value=f?.zone||'';
+  document.getElementById('fiAdmission').value=f?.admission||today();
+  document.getElementById('fiBlood').value=f?.bloodGroup||'—';
+  document.getElementById('fiStatut').value=f?.statut||'stable';
+  document.getElementById('fiSeverite').value=f?.severite||'faible';
+  document.getElementById('fiAllergies').value=f?.allergies||'';
+  document.getElementById('fiDiag').value=f?.diagnostic||'';
+  document.getElementById('fiAntecedents').value=f?.antecedents||'';
+  document.getElementById('fiTraitement').value=f?.traitement||'';
+  document.getElementById('fiOrdonnances').value=f?.ordonnances||'';
+  document.getElementById('fiTension').value=f?.vitaux?.tension||'';
+  document.getElementById('fiPouls').value=f?.vitaux?.pouls||'';
+  document.getElementById('fiTemp').value=f?.vitaux?.temp||'';
+  document.getElementById('fiNotes').value=f?.notes||'';
+  const panel=document.getElementById('ficheFormPanel');
+  panel.style.display='block';panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('ficheSaveBtn')?.addEventListener('click',async()=>{
+  if(!requireAuth('enregistrer une fiche'))return;
+  const nom=document.getElementById('fiNom').value.trim();
+  const diag=document.getElementById('fiDiag').value.trim();
+  if(!nom||!diag){alert('Nom et diagnostic requis.');return;}
+  const data={nom,customId:document.getElementById('fiId').value.trim(),age:document.getElementById('fiAge').value.trim(),genre:document.getElementById('fiGenre').value,medecin:document.getElementById('fiMedecin').value.trim(),zone:document.getElementById('fiZone').value.trim(),admission:document.getElementById('fiAdmission').value,bloodGroup:document.getElementById('fiBlood').value,statut:document.getElementById('fiStatut').value,severite:document.getElementById('fiSeverite').value,allergies:document.getElementById('fiAllergies').value.trim(),diagnostic:diag,antecedents:document.getElementById('fiAntecedents').value.trim(),traitement:document.getElementById('fiTraitement').value.trim(),ordonnances:document.getElementById('fiOrdonnances').value.trim(),notes:document.getElementById('fiNotes').value.trim(),vitaux:{tension:document.getElementById('fiTension').value.trim(),pouls:document.getElementById('fiPouls').value.trim(),temp:document.getElementById('fiTemp').value.trim()}};
+  if(editingFicheId){await fbUpdate('med_fiches',editingFicheId,data);}
+  else{await fbAdd('med_fiches',data);}
+  document.getElementById('ficheFormPanel').style.display='none';editingFicheId=null;
+  addHistory('Fiche médicale: '+nom);
+});
+
+function viewFiche(f){
+  if(!f)return;currentFiche=f;
+  const sevLabel={faible:'FAIBLE',modere:'MODÉRÉE',eleve:'ÉLEVÉE',critique:'CRITIQUE'};
+  const sevClass={faible:'sev-faible',modere:'sev-modere',eleve:'sev-eleve',critique:'sev-critique'};
+  document.getElementById('fvId').textContent=esc(f.customId||f._id?.slice(-8)||'—');
+  document.getElementById('fvName').textContent=f.nom||'—';
+  const badge=document.getElementById('fvBadge');
+  badge.textContent=sevLabel[f.severite]||f.severite||'—';
+  badge.className='fiche-badge '+(sevClass[f.severite]||'sev-faible');
+  document.getElementById('fvIdBox').textContent=f.customId||f._id?.slice(-8)||'—';
+  document.getElementById('fvAdmission').textContent=fmtDate(f.admission)||'—';
+  document.getElementById('fvMedecin').textContent=f.medecin||'—';
+  document.getElementById('fvZone').textContent=f.zone||'—';
+  document.getElementById('fvAge').textContent=f.age||'—';
+  document.getElementById('fvBlood').textContent=f.bloodGroup||'—';
+  document.getElementById('fvStatut').textContent=f.statut?.toUpperCase()||'—';
+  document.getElementById('fvAllergies').textContent=f.allergies||'Aucune connue';
+  document.getElementById('fvTension').textContent=f.vitaux?.tension||'—';
+  document.getElementById('fvPouls').textContent=f.vitaux?.pouls?f.vitaux.pouls+' bpm':'—';
+  document.getElementById('fvTemp').textContent=f.vitaux?.temp?f.vitaux.temp+' °C':'—';
+  document.getElementById('fvDiag').textContent=f.diagnostic||'—';
+  document.getElementById('fvAntecedents').textContent=f.antecedents||'Aucun antécédent renseigné';
+  document.getElementById('fvTraitement').textContent=f.traitement||'Aucun traitement en cours';
+  document.getElementById('fvNotes').textContent=f.notes||'—';
+  document.getElementById('fvNotesSection').style.display=f.notes?'block':'none';
+  document.getElementById('fvEditBtn').onclick=()=>{closeModal('modalFicheView');openFicheForm(f);};
+  openModal('modalFicheView');
+}
+document.getElementById('fvExportBtn')?.addEventListener('click',()=>{if(currentFiche)exportFiche(currentFiche);});
+
+function exportFiche(f){
+  const lines=['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','FICHE MÉDICALE — DÉPARTEMENT MÉDICAL','══════════════════════════════════════════',`ID FICHE  : ${f.customId||f._id?.slice(-8)||'—'}`,`PATIENT   : ${f.nom}`,`ÂGE/ESPÈCE: ${f.age||'—'} | GENRE: ${f.genre||'—'}`,`GRP SANG. : ${f.bloodGroup||'—'}`,`ADMISSION : ${fmtDate(f.admission)||'—'}`,`MÉDECIN   : ${f.medecin||'—'}`,`ZONE      : ${f.zone||'—'}`,'══════════════════════════════════════════',`STATUT    : ${f.statut?.toUpperCase()||'—'}`,`SÉVÉRITÉ  : ${f.severite?.toUpperCase()||'—'}`,`ALLERGIES : ${f.allergies||'Aucune'}`,'══════════════════════════════════════════','PARAMÈTRES VITAUX :',`  Tension  : ${f.vitaux?.tension||'—'}`,`  Pouls    : ${f.vitaux?.pouls||'—'} bpm`,`  Temp.    : ${f.vitaux?.temp||'—'} °C`,'══════════════════════════════════════════','DIAGNOSTIC :',f.diagnostic||'—','','ANTÉCÉDENTS :',f.antecedents||'—','','TRAITEMENT EN COURS :',f.traitement||'—','',f.notes?'NOTES CLINIQUES :\n'+f.notes:'','══════════════════════════════════════════',`[Généré le ${new Date().toLocaleString('fr-FR')}]`];
+  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`FICHE_MED_${(f.nom||'patient').replace(/[^a-z0-9]/gi,'_')}_${f.admission||'nodate'}.txt`;a.click();
+  addHistory('Fiche exportée: '+f.nom);
+}
+
+// ══ PATIENTS ══
+function renderPatients(){
+  const el=document.getElementById('patientList');if(!el)return;
+  let list=patientFilter==='all'?patients:patients.filter(p=>p.status===patientFilter);
+  if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏥</div><div class="empty-text">Aucun patient</div></div>';return;}
+  el.innerHTML=[...list].reverse().map(p=>`
+    <div class="patient-card status-${p.status}">
+      <div class="patient-name">${esc(p.name)}</div>
+      <div class="patient-id">${esc(p.customId||p._id?.slice(-10)||'—')}</div>
+      <div class="patient-status ${p.status}">${p.status.toUpperCase()}</div>
+      <div class="patient-diag">${esc((p.diagnosis||'').substring(0,120))}${(p.diagnosis||'').length>120?'…':''}</div>
+      <div style="font-size:9px;color:var(--text-dim);margin-bottom:8px">Dr: ${esc(p.doctor||'—')} · ${p.date||'—'} · ${esc(p.room||'—')}</div>
+      ${p.treatment?`<div style="font-family:'Courier Prime',monospace;font-size:10px;color:var(--dept-color);margin-bottom:8px">💊 ${esc(p.treatment.substring(0,80))}</div>`:''}
+      <div style="display:flex;gap:5px">
+        ${isAuthenticated?`<button class="btn btn-xs btn-dept" data-edit-pt="${p._id}">✎ Modifier</button><button class="btn btn-xs btn-danger" data-del-pt="${p._id}">✕</button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('patientFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill');if(!pill)return;
+  document.querySelectorAll('#patientFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');patientFilter=pill.dataset.ptFilter;renderPatients();
+});
+document.getElementById('btnNewPatient')?.addEventListener('click',()=>{if(!requireAuth('ajouter un patient'))return;openPatientForm(null);});
+['patientCancelBtn','patientCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('patientFormPanel').style.display='none';editingPatientId=null;}));
+
+function openPatientForm(p=null){
+  editingPatientId=p?._id||null;
+  document.getElementById('patientFormTitle').textContent=p?'Modifier — '+p.name:'Nouveau patient';
+  document.getElementById('ptName').value=p?.name||'';
+  document.getElementById('ptId').value=p?.customId||'';
+  document.getElementById('ptStatus').value=p?.status||'stable';
+  document.getElementById('ptDoctor').value=p?.doctor||'';
+  document.getElementById('ptDate').value=p?.date||today();
+  document.getElementById('ptRoom').value=p?.room||'';
+  document.getElementById('ptDiag').value=p?.diagnosis||'';
+  document.getElementById('ptTreatment').value=p?.treatment||'';
+  const panel=document.getElementById('patientFormPanel');
+  panel.style.display='block';panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('patientSaveBtn')?.addEventListener('click',async()=>{
+  if(!requireAuth('enregistrer un patient'))return;
+  const name=document.getElementById('ptName').value.trim();
+  const diag=document.getElementById('ptDiag').value.trim();
+  const date=document.getElementById('ptDate').value;
+  if(!name||!diag||!date){alert('Nom, diagnostic et date requis.');return;}
+  const data={name,status:document.getElementById('ptStatus').value,doctor:document.getElementById('ptDoctor').value.trim(),date,room:document.getElementById('ptRoom').value.trim(),diagnosis:diag,treatment:document.getElementById('ptTreatment').value.trim(),customId:document.getElementById('ptId').value.trim()};
+  if(editingPatientId){await fbUpdate('med_patients',editingPatientId,data);}
+  else{await fbAdd('med_patients',data);}
+  document.getElementById('patientFormPanel').style.display='none';editingPatientId=null;
+  addHistory('Patient: '+name);
+});
+
+// ══ ÉVALUATIONS ══
+function renderEvals(){
+  const el=document.getElementById('evalList');if(!el)return;
+  if(!evaluations.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation</div></div>';return;}
+  const dec={promu:'✅ Promu',valide:'✔ Validé',avertissement:'⚠ Avertissement',recale:'❌ Recalé',expulse:'🚫 Expulsé'};
+  el.innerHTML=[...evaluations].reverse().map(ev=>{
+    const m=getEvalMention(ev.total||0);
+    return`<div class="card">
+      <div class="card-hdr"><div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white)">${esc(ev.name)}</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:${m.color}">${ev.total||0}/60</div></div>
+      <div class="card-type">${esc(ev.rank||'—')} — @${esc(ev.username||'—')}</div>
+      <div style="font-size:9px;color:${m.color};text-transform:uppercase;letter-spacing:.1em">${m.text}</div>
+      <div class="card-meta"><span>${dec[ev.decision]||ev.decision}</span><span>${ev.date||'—'}</span><span>Éval: ${esc(ev.author||'—')}</span></div>
+      ${ev.comments?`<div class="card-excerpt">${esc(ev.comments)}</div>`:''}
+      <div class="card-acts">
+        ${isAuthenticated?`<button class="btn btn-xs btn-dept" data-edit-ev="${ev._id}">✎</button><button class="btn btn-xs btn-danger" data-del-ev="${ev._id}">✕</button>`:''}
+        <button class="btn btn-xs btn-ghost" data-exp-ev="${ev._id}">⬇ Export</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('btnNewEval')?.addEventListener('click',()=>{if(!requireAuth('créer une évaluation'))return;openEvalForm(null);});
+['evalCancelBtn','evalCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('evalFormPanel').style.display='none';editingEvalId=null;}));
+
+function openEvalForm(ev=null){
+  editingEvalId=ev?._id||null;
+  document.getElementById('evalFormTitle').textContent=ev?'Modifier — '+ev.name:'Nouvelle évaluation';
+  document.getElementById('evalName').value=ev?.name||'';
+  document.getElementById('evalUser').value=ev?.username||'';
+  document.getElementById('evalRank').value=ev?.rank||'';
+  document.getElementById('evalAuthor').value=ev?.author||'';
+  document.getElementById('evalDate').value=ev?.date||today();
+  document.getElementById('evalDecision').value=ev?.decision||'valide';
+  document.getElementById('evalComments').value=ev?.comments||'';
+  EVAL_KEYS.forEach(k=>{const s=document.getElementById('score'+k);const v=document.getElementById('val'+k);if(s)s.value=ev?.scores?.[k]??5;if(v)v.textContent=ev?.scores?.[k]??5;});
+  updateEvalUI();
+  const panel=document.getElementById('evalFormPanel');panel.style.display='block';panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('evalSaveBtn')?.addEventListener('click',async()=>{
+  if(!requireAuth('enregistrer une évaluation'))return;
+  const name=document.getElementById('evalName').value.trim();
+  const author=document.getElementById('evalAuthor').value.trim();
+  const date=document.getElementById('evalDate').value;
+  if(!name||!author||!date){alert('Champs requis.');return;}
+  const scores={};EVAL_KEYS.forEach(k=>scores[k]=parseInt(document.getElementById('score'+k)?.value||5));
+  const total=Object.values(scores).reduce((a,b)=>a+b,0);
+  const data={name,username:document.getElementById('evalUser').value.trim(),rank:document.getElementById('evalRank').value.trim(),author,date,decision:document.getElementById('evalDecision').value,comments:document.getElementById('evalComments').value.trim(),scores,total};
+  if(editingEvalId){await fbUpdate('med_evals',editingEvalId,data);}
+  else{await fbAdd('med_evals',data);}
+  document.getElementById('evalFormPanel').style.display='none';editingEvalId=null;
+  addHistory('Évaluation: '+name);
+});
+
+function exportEvaluation(ev){
+  const m=getEvalMention(ev.total||0);
+  const dec={promu:'PROMU',valide:'VALIDÉ',avertissement:'AVERTISSEMENT',recale:'RECALÉ',expulse:'EXPULSÉ'};
+  const critLabels={Disc:'Discipline',Proto:'Protocoles',React:'Réactivité',Comm:'Communication',Hier:'Hiérarchie',Comp:'Comportement'};
+  const lines=['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','ÉVALUATION — DÉPARTEMENT MÉDICAL','══════════════════════════════════════════',`AGENT    : ${ev.name}`,`USERNAME : ${ev.username?'@'+ev.username:'—'}`,`GRADE    : ${ev.rank||'—'}`,`DATE     : ${ev.date||'—'}`,`ÉVAL.    : ${ev.author||'—'}`,'══════════════════════════════════════════',`SCORE    : ${ev.total||0} / 60 — ${m.text}`,`DÉCISION : ${dec[ev.decision]||ev.decision}`,'══════════════════════════════════════════','CRITÈRES',...Object.entries(ev.scores||{}).map(([k,v])=>`  ${(critLabels[k]||k).padEnd(22)}: ${v}/10`),'','COMMENTAIRES',ev.comments||'(aucun)','══════════════════════════════════════════',`[Généré le ${new Date().toLocaleString('fr-FR')}]`];
+  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`EVAL_MED_${(ev.name||'agent').replace(/[^a-z0-9]/gi,'_')}_${ev.date||'nodate'}.txt`;a.click();
+  addHistory('Export évaluation: '+ev.name);
+}
+
+// ══ RAPPORTS ══
+function renderRapports(){
+  const el=document.getElementById('rapportList');if(!el)return;
+  let list=rapportFilter==='all'?rapports:rapports.filter(r=>r.type===rapportFilter);
+  if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport</div></div>';return;}
+  el.innerHTML=[...list].reverse().map(r=>{
+    const sev=getSev(r.severity);
+    return`<div class="card">
+      <div class="card-hdr"><div class="card-id">${r._id?.slice(-6)||'—'}</div><div class="card-sev" style="color:${sev.color};border-color:${sev.color}">${sev.label}</div></div>
+      <div class="card-type">${getTypeLabel(r.type)}</div>
+      <div class="card-title">${esc(r.title)}</div>
+      <div class="card-meta"><span>Dr. ${esc(r.author||'—')}</span><span>${r.date||'—'}</span>${r.patient?`<span>Patient: ${esc(r.patient)}</span>`:''}</div>
+      <div class="card-excerpt">${esc((r.description||'').substring(0,100))}${(r.description||'').length>100?'…':''}</div>
+      <div class="card-acts">
+        <button class="btn btn-xs btn-dept" data-view-r="${r._id}">📄 Voir</button>
+        <button class="btn btn-xs btn-ghost" data-exp-r="${r._id}">⬇</button>
+        ${isAuthenticated?`<button class="btn btn-xs btn-danger" data-del-r="${r._id}">✕</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('rapportFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill');if(!pill)return;
+  document.querySelectorAll('#rapportFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');rapportFilter=pill.dataset.rFilter;renderRapports();
+});
+document.getElementById('btnNewRapport')?.addEventListener('click',()=>{if(!requireAuth('créer un rapport'))return;openRapportForm(null);});
+['rapportCancelBtn','rapportCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('rapportFormPanel').style.display='none';editingRapportId=null;}));
+
+function openRapportForm(r=null){
+  editingRapportId=r?._id||null;
+  document.getElementById('rapportFormTitle').textContent=r?'Modifier rapport':'Nouveau rapport médical';
+  document.getElementById('rTitle').value=r?.title||'';
+  document.getElementById('rType').value=r?.type||'incident';
+  document.getElementById('rSev').value=r?.severity||'moderate';
+  document.getElementById('rAuthor').value=r?.author||'';
+  document.getElementById('rPatient').value=r?.patient||'';
+  document.getElementById('rDate').value=r?.date||today();
+  document.getElementById('rDesc').value=r?.description||'';
+  document.getElementById('rConc').value=r?.conclusion||'';
+  const panel=document.getElementById('rapportFormPanel');panel.style.display='block';panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('rapportSaveBtn')?.addEventListener('click',async()=>{
+  if(!requireAuth('sauvegarder un rapport'))return;
+  const title=document.getElementById('rTitle').value.trim();
+  const author=document.getElementById('rAuthor').value.trim();
+  const desc=document.getElementById('rDesc').value.trim();
+  const date=document.getElementById('rDate').value;
+  if(!title||!author||!desc||!date){alert('Champs requis.');return;}
+  const data={title,type:document.getElementById('rType').value,severity:document.getElementById('rSev').value,author,patient:document.getElementById('rPatient').value.trim(),date,description:desc,conclusion:document.getElementById('rConc').value.trim(),dept:'Département Médical'};
+  if(editingRapportId){await fbUpdate('med_rapports',editingRapportId,data);}
+  else{await fbAdd('med_rapports',data);}
+  document.getElementById('rapportFormPanel').style.display='none';editingRapportId=null;
+  addHistory('Rapport: '+title);
+});
+
+function viewRapport(r){
+  if(!r)return;currentRapport=r;
+  const sev=getSev(r.severity);
+  document.getElementById('rvId').textContent=r._id?.slice(-8)||'—';
+  document.getElementById('rvType').textContent=getTypeLabel(r.type);
+  document.getElementById('rvTitle').textContent=r.title;
+  document.getElementById('rvSev').textContent=sev.label;document.getElementById('rvSev').style.color=sev.color;
+  document.getElementById('rvDate').textContent=r.date||'—';
+  document.getElementById('rvAuthor').textContent='Dr. '+(r.author||'—');
+  document.getElementById('rvPatient').textContent=r.patient||'—';
+  document.getElementById('rvDesc').textContent=r.description||'—';
+  document.getElementById('rvConc').textContent=r.conclusion||'—';
+  openModal('modalRapportView');
+}
+document.getElementById('rvExportBtn')?.addEventListener('click',()=>{if(currentRapport)exportRapport(currentRapport);});
+
+function exportRapport(r){
+  const sev=getSev(r.severity);
+  const lines=['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','RAPPORT MÉDICAL — DÉPARTEMENT MÉDICAL','══════════════════════════════════════════',`ID       : ${r._id?.slice(-8)||'—'}`,`DATE     : ${r.date||'—'}`,`MÉDECIN  : ${r.author||'—'}`,`PATIENT  : ${r.patient||'—'}`,`TYPE     : ${getTypeLabel(r.type)}`,`SÉVÉRITÉ : ${sev.label}`,'══════════════════════════════════════════',`TITRE    : ${r.title}`,'══════════════════════════════════════════','','DESCRIPTION :',r.description,'','PRONOSTIC & SUIVI :',r.conclusion||'—','','══════════════════════════════════════════',`[Généré le ${new Date().toLocaleString('fr-FR')}]`];
+  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`RAPPORT_MED_${(r.title||'rapport').replace(/[^a-z0-9]/gi,'_')}.txt`;a.click();
+  addHistory('Rapport exporté: '+r.title);
+}
+
+// ══ ROSTER / AGENTS ══
+const STATUS_LABELS_AG = {actif:'ACTIF',inactif:'INACTIF',suspendu:'SUSPENDU',conge:'EN CONGÉ'};
+
+function getAgentInitials(nom){
+  if(!nom)return '?';
+  const parts=nom.trim().split(/\s+/);
+  if(parts.length>=2)return (parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+  return nom.substring(0,2).toUpperCase();
+}
+
+// Vue toggle
+document.getElementById('rosterViewToggle')?.addEventListener('click',e=>{
+  const btn=e.target.closest('.view-toggle-btn');if(!btn)return;
+  document.querySelectorAll('.view-toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  rosterView=btn.dataset.rv;
+  document.getElementById('rosterCardsView').style.display=rosterView==='cards'?'block':'none';
+  document.getElementById('rosterTableView').style.display=rosterView==='table'?'block':'none';
+  renderAgents();
+});
+
+// Filtres
+document.getElementById('rosterFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill');if(!pill)return;
+  document.querySelectorAll('#rosterFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');agentFilter=pill.dataset.agFilter;renderAgents();
+});
+document.getElementById('rosterSearch')?.addEventListener('input',renderAgents);
+
+function getFilteredAgents(){
+  const q=(document.getElementById('rosterSearch')?.value||'').toLowerCase();
+  let list=agentFilter==='all'?agents:agents.filter(a=>a.statut===agentFilter);
+  if(q)list=list.filter(a=>(a.nom+a.username+a.grade+a.specialite).toLowerCase().includes(q));
+  return list;
+}
+
+function renderAgents(){
+  const list=getFilteredAgents();
+  if(rosterView==='cards') renderAgentCards(list);
+  else renderAgentTable(list);
+}
+
+function renderAgentCards(list){
+  const el=document.getElementById('agentList');if(!el)return;
+  if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><div class="empty-text">Aucun agent trouvé</div></div>';return;}
+  const isAdmin=currentRole==='admin';
+  el.innerHTML=[...list].reverse().map(a=>`
+    <div class="agent-card status-${a.statut||'inactif'}">
+      <div class="agent-card-header">
+        <div class="agent-avatar">${getAgentInitials(a.nom)}</div>
+        <div class="agent-identity">
+          <div class="agent-name">${esc(a.nom)}</div>
+          <div class="agent-username">@${esc(a.username||'—')}</div>
+        </div>
+        <div class="agent-status-badge ${a.statut||'inactif'}">${STATUS_LABELS_AG[a.statut]||a.statut?.toUpperCase()||'—'}</div>
+      </div>
+      <div class="agent-card-body">
+        <div class="agent-info-row"><span class="agent-info-lbl">Grade</span><span class="agent-rank-badge">${esc(a.grade||'—')}</span></div>
+        ${a.specialite?`<div class="agent-info-row"><span class="agent-info-lbl">Spécialité</span><span class="agent-spec-badge">${esc(a.specialite)}</span></div>`:''}
+        <div class="agent-info-row"><span class="agent-info-lbl">Recruté le</span><span class="agent-info-val">${fmtDate(a.dateRecrutement)||'—'}</span></div>
+        ${a.notes?`<div class="agent-info-row"><span class="agent-info-lbl">Notes</span><span class="agent-info-val" style="color:var(--text-dim);font-size:9px">${esc(a.notes.substring(0,60))}${a.notes.length>60?'…':''}</span></div>`:''}
+      </div>
+      <div class="agent-card-footer">
+        <button class="btn btn-xs btn-dept" data-view-ag="${a._id}">👤 Voir</button>
+        ${isAdmin?`<button class="btn btn-xs btn-warn" data-edit-ag="${a._id}">✎</button><button class="btn btn-xs btn-danger" data-del-ag="${a._id}">✕</button>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAgentTable(list){
+  const tbody=document.getElementById('agentTableBody');if(!tbody)return;
+  const isAdmin=currentRole==='admin';
+  if(!list.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;font-size:10px">Aucun agent trouvé</td></tr>';return;}
+  const statusColor={actif:'var(--safe)',inactif:'var(--text-dim)',suspendu:'var(--danger)',conge:'var(--warn)'};
+  tbody.innerHTML=[...list].reverse().map(a=>`
+    <tr>
+      <td>
+        <div class="td-name">${esc(a.nom)}</div>
+      </td>
+      <td><span style="color:var(--dept-color)">@${esc(a.username||'—')}</span></td>
+      <td><span class="agent-rank-badge">${esc(a.grade||'—')}</span></td>
+      <td>${a.specialite?`<span class="agent-spec-badge">${esc(a.specialite)}</span>`:'<span style="color:var(--text-dim)">—</span>'}</td>
+      <td><span style="color:${statusColor[a.statut]||'var(--text-dim)'};font-size:9px;letter-spacing:.1em;text-transform:uppercase">${STATUS_LABELS_AG[a.statut]||'—'}</span></td>
+      <td style="color:var(--text-dim)">${fmtDate(a.dateRecrutement)||'—'}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-xs btn-dept" data-view-ag="${a._id}">Voir</button>
+          ${isAdmin?`<button class="btn btn-xs btn-warn" data-edit-ag="${a._id}">✎</button><button class="btn btn-xs btn-danger" data-del-ag="${a._id}">✕</button>`:''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// Bouton nouveau agent
+document.getElementById('btnNewAgent')?.addEventListener('click',()=>{
+  if(!requireAuth('ajouter un agent'))return;
+  if(!requireAdmin('ajouter un agent'))return;
+  openAgentForm(null);
+});
+['agentCancelBtn','agentCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('agentFormPanel').style.display='none';editingAgentId=null;}));
+
+function openAgentForm(a=null){
+  editingAgentId=a?._id||null;
+  document.getElementById('agentFormTitle').textContent=a?'Modifier — '+a.nom:'Nouvel agent médical';
+  document.getElementById('agNom').value=a?.nom||'';
+  document.getElementById('agUsername').value=a?.username||'';
+  document.getElementById('agRank').value=a?.grade||'';
+  document.getElementById('agSpec').value=a?.specialite||'';
+  document.getElementById('agStatus').value=a?.statut||'actif';
+  document.getElementById('agDate').value=a?.dateRecrutement||today();
+  document.getElementById('agNotes').value=a?.notes||'';
+  const panel=document.getElementById('agentFormPanel');
+  panel.style.display='block';panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('agentSaveBtn')?.addEventListener('click',async()=>{
+  if(!requireAuth('sauvegarder un agent'))return;
+  if(!requireAdmin('sauvegarder un agent'))return;
+  const nom=document.getElementById('agNom').value.trim();
+  const username=document.getElementById('agUsername').value.trim();
+  if(!nom||!username){alert('Nom RP et Username requis.');return;}
+  const data={
+    nom, username, grade:document.getElementById('agRank').value.trim(),
+    specialite:document.getElementById('agSpec').value,
+    statut:document.getElementById('agStatus').value,
+    dateRecrutement:document.getElementById('agDate').value||today(),
+    notes:document.getElementById('agNotes').value.trim(),
+    dept:'Département Médical'
+  };
+  if(editingAgentId){await fbUpdate('user-rp',editingAgentId,data);}
+  else{await fbAdd('user-rp',data);}
+  document.getElementById('agentFormPanel').style.display='none';editingAgentId=null;
+  addHistory('Agent enregistré: '+nom);
+});
+
+function viewAgent(a){
+  if(!a)return;currentAgent=a;
+  const isAdmin=currentRole==='admin';
+  document.getElementById('avUsername').textContent='@'+(a.username||'—');
+  document.getElementById('avName').textContent=a.nom||'—';
+  const badge=document.getElementById('avStatusBadge');
+  badge.textContent=STATUS_LABELS_AG[a.statut]||a.statut?.toUpperCase()||'—';
+  badge.className='agent-status-badge '+(a.statut||'inactif');
+  document.getElementById('avNom').textContent=a.nom||'—';
+  document.getElementById('avUser').textContent='@'+(a.username||'—');
+  document.getElementById('avRank').textContent=a.grade||'—';
+  document.getElementById('avSpec').textContent=a.specialite||'—';
+  document.getElementById('avStatus').textContent=STATUS_LABELS_AG[a.statut]||a.statut?.toUpperCase()||'—';
+  document.getElementById('avDate').textContent=fmtDate(a.dateRecrutement)||'—';
+  const notesEl=document.getElementById('avNotes');
+  const notesSection=document.getElementById('avNotesSection');
+  notesEl.textContent=a.notes||'—';
+  notesSection.style.display=a.notes?'block':'none';
+  const editBtn=document.getElementById('avEditBtn');
+  const delBtn=document.getElementById('avDeleteBtn');
+  editBtn.style.display=isAdmin?'inline-flex':'none';
+  delBtn.style.display=isAdmin?'inline-flex':'none';
+  editBtn.onclick=()=>{closeModal('modalAgentView');openAgentForm(a);};
+  delBtn.onclick=async()=>{if(!confirm('Supprimer cet agent du roster ?'))return;await fbDelete('user-rp',a._id);closeModal('modalAgentView');addHistory('Agent supprimé: '+a.nom);};
+  openModal('modalAgentView');
+}
+
+// ══ DISPATCHER GLOBAL ══
+document.addEventListener('click',async e=>{
+  // Protocoles
+  const cp=e.target.closest('[data-copy-p]');
+  if(cp){const p=protocols.find(x=>x._id===cp.dataset.copyP);if(p&&navigator.clipboard){await navigator.clipboard.writeText(p.content);const o=cp.textContent;cp.textContent='✓ Copié';cp.style.color='var(--safe)';setTimeout(()=>{cp.textContent=o;cp.style.color='';},1500);}return;}
+  const ep=e.target.closest('[data-edit-p]');
+  if(ep){if(!requireAuth('modifier'))return;openProtoModal(protocols.find(x=>x._id===ep.dataset.editP));return;}
+  const dp=e.target.closest('[data-del-p]');
+  if(dp){if(!requireAuth('supprimer'))return;if(!confirm('Supprimer cette ordonnance ?'))return;await fbDelete('med_protocols',dp.dataset.delP);return;}
+  // Fiches
+  const vfi=e.target.closest('[data-view-fi]');
+  if(vfi){viewFiche(fiches.find(x=>x._id===vfi.dataset.viewFi));return;}
+  const efi=e.target.closest('[data-edit-fi]');
+  if(efi){if(!requireAuth('modifier'))return;const f=fiches.find(x=>x._id===efi.dataset.editFi);if(f){closeModal('modalFicheView');openFicheForm(f);}return;}
+  const dfi=e.target.closest('[data-del-fi]');
+  if(dfi){if(!requireAuth('supprimer'))return;if(!confirm('Supprimer cette fiche ?'))return;await fbDelete('med_fiches',dfi.dataset.delFi);return;}
+  const xfi=e.target.closest('[data-exp-fi]');
+  if(xfi){const f=fiches.find(x=>x._id===xfi.dataset.expFi);if(f)exportFiche(f);return;}
+  // Patients
+  const ept=e.target.closest('[data-edit-pt]');
+  if(ept){if(!requireAuth('modifier'))return;openPatientForm(patients.find(x=>x._id===ept.dataset.editPt));return;}
+  const dpt=e.target.closest('[data-del-pt]');
+  if(dpt){if(!requireAuth('supprimer'))return;if(!confirm('Supprimer ce patient ?'))return;await fbDelete('med_patients',dpt.dataset.delPt);return;}
+  // Evals
+  const eev=e.target.closest('[data-edit-ev]');
+  if(eev){if(!requireAuth('modifier'))return;openEvalForm(evaluations.find(x=>x._id===eev.dataset.editEv));return;}
+  const dev=e.target.closest('[data-del-ev]');
+  if(dev){if(!requireAuth('supprimer'))return;if(!confirm('Supprimer ?'))return;await fbDelete('med_evals',dev.dataset.delEv);return;}
+  const xev=e.target.closest('[data-exp-ev]');
+  if(xev){const ev=evaluations.find(x=>x._id===xev.dataset.expEv);if(ev)exportEvaluation(ev);return;}
+  // Rapports
+  const vr=e.target.closest('[data-view-r]');
+  if(vr){viewRapport(rapports.find(x=>x._id===vr.dataset.viewR));return;}
+  const xr=e.target.closest('[data-exp-r]');
+  if(xr){const r=rapports.find(x=>x._id===xr.dataset.expR);if(r)exportRapport(r);return;}
+  const dr=e.target.closest('[data-del-r]');
+  if(dr){if(!requireAuth('supprimer'))return;if(!confirm('Supprimer ?'))return;await fbDelete('med_rapports',dr.dataset.delR);return;}
+  // Agents
+  const vag=e.target.closest('[data-view-ag]');
+  if(vag){viewAgent(agents.find(x=>x._id===vag.dataset.viewAg));return;}
+  const eag=e.target.closest('[data-edit-ag]');
+  if(eag){if(!requireAdmin('modifier'))return;openAgentForm(agents.find(x=>x._id===eag.dataset.editAg));return;}
+  const dag=e.target.closest('[data-del-ag]');
+  if(dag){if(!requireAdmin('supprimer'))return;if(!confirm('Supprimer cet agent du roster ?'))return;await fbDelete('user-rp',dag.dataset.delAg);addHistory('Agent supprimé');return;}
+});
+
+// INIT
+updateStats();
+addHistory('Intranet Médical v2 chargé.');
+initApp();
+</script>
+</body>
+</html>

@@ -1,0 +1,1722 @@
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ÉVALUATIONS D.SE — Refonte</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;700;900&family=Courier+Prime&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e13;
+  --surface: #111720;
+  --surface2: #161e2a;
+  --surface3: #1c2535;
+  --border: rgba(76,140,255,0.12);
+  --border2: rgba(76,140,255,0.22);
+  --white: #e8eef8;
+  --text: #9aafc8;
+  --text-dim: #4d637f;
+  --accent: #e8c84a;
+  --accent2: #7ab0ff;
+  --safe: #00d97e;
+  --warn: #ffaa00;
+  --danger: #ff3355;
+  --info: #4cc3ff;
+  --promo: #a855f7;
+
+  --dept-color: #4cc3ff;
+
+  /* Statut validation */
+  --status-pending: #888;
+  --status-signed: #00d97e;
+  --status-rejected: #ff3355;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Courier Prime', monospace;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* ─── LAYOUT ─── */
+.eval-layout { max-width: 1300px; margin: 0 auto; }
+
+/* ─── HEADER ─── */
+.eval-page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
+}
+.eval-page-title-block {}
+.eval-page-tag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.eval-page-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px; font-weight: 900; text-transform: uppercase;
+  color: var(--white); letter-spacing: 0.04em; line-height: 1;
+}
+.eval-page-title span { color: var(--dept-color); }
+.eval-page-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+
+/* ─── STATS BAR ─── */
+.eval-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px; margin-bottom: 24px;
+}
+.eval-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  text-align: center;
+}
+.eval-stat-card--promo { border-left: 3px solid var(--promo); }
+.eval-stat-card--valide { border-left: 3px solid var(--safe); }
+.eval-stat-card--warn { border-left: 3px solid var(--warn); }
+.eval-stat-card--danger { border-left: 3px solid var(--danger); }
+.eval-stat-card--pending { border-left: 3px solid var(--text-dim); }
+.eval-stat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px; font-weight: 900; line-height: 1;
+}
+.eval-stat-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--text-dim);
+  margin-top: 4px;
+}
+
+/* ─── TOOLBAR ─── */
+.eval-toolbar {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.eval-search {
+  flex: 1; min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--white);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; padding: 8px 14px;
+  outline: none; transition: border-color 0.2s;
+}
+.eval-search:focus { border-color: var(--dept-color); }
+.eval-filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.eval-pill {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 5px 12px; border: 1px solid var(--border2);
+  background: transparent; color: var(--text-dim);
+  cursor: pointer; transition: all 0.18s;
+}
+.eval-pill:hover { border-color: var(--dept-color); color: var(--dept-color); }
+.eval-pill.active { border-color: var(--dept-color); color: var(--dept-color); background: rgba(76,195,255,0.07); }
+.eval-sort-select {
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text); font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; padding: 7px 10px; outline: none; cursor: pointer;
+}
+
+/* ─── GRID ÉVALS ─── */
+.eval-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px; margin-bottom: 32px;
+}
+.eval-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  position: relative; overflow: hidden;
+  cursor: pointer; transition: all 0.2s;
+}
+.eval-card:hover { background: var(--surface2); border-color: var(--border2); transform: translateY(-1px); }
+.eval-card--promu    { border-top: 3px solid var(--promo); }
+.eval-card--valide   { border-top: 3px solid var(--safe); }
+.eval-card--avertissement { border-top: 3px solid var(--warn); }
+.eval-card--recale   { border-top: 3px solid var(--danger); }
+.eval-card--expulse  { border-top: 3px solid #444; }
+
+/* Badge validation statut */
+.eval-valid-badge {
+  position: absolute; top: 10px; right: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 2px 7px; border: 1px solid;
+}
+.eval-valid-badge--pending { color: var(--text-dim); border-color: rgba(136,136,136,0.35); background: rgba(136,136,136,0.05); }
+.eval-valid-badge--partial { color: var(--warn); border-color: rgba(255,170,0,0.4); background: rgba(255,170,0,0.06); }
+.eval-valid-badge--complete { color: var(--safe); border-color: rgba(0,217,126,0.4); background: rgba(0,217,126,0.07); }
+.eval-valid-badge--rejected { color: var(--danger); border-color: rgba(255,51,85,0.4); background: rgba(255,51,85,0.07); }
+
+.eval-card-header { padding: 16px 16px 12px; border-bottom: 1px solid var(--border); }
+.eval-card-agent {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px; font-weight: 900; text-transform: uppercase;
+  color: var(--white); line-height: 1; padding-right: 60px;
+}
+.eval-card-rank {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--dept-color); margin-top: 4px; letter-spacing: 0.06em;
+}
+.eval-card-decision-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 10px;
+}
+.eval-decision-badge {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 2px 8px; border: 1px solid;
+}
+.eval-decision-badge--promu    { color: var(--promo); border-color: rgba(168,85,247,0.5); background: rgba(168,85,247,0.08); }
+.eval-decision-badge--valide   { color: var(--safe); border-color: rgba(0,217,126,0.4); background: rgba(0,217,126,0.06); }
+.eval-decision-badge--avertissement { color: var(--warn); border-color: rgba(255,170,0,0.4); background: rgba(255,170,0,0.06); }
+.eval-decision-badge--recale   { color: var(--danger); border-color: rgba(255,51,85,0.4); background: rgba(255,51,85,0.06); }
+.eval-decision-badge--expulse  { color: #666; border-color: rgba(100,100,100,0.4); background: rgba(100,100,100,0.06); }
+.eval-card-meta {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--text-dim); margin-top: 4px;
+}
+
+/* Score radar visuel */
+.eval-card-scores { padding: 12px 16px; display: flex; flex-direction: column; gap: 5px; }
+.eval-score-row { display: flex; align-items: center; gap: 8px; }
+.eval-score-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-dim); min-width: 70px; flex-shrink: 0;
+}
+.eval-score-bar-wrap {
+  flex: 1; height: 4px; background: var(--surface3); position: relative;
+}
+.eval-score-bar-fill { height: 100%; transition: width 0.4s ease; }
+.eval-score-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; min-width: 16px; text-align: right;
+}
+.eval-card-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.eval-total-display {
+  display: flex; align-items: baseline; gap: 4px;
+}
+.eval-total-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px; font-weight: 900; line-height: 1;
+}
+.eval-total-max {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--text-dim);
+}
+.eval-mention {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 3px 8px; border: 1px solid;
+}
+.eval-card-sigs {
+  display: flex; gap: 4px; padding: 8px 16px; background: rgba(0,0,0,0.2);
+  border-top: 1px solid var(--border); flex-wrap: wrap;
+}
+.eval-sig-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block; margin-right: 4px;
+}
+.eval-sig-mini {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: var(--text-dim);
+  display: flex; align-items: center;
+}
+.eval-sig-mini.signed { color: var(--safe); }
+.eval-sig-mini.rejected { color: var(--danger); }
+
+/* ─── MODAL DOSSIER ÉVALUATION ─── */
+.eval-modal-ov {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  z-index: 500; display: none; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.eval-modal-ov.open { display: flex; }
+.eval-modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  width: 100%; max-width: 820px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modal-in 0.2s ease;
+}
+@keyframes modal-in { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+.eval-modal-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--surface); z-index: 10;
+}
+.eval-modal-close {
+  background: none; border: 1px solid var(--border2); color: var(--text-dim);
+  font-size: 18px; cursor: pointer; padding: 4px 10px; transition: all 0.18s;
+}
+.eval-modal-close:hover { border-color: var(--danger); color: var(--danger); }
+.eval-modal-body { padding: 24px; }
+
+/* Modal tabs */
+.eval-modal-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.eval-modal-tab {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 9px 16px; border: none; border-bottom: 2px solid transparent;
+  background: transparent; color: var(--text-dim);
+  cursor: pointer; transition: all 0.18s;
+}
+.eval-modal-tab:hover { color: var(--white); }
+.eval-modal-tab.active { color: var(--dept-color); border-bottom-color: var(--dept-color); background: rgba(76,195,255,0.04); }
+
+/* Panneau résumé */
+.eval-detail-header {
+  background: linear-gradient(90deg, rgba(76,195,255,0.08) 0%, transparent 100%);
+  border: 1px solid rgba(76,195,255,0.2);
+  border-left: 4px solid var(--dept-color);
+  padding: 16px 20px; margin-bottom: 20px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.eval-detail-agent-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 30px; font-weight: 900; text-transform: uppercase; line-height: 1;
+}
+.eval-detail-agent-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--dept-color); margin-top: 5px;
+}
+.eval-detail-score-block { text-align: right; }
+.eval-detail-score {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px; font-weight: 900; line-height: 1;
+}
+.eval-detail-score-max { font-size: 18px; font-weight: 400; color: var(--text-dim); }
+
+/* Grille compétences détaillées */
+.eval-criteria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px; margin-bottom: 20px;
+}
+.eval-crit-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 14px;
+}
+.eval-crit-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--text-dim); margin-bottom: 8px;
+}
+.eval-crit-score-big {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px; font-weight: 900; line-height: 1;
+}
+.eval-crit-bar {
+  height: 3px; background: var(--surface3); margin-top: 8px; overflow: hidden;
+}
+.eval-crit-bar-fill { height: 100%; }
+
+/* Commentaires */
+.eval-comments-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 14px 16px; margin-bottom: 20px;
+}
+.eval-comments-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--text-dim); margin-bottom: 8px;
+}
+.eval-comments-text {
+  font-family: 'Courier Prime', monospace;
+  font-size: 12px; color: var(--text); line-height: 1.7;
+  font-style: italic;
+}
+
+/* ─── SIGNATURES ─── */
+.eval-sigs-section { margin-bottom: 20px; }
+.eval-sigs-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.2em;
+  color: var(--dept-color); margin-bottom: 12px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border);
+}
+.eval-sigs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+.eval-sig-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 14px;
+  position: relative;
+}
+.eval-sig-card--signed  { border-left: 3px solid var(--safe); }
+.eval-sig-card--pending { border-left: 3px solid var(--text-dim); }
+.eval-sig-card--rejected{ border-left: 3px solid var(--danger); }
+.eval-sig-role {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.eval-sig-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px; font-weight: 700; text-transform: uppercase; color: var(--white);
+}
+.eval-sig-status {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; margin-top: 8px; display: flex; align-items: center; gap: 6px;
+}
+.eval-sig-status.signed   { color: var(--safe); }
+.eval-sig-status.pending  { color: var(--text-dim); }
+.eval-sig-status.rejected { color: var(--danger); }
+.eval-sig-timestamp {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: var(--text-dim); margin-top: 3px;
+}
+.eval-sig-action-btn {
+  width: 100%; margin-top: 10px; padding: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.18s;
+}
+.eval-sig-action-btn--sign {
+  border: 1px solid rgba(0,217,126,0.4); background: rgba(0,217,126,0.06); color: var(--safe);
+}
+.eval-sig-action-btn--sign:hover { background: rgba(0,217,126,0.14); }
+.eval-sig-action-btn--reject {
+  border: 1px solid rgba(255,51,85,0.3); background: rgba(255,51,85,0.04); color: rgba(255,51,85,0.6);
+  font-size: 8px; margin-top: 5px;
+}
+.eval-sig-action-btn--reject:hover { background: rgba(255,51,85,0.1); color: var(--danger); }
+.eval-sig-revoke-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: rgba(255,51,85,0.4);
+  background: none; border: none; cursor: pointer; margin-top: 4px;
+  transition: color 0.18s;
+}
+.eval-sig-revoke-btn:hover { color: var(--danger); }
+
+/* Signature stamp */
+.eval-sig-stamp {
+  position: absolute; bottom: 8px; right: 8px;
+  width: 32px; height: 32px;
+  border: 2px solid rgba(0,217,126,0.3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px; color: rgba(0,217,126,0.5);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+
+/* Validation globale */
+.eval-validation-bar {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.eval-validation-progress {
+  display: flex; align-items: center; gap: 10px; flex: 1;
+}
+.eval-validation-dots { display: flex; gap: 5px; }
+.eval-validation-dot {
+  width: 10px; height: 10px;
+  border: 1px solid var(--border2);
+  background: transparent; transition: all 0.2s;
+}
+.eval-validation-dot.done  { background: var(--safe); border-color: var(--safe); box-shadow: 0 0 6px rgba(0,217,126,0.3); }
+.eval-validation-dot.rejected { background: var(--danger); border-color: var(--danger); }
+.eval-validation-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em;
+}
+.eval-finalize-btn {
+  padding: 8px 18px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+}
+.eval-finalize-btn--ready {
+  border: 1px solid rgba(0,217,126,0.5);
+  background: rgba(0,217,126,0.08);
+  color: var(--safe);
+}
+.eval-finalize-btn--ready:hover { background: rgba(0,217,126,0.18); }
+.eval-finalize-btn--disabled {
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+/* ─── FORMULAIRE WIZARD ─── */
+.eval-wizard { margin-top: 8px; }
+.eval-wizard-steps {
+  display: flex; gap: 0; margin-bottom: 28px; position: relative;
+}
+.eval-wizard-steps::before {
+  content: ''; position: absolute; top: 50%; left: 0; right: 0;
+  height: 1px; background: var(--border); z-index: 0;
+}
+.eval-wizard-step {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  flex: 1; position: relative; z-index: 1; cursor: pointer;
+}
+.eval-wizard-step-dot {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--text-dim);
+  transition: all 0.2s;
+}
+.eval-wizard-step.active .eval-wizard-step-dot {
+  border-color: var(--dept-color);
+  background: rgba(76,195,255,0.1);
+  color: var(--dept-color);
+}
+.eval-wizard-step.done .eval-wizard-step-dot {
+  border-color: var(--safe);
+  background: rgba(0,217,126,0.1);
+  color: var(--safe);
+}
+.eval-wizard-step-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-dim); text-align: center;
+}
+.eval-wizard-step.active .eval-wizard-step-lbl { color: var(--dept-color); }
+.eval-wizard-step.done .eval-wizard-step-lbl { color: var(--safe); }
+
+/* Panneau d'étape */
+.eval-step-panel { display: none; }
+.eval-step-panel.active { display: block; }
+.eval-step-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--dept-color); margin-bottom: 18px;
+}
+
+/* Grille formulaire */
+.eval-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 18px;
+}
+.eval-form-field { display: flex; flex-direction: column; gap: 5px; }
+.eval-form-field.full { grid-column: 1 / -1; }
+.eval-form-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.16em;
+  color: var(--text-dim);
+}
+.eval-form-input, .eval-form-select, .eval-form-textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--white);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; padding: 8px 10px; outline: none;
+  transition: border-color 0.2s;
+}
+.eval-form-input:focus, .eval-form-select:focus, .eval-form-textarea:focus { border-color: var(--dept-color); }
+.eval-form-textarea { resize: vertical; }
+
+/* Notation compétences — étape 2 */
+.eval-comp-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+.eval-comp-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 16px;
+}
+.eval-comp-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.eval-comp-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--white);
+}
+.eval-comp-score-display {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px; font-weight: 900;
+}
+.eval-comp-desc {
+  font-family: 'Courier Prime', monospace;
+  font-size: 10px; color: var(--text-dim); margin-bottom: 12px; font-style: italic;
+}
+.eval-comp-slider-row { display: flex; align-items: center; gap: 10px; }
+.eval-comp-slider {
+  flex: 1; height: 4px; background: var(--surface3); outline: none;
+  -webkit-appearance: none; cursor: pointer;
+}
+.eval-comp-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border: 1px solid var(--dept-color);
+  background: var(--surface2);
+  cursor: pointer;
+}
+.eval-comp-slider::-webkit-slider-runnable-track { background: transparent; }
+.eval-comp-marks {
+  display: flex; justify-content: space-between;
+  margin-top: 5px; padding: 0 1px;
+}
+.eval-comp-mark {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px; color: var(--text-dim);
+}
+.eval-comp-mark.highlight { color: var(--accent2); }
+
+/* Récapitulatif étape 3 */
+.eval-recap-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-bottom: 20px;
+}
+.eval-recap-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+}
+.eval-recap-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--text-dim); margin-bottom: 4px;
+}
+.eval-recap-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; color: var(--white);
+}
+
+/* Score arc (faux semicercle SVG) */
+.eval-score-arc-wrap { text-align: center; margin-bottom: 20px; }
+.eval-score-arc-main {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--text-dim);
+  margin-top: 8px;
+}
+
+/* Panneau validation — étape 4 */
+.eval-sig-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px; margin-bottom: 20px;
+}
+.eval-sig-setup-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 14px;
+}
+.eval-sig-setup-role-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.eval-sig-setup-level {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 8px; color: var(--warn); margin-bottom: 8px; font-style: italic;
+}
+
+/* Boutons wizard */
+.eval-wizard-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.eval-wizard-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 9px 20px; cursor: pointer; transition: all 0.2s;
+}
+.eval-wizard-btn--next {
+  border: 1px solid var(--dept-color);
+  background: rgba(76,195,255,0.08); color: var(--dept-color);
+}
+.eval-wizard-btn--next:hover { background: rgba(76,195,255,0.18); }
+.eval-wizard-btn--back {
+  border: 1px solid var(--border2);
+  background: transparent; color: var(--text-dim);
+}
+.eval-wizard-btn--back:hover { border-color: var(--dept-color); color: var(--dept-color); }
+.eval-wizard-btn--save {
+  border: 1px solid rgba(0,217,126,0.5);
+  background: rgba(0,217,126,0.08); color: var(--safe);
+}
+.eval-wizard-btn--save:hover { background: rgba(0,217,126,0.18); }
+.eval-wizard-step-info {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px; color: var(--text-dim);
+}
+
+/* Total bar */
+.eval-total-bar {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--dept-color);
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  margin-bottom: 20px;
+}
+.eval-total-bar-score {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 42px; font-weight: 900; line-height: 1;
+}
+.eval-total-bar-mention {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  padding: 3px 10px; border: 1px solid; margin-top: 4px;
+}
+.eval-total-bar-breakdown {
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.eval-total-breakdown-item {
+  text-align: center;
+}
+.eval-total-breakdown-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px; font-weight: 700; line-height: 1;
+}
+.eval-total-breakdown-lbl {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 7px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text-dim); margin-top: 2px;
+}
+
+/* ─── Boutons UI ─── */
+.btn {
+  font-family: 'Share Tech Mono', monospace; font-size: 9px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 6px 14px; border: 1px solid; cursor: pointer;
+  transition: all 0.18s; background: transparent;
+}
+.btn--primary { border-color: var(--dept-color); color: var(--dept-color); background: rgba(76,195,255,0.07); }
+.btn--primary:hover { background: rgba(76,195,255,0.16); }
+.btn--ghost { border-color: var(--border2); color: var(--text-dim); }
+.btn--ghost:hover { border-color: var(--dept-color); color: var(--dept-color); }
+.btn--danger { border-color: rgba(255,51,85,0.4); color: var(--danger); background: rgba(255,51,85,0.06); }
+.btn--danger:hover { background: rgba(255,51,85,0.14); }
+.btn--sm { padding: 5px 12px; font-size: 8px; }
+
+/* ─── EMPTY STATE ─── */
+.eval-empty {
+  grid-column: 1 / -1;
+  text-align: center; padding: 60px 20px;
+  background: var(--surface);
+  border: 1px dashed var(--border2);
+}
+.eval-empty-icon {
+  font-size: 40px; margin-bottom: 12px; opacity: 0.4;
+}
+.eval-empty-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Notification toast */
+.eval-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--safe);
+  padding: 12px 18px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--safe); letter-spacing: 0.1em;
+  animation: toast-in 0.2s ease;
+  pointer-events: none;
+}
+@keyframes toast-in { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); }
+
+@media (max-width: 600px) {
+  .eval-form-grid { grid-template-columns: 1fr; }
+  .eval-recap-grid { grid-template-columns: 1fr; }
+  .eval-detail-header { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="eval-layout">
+
+  <!-- ─── PAGE HEADER ─── -->
+  <div class="eval-page-header">
+    <div class="eval-page-title-block">
+      <div class="eval-page-tag">// Ressources humaines — Site-19</div>
+      <div class="eval-page-title">ÉVALUATIONS <span>D.SE</span></div>
+    </div>
+    <div class="eval-page-actions">
+      <button class="btn btn--primary" id="btnNewEval">+ Nouvelle évaluation</button>
+      <button class="btn btn--ghost btn--sm" id="btnToggleView">⊞ Vue grille</button>
+    </div>
+  </div>
+
+  <!-- ─── STATS BAR ─── -->
+  <div class="eval-stats-bar">
+    <div class="eval-stat-card eval-stat-card--promo">
+      <div class="eval-stat-val" id="statPromu" style="color:var(--promo)">0</div>
+      <div class="eval-stat-lbl">Promus</div>
+    </div>
+    <div class="eval-stat-card eval-stat-card--valide">
+      <div class="eval-stat-val" id="statValide" style="color:var(--safe)">0</div>
+      <div class="eval-stat-lbl">Validés</div>
+    </div>
+    <div class="eval-stat-card eval-stat-card--warn">
+      <div class="eval-stat-val" id="statAvert" style="color:var(--warn)">0</div>
+      <div class="eval-stat-lbl">Avertissements</div>
+    </div>
+    <div class="eval-stat-card eval-stat-card--danger">
+      <div class="eval-stat-val" id="statRecale" style="color:var(--danger)">0</div>
+      <div class="eval-stat-lbl">Recalés</div>
+    </div>
+    <div class="eval-stat-card eval-stat-card--pending">
+      <div class="eval-stat-val" id="statPending" style="color:var(--text-dim)">0</div>
+      <div class="eval-stat-lbl">En attente sig.</div>
+    </div>
+    <div class="eval-stat-card" style="border-left:3px solid var(--dept-color)">
+      <div class="eval-stat-val" id="statTotal" style="color:var(--dept-color)">0</div>
+      <div class="eval-stat-lbl">Total</div>
+    </div>
+  </div>
+
+  <!-- ─── TOOLBAR ─── -->
+  <div class="eval-toolbar">
+    <input class="eval-search" id="evalSearch" placeholder="⌕ Rechercher par agent, évaluateur…" autocomplete="off"/>
+    <div class="eval-filter-pills" id="evalFilterPills">
+      <button class="eval-pill active" data-filter="all">Tous</button>
+      <button class="eval-pill" data-filter="promu">Promus</button>
+      <button class="eval-pill" data-filter="valide">Validés</button>
+      <button class="eval-pill" data-filter="avertissement">Avertissements</button>
+      <button class="eval-pill" data-filter="recale">Recalés</button>
+      <button class="eval-pill" data-filter="pending">En attente</button>
+    </div>
+    <select class="eval-sort-select" id="evalSort">
+      <option value="date-desc">Plus récent</option>
+      <option value="date-asc">Plus ancien</option>
+      <option value="score-desc">Score ↓</option>
+      <option value="score-asc">Score ↑</option>
+    </select>
+  </div>
+
+  <!-- ─── GRILLE ─── -->
+  <div class="eval-grid" id="evalGrid">
+    <div class="eval-empty">
+      <div class="eval-empty-icon">✦</div>
+      <div class="eval-empty-text">Aucune évaluation enregistrée</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL DÉTAIL ÉVALUATION
+     ════════════════════════════════════════════ -->
+<div class="eval-modal-ov" id="modalEvalDetail">
+  <div class="eval-modal-box">
+    <div class="eval-modal-header">
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:0.25em;text-transform:uppercase;color:var(--text-dim)">📋 DOSSIER D'ÉVALUATION</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;color:var(--white);margin-top:4px" id="detailAgentTitle">—</div>
+      </div>
+      <button class="eval-modal-close" id="closeDetail">×</button>
+    </div>
+    <div class="eval-modal-body">
+
+      <!-- Tabs -->
+      <div class="eval-modal-tabs">
+        <button class="eval-modal-tab active" data-detail-tab="resume">📊 Résumé</button>
+        <button class="eval-modal-tab" data-detail-tab="competences">⭐ Compétences</button>
+        <button class="eval-modal-tab" data-detail-tab="signatures">✍ Signatures</button>
+      </div>
+
+      <!-- Panneau: Résumé -->
+      <div class="eval-detail-panel active" id="detailPanel-resume">
+        <div class="eval-detail-header">
+          <div>
+            <div class="eval-detail-agent-name" id="detailName">—</div>
+            <div class="eval-detail-agent-sub" id="detailRank">—</div>
+          </div>
+          <div class="eval-detail-score-block">
+            <div class="eval-detail-score">
+              <span id="detailScoreNum" style="color:var(--safe)">—</span>
+              <span class="eval-detail-score-max">/60</span>
+            </div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;margin-top:4px" id="detailMention">—</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">
+          <span id="detailDecisionBadge" class="eval-decision-badge">—</span>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim)" id="detailMeta">—</span>
+        </div>
+        <div class="eval-comments-block" id="detailCommentsBlock" style="display:none">
+          <div class="eval-comments-lbl">Commentaires de l'évaluateur</div>
+          <div class="eval-comments-text" id="detailComments">—</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);padding:14px 16px">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:0.18em;color:var(--text-dim);margin-bottom:10px">Répartition des scores</div>
+          <div id="detailScoresBrief" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+
+      <!-- Panneau: Compétences -->
+      <div class="eval-detail-panel" id="detailPanel-competences">
+        <div class="eval-criteria-grid" id="detailCriteriaGrid"></div>
+      </div>
+
+      <!-- Panneau: Signatures -->
+      <div class="eval-detail-panel" id="detailPanel-signatures">
+        <!-- Barre de progression validation -->
+        <div class="eval-validation-bar">
+          <div class="eval-validation-progress">
+            <div class="eval-validation-dots" id="validationDots"></div>
+            <div class="eval-validation-label" id="validationLabel">0 / 3 signatures</div>
+          </div>
+          <button class="eval-finalize-btn eval-finalize-btn--disabled" id="finalizeBtn">✓ Finaliser</button>
+        </div>
+        <!-- Grille signatures -->
+        <div class="eval-sigs-section">
+          <div class="eval-sigs-title">// Signatures requises</div>
+          <div class="eval-sigs-grid" id="sigsGrid"></div>
+        </div>
+        <!-- Commentaire refus -->
+        <div id="rejectedPanel" style="display:none;background:rgba(255,51,85,0.04);border:1px solid rgba(255,51,85,0.25);padding:14px;margin-top:12px">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:0.18em;color:var(--danger);margin-bottom:6px">⛔ Refus signalé</div>
+          <div style="font-family:'Courier Prime',monospace;font-size:11px;color:var(--text)" id="rejectedReason">—</div>
+        </div>
+      </div>
+
+    </div>
+    <!-- Footer -->
+    <div style="padding:12px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn--ghost btn--sm" id="closeDetail2">Fermer</button>
+      <button class="btn btn--sm" id="detailDeleteBtn" style="border-color:rgba(255,51,85,0.4);color:var(--danger);background:rgba(255,51,85,0.06)">✕ Supprimer</button>
+      <button class="btn btn--sm btn--primary" id="detailExportBtn">⬇ Exporter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODAL FORMULAIRE — WIZARD
+     ════════════════════════════════════════════ -->
+<div class="eval-modal-ov" id="modalEvalForm">
+  <div class="eval-modal-box">
+    <div class="eval-modal-header">
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:0.25em;text-transform:uppercase;color:var(--dept-color)">+ NOUVELLE ÉVALUATION</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;text-transform:uppercase;color:var(--white);margin-top:4px" id="wizardStepTitle">Informations de base</div>
+      </div>
+      <button class="eval-modal-close" id="closeForm">×</button>
+    </div>
+    <div class="eval-modal-body">
+
+      <!-- Steps indicator -->
+      <div class="eval-wizard-steps" id="wizardSteps">
+        <div class="eval-wizard-step active" data-step="0">
+          <div class="eval-wizard-step-dot">01</div>
+          <div class="eval-wizard-step-lbl">Identité</div>
+        </div>
+        <div class="eval-wizard-step" data-step="1">
+          <div class="eval-wizard-step-dot">02</div>
+          <div class="eval-wizard-step-lbl">Compétences</div>
+        </div>
+        <div class="eval-wizard-step" data-step="2">
+          <div class="eval-wizard-step-dot">03</div>
+          <div class="eval-wizard-step-lbl">Récapitulatif</div>
+        </div>
+        <div class="eval-wizard-step" data-step="3">
+          <div class="eval-wizard-step-dot">04</div>
+          <div class="eval-wizard-step-lbl">Validation</div>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 1 — Identité -->
+      <div class="eval-step-panel active" id="step-0">
+        <div class="eval-step-title">// 01 — Informations de l'agent et de l'évaluation</div>
+        <div class="eval-form-grid">
+          <div class="eval-form-field">
+            <label class="eval-form-label">Nom de l'agent *</label>
+            <input class="eval-form-input" id="fName" placeholder="Ex: M.NOWAK"/>
+          </div>
+          <div class="eval-form-field">
+            <label class="eval-form-label">Username Roblox</label>
+            <input class="eval-form-input" id="fUser" placeholder="Ex: FlofloParis"/>
+          </div>
+          <div class="eval-form-field">
+            <label class="eval-form-label">Grade actuel</label>
+            <input class="eval-form-input" id="fRank" placeholder="Ex: [D.SE] Cadet"/>
+          </div>
+          <div class="eval-form-field">
+            <label class="eval-form-label">Date *</label>
+            <input class="eval-form-input" id="fDate" type="date"/>
+          </div>
+          <div class="eval-form-field">
+            <label class="eval-form-label">Évaluateur principal *</label>
+            <input class="eval-form-input" id="fAuthor" placeholder="Votre nom"/>
+          </div>
+          <div class="eval-form-field">
+            <label class="eval-form-label">Décision finale *</label>
+            <select class="eval-form-select" id="fDecision">
+              <option value="promu">✅ Promu au grade supérieur</option>
+              <option value="valide" selected>✔ Validé — maintien du grade</option>
+              <option value="avertissement">⚠ Avertissement formel</option>
+              <option value="recale">❌ Recalé</option>
+              <option value="expulse">🚫 Expulsion</option>
+            </select>
+          </div>
+          <div class="eval-form-field full">
+            <label class="eval-form-label">Contexte de l'évaluation</label>
+            <textarea class="eval-form-textarea" id="fContext" rows="2" placeholder="Évaluation de fin de période d'essai, montée en grade, contrôle disciplinaire…"></textarea>
+          </div>
+        </div>
+        <!-- Signataires setup -->
+        <div style="background:var(--surface2);border:1px solid var(--border);padding:14px;margin-top:4px">
+          <div class="eval-step-title" style="margin-bottom:12px">// Chaîne de validation — définir les signataires</div>
+          <div id="sigSetupList" style="display:flex;flex-direction:column;gap:8px"></div>
+          <button class="btn btn--ghost btn--sm" id="btnAddSig" style="margin-top:10px">+ Ajouter un palier</button>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 2 — Compétences -->
+      <div class="eval-step-panel" id="step-1">
+        <div class="eval-step-title">// 02 — Notation par compétences (0–10 par critère)</div>
+        <div class="eval-comp-list" id="compList"></div>
+      </div>
+
+      <!-- ÉTAPE 3 — Récapitulatif -->
+      <div class="eval-step-panel" id="step-2">
+        <div class="eval-step-title">// 03 — Récapitulatif avant enregistrement</div>
+        <div class="eval-total-bar" id="recapTotalBar">
+          <div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:0.14em;color:var(--text-dim);margin-bottom:4px">Score global</div>
+            <div class="eval-total-bar-score" id="recapScore" style="color:var(--safe)">—</div>
+            <div class="eval-total-bar-mention" id="recapMention">—</div>
+          </div>
+          <div class="eval-total-bar-breakdown" id="recapBreakdown"></div>
+        </div>
+        <div class="eval-recap-grid" id="recapInfoGrid"></div>
+        <div class="eval-form-field" style="margin-bottom:16px">
+          <label class="eval-form-label">Commentaires de l'évaluateur</label>
+          <textarea class="eval-form-textarea" id="fComments" rows="4" placeholder="Observations, points forts, axes d'amélioration…"></textarea>
+        </div>
+      </div>
+
+      <!-- ÉTAPE 4 — Validation / Signatures -->
+      <div class="eval-step-panel" id="step-3">
+        <div class="eval-step-title">// 04 — Chaîne de validation multi-niveaux</div>
+        <div style="background:var(--surface2);border:1px solid rgba(76,195,255,0.15);border-left:3px solid var(--dept-color);padding:12px 14px;margin-bottom:16px">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);line-height:1.8">
+            L'évaluation sera enregistrée avec le statut <span style="color:var(--warn)">EN ATTENTE</span>. Chaque signataire devra apposer sa signature depuis son propre compte pour valider l'évaluation. Une évaluation est finalisée lorsque tous les paliers requis ont été signés.
+          </div>
+        </div>
+        <div class="eval-sigs-grid" id="sigPreviewGrid"></div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="eval-wizard-nav">
+        <button class="eval-wizard-btn eval-wizard-btn--back" id="wizardBack" style="display:none">← Retour</button>
+        <div class="eval-wizard-step-info" id="wizardStepInfo">Étape 1 sur 4</div>
+        <button class="eval-wizard-btn eval-wizard-btn--next" id="wizardNext">Suivant →</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="eval-toast" id="evalToast" style="display:none"></div>
+
+<script>
+// ════════════════════════════════════════════
+// DONNÉES & ÉTAT
+// ════════════════════════════════════════════
+const EVAL_CRITERIA = [
+  { key:'disc',   label:'Discipline',              desc:'Respect des règles, ponctualité, comportement en service', color:'#4cc3ff' },
+  { key:'proto',  label:'Protocoles',              desc:'Maîtrise et application des procédures D.SE', color:'#7ab0ff' },
+  { key:'react',  label:'Réactivité',              desc:'Capacité à répondre rapidement aux incidents', color:'#00d97e' },
+  { key:'comm',   label:'Communication',           desc:'Clarté des rapports, coordination avec les unités', color:'#e8c84a' },
+  { key:'hier',   label:'Respect hiérarchique',    desc:'Attitude vis-à-vis de la chaîne de commandement', color:'#ffaa00' },
+  { key:'comp',   label:'Comportement général',    desc:'Professionnalisme, esprit d\'équipe, initiative', color:'#a855f7' },
+];
+const MENTION_MAP = [
+  { min:54, text:'EXCEPTIONNEL',  color:'#00d97e' },
+  { min:48, text:'EXCELLENT',     color:'#00d97e' },
+  { min:42, text:'TRÈS BON',      color:'#7ab0ff' },
+  { min:36, text:'SATISFAISANT',  color:'#e8c84a' },
+  { min:27, text:'INSUFFISANT',   color:'#ffaa00' },
+  { min:0,  text:'RECALÉ',        color:'#ff3355' },
+];
+const DEC_LABELS = {
+  promu:'✅ PROMU',
+  valide:'✔ VALIDÉ',
+  avertissement:'⚠ AVERTISSEMENT',
+  recale:'❌ RECALÉ',
+  expulse:'🚫 EXPULSÉ',
+};
+const DEC_COLORS = {
+  promu:'var(--promo)',
+  valide:'var(--safe)',
+  avertissement:'var(--warn)',
+  recale:'var(--danger)',
+  expulse:'#555',
+};
+
+let evaluations = [];
+let activeFilter = 'all';
+let activeSort = 'date-desc';
+let currentEvalId = null;
+let wizardStep = 0;
+let formSignataires = [];
+let formScores = {};
+
+// Signataires par défaut (niveaux hiérarchiques)
+const DEFAULT_SIGS = [
+  { level: 1, role: 'Évaluateur direct', name: '', required: true },
+  { level: 2, role: 'Superviseur / Chef de section', name: '', required: true },
+  { level: 3, role: 'Direction D.SE', name: '', required: false },
+];
+
+// ── Mention ──
+function getMention(score) {
+  return MENTION_MAP.find(m => score >= m.min) || MENTION_MAP[MENTION_MAP.length - 1];
+}
+
+// ── Statut validation ──
+function getValidationStatus(eval_) {
+  if (!eval_.signataires || !eval_.signataires.length) return 'pending';
+  const required = eval_.signataires.filter(s => s.required);
+  if (required.every(s => s.status === 'signed')) return 'complete';
+  if (eval_.signataires.some(s => s.status === 'rejected')) return 'rejected';
+  if (eval_.signataires.some(s => s.status === 'signed')) return 'partial';
+  return 'pending';
+}
+function getValidationLabel(status) {
+  return {
+    pending: { text:'EN ATTENTE', cls:'eval-valid-badge--pending' },
+    partial: { text:'PARTIEL', cls:'eval-valid-badge--partial' },
+    complete:{ text:'VALIDÉ ✓', cls:'eval-valid-badge--complete' },
+    rejected:{ text:'REFUSÉ', cls:'eval-valid-badge--rejected' },
+  }[status] || { text:'—', cls:'eval-valid-badge--pending' };
+}
+
+function scoreColor(s) {
+  if (s >= 8) return 'var(--safe)';
+  if (s >= 6) return '#7ab0ff';
+  if (s >= 4) return 'var(--warn)';
+  return 'var(--danger)';
+}
+
+// ════════════════════════════════════════════
+// RENDU
+// ════════════════════════════════════════════
+function renderStats() {
+  const counts = { promu:0, valide:0, avertissement:0, recale:0, pending:0 };
+  evaluations.forEach(e => {
+    if (e.decision) counts[e.decision] = (counts[e.decision]||0)+1;
+    if (getValidationStatus(e) !== 'complete') counts.pending++;
+  });
+  document.getElementById('statPromu').textContent  = counts.promu;
+  document.getElementById('statValide').textContent = counts.valide;
+  document.getElementById('statAvert').textContent  = counts.avertissement;
+  document.getElementById('statRecale').textContent = counts.recale || 0;
+  document.getElementById('statPending').textContent= counts.pending;
+  document.getElementById('statTotal').textContent  = evaluations.length;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('evalGrid');
+  const q = document.getElementById('evalSearch').value.toLowerCase();
+  let list = [...evaluations];
+  if (activeFilter === 'pending') {
+    list = list.filter(e => getValidationStatus(e) !== 'complete');
+  } else if (activeFilter !== 'all') {
+    list = list.filter(e => e.decision === activeFilter);
+  }
+  if (q) list = list.filter(e =>
+    (e.name||'').toLowerCase().includes(q) ||
+    (e.author||'').toLowerCase().includes(q) ||
+    (e.username||'').toLowerCase().includes(q)
+  );
+  if (activeSort === 'date-desc') list.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  if (activeSort === 'date-asc')  list.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  if (activeSort === 'score-desc')list.sort((a,b) => (b.total||0)-(a.total||0));
+  if (activeSort === 'score-asc') list.sort((a,b) => (a.total||0)-(b.total||0));
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="eval-empty"><div class="eval-empty-icon">✦</div><div class="eval-empty-text">Aucune évaluation trouvée</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(ev => {
+    const total = ev.total || 0;
+    const mention = getMention(total);
+    const validStatus = getValidationStatus(ev);
+    const validInfo = getValidationLabel(validStatus);
+    const decLabel = DEC_LABELS[ev.decision] || ev.decision;
+    const decColor = DEC_COLORS[ev.decision] || '#888';
+
+    const sigsSummary = (ev.signataires||[]).map(s => {
+      const dotColor = s.status==='signed' ? 'var(--safe)' : s.status==='rejected' ? 'var(--danger)' : 'var(--border2)';
+      return `<span class="eval-sig-mini ${s.status}">
+        <span class="eval-sig-dot" style="background:${dotColor}"></span>${s.role.split('/')[0].trim()}
+      </span>`;
+    }).join('');
+
+    const scoresHtml = EVAL_CRITERIA.map(c => {
+      const score = ev.scores?.[c.key] ?? 5;
+      const pct = (score/10)*100;
+      return `<div class="eval-score-row">
+        <span class="eval-score-lbl">${c.label.split(' ')[0]}</span>
+        <div class="eval-score-bar-wrap">
+          <div class="eval-score-bar-fill" style="width:${pct}%;background:${c.color}40;outline:1px solid ${c.color}"></div>
+        </div>
+        <span class="eval-score-val" style="color:${scoreColor(score)}">${score}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="eval-card eval-card--${ev.decision||'valide'}" data-eval-id="${ev._id}" onclick="openEvalDetail('${ev._id}')">
+      <span class="eval-valid-badge ${validInfo.cls}">${validInfo.text}</span>
+      <div class="eval-card-header">
+        <div class="eval-card-agent">${ev.name||'—'}</div>
+        <div class="eval-card-rank">${ev.rank||'—'}</div>
+        <div class="eval-card-decision-row">
+          <span class="eval-decision-badge eval-decision-badge--${ev.decision||'valide'}" style="color:${decColor}">${decLabel}</span>
+        </div>
+        <div class="eval-card-meta">${ev.date||'—'} — Éval. ${ev.author||'—'}</div>
+      </div>
+      <div class="eval-card-scores">${scoresHtml}</div>
+      <div class="eval-card-footer">
+        <div class="eval-total-display">
+          <div class="eval-total-num" style="color:${mention.color}">${total}</div>
+          <div class="eval-total-max">/60</div>
+        </div>
+        <span class="eval-mention" style="color:${mention.color};border-color:${mention.color}40">${mention.text}</span>
+      </div>
+      ${sigsSummary ? `<div class="eval-card-sigs">${sigsSummary}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
+// MODAL DÉTAIL
+// ════════════════════════════════════════════
+function openEvalDetail(id) {
+  const ev = evaluations.find(e => e._id === id);
+  if (!ev) return;
+  currentEvalId = id;
+
+  const total = ev.total || 0;
+  const mention = getMention(total);
+
+  document.getElementById('detailAgentTitle').textContent = ev.name || '—';
+  document.getElementById('detailName').textContent = ev.name || '—';
+  document.getElementById('detailRank').textContent = ev.rank || '—';
+  document.getElementById('detailScoreNum').textContent = total;
+  document.getElementById('detailScoreNum').style.color = mention.color;
+  document.getElementById('detailMention').textContent = mention.text;
+  document.getElementById('detailMention').style.color = mention.color;
+
+  const badge = document.getElementById('detailDecisionBadge');
+  badge.textContent = DEC_LABELS[ev.decision] || ev.decision;
+  badge.className = `eval-decision-badge eval-decision-badge--${ev.decision}`;
+
+  document.getElementById('detailMeta').textContent =
+    `${ev.date||'—'} — Évaluateur: ${ev.author||'—'} ${ev.username?'| @'+ev.username:''}`;
+
+  const commentsBlock = document.getElementById('detailCommentsBlock');
+  if (ev.comments) {
+    commentsBlock.style.display = 'block';
+    document.getElementById('detailComments').textContent = ev.comments;
+  } else {
+    commentsBlock.style.display = 'none';
+  }
+
+  // Scores brefs
+  document.getElementById('detailScoresBrief').innerHTML = EVAL_CRITERIA.map(c => {
+    const score = ev.scores?.[c.key] ?? 5;
+    const pct = (score/10)*100;
+    return `<div class="eval-score-row">
+      <span class="eval-score-lbl" style="min-width:120px">${c.label}</span>
+      <div class="eval-score-bar-wrap"><div class="eval-score-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
+      <span class="eval-score-val" style="color:${scoreColor(score)}">${score}<span style="font-size:9px;color:var(--text-dim)">/10</span></span>
+    </div>`;
+  }).join('');
+
+  // Compétences détaillées
+  document.getElementById('detailCriteriaGrid').innerHTML = EVAL_CRITERIA.map(c => {
+    const score = ev.scores?.[c.key] ?? 5;
+    const pct = (score/10)*100;
+    return `<div class="eval-crit-card">
+      <div class="eval-crit-name">${c.label}</div>
+      <div class="eval-crit-score-big" style="color:${c.color}">${score}<span style="font-size:14px;font-weight:400;color:var(--text-dim)">/10</span></div>
+      <div class="eval-crit-bar"><div class="eval-crit-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
+      <div style="font-family:'Courier Prime',monospace;font-size:9px;color:var(--text-dim);margin-top:6px;font-style:italic">${c.desc}</div>
+    </div>`;
+  }).join('');
+
+  // Signatures
+  renderSigsPanel(ev);
+
+  // Reset tab
+  activateDetailTab('resume');
+  document.getElementById('modalEvalDetail').classList.add('open');
+}
+
+function renderSigsPanel(ev) {
+  const sigs = ev.signataires || [];
+  const required = sigs.filter(s => s.required);
+  const signedRequired = required.filter(s => s.status === 'signed').length;
+  const hasRejected = sigs.some(s => s.status === 'rejected');
+
+  // Dots
+  document.getElementById('validationDots').innerHTML = sigs.map(s =>
+    `<div class="eval-validation-dot ${s.status==='signed'?'done':s.status==='rejected'?'rejected':''}" title="${s.role}"></div>`
+  ).join('');
+  document.getElementById('validationLabel').textContent =
+    `${signedRequired} / ${required.length} validation${required.length>1?'s':''} requise${required.length>1?'s':''}`;
+
+  const allDone = required.every(s => s.status === 'signed');
+  const finalBtn = document.getElementById('finalizeBtn');
+  if (allDone) {
+    finalBtn.className = 'eval-finalize-btn eval-finalize-btn--ready';
+    finalBtn.textContent = '✓ Finaliser';
+  } else {
+    finalBtn.className = 'eval-finalize-btn eval-finalize-btn--disabled';
+    finalBtn.textContent = allDone ? '✓ Finaliser' : `En attente (${required.length - signedRequired} sig.)`;
+  }
+
+  document.getElementById('sigsGrid').innerHTML = sigs.map((s, i) => {
+    const signed = s.status === 'signed';
+    const rejected = s.status === 'rejected';
+    const statusCls = signed ? 'signed' : rejected ? 'rejected' : 'pending';
+    const statusText = signed ? '✓ SIGNÉ' : rejected ? '✕ REFUSÉ' : '○ EN ATTENTE';
+    const canSign = !signed && !rejected && !hasRejected;
+
+    return `<div class="eval-sig-card eval-sig-card--${statusCls}">
+      <div class="eval-sig-role">Niveau ${s.level} ${s.required?'<span style="color:var(--danger)">*</span>':''}</div>
+      <div class="eval-sig-name">${s.role}</div>
+      <div class="eval-sig-name" style="font-size:13px;color:var(--text-dim);margin-top:2px">${s.name||'—'}</div>
+      <div class="eval-sig-status ${statusCls}">${statusText}</div>
+      ${s.signedAt ? `<div class="eval-sig-timestamp">${s.signedAt}</div>` : ''}
+      ${canSign ? `
+        <button class="eval-sig-action-btn eval-sig-action-btn--sign" onclick="signEval('${ev._id}',${i})">✍ Signer</button>
+        <button class="eval-sig-action-btn eval-sig-action-btn--reject" onclick="rejectEval('${ev._id}',${i})">✕ Refuser</button>
+      ` : ''}
+      ${signed ? `<div class="eval-sig-stamp">OK</div><button class="eval-sig-revoke-btn" onclick="revokeSign('${ev._id}',${i})">↩ Révoquer</button>` : ''}
+    </div>`;
+  }).join('');
+
+  // Panel refus
+  const rejectedSig = sigs.find(s => s.status === 'rejected');
+  const rejPanel = document.getElementById('rejectedPanel');
+  if (rejectedSig) {
+    rejPanel.style.display = 'block';
+    document.getElementById('rejectedReason').textContent = `Refusé par: ${rejectedSig.name || rejectedSig.role} — ${rejectedSig.signedAt||''}`;
+  } else {
+    rejPanel.style.display = 'none';
+  }
+}
+
+function activateDetailTab(tab) {
+  document.querySelectorAll('[data-detail-tab]').forEach(t => t.classList.toggle('active', t.dataset.detailTab === tab));
+  document.querySelectorAll('.eval-detail-panel').forEach(p => p.classList.toggle('active', p.id === 'detailPanel-'+tab));
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-detail-tab]');
+  if (t) activateDetailTab(t.dataset.detailTab);
+});
+
+// ─ Actions signatures ─
+function signEval(evalId, sigIdx) {
+  const ev = evaluations.find(e => e._id === evalId); if (!ev) return;
+  ev.signataires[sigIdx].status = 'signed';
+  ev.signataires[sigIdx].signedAt = new Date().toLocaleString('fr-FR');
+  saveEvals();
+  renderSigsPanel(ev);
+  renderGrid(); renderStats();
+  showToast('Signature apposée ✓');
+}
+function rejectEval(evalId, sigIdx) {
+  const ev = evaluations.find(e => e._id === evalId); if (!ev) return;
+  ev.signataires[sigIdx].status = 'rejected';
+  ev.signataires[sigIdx].signedAt = new Date().toLocaleString('fr-FR');
+  saveEvals();
+  renderSigsPanel(ev);
+  renderGrid(); renderStats();
+  showToast('Évaluation refusée', 'danger');
+}
+function revokeSign(evalId, sigIdx) {
+  if (!confirm('Révoquer cette signature ?')) return;
+  const ev = evaluations.find(e => e._id === evalId); if (!ev) return;
+  ev.signataires[sigIdx].status = 'pending';
+  ev.signataires[sigIdx].signedAt = null;
+  saveEvals();
+  renderSigsPanel(ev);
+  renderGrid(); renderStats();
+  showToast('Signature révoquée');
+}
+
+document.getElementById('finalizeBtn').addEventListener('click', () => {
+  const ev = evaluations.find(e => e._id === currentEvalId); if (!ev) return;
+  const required = ev.signataires.filter(s => s.required);
+  if (!required.every(s => s.status === 'signed')) return;
+  ev.finalized = true;
+  saveEvals(); renderGrid(); renderStats();
+  showToast('Évaluation finalisée ✓');
+});
+
+// ─ Supprimer / Exporter ─
+document.getElementById('detailDeleteBtn').addEventListener('click', () => {
+  if (!confirm('Supprimer cette évaluation ?')) return;
+  evaluations = evaluations.filter(e => e._id !== currentEvalId);
+  saveEvals();
+  document.getElementById('modalEvalDetail').classList.remove('open');
+  renderGrid(); renderStats();
+  showToast('Évaluation supprimée');
+});
+document.getElementById('detailExportBtn').addEventListener('click', () => {
+  const ev = evaluations.find(e => e._id === currentEvalId); if (!ev) return;
+  exportEval(ev);
+});
+
+function exportEval(ev) {
+  const mention = getMention(ev.total||0);
+  const lines = [
+    '══════════════════════════════════════════',
+    'SCP FOUNDATION — SITE-19',
+    'RAPPORT D\'ÉVALUATION — DÉPARTEMENT SÉCURITÉ',
+    '══════════════════════════════════════════',
+    `ID           : ${ev._id}`,
+    `DATE         : ${ev.date||'—'}`,
+    `AGENT        : ${ev.name||'—'}`,
+    `USERNAME     : ${ev.username?'@'+ev.username:'—'}`,
+    `GRADE        : ${ev.rank||'—'}`,
+    `ÉVALUATEUR   : ${ev.author||'—'}`,
+    '══════════════════════════════════════════',
+    `SCORE GLOBAL : ${ev.total||0} / 60 — ${mention.text}`,
+    `DÉCISION     : ${DEC_LABELS[ev.decision]||ev.decision}`,
+    '══════════════════════════════════════════',
+    'COMPÉTENCES',
+    '══════════════════════════════════════════',
+    ...EVAL_CRITERIA.map(c => `  ${c.label.padEnd(22)}: ${ev.scores?.[c.key]??5}/10`),
+    '',
+    '══════════════════════════════════════════',
+    'COMMENTAIRES',
+    '══════════════════════════════════════════',
+    ev.comments || '(aucun commentaire)',
+    '',
+    '══════════════════════════════════════════',
+    'VALIDATIONS / SIGNATURES',
+    '══════════════════════════════════════════',
+    ...(ev.signataires||[]).map(s => `  Niv.${s.level} ${s.role.padEnd(30)}: ${s.status==='signed'?'✓ SIGNÉ':s.status==='rejected'?'✕ REFUSÉ':'○ EN ATTENTE'} ${s.signedAt||''}`),
+    '',
+    `[Généré le ${new Date().toLocaleString('fr-FR')}]`,
+    '══════════════════════════════════════════',
+  ];
+  const blob = new Blob([lines.join('\n')], { type:'text/plain;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `EVAL_${(ev.name||'agent').replace(/[^a-z0-9]/gi,'_')}_${ev.date||'nodate'}.txt`;
+  a.click();
+}
+
+// ════════════════════════════════════════════
+// WIZARD FORMULAIRE
+// ════════════════════════════════════════════
+function openFormModal() {
+  wizardStep = 0;
+  formSignataires = DEFAULT_SIGS.map((s,i) => ({ ...s, name:'', status:'pending', signedAt:null }));
+  formScores = {};
+  EVAL_CRITERIA.forEach(c => formScores[c.key] = 5);
+  document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('fName').value = '';
+  document.getElementById('fUser').value = '';
+  document.getElementById('fRank').value = '';
+  document.getElementById('fAuthor').value = '';
+  document.getElementById('fContext').value = '';
+  document.getElementById('fComments').value = '';
+  document.getElementById('fDecision').value = 'valide';
+  renderSigSetup();
+  renderCompSliders();
+  updateWizardUI();
+  document.getElementById('modalEvalForm').classList.add('open');
+}
+document.getElementById('btnNewEval').addEventListener('click', openFormModal);
+
+// Signataires setup
+function renderSigSetup() {
+  document.getElementById('sigSetupList').innerHTML = formSignataires.map((s,i) => `
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);white-space:nowrap">NIV.${s.level}</span>
+      <input class="eval-form-input" style="flex:2;min-width:120px" placeholder="Rôle (ex: Superviseur)" value="${s.role}" oninput="formSignataires[${i}].role=this.value"/>
+      <input class="eval-form-input" style="flex:2;min-width:120px" placeholder="Nom du signataire" value="${s.name}" oninput="formSignataires[${i}].name=this.value"/>
+      <label style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="checkbox" ${s.required?'checked':''} onchange="formSignataires[${i}].required=this.checked"/> Requis
+      </label>
+      ${formSignataires.length > 1 ? `<button class="btn btn--ghost btn--sm" onclick="removeSig(${i})">✕</button>` : ''}
+    </div>
+  `).join('');
+}
+function removeSig(i) {
+  formSignataires.splice(i,1);
+  formSignataires.forEach((s,idx) => s.level = idx+1);
+  renderSigSetup();
+}
+document.getElementById('btnAddSig').addEventListener('click', () => {
+  formSignataires.push({ level: formSignataires.length+1, role:'', name:'', required:false, status:'pending', signedAt:null });
+  renderSigSetup();
+});
+
+// Compétences sliders
+function renderCompSliders() {
+  document.getElementById('compList').innerHTML = EVAL_CRITERIA.map(c => {
+    const val = formScores[c.key] || 5;
+    return `<div class="eval-comp-item">
+      <div class="eval-comp-header">
+        <div class="eval-comp-name">${c.label}</div>
+        <div class="eval-comp-score-display" id="dispScore_${c.key}" style="color:${c.color}">${val}</div>
+      </div>
+      <div class="eval-comp-desc">${c.desc}</div>
+      <div class="eval-comp-slider-row">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)">0</span>
+        <input type="range" class="eval-comp-slider" min="0" max="10" value="${val}" step="1"
+          style="accent-color:${c.color}"
+          oninput="updateCompScore('${c.key}',this.value,'${c.color}')"/>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)">10</span>
+      </div>
+      <div class="eval-comp-marks">
+        ${[0,2,4,6,8,10].map(n => `<span class="eval-comp-mark ${n===val?'highlight':''}">${n}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+function updateCompScore(key, val, color) {
+  formScores[key] = parseInt(val);
+  const el = document.getElementById('dispScore_'+key);
+  if (el) { el.textContent = val; el.style.color = scoreColor(parseInt(val)); }
+}
+
+// Récapitulatif
+function renderRecap() {
+  const total = Object.values(formScores).reduce((s,v)=>s+v, 0);
+  const mention = getMention(total);
+  document.getElementById('recapScore').textContent = total;
+  document.getElementById('recapScore').style.color = mention.color;
+  const mentionEl = document.getElementById('recapMention');
+  mentionEl.textContent = mention.text;
+  mentionEl.style.color = mention.color;
+  mentionEl.style.borderColor = mention.color+'40';
+
+  document.getElementById('recapBreakdown').innerHTML = EVAL_CRITERIA.map(c => `
+    <div class="eval-total-breakdown-item">
+      <div class="eval-total-breakdown-val" style="color:${c.color}">${formScores[c.key]||0}</div>
+      <div class="eval-total-breakdown-lbl">${c.label.split(' ')[0]}</div>
+    </div>
+  `).join('');
+
+  const name = document.getElementById('fName').value.trim();
+  const rank = document.getElementById('fRank').value.trim();
+  const author = document.getElementById('fAuthor').value.trim();
+  const date = document.getElementById('fDate').value;
+  const decision = document.getElementById('fDecision').value;
+
+  document.getElementById('recapInfoGrid').innerHTML = [
+    { lbl:'Agent', val: name||'—' },
+    { lbl:'Grade', val: rank||'—' },
+    { lbl:'Évaluateur', val: author||'—' },
+    { lbl:'Date', val: date||'—' },
+    { lbl:'Décision', val: DEC_LABELS[decision]||decision },
+    { lbl:'Signataires', val: formSignataires.filter(s=>s.name).map(s=>s.name).join(', ')||'—' },
+  ].map(i => `<div class="eval-recap-item"><div class="eval-recap-lbl">${i.lbl}</div><div class="eval-recap-val">${i.val}</div></div>`).join('');
+}
+
+// Preview signatures étape 4
+function renderSigPreview() {
+  document.getElementById('sigPreviewGrid').innerHTML = formSignataires.map(s => `
+    <div class="eval-sig-card eval-sig-card--pending">
+      <div class="eval-sig-role">Niveau ${s.level} ${s.required?'<span style="color:var(--danger)">— Requis</span>':''}</div>
+      <div class="eval-sig-name">${s.role||'—'}</div>
+      <div class="eval-sig-name" style="font-size:13px;color:var(--dept-color);margin-top:2px">${s.name||'Non défini'}</div>
+      <div class="eval-sig-status pending">○ EN ATTENTE DE SIGNATURE</div>
+    </div>
+  `).join('');
+}
+
+// Navigation wizard
+const STEP_TITLES = ['Informations de base','Notation par compétences','Récapitulatif','Validation & Signatures'];
+function updateWizardUI() {
+  document.getElementById('wizardStepTitle').textContent = STEP_TITLES[wizardStep];
+  document.getElementById('wizardStepInfo').textContent = `Étape ${wizardStep+1} sur 4`;
+  document.querySelectorAll('[data-step]').forEach((el,i) => {
+    el.classList.toggle('active', i === wizardStep);
+    el.classList.toggle('done', i < wizardStep);
+  });
+  document.querySelectorAll('.eval-step-panel').forEach((p,i) => p.classList.toggle('active', i === wizardStep));
+  document.getElementById('wizardBack').style.display = wizardStep > 0 ? 'inline-block' : 'none';
+  const nextBtn = document.getElementById('wizardNext');
+  if (wizardStep === 3) {
+    nextBtn.textContent = '💾 Enregistrer';
+    nextBtn.className = 'eval-wizard-btn eval-wizard-btn--save';
+  } else {
+    nextBtn.textContent = 'Suivant →';
+    nextBtn.className = 'eval-wizard-btn eval-wizard-btn--next';
+  }
+  if (wizardStep === 2) renderRecap();
+  if (wizardStep === 3) renderSigPreview();
+}
+
+document.getElementById('wizardNext').addEventListener('click', () => {
+  if (wizardStep === 0) {
+    const name = document.getElementById('fName').value.trim();
+    const author = document.getElementById('fAuthor').value.trim();
+    if (!name || !author) { showToast('Nom de l\'agent et évaluateur requis', 'warn'); return; }
+  }
+  if (wizardStep < 3) { wizardStep++; updateWizardUI(); }
+  else saveEvaluation();
+});
+document.getElementById('wizardBack').addEventListener('click', () => {
+  if (wizardStep > 0) { wizardStep--; updateWizardUI(); }
+});
+
+function saveEvaluation() {
+  const name = document.getElementById('fName').value.trim();
+  const total = Object.values(formScores).reduce((s,v)=>s+v, 0);
+  const newEval = {
+    _id: 'EVAL-' + Date.now().toString(36).toUpperCase(),
+    name,
+    username: document.getElementById('fUser').value.trim(),
+    rank: document.getElementById('fRank').value.trim(),
+    author: document.getElementById('fAuthor').value.trim(),
+    date: document.getElementById('fDate').value,
+    decision: document.getElementById('fDecision').value,
+    context: document.getElementById('fContext').value.trim(),
+    comments: document.getElementById('fComments').value.trim(),
+    scores: { ...formScores },
+    total,
+    signataires: formSignataires.map(s => ({ ...s, status:'pending', signedAt:null })),
+    createdAt: new Date().toISOString(),
+  };
+  evaluations.unshift(newEval);
+  saveEvals();
+  document.getElementById('modalEvalForm').classList.remove('open');
+  renderGrid(); renderStats();
+  showToast('Évaluation enregistrée ✓');
+}
+
+// ════════════════════════════════════════════
+// PERSISTANCE
+// ════════════════════════════════════════════
+function saveEvals() {
+  try { localStorage.setItem('sec_evals_v2', JSON.stringify(evaluations)); } catch(e) {}
+}
+function loadEvals() {
+  try {
+    const raw = localStorage.getItem('sec_evals_v2');
+    if (raw) { evaluations = JSON.parse(raw); return; }
+  } catch(e) {}
+  // Données de démo
+  evaluations = [
+    {
+      _id:'EVAL-DEMO1', name:'M.NOWAK', username:'FlofloParis', rank:'[D.SE] Cadet',
+      author:'A.MAX', date:'2026-03-10', decision:'promu',
+      context:'Évaluation de montée en grade après 3 semaines de service actif.',
+      comments:'Agent exemplaire. Maîtrise remarquable des protocoles. Esprit d\'initiative lors de la brèche du 08/03.',
+      scores:{ disc:9, proto:8, react:10, comm:7, hier:9, comp:9 }, total:52,
+      signataires:[
+        { level:1, role:'Évaluateur direct', name:'A.MAX', required:true, status:'signed', signedAt:'10/03/2026 14:22' },
+        { level:2, role:'Chef de section', name:'E.TERNON', required:true, status:'signed', signedAt:'11/03/2026 09:05' },
+        { level:3, role:'Direction D.SE', name:'', required:false, status:'pending', signedAt:null },
+      ],
+      createdAt:'2026-03-10T14:00:00Z',
+    },
+    {
+      _id:'EVAL-DEMO2', name:'N.HACK', username:'momo907526', rank:'[D.SE] Cadet',
+      author:'A.MAX', date:'2026-03-12', decision:'avertissement',
+      context:'Contrôle disciplinaire suite à 3 absences non justifiées.',
+      comments:'Présence insuffisante. Communication à améliorer. Dernier avertissement avant mesure disciplinaire.',
+      scores:{ disc:3, proto:5, react:6, comm:4, hier:4, comp:4 }, total:26,
+      signataires:[
+        { level:1, role:'Évaluateur direct', name:'A.MAX', required:true, status:'signed', signedAt:'12/03/2026 11:00' },
+        { level:2, role:'Chef de section', name:'E.TERNON', required:true, status:'pending', signedAt:null },
+      ],
+      createdAt:'2026-03-12T11:00:00Z',
+    },
+    {
+      _id:'EVAL-DEMO3', name:'D.LUNE', username:'Art_mat246', rank:'[D.SE] Cadet',
+      author:'E.TERNON', date:'2026-03-15', decision:'valide',
+      context:'Évaluation de fin de période d\'essai — 1 mois.',
+      comments:'Bonne intégration. Protocoles assimilés correctement. Peut progresser.',
+      scores:{ disc:7, proto:7, react:6, comm:6, hier:8, comp:7 }, total:41,
+      signataires:[
+        { level:1, role:'Évaluateur direct', name:'E.TERNON', required:true, status:'pending', signedAt:null },
+        { level:2, role:'Direction D.SE', name:'A.MAX', required:true, status:'pending', signedAt:null },
+      ],
+      createdAt:'2026-03-15T09:00:00Z',
+    },
+  ];
+}
+
+// ════════════════════════════════════════════
+// UTILITAIRES
+// ════════════════════════════════════════════
+function showToast(msg, type='success') {
+  const t = document.getElementById('evalToast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.borderLeftColor = type==='danger' ? 'var(--danger)' : type==='warn' ? 'var(--warn)' : 'var(--safe)';
+  t.style.color = type==='danger' ? 'var(--danger)' : type==='warn' ? 'var(--warn)' : 'var(--safe)';
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.style.display = 'none', 2500);
+}
+
+// Fermeture modales
+['closeDetail','closeDetail2'].forEach(id => {
+  document.getElementById(id)?.addEventListener('click', () => document.getElementById('modalEvalDetail').classList.remove('open'));
+});
+document.getElementById('closeForm').addEventListener('click', () => document.getElementById('modalEvalForm').classList.remove('open'));
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('eval-modal-ov')) e.target.classList.remove('open');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.eval-modal-ov.open').forEach(m => m.classList.remove('open'));
+});
+
+// Filtres
+document.getElementById('evalFilterPills').addEventListener('click', e => {
+  const pill = e.target.closest('.eval-pill'); if (!pill) return;
+  document.querySelectorAll('.eval-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  activeFilter = pill.dataset.filter;
+  renderGrid();
+});
+document.getElementById('evalSearch').addEventListener('input', renderGrid);
+document.getElementById('evalSort').addEventListener('change', e => { activeSort = e.target.value; renderGrid(); });
+document.getElementById('btnToggleView').addEventListener('click', () => {
+  const grid = document.getElementById('evalGrid');
+  const isCompact = grid.style.gridTemplateColumns.includes('1fr 1fr') ? false : true;
+  grid.style.gridTemplateColumns = isCompact ? 'repeat(auto-fill,minmax(420px,1fr))' : 'repeat(auto-fill,minmax(320px,1fr))';
+  document.getElementById('btnToggleView').textContent = isCompact ? '⊟ Vue compacte' : '⊞ Vue grille';
+});
+
+// ── INIT ──
+loadEvals();
+renderStats();
+renderGrid();
+</script>
+</body>
+</html>

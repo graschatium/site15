@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ESPACE PERSONNEL — Département Médical // Site-15</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Share+Tech+Mono&family=Courier+Prime&display=swap');
+:root {
+  --bg:#0a0e13; --surface:#111820; --surface2:#161f2b; --surface3:#1c2736;
+  --border:#1e2d3d; --border2:#253546;
+  --white:#e8f0f8; --text:#b8c8d8; --text-dim:#5a7a9a;
+  --accent:#e8c84a; --accent2:#7ab0ff;
+  --safe:#00d97e; --warn:#ffaa00; --danger:#ff3355;
+  --dept-color:#00e676; --dept-glow:rgba(0,230,118,0.15);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Share Tech Mono',monospace;background:var(--bg);color:var(--text);font-size:12px}
+a{color:inherit;text-decoration:none}
+input,select,textarea,button{font-family:inherit;font-size:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* TOPBAR */
+.topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-back{font-size:10px;letter-spacing:.1em;color:var(--text-dim);padding:4px 8px;border:1px solid var(--border2);transition:all .2s;cursor:pointer}
+.topbar-back:hover{border-color:var(--dept-color);color:var(--dept-color)}
+.topbar-divider{width:1px;height:28px;background:var(--border2)}
+.topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.05em}
+.topbar-dept{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-clearance{font-size:9px;letter-spacing:.18em;padding:3px 10px;border:1px solid var(--dept-color);color:var(--dept-color);text-transform:uppercase}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--dept-color);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.topbar-status{font-size:9px;letter-spacing:.15em;text-transform:uppercase;display:flex;align-items:center;gap:6px;color:var(--dept-color)}
+
+/* AUTH GATE */
+#authGate{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-gate-box{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border2);border-top:3px solid var(--dept-color);padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 40px var(--dept-glow)}
+.auth-gate-logo{text-align:center;margin-bottom:24px}
+.auth-gate-logo-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.06em}
+.auth-gate-logo-sub{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dept-color);margin-top:4px}
+.auth-gate-logo-sep{width:40px;height:2px;background:var(--dept-color);margin:12px auto;opacity:.4}
+.auth-gate-title{font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-dim);margin-bottom:18px;text-align:center}
+.af-field{margin-bottom:10px}
+.af-field label{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim);display:block;margin-bottom:5px}
+.af-field input{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:12px;padding:10px 12px;outline:none;transition:border-color .2s}
+.af-field input:focus{border-color:var(--dept-color)}
+.auth-gate-err{font-size:10px;color:var(--danger);min-height:16px;margin-bottom:8px;text-align:center;letter-spacing:.05em}
+.auth-gate-submit{width:100%;padding:11px;background:rgba(0,230,118,.08);border:1px solid var(--dept-color);color:var(--dept-color);font-size:11px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.auth-gate-submit:hover{background:rgba(0,230,118,.18)}
+.auth-gate-loading{text-align:center;font-size:10px;color:var(--text-dim);padding:12px;letter-spacing:.15em;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:.3}}
+.auth-gate-back{text-align:center;margin-top:14px;font-size:9px;color:var(--text-dim);cursor:pointer;letter-spacing:.1em}
+.auth-gate-back:hover{color:var(--dept-color)}
+
+/* LAYOUT */
+.app-layout{display:flex;min-height:calc(100vh - 52px)}
+.main-content{flex:1;padding:24px;overflow-y:auto;max-width:1100px;margin:0 auto;width:100%}
+
+/* HERO CARD */
+.agent-hero{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--dept-color);padding:24px;margin-bottom:20px;display:flex;gap:20px;align-items:flex-start;position:relative;overflow:hidden}
+.agent-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,var(--dept-glow),transparent 70%);pointer-events:none}
+.agent-avatar-lg{width:72px;height:72px;border:2px solid var(--dept-color);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--dept-color);flex-shrink:0;text-transform:uppercase;box-shadow:0 0 20px var(--dept-glow)}
+.agent-hero-info{flex:1}
+.agent-hero-name{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--white);text-transform:uppercase;line-height:1;margin-bottom:4px}
+.agent-hero-username{font-size:11px;color:var(--dept-color);letter-spacing:.12em;margin-bottom:10px}
+.agent-hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.agent-hero-tag{font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border:1px solid}
+.agent-hero-tag.grade{border-color:rgba(122,176,255,.4);color:var(--accent2);background:rgba(122,176,255,.06)}
+.agent-hero-tag.spec{border-color:rgba(232,200,74,.35);color:var(--accent);background:rgba(232,200,74,.05)}
+.agent-hero-tag.status-actif{border-color:rgba(0,217,126,.4);color:var(--safe);background:rgba(0,217,126,.06)}
+.agent-hero-tag.status-inactif{border-color:var(--border2);color:var(--text-dim)}
+.agent-hero-tag.status-suspendu{border-color:rgba(255,51,85,.4);color:var(--danger);background:rgba(255,51,85,.06)}
+.agent-hero-tag.status-conge{border-color:rgba(255,170,0,.4);color:var(--warn);background:rgba(255,170,0,.06)}
+.agent-hero-meta{display:flex;gap:16px;font-size:9px;color:var(--text-dim);letter-spacing:.06em}
+.agent-hero-actions{display:flex;gap:8px;align-items:flex-start;flex-shrink:0}
+
+/* QUICK STATS */
+.quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.qs-box{background:var(--surface);border:1px solid var(--border);padding:14px 16px;transition:all .2s}
+.qs-box:hover{background:var(--surface2)}
+.qs-val{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--dept-color);line-height:1}
+.qs-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-top:3px}
+
+/* SECTION */
+.sec{margin-bottom:24px}
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+.sec-title::before{content:'';width:3px;height:18px;background:var(--dept-color)}
+.sec-count{font-size:9px;color:var(--text-dim);letter-spacing:.1em}
+
+/* EDIT PANEL */
+.edit-panel{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--warn);padding:18px;margin-bottom:20px;display:none}
+.edit-panel.open{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.edit-panel-title{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--warn);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.edit-panel-title::after{content:'';flex:1;height:1px;background:rgba(255,170,0,.15)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:8px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim)}
+.form-field input,.form-field select,.form-field textarea{background:var(--surface);border:1px solid var(--border2);color:var(--white);padding:7px 10px;outline:none;transition:border-color .2s}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--warn)}
+.form-field input:disabled,.form-field select:disabled{opacity:.4;cursor:not-allowed}
+.form-field textarea{resize:vertical}
+.edit-actions{display:flex;gap:8px;justify-content:flex-end}
+.field-locked{position:relative}
+.field-locked::after{content:'🔒 VERROUILLÉ';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:7px;letter-spacing:.1em;color:var(--text-dim);pointer-events:none}
+
+/* BTN */
+.btn{padding:7px 14px;border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-sm{padding:5px 11px;font-size:9px}
+.btn-xs{padding:3px 8px;font-size:8px}
+.btn-ghost{border-color:var(--border2);color:var(--text-dim)}
+.btn-ghost:hover{border-color:var(--white);color:var(--white)}
+.btn-dept{border-color:var(--dept-color);color:var(--dept-color);background:rgba(0,230,118,.06)}
+.btn-dept:hover{background:rgba(0,230,118,.14)}
+.btn-warn{border-color:rgba(255,170,0,.4);color:var(--warn);background:rgba(255,170,0,.04)}
+.btn-warn:hover{background:rgba(255,170,0,.12)}
+.btn-danger{border-color:rgba(255,51,85,.4);color:var(--danger);background:rgba(255,51,85,.04)}
+
+/* EVAL CARDS */
+.eval-list{display:flex;flex-direction:column;gap:8px}
+.eval-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border2);padding:14px 16px;transition:all .2s}
+.eval-card:hover{background:var(--surface2)}
+.eval-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.eval-card-name-row{display:flex;align-items:center;gap:10px}
+.eval-card-date{font-size:9px;color:var(--text-dim);letter-spacing:.08em}
+.eval-score{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;line-height:1}
+.eval-mention{font-size:8px;letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
+.eval-bars{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.eval-bar-row{display:flex;align-items:center;gap:8px;font-size:9px}
+.eval-bar-lbl{color:var(--text-dim);min-width:100px;flex-shrink:0}
+.eval-bar-track{flex:1;height:3px;background:var(--border2);position:relative}
+.eval-bar-fill{height:100%;background:var(--dept-color);transition:width .5s ease}
+.eval-bar-val{min-width:16px;text-align:right;color:var(--white)}
+.eval-decision{font-size:9px;letter-spacing:.1em;color:var(--text-dim)}
+.eval-comments{font-family:'Courier Prime',monospace;font-size:11px;color:var(--text);line-height:1.6;margin-top:8px;padding:8px 10px;background:var(--surface2);border-left:2px solid var(--border2)}
+
+/* ORDONNANCES / RAPPORTS CARDS */
+.doc-list{display:flex;flex-direction:column;gap:8px}
+.doc-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border2);padding:12px 14px;transition:all .2s}
+.doc-card:hover{background:var(--surface2)}
+.doc-card.cat-urgence,.doc-card.cat-contamination{border-left-color:var(--danger)}
+.doc-card.cat-quarantaine{border-left-color:var(--warn)}
+.doc-card.cat-chirurgie,.doc-card.cat-psychologie{border-left-color:var(--safe)}
+.doc-card.sev-critical,.doc-card.sev-high{border-left-color:var(--danger)}
+.doc-card.sev-moderate{border-left-color:var(--warn)}
+.doc-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.doc-card-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--white);text-transform:uppercase}
+.doc-card-tags{display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
+.tag{font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--border2);color:var(--text-dim)}
+.tag-urgent{border-color:rgba(255,51,85,.4);color:var(--danger);background:rgba(255,51,85,.05)}
+.tag-warn{border-color:rgba(255,170,0,.4);color:var(--warn)}
+.tag-safe{border-color:rgba(0,217,126,.4);color:var(--safe)}
+.tag-info{border-color:rgba(122,176,255,.4);color:var(--accent2)}
+.doc-card-meta{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-bottom:6px}
+.doc-card-body{font-family:'Courier Prime',monospace;font-size:11px;color:var(--text);line-height:1.5;margin-bottom:8px}
+.doc-card-actions{display:flex;gap:5px}
+
+/* EMPTY */
+.empty-state{padding:30px;text-align:center}
+.empty-icon{font-size:28px;margin-bottom:8px;opacity:.3}
+.empty-text{font-size:9px;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.open{display:flex}
+.modal-box{background:var(--surface);border:1px solid var(--border2);border-top:2px solid var(--dept-color);width:100%;max-width:640px;max-height:90vh;display:flex;flex-direction:column}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);text-transform:uppercase}
+.modal-close{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;padding:4px 8px;transition:color .2s}
+.modal-close:hover{color:var(--white)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.msec{margin-bottom:14px}
+.msec-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:6px}
+.msec-content{font-family:'Courier Prime',monospace;font-size:12px;color:var(--text);line-height:1.7;background:var(--surface2);border:1px solid var(--border);padding:12px}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.meta-item{background:var(--surface2);border:1px solid var(--border);padding:8px 12px}
+.meta-item label{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);display:block;margin-bottom:3px}
+.meta-item span{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--dept-color);border-left:4px solid var(--dept-color);padding:10px 16px;font-size:10px;color:var(--dept-color);letter-spacing:.1em;z-index:9999;transform:translateX(120%);transition:transform .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.toast.show{transform:translateX(0)}
+.toast.error{border-color:var(--danger);border-left-color:var(--danger);color:var(--danger)}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--border2)}
+.timeline-item{position:relative;margin-bottom:14px}
+.timeline-item::before{content:'';position:absolute;left:-17px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--dept-color);border:1px solid var(--bg)}
+.timeline-date{font-size:8px;color:var(--text-dim);letter-spacing:.1em;margin-bottom:3px}
+.timeline-content{background:var(--surface);border:1px solid var(--border);padding:10px 12px}
+.timeline-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);text-transform:uppercase;margin-bottom:3px}
+.timeline-sub{font-size:9px;color:var(--text-dim)}
+
+/* RESPONSIVE */
+@media(max-width:768px){.quick-stats{grid-template-columns:1fr 1fr}.agent-hero{flex-direction:column}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- AUTH GATE -->
+<div id="authGate">
+  <div class="auth-gate-box">
+    <div class="auth-gate-logo">
+      <div class="auth-gate-logo-title">⚕️ Médical</div>
+      <div class="auth-gate-logo-sep"></div>
+      <div class="auth-gate-logo-sub">Site-15 // Espace Personnel</div>
+    </div>
+    <div id="gateLoginPanel">
+      <div class="auth-gate-title">// Authentification requise</div>
+      <div class="af-field"><label>Nom d'utilisateur</label><input type="text" id="gUsername" placeholder="Ex: Koliansky_RP" autocomplete="username" spellcheck="false"/></div>
+      <div class="af-field"><label>Mot de passe</label><input type="password" id="gPassword" placeholder="••••••••" autocomplete="current-password"/></div>
+      <div class="auth-gate-err" id="gError"></div>
+      <button class="auth-gate-submit" id="gSubmitBtn">→ Accéder à mon espace</button>
+      <div class="auth-gate-back" onclick="window.history.back()">← Retour à l'intranet médical</div>
+    </div>
+    <div id="gateLoadingPanel" style="display:none">
+      <div class="auth-gate-loading">AUTHENTIFICATION EN COURS…</div>
+    </div>
+  </div>
+</div>
+
+<header class="topbar" style="display:none" id="mainTopbar">
+  <div class="topbar-brand">
+    <span class="topbar-back" onclick="goBack()">← Intranet</span>
+    <div class="topbar-divider"></div>
+    <div>
+      <div class="topbar-title">⚕️ Espace Personnel</div>
+      <div class="topbar-dept">DEPT-MED // ACCÈS PRIVÉ</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-status"><div class="status-dot"></div><span id="topbarName">—</span></div>
+    <div class="topbar-clearance" id="topbarRole">NIVEAU 2</div>
+    <button class="btn btn-sm btn-danger" onclick="doLogout()" style="font-size:9px;padding:4px 10px">↩ Déconnexion</button>
+  </div>
+</header>
+
+<div class="app-layout" id="mainApp" style="display:none">
+<div class="main-content">
+
+  <!-- HERO -->
+  <div class="agent-hero" id="agentHero">
+    <div class="agent-avatar-lg" id="heroAvatar">??</div>
+    <div class="agent-hero-info">
+      <div class="agent-hero-name" id="heroName">—</div>
+      <div class="agent-hero-username" id="heroUsername">@—</div>
+      <div class="agent-hero-tags" id="heroTags"></div>
+      <div class="agent-hero-meta" id="heroMeta"></div>
+    </div>
+    <div class="agent-hero-actions">
+      <button class="btn btn-sm btn-warn" id="btnEditProfile">✎ Modifier mon profil</button>
+    </div>
+  </div>
+
+  <!-- EDIT PANEL -->
+  <div class="edit-panel" id="editPanel">
+    <div class="edit-panel-title">// Modifier mon profil</div>
+    <div class="form-grid">
+      <div class="form-field field-locked">
+        <label>Nom Prénom RP</label>
+        <input type="text" id="epNom" disabled/>
+      </div>
+      <div class="form-field field-locked">
+        <label>Username Roblox</label>
+        <input type="text" id="epUsername" disabled/>
+      </div>
+      <div class="form-field field-locked">
+        <label>Grade / Rang</label>
+        <input type="text" id="epGrade" disabled/>
+      </div>
+      <div class="form-field field-locked">
+        <label>Spécialité</label>
+        <input type="text" id="epSpec" disabled/>
+      </div>
+      <div class="form-field">
+        <label>Statut <span style="color:var(--warn);font-size:7px">(MODIFIABLE)</span></label>
+        <select id="epStatut">
+          <option value="actif">✅ Actif</option>
+          <option value="inactif">⬜ Inactif</option>
+          <option value="conge">🟡 En congé</option>
+        </select>
+      </div>
+      <div class="form-field field-locked">
+        <label>Date de recrutement</label>
+        <input type="text" id="epDate" disabled/>
+      </div>
+      <div class="form-field full">
+        <label>Notes personnelles <span style="color:var(--warn);font-size:7px">(MODIFIABLE)</span></label>
+        <textarea id="epNotes" rows="3" placeholder="Informations complémentaires, disponibilités RP…"></textarea>
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--text-dim);margin-bottom:12px;padding:8px 10px;border:1px solid var(--border);background:var(--surface)">
+      ℹ Les champs verrouillés ne peuvent être modifiés que par un administrateur. Vous pouvez mettre à jour votre statut et vos notes personnelles.
+    </div>
+    <div class="edit-actions">
+      <button class="btn btn-sm btn-ghost" id="cancelEditBtn">Annuler</button>
+      <button class="btn btn-sm btn-warn" id="saveProfileBtn">💾 Sauvegarder</button>
+    </div>
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="quick-stats">
+    <div class="qs-box"><div class="qs-val" id="qsEvals">0</div><div class="qs-lbl">Évaluations reçues</div></div>
+    <div class="qs-box"><div class="qs-val" id="qsOrdos">0</div><div class="qs-lbl">Ordonnances rédigées</div></div>
+    <div class="qs-box"><div class="qs-val" id="qsRapports">0</div><div class="qs-lbl">Rapports rédigés</div></div>
+    <div class="qs-box" id="qsScoreBox"><div class="qs-val" id="qsScore" style="color:var(--dept-color)">—</div><div class="qs-lbl">Score moy. évals</div></div>
+  </div>
+
+  <!-- EVALUATIONS -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Mes évaluations <span class="sec-count" id="evalSectionCount">0</span></div>
+    </div>
+    <div id="evalSection">
+      <div class="empty-state"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation enregistrée</div></div>
+    </div>
+  </div>
+
+  <!-- ORDONNANCES -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Mes ordonnances <span class="sec-count" id="ordoSectionCount">0</span></div>
+    </div>
+    <div id="ordoSection">
+      <div class="empty-state"><div class="empty-icon">▢</div><div class="empty-text">Aucune ordonnance rédigée</div></div>
+    </div>
+  </div>
+
+  <!-- RAPPORTS -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Mes rapports <span class="sec-count" id="rapportSectionCount">0</span></div>
+    </div>
+    <div id="rapportSection">
+      <div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport rédigé</div></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- Modal rapport -->
+<div class="modal-ov" id="modalRapport">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div><div style="font-size:9px;color:var(--dept-color);letter-spacing:.12em" id="mrType">—</div><div class="modal-title" id="mrTitle">—</div></div>
+      <button class="modal-close" onclick="closeModal('modalRapport')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="meta-grid">
+        <div class="meta-item"><label>Sévérité</label><span id="mrSev">—</span></div>
+        <div class="meta-item"><label>Date</label><span id="mrDate">—</span></div>
+        <div class="meta-item"><label>Patient</label><span id="mrPatient">—</span></div>
+        <div class="meta-item"><label>ID Rapport</label><span id="mrId">—</span></div>
+      </div>
+      <div class="msec"><div class="msec-lbl">Description</div><div class="msec-content" id="mrDesc">—</div></div>
+      <div class="msec"><div class="msec-lbl">Pronostic & suivi</div><div class="msec-content" id="mrConc">—</div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-sm btn-ghost" onclick="closeModal('modalRapport')">Fermer</button></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc,
+  updateDoc, onSnapshot, query, orderBy, getDocs, where
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain: "scp-site19.firebaseapp.com",
+  projectId: "scp-site19",
+  storageBucket: "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId: "1:245750946774:web:821944a85e207094b22277"
+});
+const db = getFirestore(app);
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function esc(s){ return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(d){ if(!d)return '—'; try{ return new Date(d).toLocaleDateString('fr-FR'); } catch{ return d; } }
+function getInitials(nom){ if(!nom)return '?'; const p=nom.trim().split(/\s+/); return p.length>=2?(p[0][0]+p[p.length-1][0]).toUpperCase():nom.substring(0,2).toUpperCase(); }
+function closeModal(id){ document.getElementById(id)?.classList.remove('open'); }
+function openModal(id){ document.getElementById(id)?.classList.add('open'); }
+
+function showToast(msg, type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(type==='error'?' error':'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+const SESSION_KEY='scp_med_session';
+let currentUser=null, currentAgent=null;
+
+function loadSession(){ try{ const r=localStorage.getItem(SESSION_KEY); return r?JSON.parse(r):null; } catch{ return null; } }
+function saveSession(u){ localStorage.setItem(SESSION_KEY, JSON.stringify(u)); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+async function findUser(username, password){
+  const snap = await getDocs(collection(db,'users'));
+  let found=null;
+  snap.forEach(d=>{ const u=d.data(); if((u.username||'').toLowerCase()===username.toLowerCase()) found={_id:d.id,...u}; });
+  if(!found||found.password!==password) return null;
+  return found;
+}
+
+async function findAgentByUsername(username){
+  const snap = await getDocs(collection(db,'user-rp'));
+  let found=null;
+  snap.forEach(d=>{ const a=d.data(); if((a.username||'').toLowerCase()===username.toLowerCase()) found={_id:d.id,...a}; });
+  return found;
+}
+
+async function initApp(){
+  const saved=loadSession();
+  if(saved?.username && saved?.password){
+    try{
+      const user=await findUser(saved.username, saved.password);
+      if(user){ await onLoginSuccess(user); return; }
+    } catch(e){ console.warn('Session restore failed:', e); }
+    clearSession();
+  }
+  showGate();
+}
+
+function showGate(){ document.getElementById('authGate').style.display='flex'; }
+function hideGate(){
+  document.getElementById('authGate').style.display='none';
+  document.getElementById('mainTopbar').style.display='flex';
+  document.getElementById('mainApp').style.display='flex';
+}
+
+async function onLoginSuccess(user){
+  currentUser=user;
+  saveSession({username:user.username, password:user.password});
+  // Cherche le profil agent lié au compte
+  currentAgent=await findAgentByUsername(user.username);
+  hideGate();
+  populateTopbar(user);
+  if(currentAgent) populateHero(currentAgent);
+  else showNoAgentWarning();
+  loadData();
+}
+
+// Login depuis la gate
+async function doLogin(){
+  const u=document.getElementById('gUsername').value.trim();
+  const p=document.getElementById('gPassword').value;
+  const err=document.getElementById('gError');
+  err.textContent='';
+  if(!u||!p){ err.textContent='⚠ Identifiants requis.'; return; }
+  document.getElementById('gateLoginPanel').style.display='none';
+  document.getElementById('gateLoadingPanel').style.display='block';
+  try{
+    const user=await findUser(u,p);
+    if(!user){ document.getElementById('gateLoginPanel').style.display='block'; document.getElementById('gateLoadingPanel').style.display='none'; err.textContent='⚠ Identifiants incorrects.'; return; }
+    await onLoginSuccess(user);
+  } catch(e){ document.getElementById('gateLoginPanel').style.display='block'; document.getElementById('gateLoadingPanel').style.display='none'; err.textContent='⚠ Erreur: '+e.message; }
+}
+
+window.doLogout=function(){ clearSession(); currentUser=null; currentAgent=null; location.reload(); };
+window.goBack=function(){ window.history.length>1?window.history.back():window.location.href='index.html'; };
+
+document.getElementById('gSubmitBtn')?.addEventListener('click', doLogin);
+document.getElementById('gPassword')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('gUsername')?.addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('gPassword')?.focus(); });
+
+// ─── TOPBAR ────────────────────────────────────────────────────────────────────
+function populateTopbar(user){
+  document.getElementById('topbarName').textContent=user.displayName||user.username||'—';
+  document.getElementById('topbarRole').textContent=user.role==='admin'?'ADMIN':'NIV.2';
+}
+
+// ─── HERO ──────────────────────────────────────────────────────────────────────
+const STATUS_LABELS={actif:'ACTIF',inactif:'INACTIF',suspendu:'SUSPENDU',conge:'EN CONGÉ'};
+
+function populateHero(a){
+  document.getElementById('heroAvatar').textContent=getInitials(a.nom);
+  document.getElementById('heroName').textContent=a.nom||'—';
+  document.getElementById('heroUsername').textContent='@'+(a.username||'—');
+
+  const tagsEl=document.getElementById('heroTags');
+  let tagsHTML=`<span class="agent-hero-tag grade">${esc(a.grade||'Non défini')}</span>`;
+  if(a.specialite) tagsHTML+=`<span class="agent-hero-tag spec">⚕ ${esc(a.specialite)}</span>`;
+  tagsHTML+=`<span class="agent-hero-tag status-${a.statut||'inactif'}">${STATUS_LABELS[a.statut]||'—'}</span>`;
+  tagsEl.innerHTML=tagsHTML;
+
+  document.getElementById('heroMeta').innerHTML=`
+    <span>Recruté le : ${fmtDate(a.dateRecrutement)}</span>
+    <span>Département Médical</span>
+    ${a.notes?`<span style="color:var(--text);font-style:italic">"${esc(a.notes.substring(0,60))}${a.notes.length>60?'…':''}"</span>`:''}
+  `;
+  setupEditPanel(a);
+}
+
+function showNoAgentWarning(){
+  document.getElementById('agentHero').innerHTML=`
+    <div style="text-align:center;padding:20px;width:100%">
+      <div style="font-size:28px;margin-bottom:8px;opacity:.4">⚠</div>
+      <div style="font-size:11px;color:var(--warn);letter-spacing:.1em;margin-bottom:4px">PROFIL AGENT INTROUVABLE</div>
+      <div style="font-size:9px;color:var(--text-dim)">Aucun profil n'est associé au compte <strong style="color:var(--white)">${esc(currentUser.username)}</strong> dans le roster médical.<br>Contactez un administrateur pour créer votre entrée dans le roster.</div>
+    </div>
+  `;
+  document.getElementById('btnEditProfile').style.display='none';
+}
+
+// ─── EDIT PANEL ────────────────────────────────────────────────────────────────
+function setupEditPanel(a){
+  document.getElementById('epNom').value=a.nom||'';
+  document.getElementById('epUsername').value=a.username||'';
+  document.getElementById('epGrade').value=a.grade||'';
+  document.getElementById('epSpec').value=a.specialite||'';
+  document.getElementById('epStatut').value=a.statut||'actif';
+  document.getElementById('epDate').value=fmtDate(a.dateRecrutement);
+  document.getElementById('epNotes').value=a.notes||'';
+}
+
+document.getElementById('btnEditProfile')?.addEventListener('click',()=>{
+  const panel=document.getElementById('editPanel');
+  panel.classList.toggle('open');
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+document.getElementById('cancelEditBtn')?.addEventListener('click',()=>{
+  document.getElementById('editPanel').classList.remove('open');
+  if(currentAgent) setupEditPanel(currentAgent); // reset
+});
+
+document.getElementById('saveProfileBtn')?.addEventListener('click', async()=>{
+  if(!currentAgent){ showToast('⚠ Aucun profil agent lié','error'); return; }
+  const newStatut=document.getElementById('epStatut').value;
+  const newNotes=document.getElementById('epNotes').value.trim();
+  try{
+    await updateDoc(doc(db,'user-rp',currentAgent._id), { statut:newStatut, notes:newNotes });
+    currentAgent={ ...currentAgent, statut:newStatut, notes:newNotes };
+    populateHero(currentAgent);
+    document.getElementById('editPanel').classList.remove('open');
+    showToast('✓ Profil mis à jour');
+  } catch(e){ showToast('⚠ Erreur: '+e.message,'error'); }
+});
+
+// ─── DATA LOADING ──────────────────────────────────────────────────────────────
+function normalize(s){ return (s||'').toLowerCase().trim(); }
+
+function loadData(){
+  const username=normalize(currentUser.username);
+  const displayName=normalize(currentUser.displayName||'');
+  const rpName=normalize(currentAgent?.nom||'');
+
+  function matchesUser(val){
+    const v=normalize(val);
+    if(!v) return false;
+    return v.includes(username)||v.includes(rpName)||(displayName&&v.includes(displayName));
+  }
+
+  // Évaluations
+  const qEv=query(collection(db,'med_evals'),orderBy('createdAt','asc'));
+  onSnapshot(qEv, snap=>{
+    const all=snap.docs.map(d=>({_id:d.id,...d.data()}));
+    // Match sur username Roblox OU nom RP
+    const mine=all.filter(ev=>matchesUser(ev.username)||matchesUser(ev.name));
+    renderEvals(mine);
+    updateStats(mine, null, null);
+  });
+
+  // Ordonnances
+  const qOr=query(collection(db,'med_protocols'),orderBy('createdAt','asc'));
+  onSnapshot(qOr, snap=>{
+    const all=snap.docs.map(d=>({_id:d.id,...d.data()}));
+    const mine=all.filter(p=>matchesUser(p.doctor));
+    renderOrdos(mine);
+    updateStats(null, mine, null);
+  });
+
+  // Rapports
+  const qRp=query(collection(db,'med_rapports'),orderBy('createdAt','asc'));
+  onSnapshot(qRp, snap=>{
+    const all=snap.docs.map(d=>({_id:d.id,...d.data()}));
+    const mine=all.filter(r=>matchesUser(r.author));
+    renderRapports(mine);
+    updateStats(null, null, mine);
+  });
+}
+
+let _evCount=null, _orCount=null, _rpCount=null, _evScore=null;
+function updateStats(evals, ordos, rapports){
+  if(evals!==null){ _evCount=evals.length; _evScore=evals.length?Math.round(evals.reduce((s,e)=>s+(e.total||0),0)/evals.length):null; }
+  if(ordos!==null) _orCount=ordos.length;
+  if(rapports!==null) _rpCount=rapports.length;
+  if(_evCount!==null) document.getElementById('qsEvals').textContent=_evCount;
+  if(_orCount!==null) document.getElementById('qsOrdos').textContent=_orCount;
+  if(_rpCount!==null) document.getElementById('qsRapports').textContent=_rpCount;
+  if(_evScore!==null){ document.getElementById('qsScore').textContent=_evScore+'/60'; }
+}
+
+// ─── RENDER EVALUATIONS ────────────────────────────────────────────────────────
+const CRIT_LABELS={Disc:'Discipline',Proto:'Protocoles',React:'Réactivité',Comm:'Communication',Hier:'Hiérarchie',Comp:'Comportement'};
+const DEC_LABELS={promu:'✅ Promu',valide:'✔ Validé',avertissement:'⚠ Avertissement',recale:'❌ Recalé',expulse:'🚫 Expulsé'};
+
+function getMention(score){
+  const p=score/60;
+  if(p>=.9)return{text:'EXCELLENT',color:'var(--safe)'};
+  if(p>=.75)return{text:'TRÈS BON',color:'var(--dept-color)'};
+  if(p>=.6)return{text:'SATISFAISANT',color:'var(--accent)'};
+  if(p>=.45)return{text:'INSUFFISANT',color:'var(--warn)'};
+  return{text:'RECALÉ',color:'var(--danger)'};
+}
+
+function renderEvals(list){
+  const el=document.getElementById('evalSection');
+  document.getElementById('evalSectionCount').textContent=list.length;
+  if(!list.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation enregistrée</div></div>'; return; }
+  el.innerHTML='<div class="eval-list">'+[...list].reverse().map(ev=>{
+    const m=getMention(ev.total||0);
+    const bars=Object.entries(ev.scores||{}).map(([k,v])=>`
+      <div class="eval-bar-row">
+        <span class="eval-bar-lbl">${CRIT_LABELS[k]||k}</span>
+        <div class="eval-bar-track"><div class="eval-bar-fill" style="width:${(v/10)*100}%;background:${v>=7?'var(--safe)':v>=5?'var(--dept-color)':'var(--warn)'}"></div></div>
+        <span class="eval-bar-val">${v}/10</span>
+      </div>
+    `).join('');
+    return`<div class="eval-card" style="border-left-color:${m.color}">
+      <div class="eval-card-hdr">
+        <div>
+          <div class="eval-card-name-row">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--white)">${esc(ev.rank||'—')}</div>
+          </div>
+          <div class="eval-card-date">Évalué par : ${esc(ev.author||'—')} · ${ev.date||'—'}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="eval-score" style="color:${m.color}">${ev.total||0}<span style="font-size:14px;opacity:.6">/60</span></div>
+          <div class="eval-mention" style="color:${m.color}">${m.text}</div>
+        </div>
+      </div>
+      ${bars?`<div class="eval-bars">${bars}</div>`:''}
+      <div class="eval-decision">Décision : ${DEC_LABELS[ev.decision]||esc(ev.decision)}</div>
+      ${ev.comments?`<div class="eval-comments">${esc(ev.comments)}</div>`:''}
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// ─── RENDER ORDONNANCES ────────────────────────────────────────────────────────
+const CAT_COLORS={urgence:'tag-urgent',quarantaine:'tag-warn',contamination:'tag-urgent',chirurgie:'tag-safe',psychologie:'tag-accent'};
+
+function renderOrdos(list){
+  const el=document.getElementById('ordoSection');
+  document.getElementById('ordoSectionCount').textContent=list.length;
+  if(!list.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">▢</div><div class="empty-text">Aucune ordonnance rédigée</div></div>'; return; }
+  el.innerHTML='<div class="doc-list">'+[...list].reverse().map(p=>`
+    <div class="doc-card cat-${p.category}">
+      <div class="doc-card-hdr">
+        <div class="doc-card-title">${esc(p.title)}</div>
+        <div class="doc-card-tags">
+          <span class="tag ${CAT_COLORS[p.category]||''}">${esc(p.category)}</span>
+          ${p.bio&&p.bio!=='0'?`<span class="tag tag-urgent">BIO-NIV.${p.bio}</span>`:''}
+          ${p.status?`<span class="tag">${esc(p.status)}</span>`:''}
+          ${p.prescriptions?.length?`<span class="tag tag-info">${p.prescriptions.length} rx</span>`:''}
+        </div>
+      </div>
+      <div class="doc-card-meta">Patient : ${esc(p.patient||'—')} · ${p.date||'—'}${p.expire?' · Exp: '+esc(p.expire):''}</div>
+      <div class="doc-card-body">${esc((p.content||'').substring(0,150))}${(p.content||'').length>150?'…':''}</div>
+      ${p.prescriptions?.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">${p.prescriptions.slice(0,4).map(rx=>`<span style="font-size:9px;padding:2px 8px;background:rgba(122,176,255,.08);border:1px solid rgba(122,176,255,.2);color:var(--accent2)">💊 ${esc(rx.med)}</span>`).join('')}${p.prescriptions.length>4?`<span style="font-size:9px;color:var(--text-dim)">+${p.prescriptions.length-4}</span>`:''}</div>`:''}
+      <div class="doc-card-actions">
+        <button class="btn btn-xs btn-ghost" onclick="copyContent('${p._id}')">⧉ Copier</button>
+      </div>
+    </div>
+  `).join('')+'</div>';
+
+  // Store for copy
+  window._ordos=list;
+}
+
+window.copyContent=async function(id){
+  const p=window._ordos?.find(x=>x._id===id);
+  if(p&&navigator.clipboard){ await navigator.clipboard.writeText(p.content); showToast('✓ Contenu copié dans le presse-papiers'); }
+};
+
+// ─── RENDER RAPPORTS ───────────────────────────────────────────────────────────
+const SEV_MAP={low:{label:'FAIBLE',color:'var(--safe)'},moderate:{label:'MODÉRÉE',color:'var(--warn)'},high:{label:'ÉLEVÉE',color:'#e67e22'},critical:{label:'CRITIQUE',color:'var(--danger)'}};
+const TYPE_LABELS={incident:'⚠ Incident',exposure:'☣ Exposition',quarantine:'🔒 Quarantaine',operation:'🔬 Opératoire',psychology:'🧠 Psychologique',death:'💀 Décès'};
+
+function renderRapports(list){
+  const el=document.getElementById('rapportSection');
+  document.getElementById('rapportSectionCount').textContent=list.length;
+  window._rapports=list;
+  if(!list.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport rédigé</div></div>'; return; }
+  const sevClass={low:'doc-card',moderate:'doc-card sev-moderate',high:'doc-card sev-high',critical:'doc-card sev-critical'};
+  el.innerHTML='<div class="doc-list">'+[...list].reverse().map(r=>{
+    const sev=SEV_MAP[r.severity]||SEV_MAP.low;
+    return`<div class="${sevClass[r.severity]||'doc-card'}">
+      <div class="doc-card-hdr">
+        <div class="doc-card-title">${esc(r.title)}</div>
+        <div class="doc-card-tags">
+          <span class="tag" style="color:${sev.color};border-color:${sev.color}">${sev.label}</span>
+          <span class="tag">${TYPE_LABELS[r.type]||r.type}</span>
+        </div>
+      </div>
+      <div class="doc-card-meta">Patient : ${esc(r.patient||'—')} · ${r.date||'—'}</div>
+      <div class="doc-card-body">${esc((r.description||'').substring(0,120))}${(r.description||'').length>120?'…':''}</div>
+      <div class="doc-card-actions">
+        <button class="btn btn-xs btn-dept" data-view-r="${r._id}">📄 Voir</button>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// Event delegation pour rapports
+document.addEventListener('click', e=>{
+  const vr=e.target.closest('[data-view-r]');
+  if(vr){ const r=window._rapports?.find(x=>x._id===vr.dataset.viewR); if(r) viewRapport(r); }
+});
+
+function viewRapport(r){
+  const sev=SEV_MAP[r.severity]||SEV_MAP.low;
+  document.getElementById('mrType').textContent=TYPE_LABELS[r.type]||r.type;
+  document.getElementById('mrTitle').textContent=r.title||'—';
+  document.getElementById('mrSev').textContent=sev.label;
+  document.getElementById('mrSev').style.color=sev.color;
+  document.getElementById('mrDate').textContent=r.date||'—';
+  document.getElementById('mrPatient').textContent=r.patient||'—';
+  document.getElementById('mrId').textContent=r._id?.slice(-8)||'—';
+  document.getElementById('mrDesc').textContent=r.description||'—';
+  document.getElementById('mrConc').textContent=r.conclusion||'—';
+  openModal('modalRapport');
+}
+
+// Modal close
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('modal-ov')) e.target.classList.remove('open');
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-ov.open').forEach(m=>m.classList.remove('open')); });
+
+// INIT
+initApp();
+</script>
+</body>
+</html>

@@ -1,0 +1,2923 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>INTRANET — Département Sécurité // Site-15</title>
+<link rel="stylesheet" href="../shared.css"/>
+<style>
+:root { --dept-color: #4cc3ff; --dept-glow: rgba(76,195,255,0.15); }
+.topbar-dept { color: var(--dept-color) !important; }
+.widget-hdr::before { background: var(--dept-color) !important; }
+.dept-badge { color: var(--dept-color); border-color: var(--dept-color); }
+
+.auth-btn {
+  font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.15em;
+  text-transform:uppercase; padding:6px 14px; border:1px solid var(--border2);
+  background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.2s;
+}
+.auth-btn:hover { border-color:var(--dept-color); color:var(--dept-color); }
+.auth-btn.connected { border-color:var(--safe); color:var(--safe); background:rgba(0,230,118,0.06); }
+.auth-btn.connected:hover { background:rgba(0,230,118,0.12); }
+
+.auth-flyout {
+  position:fixed; top:52px; right:16px; width:300px; z-index:400;
+  background:var(--surface); border:1px solid var(--border2); border-top:2px solid var(--dept-color);
+  box-shadow:0 12px 40px rgba(0,0,0,0.7), 0 0 20px rgba(76,195,255,0.08);
+  display:none; padding:20px;
+}
+.auth-flyout.open { display:block; animation:flyout-in 0.18s ease; }
+@keyframes flyout-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.auth-flyout-title { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:var(--dept-color); margin-bottom:14px; }
+.auth-flyout .af-field { margin-bottom:10px; }
+.auth-flyout .af-field label { font-family:'Share Tech Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.15em; color:var(--text-dim); display:block; margin-bottom:5px; }
+.auth-flyout .af-field input { width:100%; background:var(--surface2); border:1px solid var(--border2); color:var(--white); font-family:'Share Tech Mono',monospace; font-size:12px; padding:8px 10px; outline:none; transition:border-color 0.2s; }
+.auth-flyout .af-field input:focus { border-color:var(--dept-color); }
+.auth-flyout-err { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--danger); min-height:14px; margin-bottom:8px; }
+.auth-flyout-submit { width:100%; padding:9px; background:rgba(76,195,255,0.08); border:1px solid var(--dept-color); color:var(--dept-color); font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.auth-flyout-submit:hover { background:rgba(76,195,255,0.18); }
+.auth-flyout-loading { text-align:center; font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); padding:8px; letter-spacing:0.15em; animation:blink 1s step-end infinite; }
+@keyframes blink { 50%{opacity:0.3} }
+
+.auth-user-panel { text-align:center; padding:4px 0; }
+.auth-user-name { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; color:var(--white); text-transform:uppercase; margin-bottom:4px; }
+.auth-user-role { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em; padding:2px 10px; border:1px solid; text-transform:uppercase; display:inline-block; margin-bottom:14px; }
+.auth-user-role.admin { color:var(--danger); border-color:rgba(192,57,43,0.5); background:rgba(192,57,43,0.08); }
+.auth-user-role.moderateur { color:var(--accent); border-color:rgba(232,200,74,0.4); background:rgba(232,200,74,0.06); }
+.auth-logout-btn { width:100%; padding:8px; background:rgba(192,57,43,0.06); border:1px solid rgba(192,57,43,0.4); color:var(--danger); font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.auth-logout-btn:hover { background:rgba(192,57,43,0.14); }
+
+.ro-lock { display:none; align-items:center; gap:8px; font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); background:rgba(76,195,255,0.04); border:1px solid rgba(76,195,255,0.15); padding:8px 14px; margin-bottom:16px; letter-spacing:0.1em; }
+.ro-lock.visible { display:flex; }
+.ro-lock-icon { font-size:14px; }
+.ro-lock-link { color:var(--dept-color); cursor:pointer; text-decoration:underline; margin-left:4px; }
+
+/* ── LRC ── */
+.lrc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; }
+.lrc-card { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--border2); padding:16px; transition:all 0.2s; }
+.lrc-card:hover { background:var(--surface2); }
+.lrc-card--amber { border-left-color:#ffa500; }
+.lrc-card--blue { border-left-color:#4cc3ff; }
+.lrc-card--superblue { border-left-color:#4466ff; }
+.lrc-card--green { border-left-color:#00e676; }
+.lrc-card--red { border-left-color:#ff3355; }
+.lrc-card--black { border-left-color:#445566; }
+.lrc-card--white { border-left-color:#cce0ff; }
+.lrc-card--gray { border-left-color:#7090b0; }
+.lrc-card--magenta { border-left-color:#cc55ff; }
+.lrc-card--blank { border-left-color:#334455; }
+.lrc-card--superblank { border-left-color:#223344; }
+.lrc-card--coldsilver { border-left-color:#90a0b8; }
+.lrc-name { font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; color:var(--white); text-transform:uppercase; margin-bottom:4px; }
+.lrc-pri { font-family:'Share Tech Mono',monospace; font-size:9px; padding:2px 8px; border:1px solid; border-radius:2px; text-transform:uppercase; letter-spacing:0.1em; display:inline-block; margin-bottom:10px; }
+.lrc-pri.critical { border-color:rgba(192,57,43,0.6); color:var(--danger); background:rgba(192,57,43,0.08); }
+.lrc-pri.high { border-color:rgba(230,126,34,0.6); color:var(--warn); }
+.lrc-pri.medium { border-color:rgba(76,195,255,0.4); color:#4cc3ff; }
+.lrc-desc { font-family:'Courier Prime',monospace; font-size:11px; color:var(--text); line-height:1.6; margin-bottom:6px; }
+.lrc-guid { font-family:'Courier Prime',monospace; font-size:11px; color:var(--text-dim); line-height:1.5; font-style:italic; margin-bottom:6px; }
+.lrc-mtf { font-family:'Share Tech Mono',monospace; font-size:9px; color:#4cc3ff; letter-spacing:0.05em; margin-bottom:10px; }
+.lrc-acts { display:flex; gap:5px; }
+
+/* ── EFFECTIFS ── */
+.effectifs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px; }
+.effectif-card { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--border2); padding:16px; transition:all 0.2s; position:relative; }
+.effectif-card:hover { background:var(--surface2); }
+.effectif-card.online  { border-left-color:var(--safe); }
+.effectif-card.offline { border-left-color:var(--border2); }
+.effectif-status-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.effectif-status-dot.online  { background:var(--safe); box-shadow:0 0 6px rgba(0,230,118,0.5); animation:pulse-dot 2s infinite; }
+.effectif-status-dot.offline { background:var(--border2); }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.effectif-name { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:700; color:var(--white); text-transform:uppercase; }
+.effectif-username { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--accent2); margin-top:1px; }
+.effectif-rank-display { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--dept-color); margin-top:6px; padding:3px 8px; border:1px solid rgba(76,195,255,0.25); background:rgba(76,195,255,0.05); display:inline-block; cursor:pointer; transition:all 0.2s; }
+.effectif-rank-display:hover { border-color:var(--dept-color); background:rgba(76,195,255,0.1); }
+.effectif-rank-input { font-family:'Share Tech Mono',monospace; font-size:10px; padding:3px 8px; background:var(--surface2); border:1px solid var(--dept-color); color:var(--white); outline:none; width:100%; margin-top:6px; display:none; }
+.effectif-stats { display:flex; gap:12px; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+.effectif-stat { text-align:center; flex:1; }
+.effectif-stat-val { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; line-height:1; }
+.effectif-stat-lbl { font-family:'Share Tech Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-dim); margin-top:2px; }
+.effectif-actions { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+.effectif-section-hdr { font-family:'Share Tech Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.18em; color:var(--text-dim); padding:8px 12px; background:var(--surface2); border:1px solid var(--border); border-left:3px solid; margin-bottom:8px; margin-top:16px; display:flex; justify-content:space-between; }
+.effectif-section-hdr:first-child { margin-top:0; }
+.effectif-filter-bar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
+.effectif-search { flex:1; min-width:160px; background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Share Tech Mono',monospace; font-size:11px; padding:7px 12px; outline:none; }
+.effectif-search:focus { border-color:var(--dept-color); }
+.effectif-online-badge { font-family:'Share Tech Mono',monospace; font-size:9px; padding:2px 8px; border:1px solid var(--safe); color:var(--safe); background:rgba(0,230,118,0.06); }
+
+/* ── APPEL NOMINAL ── */
+.appel-stats-row { display:flex; gap:10px; flex-wrap:wrap; }
+.appel-stat { flex:1; min-width:80px; background:var(--surface2); border:1px solid var(--border); padding:10px 14px; text-align:center; }
+.appel-stat span { display:block; font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:700; line-height:1; }
+.appel-stat small { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.1em; }
+.appel-stat--present { border-left:3px solid var(--safe); }
+.appel-stat--present span { color:var(--safe); }
+.appel-stat--absent { border-left:3px solid var(--danger); }
+.appel-stat--absent span { color:var(--danger); }
+.appel-stat--retard { border-left:3px solid var(--warn); }
+.appel-stat--retard span { color:var(--warn); }
+.appel-stat--nc { border-left:3px solid var(--border2); }
+.appel-stat--nc span { color:var(--text-dim); }
+.appel-progress-wrap { width:120px; height:6px; background:var(--surface2); border:1px solid var(--border); overflow:hidden; }
+.appel-progress-bar { height:100%; background:var(--accent); transition:width 0.3s; }
+.appel-agent-list { display:flex; flex-direction:column; gap:6px; }
+.appel-agent-row { display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); padding:10px 14px; transition:all 0.2s; }
+.appel-agent-row:hover { background:var(--surface2); }
+.appel-agent-row.is-present { border-left:3px solid var(--safe); }
+.appel-agent-row.is-absent { border-left:3px solid var(--danger); }
+.appel-agent-row.is-retard { border-left:3px solid var(--warn); }
+.appel-agent-info { flex:1; min-width:0; }
+.appel-agent-name { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; color:var(--white); text-transform:uppercase; }
+.appel-agent-sub { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--text-dim); margin-top:1px; }
+.appel-agent-note { font-family:'Courier Prime',monospace; font-size:10px; color:var(--warn); margin-top:3px; font-style:italic; }
+.appel-btn-group { display:flex; gap:5px; flex-shrink:0; }
+.appel-status-btn { padding:4px 10px; border:1px solid var(--border2); background:transparent; font-family:'Share Tech Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer; transition:all 0.2s; color:var(--text-dim); }
+.appel-status-btn:hover { border-color:var(--accent); color:var(--accent); }
+.appel-status-btn.active-present { border-color:var(--safe); color:var(--safe); background:rgba(0,230,118,0.08); }
+.appel-status-btn.active-absent { border-color:var(--danger); color:var(--danger); background:rgba(255,51,85,0.08); }
+.appel-status-btn.active-retard { border-color:var(--warn); color:var(--warn); background:rgba(255,170,0,0.08); }
+.appel-note-btn { padding:4px 8px; border:1px solid var(--border); background:transparent; font-family:'Share Tech Mono',monospace; font-size:9px; cursor:pointer; color:var(--text-dim); transition:all 0.2s; }
+.appel-note-btn:hover { border-color:var(--warn); color:var(--warn); }
+.appel-note-btn.has-note { color:var(--warn); border-color:var(--warn); }
+.appel-histo-card { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent2); padding:12px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+.appel-histo-info { flex:1; }
+.appel-histo-title { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:700; color:var(--white); text-transform:uppercase; }
+.appel-histo-meta { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--text-dim); margin-top:2px; }
+.appel-histo-badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.appel-badge { font-family:'Share Tech Mono',monospace; font-size:9px; padding:2px 7px; border:1px solid; border-radius:2px; }
+.appel-badge--p { border-color:var(--safe); color:var(--safe); }
+.appel-badge--a { border-color:var(--danger); color:var(--danger); }
+.appel-badge--r { border-color:var(--warn); color:var(--warn); }
+.appel-badge--nc { border-color:var(--border2); color:var(--text-dim); }
+.appel-class-badge { font-family:'Share Tech Mono',monospace; font-size:8px; padding:1px 5px; border:1px solid; border-radius:1px; letter-spacing:0.08em; margin-right:4px; vertical-align:middle; }
+.appel-section-hdr { display:flex; justify-content:space-between; align-items:center; font-family:'Share Tech Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.14em; padding:8px 10px; background:var(--surface2); border:1px solid var(--border); border-left:3px solid; margin-bottom:4px; margin-top:10px; }
+.appel-section-hdr:first-child { margin-top:0; }
+.appel-section-count { color:var(--text-dim); }
+
+.action-locked { opacity:0.35; pointer-events:none; cursor:not-allowed; }
+
+/* ══════════════════════════════════════════
+   DOSSIER AGENT — Styles
+   ══════════════════════════════════════════ */
+
+/* Bouton dossier sur carte effectif */
+.btn-dossier {
+  padding:4px 10px;
+  border:1px solid rgba(192,57,43,0.5);
+  background:rgba(192,57,43,0.06);
+  color:var(--danger);
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-dossier:hover { background:rgba(192,57,43,0.14); border-color:var(--danger); }
+
+/* Modale dossier — plus large */
+.modal-dossier .modal-box {
+  max-width: 740px;
+  width: 95%;
+}
+
+/* En-tête dossier avec bandeau rouge */
+.dossier-header {
+  background: linear-gradient(90deg, rgba(192,57,43,0.12) 0%, transparent 100%);
+  border: 1px solid rgba(192,57,43,0.3);
+  border-left: 4px solid var(--danger);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.dossier-header-avatar {
+  width: 48px; height: 48px;
+  background: rgba(192,57,43,0.15);
+  border: 2px solid rgba(192,57,43,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size: 20px; font-weight: 900;
+  color: var(--danger); text-transform: uppercase;
+  flex-shrink: 0;
+}
+.dossier-header-info { flex: 1; }
+.dossier-agent-name {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size: 26px; font-weight: 900;
+  color: var(--white); text-transform: uppercase;
+  letter-spacing: 0.05em; line-height: 1;
+}
+.dossier-agent-rank {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 10px; color: var(--dept-color);
+  margin-top: 4px; letter-spacing: 0.1em;
+}
+.dossier-clearance {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 8px; letter-spacing: 0.2em;
+  padding: 4px 10px; text-transform: uppercase;
+  border: 1px solid rgba(192,57,43,0.5);
+  color: var(--danger);
+  background: rgba(192,57,43,0.08);
+  align-self: flex-start;
+}
+
+/* Tabs dossier */
+.dossier-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.dossier-tab {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border: none; border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer; transition: all 0.18s;
+}
+.dossier-tab:hover { color: var(--white); }
+.dossier-tab.active {
+  color: var(--danger);
+  border-bottom-color: var(--danger);
+  background: rgba(192,57,43,0.05);
+}
+
+/* Panneaux dossier */
+.dossier-panel { display: none; }
+.dossier-panel.active { display: block; }
+
+/* Grille infos */
+.dossier-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.dossier-info-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+}
+.dossier-info-label {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.16em; color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.dossier-info-value {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size: 15px; font-weight: 700;
+  color: var(--white);
+}
+
+/* Timeline notes */
+.dossier-notes-list {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 340px; overflow-y: auto;
+  margin-bottom: 14px;
+}
+.dossier-note-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border2);
+  padding: 10px 14px;
+  position: relative;
+}
+.dossier-note-item.type-avertissement { border-left-color: var(--warn); }
+.dossier-note-item.type-sanction      { border-left-color: var(--danger); }
+.dossier-note-item.type-felicitation  { border-left-color: var(--safe); }
+.dossier-note-item.type-observation   { border-left-color: var(--dept-color); }
+.dossier-note-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 6px;
+}
+.dossier-note-type {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.14em; padding: 2px 7px; border: 1px solid;
+}
+.dossier-note-type.type-avertissement { color:var(--warn); border-color:rgba(255,170,0,0.4); background:rgba(255,170,0,0.06); }
+.dossier-note-type.type-sanction      { color:var(--danger); border-color:rgba(255,51,85,0.4); background:rgba(255,51,85,0.06); }
+.dossier-note-type.type-felicitation  { color:var(--safe); border-color:rgba(0,230,118,0.4); background:rgba(0,230,118,0.06); }
+.dossier-note-type.type-observation   { color:var(--dept-color); border-color:rgba(76,195,255,0.3); background:rgba(76,195,255,0.05); }
+.dossier-note-date {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 9px; color: var(--text-dim);
+}
+.dossier-note-author {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 9px; color: var(--accent2); margin-top:2px;
+}
+.dossier-note-content {
+  font-family:'Courier Prime',monospace;
+  font-size: 11px; color: var(--text); line-height: 1.6;
+  margin-top: 6px;
+}
+.dossier-note-del {
+  position: absolute; top: 8px; right: 8px;
+  padding: 2px 6px; border: 1px solid rgba(192,57,43,0.3);
+  background: transparent; color: rgba(192,57,43,0.5);
+  font-family:'Share Tech Mono',monospace; font-size: 9px;
+  cursor: pointer; transition: all 0.18s;
+}
+.dossier-note-del:hover { color: var(--danger); border-color: var(--danger); background: rgba(192,57,43,0.1); }
+
+/* Formulaire ajout note */
+.dossier-add-note {
+  background: var(--surface2);
+  border: 1px dashed rgba(192,57,43,0.3);
+  padding: 14px;
+}
+.dossier-add-note-title {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 9px; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--danger);
+  margin-bottom: 10px;
+}
+.dossier-note-form-row { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.dossier-note-form-row select,
+.dossier-note-form-row input {
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--white); font-family:'Share Tech Mono',monospace;
+  font-size: 11px; padding: 6px 10px; outline: none;
+}
+.dossier-note-form-row select:focus,
+.dossier-note-form-row input:focus { border-color: var(--danger); }
+.dossier-note-form-row textarea {
+  width: 100%; background: var(--surface); border: 1px solid var(--border2);
+  color: var(--white); font-family:'Courier Prime',monospace;
+  font-size: 12px; padding: 8px 10px; outline: none; resize: vertical;
+}
+.dossier-note-form-row textarea:focus { border-color: var(--danger); }
+
+/* Statistiques dossier */
+.dossier-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.dossier-stat-box {
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 12px; text-align: center;
+}
+.dossier-stat-val {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size: 28px; font-weight: 900; line-height: 1;
+}
+.dossier-stat-lbl {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text-dim); margin-top: 3px;
+}
+
+/* Évaluations dans dossier */
+.dossier-eval-row {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent2); padding: 10px 14px;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 12px;
+}
+.dossier-eval-score {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size: 24px; font-weight: 900; line-height: 1;
+  min-width: 52px; text-align: center;
+}
+.dossier-eval-info { flex: 1; }
+.dossier-eval-name {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--white);
+  text-transform: uppercase;
+}
+.dossier-eval-meta {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 9px; color: var(--text-dim); margin-top: 2px;
+}
+.dossier-eval-badge {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 8px; padding: 2px 7px; border: 1px solid;
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+/* Remarques internes */
+.dossier-internal-note {
+  background: rgba(192,57,43,0.04);
+  border: 1px solid rgba(192,57,43,0.2);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.dossier-internal-label {
+  font-family:'Share Tech Mono',monospace;
+  font-size: 8px; text-transform: uppercase;
+  letter-spacing: 0.18em; color: var(--danger);
+  margin-bottom: 6px;
+}
+.dossier-internal-textarea {
+  width: 100%; background: transparent;
+  border: none; border-bottom: 1px solid rgba(192,57,43,0.25);
+  color: var(--white); font-family:'Courier Prime',monospace;
+  font-size: 12px; padding: 4px 0; outline: none; resize: vertical;
+  min-height: 70px;
+}
+.dossier-internal-textarea:focus { border-bottom-color: var(--danger); }
+.dossier-internal-save {
+  margin-top: 8px; padding: 5px 14px;
+  border: 1px solid rgba(192,57,43,0.4);
+  background: rgba(192,57,43,0.06);
+  color: var(--danger); font-family:'Share Tech Mono',monospace;
+  font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.18s;
+}
+.dossier-internal-save:hover { background: rgba(192,57,43,0.14); }
+
+/* Badge dossier sur carte */
+.dossier-has-notes-badge {
+  position: absolute; top: 10px; right: 40px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 6px rgba(255,51,85,0.6);
+  display: none;
+}
+.dossier-has-notes-badge.visible { display: block; }
+
+/* Watermark CONFIDENTIEL */
+.dossier-watermark {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-25deg);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size: 72px; font-weight: 900;
+  color: rgba(192,57,43,0.04);
+  letter-spacing: 0.15em; pointer-events: none;
+  user-select: none; white-space: nowrap;
+}
+
+/* ══ ÉVALUATIONS REFONTE ══ */
+:root { --promo:#a855f7; }
+.eval-stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:20px}
+.eval-stat-card{background:var(--surface);border:1px solid var(--border);padding:12px 14px;text-align:center}
+.eval-stat-card--promo{border-left:3px solid var(--promo)}
+.eval-stat-card--valide{border-left:3px solid var(--safe)}
+.eval-stat-card--awarn{border-left:3px solid var(--warn)}
+.eval-stat-card--danger{border-left:3px solid var(--danger)}
+.eval-stat-card--pending{border-left:3px solid var(--text-dim)}
+.eval-stat-card--total{border-left:3px solid var(--dept-color)}
+.eval-stat-val{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:900;line-height:1}
+.eval-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);margin-top:3px}
+.eval-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.eval-search-input{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 14px;outline:none;transition:border-color .2s}
+.eval-search-input:focus{border-color:var(--dept-color)}
+.eval-sort-select{background:var(--surface);border:1px solid var(--border2);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:10px;padding:7px 10px;outline:none;cursor:pointer}
+.eval-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.eval-card-new{background:var(--surface);border:1px solid var(--border);position:relative;overflow:hidden;cursor:pointer;transition:all .2s}
+.eval-card-new:hover{background:var(--surface2);border-color:var(--border2);transform:translateY(-1px)}
+.eval-card-new--promu{border-top:3px solid var(--promo)}
+.eval-card-new--valide{border-top:3px solid var(--safe)}
+.eval-card-new--avertissement{border-top:3px solid var(--warn)}
+.eval-card-new--recale{border-top:3px solid var(--danger)}
+.eval-card-new--expulse{border-top:3px solid #444}
+.eval-valid-badge{position:absolute;top:10px;right:10px;font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:.15em;text-transform:uppercase;padding:2px 7px;border:1px solid}
+.eval-valid-badge--pending{color:var(--text-dim);border-color:rgba(136,136,136,.35);background:rgba(136,136,136,.05)}
+.eval-valid-badge--partial{color:var(--warn);border-color:rgba(255,170,0,.4);background:rgba(255,170,0,.06)}
+.eval-valid-badge--complete{color:var(--safe);border-color:rgba(0,217,126,.4);background:rgba(0,217,126,.07)}
+.eval-valid-badge--rejected{color:var(--danger);border-color:rgba(255,51,85,.4);background:rgba(255,51,85,.07)}
+.eval-card-head{padding:14px 14px 10px;border-bottom:1px solid var(--border)}
+.eval-card-agent-name{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:900;text-transform:uppercase;color:var(--white);line-height:1;padding-right:64px}
+.eval-card-rank-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dept-color);margin-top:3px;letter-spacing:.05em}
+.eval-card-dec-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.eval-dec-badge{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border:1px solid}
+.eval-dec-badge--promu{color:var(--promo);border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.08)}
+.eval-dec-badge--valide{color:var(--safe);border-color:rgba(0,217,126,.4);background:rgba(0,217,126,.06)}
+.eval-dec-badge--avertissement{color:var(--warn);border-color:rgba(255,170,0,.4);background:rgba(255,170,0,.06)}
+.eval-dec-badge--recale{color:var(--danger);border-color:rgba(255,51,85,.4);background:rgba(255,51,85,.06)}
+.eval-dec-badge--expulse{color:#666;border-color:rgba(100,100,100,.4);background:rgba(100,100,100,.06)}
+.eval-card-meta-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:3px}
+.eval-card-scores-wrap{padding:10px 14px;display:flex;flex-direction:column;gap:4px}
+.eval-score-row2{display:flex;align-items:center;gap:8px}
+.eval-score-lbl2{font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-dim);min-width:64px;flex-shrink:0}
+.eval-score-bar-wrap2{flex:1;height:4px;background:var(--surface3)}
+.eval-score-bar-fill2{height:100%}
+.eval-score-val2{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;min-width:16px;text-align:right}
+.eval-card-foot{padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.eval-total-num2{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;line-height:1}
+.eval-total-max2{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim)}
+.eval-mention2{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:1px solid}
+.eval-card-sigs-row{display:flex;gap:6px;padding:7px 14px;background:rgba(0,0,0,.2);border-top:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.eval-sig-mini2{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);display:flex;align-items:center;gap:4px}
+.eval-sig-mini2.signed{color:var(--safe)}
+.eval-sig-mini2.rejected{color:var(--danger)}
+.eval-sig-dot2{width:6px;height:6px;border-radius:50%;flex-shrink:0;display:inline-block}
+/* Modal détail */
+.eval-modal-detail .modal-box{max-width:820px;width:95%}
+.eval-dtabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:18px}
+.eval-dtab{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:9px 16px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-dim);cursor:pointer;transition:all .18s}
+.eval-dtab:hover{color:var(--white)}
+.eval-dtab.active{color:var(--dept-color);border-bottom-color:var(--dept-color);background:rgba(76,195,255,.04)}
+.eval-dpanel{display:none}
+.eval-dpanel.active{display:block}
+.eval-detail-hdr{background:linear-gradient(90deg,rgba(76,195,255,.07) 0%,transparent 100%);border:1px solid rgba(76,195,255,.2);border-left:4px solid var(--dept-color);padding:14px 18px;margin-bottom:18px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.eval-criteria-grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px;margin-bottom:18px}
+.eval-crit-card2{background:var(--surface2);border:1px solid var(--border);padding:13px}
+.eval-crit-name2{font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim);margin-bottom:6px}
+.eval-crit-score2{font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:900;line-height:1}
+.eval-crit-bar2{height:3px;margin-top:7px;overflow:hidden}
+.eval-crit-desc2{font-family:'Courier Prime',monospace;font-size:9px;color:var(--text-dim);margin-top:5px;font-style:italic}
+.eval-comments-box{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:12px 14px;margin-bottom:18px}
+.eval-comments-lbl2{font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:6px}
+/* Signatures */
+.eval-validation-bar2{background:var(--surface2);border:1px solid var(--border);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.eval-val-dots{display:flex;gap:5px}
+.eval-val-dot{width:10px;height:10px;border:1px solid var(--border2);background:transparent;transition:all .2s}
+.eval-val-dot.done{background:var(--safe);border-color:var(--safe)}
+.eval-val-dot.rejected{background:var(--danger);border-color:var(--danger)}
+.eval-val-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:.1em}
+.eval-finalize2{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:7px 16px;cursor:pointer;transition:all .2s}
+.eval-finalize2--ready{border:1px solid rgba(0,217,126,.5);background:rgba(0,217,126,.08);color:var(--safe)}
+.eval-finalize2--ready:hover{background:rgba(0,217,126,.18)}
+.eval-finalize2--disabled{border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:not-allowed}
+.eval-sigs-grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:10px;margin-bottom:12px}
+.eval-sig-card2{background:var(--surface2);border:1px solid var(--border);padding:13px;position:relative}
+.eval-sig-card2--signed{border-left:3px solid var(--safe)}
+.eval-sig-card2--pending{border-left:3px solid var(--text-dim)}
+.eval-sig-card2--rejected{border-left:3px solid var(--danger)}
+.eval-sig-role2{font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-bottom:4px}
+.eval-sig-name2{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;color:var(--white)}
+.eval-sig-status2{font-family:'Share Tech Mono',monospace;font-size:9px;margin-top:7px;display:flex;align-items:center;gap:5px}
+.eval-sig-status2.signed{color:var(--safe)}
+.eval-sig-status2.pending{color:var(--text-dim)}
+.eval-sig-status2.rejected{color:var(--danger)}
+.eval-sig-ts{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);margin-top:2px}
+.eval-sig-action{width:100%;margin-top:8px;padding:5px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .18s}
+.eval-sig-action--sign{border:1px solid rgba(0,217,126,.4);background:rgba(0,217,126,.06);color:var(--safe)}
+.eval-sig-action--sign:hover{background:rgba(0,217,126,.14)}
+.eval-sig-action--reject{border:1px solid rgba(255,51,85,.3);background:rgba(255,51,85,.04);color:rgba(255,51,85,.6);font-size:8px;margin-top:4px}
+.eval-sig-action--reject:hover{background:rgba(255,51,85,.1);color:var(--danger)}
+.eval-sig-revoke{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,51,85,.4);background:none;border:none;cursor:pointer;margin-top:3px;transition:color .18s;display:block}
+.eval-sig-revoke:hover{color:var(--danger)}
+.eval-sig-stamp2{position:absolute;bottom:8px;right:8px;width:30px;height:30px;border:2px solid rgba(0,217,126,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:6px;color:rgba(0,217,126,.5);text-transform:uppercase;transform:rotate(-15deg);pointer-events:none}
+/* Wizard */
+.eval-modal-form .modal-box{max-width:760px;width:95%}
+.eval-wiz-steps{display:flex;gap:0;margin-bottom:24px;position:relative}
+.eval-wiz-steps::before{content:'';position:absolute;top:14px;left:0;right:0;height:1px;background:var(--border);z-index:0}
+.eval-wiz-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;position:relative;z-index:1}
+.eval-wiz-dot{width:28px;height:28px;border:1px solid var(--border2);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);transition:all .2s}
+.eval-wiz-step.active .eval-wiz-dot{border-color:var(--dept-color);background:rgba(76,195,255,.1);color:var(--dept-color)}
+.eval-wiz-step.done .eval-wiz-dot{border-color:var(--safe);background:rgba(0,217,126,.1);color:var(--safe)}
+.eval-wiz-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);text-align:center}
+.eval-wiz-step.active .eval-wiz-lbl{color:var(--dept-color)}
+.eval-wiz-step.done .eval-wiz-lbl{color:var(--safe)}
+.eval-step-panel2{display:none}
+.eval-step-panel2.active{display:block}
+.eval-step-tag{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color);margin-bottom:16px}
+.eval-fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.eval-fgrid .full{grid-column:1/-1}
+.eval-flabel{font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim);margin-bottom:4px;display:block}
+.eval-finput,.eval-fselect,.eval-ftextarea{background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 10px;outline:none;transition:border-color .2s;width:100%}
+.eval-finput:focus,.eval-fselect:focus,.eval-ftextarea:focus{border-color:var(--dept-color)}
+.eval-ftextarea{resize:vertical}
+.eval-comp-item{background:var(--surface2);border:1px solid var(--border);padding:14px;margin-bottom:12px}
+.eval-comp-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.eval-comp-name{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;color:var(--white)}
+.eval-comp-disp{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;line-height:1}
+.eval-comp-desc{font-family:'Courier Prime',monospace;font-size:10px;color:var(--text-dim);margin-bottom:10px;font-style:italic}
+.eval-comp-slider{flex:1;height:4px;-webkit-appearance:none;background:var(--surface3);outline:none;cursor:pointer;accent-color:var(--dept-color)}
+.eval-comp-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border:1px solid var(--dept-color);background:var(--surface2);cursor:pointer}
+.eval-recap-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.eval-recap-item2{background:var(--surface2);border:1px solid var(--border);padding:10px 13px}
+.eval-recap-lbl2{font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.13em;color:var(--text-dim);margin-bottom:3px}
+.eval-recap-val2{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white)}
+.eval-total-bar2{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--dept-color);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.eval-total-score2{font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;line-height:1}
+.eval-total-mention2{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:2px 8px;border:1px solid;margin-top:3px;display:inline-block}
+.eval-sig-setup-card{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--text-dim);padding:10px 12px;margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.eval-wiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.eval-wiz-btn{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:9px 20px;cursor:pointer;transition:all .2s}
+.eval-wiz-btn--next{border:1px solid var(--dept-color);background:rgba(76,195,255,.08);color:var(--dept-color)}
+.eval-wiz-btn--next:hover{background:rgba(76,195,255,.18)}
+.eval-wiz-btn--back{border:1px solid var(--border2);background:transparent;color:var(--text-dim)}
+.eval-wiz-btn--back:hover{border-color:var(--dept-color);color:var(--dept-color)}
+.eval-wiz-btn--save{border:1px solid rgba(0,217,126,.5);background:rgba(0,217,126,.08);color:var(--safe)}
+.eval-wiz-btn--save:hover{background:rgba(0,217,126,.18)}
+.eval-wiz-info{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)}
+@media(max-width:600px){.eval-fgrid,.eval-recap-grid2{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <a href="../index.html" class="topbar-back">← Site-15</a>
+    <div class="topbar-divider"></div>
+    <div>
+      <div class="topbar-title">🔒 Sécurité</div>
+      <div class="topbar-dept">DEPT-SEC // MTF-PRIORITY — NIV.2</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-status"><div class="status-dot"></div>ALERTE ACTIVE</div>
+    <div class="topbar-clearance dept-badge">NIVEAU 2</div>
+    <button class="auth-btn" id="authBtn" onclick="toggleAuthFlyout()">🔑 Connexion</button>
+  </div>
+</header>
+
+<!-- AUTH FLYOUT -->
+<div class="auth-flyout" id="authFlyout">
+  <div id="afLoginPanel">
+    <div class="auth-flyout-title">// Authentification agent</div>
+    <div class="af-field"><label>Nom d'utilisateur</label><input type="text" id="afUsername" placeholder="Ex: A.MAX" autocomplete="username" spellcheck="false"/></div>
+    <div class="af-field"><label>Mot de passe</label><input type="password" id="afPassword" placeholder="••••••••" autocomplete="current-password"/></div>
+    <div class="auth-flyout-err" id="afError"></div>
+    <button class="auth-flyout-submit" onclick="doAuthLogin()">→ Accéder</button>
+  </div>
+  <div id="afLoadingPanel" style="display:none" class="auth-flyout-loading">AUTHENTIFICATION…</div>
+  <div id="afUserPanel" style="display:none">
+    <div class="auth-flyout-title">// Agent authentifié</div>
+    <div class="auth-user-panel">
+      <div class="auth-user-name" id="afUserName">—</div>
+      <div class="auth-user-role" id="afUserRole">—</div>
+    </div>
+    <button class="auth-logout-btn" onclick="doAuthLogout()">↩ Déconnexion</button>
+  </div>
+</div>
+
+<nav class="dept-nav">
+  <button class="nav-tab active" data-view="protocoles"><span class="nav-tab-icon">▢</span> Protocoles</button>
+  <button class="nav-tab" data-view="lrc"><span class="nav-tab-icon">⚠</span> Codes LRC</button>
+  <button class="nav-tab" data-view="effectifs"><span class="nav-tab-icon">👥</span> Effectifs</button>
+  <button class="nav-tab" data-view="evaluations"><span class="nav-tab-icon">✦</span> Évaluations</button>
+  <button class="nav-tab" data-view="rapports"><span class="nav-tab-icon">📋</span> Rapports</button>
+  <button class="nav-tab" data-view="appel"><span class="nav-tab-icon">📣</span> Appel Nominal</button>
+</nav>
+
+<div class="app-layout">
+<main class="main-content">
+
+  <!-- ▸ PROTOCOLES -->
+  <section class="view active" id="view-protocoles">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Base de données sécurité</div>
+        <div class="sec-title">PROTOCOLES <span>OPÉRATIONNELS</span></div>
+        <div class="sec-sub" id="protoCount">0 protocoles chargés</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm action-write" id="btnNewProto">+ Nouveau</button>
+      </div>
+    </div>
+    <div class="ro-lock" id="roProto">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier des protocoles</span>
+    </div>
+    <div class="search-row">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" id="protoSearch" placeholder="Rechercher un protocole…" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="filter-row" id="protoFilters">
+      <button class="pill active" data-cat="all">Tous <span class="pill-n" id="cnt-all">0</span></button>
+      <button class="pill" data-cat="urgent">Urgence <span class="pill-n" id="cnt-urgent">0</span></button>
+      <button class="pill" data-cat="confinement">Confinement <span class="pill-n" id="cnt-confinement">0</span></button>
+      <button class="pill" data-cat="patrouille">Patrouille <span class="pill-n" id="cnt-patrouille">0</span></button>
+      <button class="pill" data-cat="personnel">Personnel <span class="pill-n" id="cnt-personnel">0</span></button>
+    </div>
+    <div class="item-list" id="protoList">
+      <div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-text">Aucun protocole enregistré</div></div>
+    </div>
+    <div class="modal-ov" id="modalProto">
+      <div class="modal-box">
+        <div class="modal-hdr">
+          <div class="modal-title" id="protoModalTitle">Nouveau protocole</div>
+          <button class="modal-close" data-close-modal="modalProto">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-field full"><label>Titre *</label><input id="pTitle" type="text" placeholder="Ex: Protocole Brèche Alpha"/></div>
+            <div class="form-field">
+              <label>Catégorie</label>
+              <select id="pCat"><option value="urgent">Urgence</option><option value="confinement">Confinement</option><option value="patrouille">Patrouille</option><option value="personnel">Personnel</option></select>
+            </div>
+            <div class="form-field"><label>Statut</label><input id="pStatus" value="Actif"/></div>
+            <div class="form-field full"><label>Contenu *</label><textarea id="pContent" rows="8" placeholder="Décrivez le protocole en détail…"></textarea></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost btn-sm" data-close-modal="modalProto">Annuler</button>
+          <button class="btn btn-primary btn-sm" id="saveProtoBtn">💾 Sauvegarder</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ▸ LRC -->
+  <section class="view" id="view-lrc">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Lockdown Response Codes</div>
+        <div class="sec-title">CODES <span>LRC</span></div>
+        <div class="sec-sub">Protocoles d'urgence et déploiement MTF</div>
+      </div>
+    </div>
+    <div class="lrc-grid" id="lrcGrid"></div>
+  </section>
+
+  <!-- ▸ EFFECTIFS -->
+  <section class="view" id="view-effectifs">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Registre du personnel</div>
+        <div class="sec-title">EFFECTIFS <span>D.SE</span></div>
+        <div class="sec-sub" id="effectifsCount">0 agents — 0 en ligne</div>
+      </div>
+      <div class="sec-actions">
+        <span class="effectif-online-badge" id="effectifsOnlineCount">⬤ 0 EN LIGNE</span>
+      </div>
+    </div>
+
+    <div class="effectif-filter-bar">
+      <input class="effectif-search" id="effectifsSearch" placeholder="🔍 Rechercher un agent…" autocomplete="off"/>
+      <select class="effectif-search" id="effectifsFilterSection" style="flex:unset;width:auto;cursor:pointer;">
+        <option value="">Toutes sections</option>
+        <option value="">Standard</option>
+        <option value="SF">SF — Spéc. Forces</option>
+        <option value="DSI">DSI — Int. Dept</option>
+        <option value="BSI">BSI — Bureau Int.</option>
+        <option value="SC">SC — Sect. Chef</option>
+        <option value="DIR">DIR — Direction</option>
+      </select>
+      <button class="pill active" data-eff-filter="all">Tous</button>
+      <button class="pill" data-eff-filter="online">En ligne</button>
+      <button class="pill" data-eff-filter="offline">Hors ligne</button>
+    </div>
+
+    <div id="effectifsList"></div>
+  </section>
+
+  <!-- ▸ ÉVALUATIONS -->
+  <section class="view" id="view-evaluations">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Ressources humaines sécurité</div>
+        <div class="sec-title">ÉVALUATIONS <span>AGENTS</span></div>
+        <div class="sec-sub" id="evalCount">0 évaluations enregistrées</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm action-write" id="btnNewEval">+ Nouvelle évaluation</button>
+      </div>
+    </div>
+    <div class="ro-lock" id="roEval">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier des évaluations</span>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="eval-stats-bar">
+      <div class="eval-stat-card eval-stat-card--promo"><div class="eval-stat-val" id="evalStatPromu" style="color:var(--promo)">0</div><div class="eval-stat-lbl">Promus</div></div>
+      <div class="eval-stat-card eval-stat-card--valide"><div class="eval-stat-val" id="evalStatValide" style="color:var(--safe)">0</div><div class="eval-stat-lbl">Validés</div></div>
+      <div class="eval-stat-card eval-stat-card--awarn"><div class="eval-stat-val" id="evalStatAvert" style="color:var(--warn)">0</div><div class="eval-stat-lbl">Avertissements</div></div>
+      <div class="eval-stat-card eval-stat-card--danger"><div class="eval-stat-val" id="evalStatRecale" style="color:var(--danger)">0</div><div class="eval-stat-lbl">Recalés</div></div>
+      <div class="eval-stat-card eval-stat-card--pending"><div class="eval-stat-val" id="evalStatPending" style="color:var(--text-dim)">0</div><div class="eval-stat-lbl">En attente sig.</div></div>
+      <div class="eval-stat-card eval-stat-card--total"><div class="eval-stat-val" id="evalStatTotal" style="color:var(--dept-color)">0</div><div class="eval-stat-lbl">Total</div></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="eval-toolbar">
+      <input class="eval-search-input" id="evalSearch" placeholder="⌕ Rechercher agent, évaluateur…" autocomplete="off"/>
+      <div class="filter-row" id="evalFilters" style="margin:0">
+        <button class="pill active" data-eval-filter="all">Tous</button>
+        <button class="pill" data-eval-filter="promu">Promus</button>
+        <button class="pill" data-eval-filter="valide">Validés</button>
+        <button class="pill" data-eval-filter="avertissement">Avertissements</button>
+        <button class="pill" data-eval-filter="recale">Recalés</button>
+        <button class="pill" data-eval-filter="pending">En attente</button>
+      </div>
+      <select class="eval-sort-select" id="evalSort">
+        <option value="date-desc">Plus récent</option>
+        <option value="date-asc">Plus ancien</option>
+        <option value="score-desc">Score ↓</option>
+        <option value="score-asc">Score ↑</option>
+      </select>
+    </div>
+
+    <!-- Grille cartes -->
+    <div class="eval-cards-grid" id="evalList">
+      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation</div></div>
+    </div>
+  </section>
+
+  <!-- ▸ RAPPORTS -->
+  <section class="view" id="view-rapports">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Journaux opérationnels</div>
+        <div class="sec-title">RAPPORTS <span>OPÉRATIONNELS</span></div>
+        <div class="sec-sub" id="rapportCount">0 rapports enregistrés</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm action-write" id="btnNewRapport">+ Nouveau rapport</button>
+      </div>
+    </div>
+    <div class="ro-lock" id="roRapport">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour rédiger des rapports</span>
+    </div>
+    <div class="form-panel" id="rapportFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="rapportFormTitle">Nouveau rapport</span>
+        <button class="btn btn-ghost btn-sm" id="rapportCancelBtn">✕ Annuler</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field full"><label>Titre *</label><input id="rTitle" type="text" placeholder="Ex: Brèche SCP-106 – Zone B"/></div>
+        <div class="form-field"><label>Type</label><select id="rType"></select></div>
+        <div class="form-field"><label>Sévérité</label><select id="rSev"></select></div>
+        <div class="form-field"><label>Auteur *</label><input id="rAuthor" type="text" placeholder="Ex: A.MAX"/></div>
+        <div class="form-field"><label>Username Roblox</label><input id="rUser" type="text"/></div>
+        <div class="form-field"><label>Date *</label><input id="rDate" type="date"/></div>
+        <div class="form-field"><label>Témoins</label><input id="rWitnesses" placeholder="M.NOWAK, E.TERNON"/></div>
+        <div class="form-field">
+          <label>Code LRC associé</label>
+          <select id="rLRC">
+            <option value="">— Aucun —</option>
+            <option>AMBER</option><option>BLUE</option><option>SUPERBLUE</option>
+            <option>GREEN</option><option>RED</option><option>BLACK</option>
+            <option>WHITE</option><option>GRAY</option><option>MAGENTA</option>
+            <option>BLANK</option><option>SUPERBLANK</option><option>COLDSILVER</option>
+          </select>
+        </div>
+        <div class="form-field full"><label>Description *</label><textarea id="rDesc" rows="5" placeholder="Détaillez les événements, personnes impliquées, contexte…"></textarea></div>
+        <div class="form-field full"><label>Conclusion & mesures</label><textarea id="rConc" rows="3" placeholder="Actions entreprises, recommandations…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="rapportCancelBtn2">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="rapportSaveBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+    <div class="filter-row" id="rapportFilters">
+      <button class="pill active" data-r-filter="all">Tous</button>
+      <button class="pill" data-r-filter="incident">Incidents</button>
+      <button class="pill" data-r-filter="breach">Brèches</button>
+      <button class="pill" data-r-filter="patrol">Patrouilles</button>
+      <button class="pill" data-r-filter="disciplinary">Disciplinaires</button>
+    </div>
+    <div class="card-grid" id="rapportList">
+      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport enregistré</div></div>
+    </div>
+  </section>
+
+  <!-- Rapport View Modal -->
+  <div class="modal-ov" id="modalRapportView">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:0.15em" id="rvId">—</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase" id="rvType">—</div>
+        </div>
+        <button class="modal-close" data-close-modal="modalRapportView">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--white);margin-bottom:14px" id="rvTitle">—</div>
+        <div class="meta-grid">
+          <div class="meta-item"><label>Sévérité</label><span id="rvSev">—</span></div>
+          <div class="meta-item"><label>Date</label><span id="rvDate">—</span></div>
+          <div class="meta-item"><label>Auteur</label><span id="rvAuthor">—</span></div>
+          <div class="meta-item"><label>Code LRC</label><span id="rvLRC">—</span></div>
+          <div class="meta-item"><label>Témoins</label><span id="rvWitnesses">—</span></div>
+        </div>
+        <div class="msec"><div class="msec-lbl">Description</div><div class="msec-content" id="rvDesc">—</div></div>
+        <div class="msec"><div class="msec-lbl">Conclusion</div><div class="msec-content" id="rvConc">—</div></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" data-close-modal="modalRapportView">Fermer</button>
+        <button class="btn btn-primary btn-sm" id="rvExportBtn">⬇ Exporter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▸ APPEL NOMINAL -->
+  <section class="view" id="view-appel">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Contrôle de présence</div>
+        <div class="sec-title">APPEL <span>NOMINAL</span></div>
+        <div class="sec-sub" id="appelCount">Aucune session en cours</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm action-write" id="btnNewAppel">+ Nouvelle session</button>
+        <button class="btn btn-ghost btn-sm action-write" id="btnManageAgents">⚙ Agents</button>
+      </div>
+    </div>
+    <div class="ro-lock" id="roAppel">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour démarrer un appel ou gérer les agents</span>
+    </div>
+
+    <div id="appelSessionPanel" style="display:none">
+      <div class="form-panel" style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.14em">Session en cours</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--white);margin-top:2px" id="appelSessionTitle">—</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:4px" id="appelSessionMeta">—</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="appel-progress-wrap"><div class="appel-progress-bar" id="appelProgressBar" style="width:0%"></div></div>
+            <span id="appelProgressText" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);white-space:nowrap">0/0</span>
+          </div>
+        </div>
+        <div class="appel-stats-row">
+          <div class="appel-stat appel-stat--present"><span id="acntPresent">0</span><small>Présents</small></div>
+          <div class="appel-stat appel-stat--absent"><span id="acntAbsent">0</span><small>Absents</small></div>
+          <div class="appel-stat appel-stat--retard"><span id="acntRetard">0</span><small>Retards</small></div>
+          <div class="appel-stat appel-stat--nc"><span id="acntNC">0</span><small>Non répondu</small></div>
+        </div>
+      </div>
+      <div class="filter-row" style="margin-bottom:12px" id="appelFilters">
+        <button class="pill active" data-appel-filter="all">Tous</button>
+        <button class="pill" data-appel-filter="nc">Non répondu</button>
+        <button class="pill" data-appel-filter="present">Présents</button>
+        <button class="pill" data-appel-filter="absent">Absents</button>
+        <button class="pill" data-appel-filter="retard">Retards</button>
+      </div>
+      <div class="search-row" style="margin-bottom:12px">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" id="appelSearch" placeholder="Rechercher un agent…" autocomplete="off"/>
+        </div>
+      </div>
+      <div id="appelAgentList" class="appel-agent-list"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" id="appelMarkAllPresent">✓ Tous présents</button>
+        <button class="btn btn-ghost btn-sm" id="appelReset">↺ Réinitialiser</button>
+        <button class="btn btn-primary btn-sm" id="appelCloseSession">📋 Clôturer &amp; Exporter</button>
+      </div>
+    </div>
+
+    <div id="appelEmptyState">
+      <div class="empty-state" style="margin-top:40px">
+        <div class="empty-icon">📣</div>
+        <div class="empty-text">Aucune session d'appel en cours<br><span style="font-size:10px;opacity:0.6">Démarrez une nouvelle session pour effectuer l'appel nominal</span></div>
+      </div>
+    </div>
+
+    <div id="appelHistoSection" style="margin-top:24px">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.14em;margin-bottom:10px">Historique des sessions</div>
+      <div id="appelHistoList"><div class="empty-state"><div class="empty-text" style="font-size:11px">Aucune session archivée</div></div></div>
+    </div>
+  </section>
+
+  <!-- Modal: Nouvelle session -->
+  <div class="modal-ov" id="modalNewAppel">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <div class="modal-title">Nouvelle session d'appel</div>
+        <button class="modal-close" data-close-modal="modalNewAppel">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-field full"><label>Titre de la session *</label><input id="appelTitle" type="text" placeholder="Ex: Appel — Rotation du soir"/></div>
+          <div class="form-field"><label>Responsable *</label><input id="appelResponsable" type="text" placeholder="Votre nom"/></div>
+          <div class="form-field"><label>Date *</label><input id="appelDate" type="date"/></div>
+          <div class="form-field">
+            <label>Type</label>
+            <select id="appelType"><option value="rotation">Rotation</option><option value="urgence">Urgence</option><option value="formation">Formation</option><option value="exercice">Exercice</option></select>
+          </div>
+          <div class="form-field full"><label>Notes (optionnel)</label><input id="appelNotes" type="text" placeholder="Ex: Brèche en cours — présence obligatoire"/></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" data-close-modal="modalNewAppel">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="appelStartBtn">▶ Démarrer l'appel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Gérer agents -->
+  <div class="modal-ov" id="modalAgents">
+    <div class="modal-box" style="max-width:520px">
+      <div class="modal-hdr">
+        <div class="modal-title">Gestion des agents</div>
+        <button class="modal-close" data-close-modal="modalAgents">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <input id="agentInputName" type="text" placeholder="Nom (ex: A.MAX)" class="search-input" style="flex:2;min-width:100px"/>
+          <input id="agentInputUser" type="text" placeholder="Username Roblox" class="search-input" style="flex:2;min-width:100px"/>
+          <input id="agentInputRank" type="text" placeholder="Grade (ex: [D.SE] Cadet)" class="search-input" style="flex:3;min-width:140px"/>
+          <button class="btn btn-primary btn-sm" id="agentAddBtn">+ Ajouter</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
+          <button class="btn btn-ghost btn-sm" id="agentImportMorphBtn">⟳ Importer depuis Morphs</button>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)" id="agentImportInfo"></span>
+        </div>
+        <div id="agentMgmtList" style="display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" id="agentClearAll">🗑 Vider la liste</button>
+        <button class="btn btn-ghost btn-sm" data-close-modal="modalAgents">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Note absence -->
+  <div class="modal-ov" id="modalNote">
+    <div class="modal-box" style="max-width:380px">
+      <div class="modal-hdr">
+        <div class="modal-title" id="modalNoteTitle">Note — Agent</div>
+        <button class="modal-close" data-close-modal="modalNote">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field full">
+          <label>Motif / observation</label>
+          <textarea id="agentNoteInput" rows="3" placeholder="Ex: Permission accordée, urgence personnelle…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" data-close-modal="modalNote">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="agentNoteSaveBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MODAL DOSSIER AGENT — Admin seulement
+       ══════════════════════════════════════════ -->
+  <div class="modal-ov modal-dossier" id="modalDossier">
+    <div class="modal-box" style="max-width:740px;width:95%">
+      <div class="modal-hdr" style="border-bottom-color:rgba(192,57,43,0.3)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--danger);letter-spacing:0.2em;text-transform:uppercase">🔐 DOSSIER CONFIDENTIEL</div>
+        </div>
+        <button class="modal-close" data-close-modal="modalDossier">×</button>
+      </div>
+      <div class="modal-body" style="position:relative">
+        <div class="dossier-watermark">CONFIDENTIEL</div>
+
+        <!-- Header agent -->
+        <div class="dossier-header">
+          <div class="dossier-header-avatar" id="dossierAvatar">—</div>
+          <div class="dossier-header-info">
+            <div class="dossier-agent-name" id="dossierAgentName">—</div>
+            <div class="dossier-agent-rank" id="dossierAgentRank">—</div>
+          </div>
+          <div class="dossier-clearance">ACCÈS RESTREINT</div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="dossier-tabs">
+          <button class="dossier-tab active" data-dossier-tab="infos">📋 Informations</button>
+          <button class="dossier-tab" data-dossier-tab="notes">📝 Notes internes</button>
+          <button class="dossier-tab" data-dossier-tab="evals">✦ Évaluations</button>
+          <button class="dossier-tab" data-dossier-tab="presences">📣 Présences</button>
+        </div>
+
+        <!-- Panneau: Infos -->
+        <div class="dossier-panel active" id="dossier-panel-infos">
+          <div class="dossier-stats-row">
+            <div class="dossier-stat-box">
+              <div class="dossier-stat-val" id="dStatEvals" style="color:var(--accent)">0</div>
+              <div class="dossier-stat-lbl">Évaluations</div>
+            </div>
+            <div class="dossier-stat-box">
+              <div class="dossier-stat-val" id="dStatPresence" style="color:var(--safe)">—</div>
+              <div class="dossier-stat-lbl">Taux présence</div>
+            </div>
+            <div class="dossier-stat-box">
+              <div class="dossier-stat-val" id="dStatSanctions" style="color:var(--danger)">0</div>
+              <div class="dossier-stat-lbl">Avert./Sanctions</div>
+            </div>
+            <div class="dossier-stat-box">
+              <div class="dossier-stat-val" id="dStatScore" style="color:var(--accent2)">—</div>
+              <div class="dossier-stat-lbl">Dernier score</div>
+            </div>
+          </div>
+          <div class="dossier-info-grid">
+            <div class="dossier-info-item">
+              <div class="dossier-info-label">Nom</div>
+              <div class="dossier-info-value" id="dInfoName">—</div>
+            </div>
+            <div class="dossier-info-item">
+              <div class="dossier-info-label">Username Roblox</div>
+              <div class="dossier-info-value" id="dInfoUser">—</div>
+            </div>
+            <div class="dossier-info-item">
+              <div class="dossier-info-label">Grade actuel</div>
+              <div class="dossier-info-value" id="dInfoRank">—</div>
+            </div>
+            <div class="dossier-info-item">
+              <div class="dossier-info-label">Section</div>
+              <div class="dossier-info-value" id="dInfoSection">—</div>
+            </div>
+            <div class="dossier-info-item">
+              <div class="dossier-info-label">Statut</div>
+              <div class="dossier-info-value" id="dInfoStatus">—</div>
+            </div>
+            <div class="dossier-info-item">
+              <div class="dossier-info-label">Enregistré le</div>
+              <div class="dossier-info-value" id="dInfoDate">—</div>
+            </div>
+          </div>
+          <!-- Remarque interne globale -->
+          <div class="dossier-internal-note">
+            <div class="dossier-internal-label">🔐 Remarques internes (admin uniquement)</div>
+            <textarea class="dossier-internal-textarea" id="dossierInternalNote" placeholder="Observations confidentielles sur cet agent…"></textarea>
+            <button class="dossier-internal-save" id="dossierSaveInternal">💾 Sauvegarder</button>
+          </div>
+        </div>
+
+        <!-- Panneau: Notes internes -->
+        <div class="dossier-panel" id="dossier-panel-notes">
+          <div class="dossier-notes-list" id="dossierNotesList">
+            <div class="empty-state"><div class="empty-text" style="font-size:11px">Aucune note pour cet agent</div></div>
+          </div>
+          <!-- Formulaire ajout note -->
+          <div class="dossier-add-note">
+            <div class="dossier-add-note-title">+ Ajouter une entrée au dossier</div>
+            <div class="dossier-note-form-row">
+              <select id="dNoteType" style="flex:1;min-width:140px">
+                <option value="observation">🔵 Observation</option>
+                <option value="avertissement">🟡 Avertissement</option>
+                <option value="sanction">🔴 Sanction</option>
+                <option value="felicitation">🟢 Félicitation</option>
+              </select>
+              <input type="date" id="dNoteDate" style="flex:1;min-width:120px"/>
+              <input type="text" id="dNoteAuthor" placeholder="Auteur de la note" style="flex:2;min-width:140px"/>
+            </div>
+            <div class="dossier-note-form-row">
+              <textarea id="dNoteContent" rows="3" placeholder="Contenu de la note, détails de l'incident ou observation…" style="width:100%"></textarea>
+            </div>
+            <button class="btn btn-sm" id="dossierAddNoteBtn" style="border-color:rgba(192,57,43,0.5);color:var(--danger);background:rgba(192,57,43,0.06)">+ Ajouter au dossier</button>
+          </div>
+        </div>
+
+        <!-- Panneau: Évaluations -->
+        <div class="dossier-panel" id="dossier-panel-evals">
+          <div id="dossierEvalsList">
+            <div class="empty-state"><div class="empty-text" style="font-size:11px">Aucune évaluation liée à cet agent</div></div>
+          </div>
+        </div>
+
+        <!-- Panneau: Présences -->
+        <div class="dossier-panel" id="dossier-panel-presences">
+          <div id="dossierPresencesList">
+            <div class="empty-state"><div class="empty-text" style="font-size:11px">Aucune session d'appel enregistrée</div></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" data-close-modal="modalDossier">Fermer</button>
+        <button class="btn btn-sm" id="dossierExportBtn" style="border-color:rgba(192,57,43,0.5);color:var(--danger);background:rgba(192,57,43,0.06)">⬇ Exporter dossier</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ MODAL DÉTAIL ÉVALUATION ══ -->
+  <div class="modal-ov eval-modal-detail" id="modalEvalDetail">
+    <div class="modal-box" style="max-width:820px;width:95%">
+      <div class="modal-hdr">
+        <div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--text-dim)">📋 DOSSIER D'ÉVALUATION</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;text-transform:uppercase;color:var(--white);margin-top:4px" id="detailEvalTitle">—</div>
+        </div>
+        <button class="modal-close" data-close-modal="modalEvalDetail">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="eval-dtabs">
+          <button class="eval-dtab active" data-eval-dtab="resume">📊 Résumé</button>
+          <button class="eval-dtab" data-eval-dtab="competences">⭐ Compétences</button>
+          <button class="eval-dtab" data-eval-dtab="signatures">✍ Signatures</button>
+        </div>
+
+        <!-- Panneau Résumé -->
+        <div class="eval-dpanel active" id="evalDPanel-resume">
+          <div class="eval-detail-hdr">
+            <div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;text-transform:uppercase;line-height:1" id="detailEvalName">—</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dept-color);margin-top:4px" id="detailEvalRank">—</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:46px;font-weight:900;line-height:1">
+                <span id="detailEvalScore" style="color:var(--safe)">—</span>
+                <span style="font-size:18px;font-weight:400;color:var(--text-dim)">/60</span>
+              </div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-top:4px" id="detailEvalMention">—</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+            <span id="detailEvalDecBadge" class="eval-dec-badge">—</span>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)" id="detailEvalMeta">—</span>
+          </div>
+          <div class="eval-comments-box" id="detailEvalCommentsBox" style="display:none">
+            <div class="eval-comments-lbl2">Commentaires de l'évaluateur</div>
+            <div style="font-family:'Courier Prime',monospace;font-size:12px;color:var(--text);line-height:1.7;font-style:italic" id="detailEvalComments">—</div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);padding:14px">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.18em;color:var(--text-dim);margin-bottom:10px">Répartition des scores</div>
+            <div id="detailEvalScoresBrief" style="display:flex;flex-direction:column;gap:7px"></div>
+          </div>
+        </div>
+
+        <!-- Panneau Compétences -->
+        <div class="eval-dpanel" id="evalDPanel-competences">
+          <div class="eval-criteria-grid2" id="detailEvalCritGrid"></div>
+        </div>
+
+        <!-- Panneau Signatures -->
+        <div class="eval-dpanel" id="evalDPanel-signatures">
+          <div class="eval-validation-bar2">
+            <div style="display:flex;align-items:center;gap:10px;flex:1">
+              <div class="eval-val-dots" id="evalValDots"></div>
+              <div class="eval-val-lbl" id="evalValLabel">0 / 0 validations</div>
+            </div>
+            <button class="eval-finalize2 eval-finalize2--disabled" id="evalFinalizeBtn">✓ Finaliser</button>
+          </div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.18em;margin-bottom:10px">// Signatures requises</div>
+          <div class="eval-sigs-grid2" id="evalSigsGrid"></div>
+          <div id="evalRejectedPanel" style="display:none;background:rgba(255,51,85,.04);border:1px solid rgba(255,51,85,.25);padding:12px;margin-top:8px">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.18em;color:var(--danger);margin-bottom:6px">⛔ Refus signalé</div>
+            <div style="font-family:'Courier Prime',monospace;font-size:11px;color:var(--text)" id="evalRejectedReason">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" data-close-modal="modalEvalDetail">Fermer</button>
+        <button class="btn btn-sm btn-danger" id="evalDetailDeleteBtn">✕ Supprimer</button>
+        <button class="btn btn-sm btn-primary" id="evalDetailExportBtn">⬇ Exporter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL WIZARD NOUVELLE ÉVALUATION ══ -->
+  <div class="modal-ov eval-modal-form" id="modalEvalForm">
+    <div class="modal-box" style="max-width:760px;width:95%">
+      <div class="modal-hdr">
+        <div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.25em;text-transform:uppercase;color:var(--dept-color)">+ NOUVELLE ÉVALUATION</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;text-transform:uppercase;color:var(--white);margin-top:4px" id="evalWizTitle">Informations de base</div>
+        </div>
+        <button class="modal-close" data-close-modal="modalEvalForm">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Steps -->
+        <div class="eval-wiz-steps">
+          <div class="eval-wiz-step active" data-wstep="0"><div class="eval-wiz-dot">01</div><div class="eval-wiz-lbl">Identité</div></div>
+          <div class="eval-wiz-step" data-wstep="1"><div class="eval-wiz-dot">02</div><div class="eval-wiz-lbl">Compétences</div></div>
+          <div class="eval-wiz-step" data-wstep="2"><div class="eval-wiz-dot">03</div><div class="eval-wiz-lbl">Récapitulatif</div></div>
+          <div class="eval-wiz-step" data-wstep="3"><div class="eval-wiz-dot">04</div><div class="eval-wiz-lbl">Validation</div></div>
+        </div>
+
+        <!-- Étape 1 — Identité -->
+        <div class="eval-step-panel2 active" id="evalStep-0">
+          <div class="eval-step-tag">// 01 — Informations agent & évaluation</div>
+          <div class="eval-fgrid">
+            <div class="eval-form-field"><label class="eval-flabel">Nom de l'agent *</label><input class="eval-finput" id="ewName" placeholder="Ex: M.NOWAK"/></div>
+            <div class="eval-form-field"><label class="eval-flabel">Username Roblox</label><input class="eval-finput" id="ewUser" placeholder="Ex: FlofloParis"/></div>
+            <div class="eval-form-field"><label class="eval-flabel">Grade actuel</label><input class="eval-finput" id="ewRank" placeholder="Ex: [D.SE] Cadet"/></div>
+            <div class="eval-form-field"><label class="eval-flabel">Date *</label><input class="eval-finput" id="ewDate" type="date"/></div>
+            <div class="eval-form-field"><label class="eval-flabel">Évaluateur principal *</label><input class="eval-finput" id="ewAuthor" placeholder="Votre nom"/></div>
+            <div class="eval-form-field"><label class="eval-flabel">Décision finale *</label>
+              <select class="eval-fselect" id="ewDecision">
+                <option value="promu">✅ Promu au grade supérieur</option>
+                <option value="valide" selected>✔ Validé — maintien du grade</option>
+                <option value="avertissement">⚠ Avertissement formel</option>
+                <option value="recale">❌ Recalé</option>
+                <option value="expulse">🚫 Expulsion</option>
+              </select>
+            </div>
+            <div class="eval-form-field full"><label class="eval-flabel">Contexte de l'évaluation</label><textarea class="eval-ftextarea" id="ewContext" rows="2" placeholder="Fin de période d'essai, montée en grade, contrôle disciplinaire…"></textarea></div>
+          </div>
+          <!-- Signataires -->
+          <div style="background:var(--surface2);border:1px solid var(--border);padding:14px">
+            <div class="eval-step-tag" style="margin-bottom:10px">// Chaîne de validation — définir les signataires</div>
+            <div id="ewSigList"></div>
+            <button class="btn btn-ghost btn-sm" id="ewAddSigBtn" style="margin-top:8px">+ Ajouter un palier</button>
+          </div>
+        </div>
+
+        <!-- Étape 2 — Compétences -->
+        <div class="eval-step-panel2" id="evalStep-1">
+          <div class="eval-step-tag">// 02 — Notation par compétences (0–10)</div>
+          <div id="ewCompList"></div>
+        </div>
+
+        <!-- Étape 3 — Récapitulatif -->
+        <div class="eval-step-panel2" id="evalStep-2">
+          <div class="eval-step-tag">// 03 — Récapitulatif avant enregistrement</div>
+          <div class="eval-total-bar2">
+            <div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);margin-bottom:3px">Score global</div>
+              <div class="eval-total-score2" id="ewRecapScore" style="color:var(--safe)">—</div>
+              <div class="eval-total-mention2" id="ewRecapMention">—</div>
+            </div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap" id="ewRecapBreakdown"></div>
+          </div>
+          <div class="eval-recap-grid2" id="ewRecapInfoGrid"></div>
+          <div class="eval-form-field full">
+            <label class="eval-flabel">Commentaires de l'évaluateur</label>
+            <textarea class="eval-ftextarea" id="ewComments" rows="4" placeholder="Observations, points forts, axes d'amélioration…"></textarea>
+          </div>
+        </div>
+
+        <!-- Étape 4 — Validation -->
+        <div class="eval-step-panel2" id="evalStep-3">
+          <div class="eval-step-tag">// 04 — Chaîne de validation multi-niveaux</div>
+          <div style="background:var(--surface2);border:1px solid rgba(76,195,255,.15);border-left:3px solid var(--dept-color);padding:12px 14px;margin-bottom:16px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);line-height:1.8">
+            L'évaluation sera enregistrée avec le statut <span style="color:var(--warn)">EN ATTENTE</span>. Chaque signataire devra valider depuis son compte. L'évaluation est finalisée lorsque tous les paliers requis ont été signés.
+          </div>
+          <div class="eval-sigs-grid2" id="ewSigPreviewGrid"></div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="eval-wiz-nav">
+          <button class="eval-wiz-btn eval-wiz-btn--back" id="ewBackBtn" style="visibility:hidden">← Retour</button>
+          <span class="eval-wiz-info" id="ewStepInfo">Étape 1 / 4</span>
+          <button class="eval-wiz-btn eval-wiz-btn--next" id="ewNextBtn">Suivant →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<aside class="sidebar">
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Statistiques — Sécurité</span></div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val" id="statProto">0</div><div class="stat-lbl">Protocoles</div></div>
+      <div class="stat-box"><div class="stat-val" id="statEval">0</div><div class="stat-lbl">Évaluations</div></div>
+      <div class="stat-box"><div class="stat-val" id="statRapport">0</div><div class="stat-lbl">Rapports</div></div>
+      <div class="stat-box"><div class="stat-val" id="statMorph">0</div><div class="stat-lbl">Agents</div></div>
+    </div>
+  </div>
+
+  <div class="widget" id="sidebarAuthWidget">
+    <div class="widget-hdr"><span class="widget-title">Accès</span></div>
+    <div class="widget-body" style="padding:12px 14px">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);line-height:2.2">
+        <div>STATUT : <span id="sidebarAuthStatus" style="color:var(--text-dim)">NON CONNECTÉ</span></div>
+        <div>AGENT  : <span id="sidebarAuthName" style="color:var(--white)">—</span></div>
+        <div>RÔLE   : <span id="sidebarAuthRole" style="color:var(--text-dim)">LECTURE</span></div>
+        <div>ACCÈS  : <span id="sidebarAuthLevel" style="color:var(--text-dim)">PUBLIC</span></div>
+      </div>
+      <button class="auth-btn" style="width:100%;margin-top:10px;text-align:center" id="sidebarAuthBtn" onclick="toggleAuthFlyout()">🔑 Se connecter</button>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Terminal Site-15</span></div>
+    <div class="widget-body" style="padding:0">
+      <div class="terminal">
+        <div><span class="t-prompt">SEC@SITE-15:~$ </span><span class="t-dim">status</span></div>
+        <div><span class="t-out">▶ Zone A : SÉCURISÉE</span></div>
+        <div><span class="t-warn">▶ Zone B : VERROUILLÉE</span></div>
+        <div><span class="t-out">▶ MTF Epsilon-11 : DÉPLOYÉE</span></div>
+        <div><span class="t-err">▶ SCP-106 : NON LOCALISÉ</span></div>
+        <div><span class="t-prompt">SEC@SITE-15:~$ </span><span class="cursor"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="widget-hdr"><span class="widget-title">Journal</span></div>
+    <div class="hlog" id="historyList">
+      <div class="hline"><span class="hts">[--:--]</span><span>Intranet Sécurité initialisé.</span></div>
+    </div>
+  </div>
+</aside>
+</div>
+
+<script type="module">
+// ══════════════════════════════════════════
+// SHARED INLINE
+// ══════════════════════════════════════════
+const SCPIntranet = (() => {
+  const store = {
+    get: (key, fallback=[]) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } },
+    set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+  };
+  function addHistory(msg, containerId='historyList') {
+    const c = document.getElementById(containerId); if (!c) return;
+    const now = new Date();
+    const ts = `[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}]`;
+    const div = document.createElement('div'); div.className = 'hline';
+    div.innerHTML = `<span class="hts">${ts}</span><span>${msg}</span>`;
+    c.prepend(div);
+    while (c.children.length > 30) c.removeChild(c.lastChild);
+  }
+  function initTabs(navSelector='.nav-tab', viewPrefix='view-') {
+    const tabs = document.querySelectorAll(navSelector);
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+        const target = document.getElementById(viewPrefix + tab.dataset.view);
+        if (target) target.classList.add('active');
+        addHistory('Vue: ' + tab.textContent.trim());
+      });
+    });
+  }
+  async function copyText(text, btn, label='Copié !') {
+    try {
+      if (navigator.clipboard) await navigator.clipboard.writeText(text);
+      else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+      if (btn) {
+        const orig = btn.textContent; btn.textContent = '✓ ' + label; btn.style.color = 'var(--safe)'; btn.style.borderColor = 'var(--safe)';
+        setTimeout(() => { btn.textContent = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1500);
+      }
+      return true;
+    } catch { return false; }
+  }
+  function openModal(id) { document.getElementById(id)?.classList.add('open'); }
+  function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+  function initModalClose() {
+    document.addEventListener('click', e => {
+      if (e.target.dataset.closeModal) closeModal(e.target.dataset.closeModal);
+      if (e.target.classList.contains('modal-ov')) closeModal(e.target.id);
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-ov.open').forEach(m => m.classList.remove('open')); });
+  }
+  function genId(prefix='ID') { return prefix + '-' + Date.now().toString(36).toUpperCase(); }
+  function today() { return new Date().toISOString().split('T')[0]; }
+  function fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('fr-FR'); } catch { return d; } }
+  function updateStat(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  const EVAL_CRITERIA = ['Disc','Proto','React','Comm','Hier','Comp'];
+  const EVAL_LABELS = { Disc:'Discipline', Proto:'Connaissance protocoles', React:'Réactivité', Comm:'Communication', Hier:'Respect hiérarchie', Comp:'Comportement' };
+  function getEvalMention(score, max=60) {
+    const p = score / max;
+    if (p >= 0.9) return { text:'EXCELLENT', color:'var(--safe)' };
+    if (p >= 0.75) return { text:'TRÈS BON', color:'var(--accent)' };
+    if (p >= 0.6) return { text:'SATISFAISANT', color:'var(--accent2)' };
+    if (p >= 0.45) return { text:'INSUFFISANT', color:'var(--warn)' };
+    return { text:'RECALÉ', color:'var(--danger)' };
+  }
+  function computeEvalTotal() { return EVAL_CRITERIA.reduce((s,k) => { const el = document.getElementById('score'+k); return s + (el ? parseInt(el.value) : 0); }, 0); }
+  function updateEvalUI() {
+    const total = computeEvalTotal();
+    const scoreEl = document.getElementById('evalTotalScore'); const mentionEl = document.getElementById('evalTotalMention');
+    if (scoreEl) scoreEl.textContent = total + ' / 60';
+    if (mentionEl) { const m = getEvalMention(total); mentionEl.textContent = '— ' + m.text; mentionEl.style.color = m.color; }
+  }
+  function initEvalSliders() {
+    EVAL_CRITERIA.forEach(k => {
+      const slider = document.getElementById('score'+k); const val = document.getElementById('val'+k);
+      if (!slider || !val) return;
+      slider.addEventListener('input', () => { val.textContent = slider.value; updateEvalUI(); });
+    });
+  }
+  const RAPPORT_TYPES = [
+    { value:'incident', label:'⚠ Incident' }, { value:'breach', label:'🔴 Brèche' },
+    { value:'personnel', label:'👤 Personnel' }, { value:'patrol', label:'🔒 Patrouille' },
+    { value:'test', label:'🧪 Test' }, { value:'disciplinary', label:'📋 Disciplinaire' },
+  ];
+  const RAPPORT_SEV = [
+    { value:'low', label:'FAIBLE', color:'var(--safe)' }, { value:'moderate', label:'MODÉRÉE', color:'var(--warn)' },
+    { value:'high', label:'ÉLEVÉE', color:'#e67e22' }, { value:'critical', label:'CRITIQUE', color:'var(--danger)' },
+  ];
+  function getSevStyle(val) { return RAPPORT_SEV.find(s => s.value === val) || RAPPORT_SEV[0]; }
+  function getTypeLabel(val) { return (RAPPORT_TYPES.find(t => t.value === val) || {}).label || val; }
+  function exportRapport(r) {
+    const sev = getSevStyle(r.severity); const typeLabel = getTypeLabel(r.type);
+    const text = ['══════════════════════════════════════════','SCP FOUNDATION — SITE-15',typeLabel.toUpperCase(),'══════════════════════════════════════════',`ID              : ${r._id?.slice(-8)||'—'}`,`DATE            : ${r.date}`,`AUTEUR          : ${r.author}${r.username?' (@'+r.username+')':''}`,`DÉPARTEMENT     : ${r.dept||'Département de la Sécurité'}`,`SÉVÉRITÉ        : ${sev.label}`,'══════════════════════════════════════════',`TITRE : ${r.title}`,'══════════════════════════════════════════','','DESCRIPTION :',r.description,'','CONCLUSION :',r.conclusion||'—','',`TÉMOINS : ${r.witnesses?.join(', ')||'—'}`,'══════════════════════════════════════════',`[Généré le ${new Date().toLocaleString('fr-FR')}]`].join('\n');
+    const blob = new Blob([text], { type:'text/plain;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = (r._id||'rapport') + '_' + r.title.replace(/[^a-z0-9]/gi,'_') + '.txt'; a.click();
+  }
+  function fillSelect(id, options) {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+  }
+  return { store, addHistory, initTabs, copyText, openModal, closeModal, initModalClose, genId, today, fmtDate, updateStat, EVAL_CRITERIA, EVAL_LABELS, getEvalMention, computeEvalTotal, updateEvalUI, initEvalSliders, RAPPORT_TYPES, RAPPORT_SEV, getSevStyle, getTypeLabel, exportRapport, fillSelect };
+})();
+
+// ══════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc,
+  addDoc, updateDoc, deleteDoc, setDoc,
+  onSnapshot, query, orderBy, getDocs, where
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain: "scp-site19.firebaseapp.com",
+  projectId: "scp-site19",
+  storageBucket: "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId: "1:245750946774:web:821944a85e207094b22277"
+});
+const db = getFirestore(app);
+
+function esc(s) { if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function fbAdd(col, data)        { return await addDoc(collection(db, col), { ...data, createdAt: new Date().toISOString() }); }
+async function fbUpdate(col, id, data) { await updateDoc(doc(db, col, id), data); }
+async function fbDelete(col, id)       { await deleteDoc(doc(db, col, id)); }
+async function fbSet(col, id, data, opts) { await setDoc(doc(db, col, id), data, opts || {}); }
+function fbListen(col, cb) {
+  const q = query(collection(db, col), orderBy('createdAt', 'asc'));
+  return onSnapshot(q, snap => cb(snap.docs.map(d => ({ _id: d.id, ...d.data() }))));
+}
+
+// ══════════════════════════════════════════
+// sec_users — Helpers
+// ══════════════════════════════════════════
+async function secUserAdd(data) {
+  const ts = new Date().toISOString();
+  const payload = { name: data.name, rank: data.rank || '', online: false, createdAt: ts };
+  const ref = await addDoc(collection(db, 'sec_users'), payload);
+  await setDoc(doc(db, 'sec_agents', ref.id), { name: data.name, rank: data.rank || '', username: data.username || '', createdAt: ts });
+  return ref;
+}
+async function secUserUpdate(id, data) {
+  await updateDoc(doc(db, 'sec_users', id), data);
+  const syncData = {};
+  if (data.name  !== undefined) syncData.name  = data.name;
+  if (data.rank  !== undefined) syncData.rank  = data.rank;
+  if (Object.keys(syncData).length) await setDoc(doc(db, 'sec_agents', id), syncData, { merge: true });
+}
+async function secUserDelete(id) {
+  await deleteDoc(doc(db, 'sec_users', id));
+  try { await deleteDoc(doc(db, 'sec_agents', id)); } catch {}
+}
+
+// ══════════════════════════════════════════
+// AUTH CUSTOM
+// ══════════════════════════════════════════
+const SESSION_KEY = 'scp_sec_session';
+let currentUser = null, currentRole = null, isAuthenticated = false;
+
+function loadSession() { try { const raw = localStorage.getItem(SESSION_KEY); if (!raw) return null; return JSON.parse(raw); } catch { return null; } }
+function saveSession(userObj) { localStorage.setItem(SESSION_KEY, JSON.stringify(userObj)); }
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+async function initApp() {
+  const savedSession = loadSession();
+  if (savedSession?.username && savedSession?.password) {
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      let found = null;
+      snap.forEach(d => { const u = d.data(); const id = u.username || u.name || ''; if (id.toLowerCase() === savedSession.username.toLowerCase()) found = { _id: d.id, ...u }; });
+      if (found && found.password === savedSession.password) {
+        currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
+        onAuthChange(found.displayName || found.username || found.name, currentRole);
+        return;
+      }
+    } catch(e) { console.warn('Session restore failed:', e); }
+    clearSession();
+  }
+  onAuthChange(null, null);
+}
+
+function onAuthChange(name, role) {
+  applyPermissions(name, role);
+  updateSidebarAuth(name, role);
+  updateAuthButton(name, role);
+  if (name) { SCPIntranet.addHistory('Connecté : ' + name); showAuthUserPanel(name, role); }
+  else { SCPIntranet.addHistory('Mode lecture seule — non authentifié'); showAuthLoginPanel(); }
+  renderEvals(); renderRapports(); renderProtocols(); renderAppelHistorique(); renderEffectifs();
+}
+
+function applyPermissions(name, role) {
+  const canWrite = !!name;
+  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !canWrite));
+  ['roProto','roEval','roRapport','roAppel'].forEach(id => document.getElementById(id)?.classList.toggle('visible', !canWrite));
+}
+
+function updateSidebarAuth(name, role) {
+  const statusEl = document.getElementById('sidebarAuthStatus');
+  const nameEl   = document.getElementById('sidebarAuthName');
+  const roleEl   = document.getElementById('sidebarAuthRole');
+  const levelEl  = document.getElementById('sidebarAuthLevel');
+  const btn      = document.getElementById('sidebarAuthBtn');
+  if (name) {
+    if (statusEl) { statusEl.textContent = 'CONNECTÉ'; statusEl.style.color = 'var(--safe)'; }
+    if (nameEl)   nameEl.textContent = name;
+    if (roleEl)   { roleEl.textContent = role?.toUpperCase() || 'MODÉRATEUR'; roleEl.style.color = role === 'admin' ? 'var(--danger)' : 'var(--accent)'; }
+    if (levelEl)  { levelEl.textContent = role === 'admin' ? 'ADMIN COMPLET' : 'ÉCRITURE'; levelEl.style.color = 'var(--safe)'; }
+    if (btn)      { btn.textContent = '↩ Déconnexion'; btn.className = 'auth-btn connected'; btn.style.width='100%'; btn.style.marginTop='10px'; btn.style.textAlign='center'; btn.onclick = doAuthLogout; }
+  } else {
+    if (statusEl) { statusEl.textContent = 'NON CONNECTÉ'; statusEl.style.color = 'var(--text-dim)'; }
+    if (nameEl)   nameEl.textContent = '—';
+    if (roleEl)   { roleEl.textContent = 'LECTURE'; roleEl.style.color = 'var(--text-dim)'; }
+    if (levelEl)  { levelEl.textContent = 'PUBLIC'; levelEl.style.color = 'var(--text-dim)'; }
+    if (btn)      { btn.textContent = '🔑 Se connecter'; btn.className = 'auth-btn'; btn.style.width='100%'; btn.style.marginTop='10px'; btn.style.textAlign='center'; btn.onclick = toggleAuthFlyout; }
+  }
+}
+
+function updateAuthButton(name, role) {
+  const btn = document.getElementById('authBtn'); if (!btn) return;
+  if (name) { btn.textContent = '✓ ' + name.split(' ')[0]; btn.className = 'auth-btn connected'; }
+  else { btn.textContent = '🔑 Connexion'; btn.className = 'auth-btn'; }
+}
+
+let flyoutOpen = false;
+window.toggleAuthFlyout = function() { flyoutOpen = !flyoutOpen; document.getElementById('authFlyout').classList.toggle('open', flyoutOpen); };
+window.openAuthFlyout = function() { flyoutOpen = true; document.getElementById('authFlyout').classList.add('open'); document.getElementById('afUsername')?.focus(); };
+
+document.addEventListener('mousedown', e => {
+  if (!flyoutOpen) return;
+  const flyout = document.getElementById('authFlyout');
+  const btn = document.getElementById('authBtn');
+  const sideBtn = document.getElementById('sidebarAuthBtn');
+  if (!flyout?.contains(e.target) && !btn?.contains(e.target) && !sideBtn?.contains(e.target)) { flyoutOpen = false; flyout?.classList.remove('open'); }
+});
+document.getElementById('afPassword')?.addEventListener('keydown', e => { if (e.key === 'Enter') doAuthLogin(); });
+document.getElementById('afUsername')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('afPassword')?.focus(); });
+
+function showAuthLoginPanel() {
+  document.getElementById('afLoginPanel').style.display   = 'block';
+  document.getElementById('afLoadingPanel').style.display = 'none';
+  document.getElementById('afUserPanel').style.display    = 'none';
+  document.getElementById('afError').textContent = '';
+}
+function showAuthUserPanel(name, role) {
+  document.getElementById('afLoginPanel').style.display   = 'none';
+  document.getElementById('afLoadingPanel').style.display = 'none';
+  document.getElementById('afUserPanel').style.display    = 'block';
+  document.getElementById('afUserName').textContent = name;
+  const roleEl = document.getElementById('afUserRole');
+  roleEl.textContent = role === 'admin' ? '🔐 Administrateur' : '🛡 Modérateur';
+  roleEl.className = 'auth-user-role ' + (role || 'moderateur');
+}
+
+window.doAuthLogin = async function() {
+  const username = document.getElementById('afUsername').value.trim();
+  const pass     = document.getElementById('afPassword').value;
+  const errEl    = document.getElementById('afError');
+  errEl.textContent = '';
+  if (!username || !pass) { errEl.textContent = '⚠ Nom d\'utilisateur et mot de passe requis.'; return; }
+  document.getElementById('afLoginPanel').style.display   = 'none';
+  document.getElementById('afLoadingPanel').style.display = 'block';
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    let found = null;
+    snap.forEach(d => { const u = d.data(); if (u.username?.toLowerCase() === username.toLowerCase()) found = { _id: d.id, ...u }; });
+    if (!found) { showAuthLoginPanel(); errEl.textContent = '⚠ Nom d\'utilisateur introuvable.'; return; }
+    if (found.password !== pass) { showAuthLoginPanel(); errEl.textContent = '⚠ Mot de passe incorrect.'; return; }
+    currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
+    saveSession({ username: found.username, password: found.password });
+    const displayName = found.displayName || found.username;
+    onAuthChange(displayName, currentRole);
+  } catch(e) { showAuthLoginPanel(); errEl.textContent = '⚠ Erreur : ' + e.message; }
+};
+
+window.doAuthLogout = function() {
+  currentUser = null; currentRole = null; isAuthenticated = false;
+  clearSession(); onAuthChange(null, null);
+  flyoutOpen = true; document.getElementById('authFlyout').classList.add('open');
+};
+
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const DEPT = 'security';
+const MORPH_DATA = [
+  {name:'"ECHO"',username:'alcbasket',rank:'[D.SE-SF] Agent de 1ère Classe',date:'13/02/2026',command:`run team alcbasket Département de la Sécurité F & permntag alcbasket "ECHO" & permrtag alcbasket [D.SE-SF] Agent de 1ère Classe & permmorph alc reset & permhat alc Vest & permhat alc holster & permhat alc kneepads & permhat alc 11515337829,11515333598 & permhat alc 15081386107 & permhat alc helmet & permhat alc 15949578750 & permhat alc 4684658997 & permmorph alcbasket DSF Cadet & startergear alcbasket laser pistol & startergear alcbasket L4 & res alcbasket`},
+  {name:'N.HACK',username:'momo907526',rank:'[D.SE] Cadet',date:'04/03/2026',command:`run team momo907526 Sec & permntag momo907526 N.HACK & permrtag momo907526 [D.SE] Cadet & startergear momo907526 laser pistol & permmorph momo907526 SD`},
+  {name:'A.MAX',username:'mrgraschat',rank:'[D.SE-DIR.] Directeur',date:'13/02/2026',command:`run team mrgraschat Département de la Sécurité F & permntag mrgraschat A.MAX & permrtag mrgraschat [D.SE-DIR.] Directeur de la Sécurité & permmorph mrgraschat Commandant & startergear mrgraschat laser pistol & startergear mrgraschat o5 & permscale mrgraschat 1.2`},
+  {name:'M.FRANCOIS',username:'Matheo50534',rank:'[D.SE-DSI] Cadet',date:'13/02/2026',command:`run team Matheo50534 Internal D & permntag Matheo50534 M.FRANCOIS & permrtag Matheo50534 [D.SE-DSI] Cadet & startergear Matheo50534 laser pistol & permmorph Matheo50534 ISD`},
+  {name:'M.NOWAK',username:'FlofloParis',rank:'[D.SE] Cadet',date:'15/02/2026',command:`run team FlofloParis Security & permntag FlofloParis M.NOWAK & permrtag FlofloParis [D.SE] Cadet & startergear FlofloParis laser pistol & permmorph FlofloParis SD`},
+  {name:'D.LUNE',username:'Art_mat246',rank:'[D.SE] Cadet',date:'21/02/2026',command:`run team Art_mat246 Security & permntag Art_mat246 D.LUNE & permrtag Art_mat246 [D.SE] Cadet & startergear Art_mat246 laser pistol & permmorph Art_mat246 SD`},
+  {name:'E.TERNON',username:'sans_argent2',rank:'[D.SE-BSI] Caporal-Chef',date:'22/02/2026',command:`run team sans_argent2 Internal & permntag sans_argent2 E.TERNON & permrtag sans_argent2 [D.SE-BSI] Caporal & startergear sans_argent2 laser pistol & permmorph sans_argent2 ISD`},
+  {name:'J.DEGOBERT',username:'poloman2023',rank:'[D.SE-SC] Agent 2ème cl.',date:'24/02/2026',command:`run team poloman2023 Security & permntag poloman2023 J.DEGOBERT & permrtag poloman2023 [D.SE-SC] Agent de 2ème classe & startergear poloman2023 laser pistol & permmorph poloman2023 SD`},
+  {name:'N.BEDIN',username:'kileurZH_1',rank:'[D.SE] Agent de 2ème Classe',date:'03/03/2026',command:`run team kileurZH_1 Security & permntag kileurZH_1 N.BEDIN & permrtag kileurZH_1 [D.SE] Agent de 2ème Classe & permmorph kileurZH_1 SD & startergear kileurZH_1 laser pistol`},
+  {name:'Y.CREPEAU',username:'yerzits3',rank:'[D.SE] Cadet',date:'04/03/2026',command:`run team yerzits3 Security & permntag yerzits3 Y.CREPEAU & permrtag yerzits3 [D.SE] Cadet & permmorph yerzits3 SD & startergear yerzits3 laser pistol`},
+];
+const LRC_CODES=[
+  {code:'AMBER',name:'CODE: AMBER',priority:'high',description:'Menace mémetique, infohazardeuse ou cognitohazardeuse hors confinement.',guidance:'Escorte vers zone sécurisée. Éviter d\'utiliser les sens. Ne pas quitter le site.',mtf:'MTF Eta-10, MTF Eta-11',colorClass:'amber'},
+  {code:'BLUE',name:'CODE: BLUE',priority:'medium',description:'Objet sentient inférieur à l\'intelligence humaine hors confinement.',guidance:'Suivre les instructions du personnel de sécurité.',mtf:'MTF Epsilon-11 "Nine-Tailed Fox"',colorClass:'blue'},
+  {code:'SUPERBLUE',name:'CODE: SUPERBLUE',priority:'high',description:'Objet sentient égal ou supérieur à l\'intelligence humaine hors confinement.',guidance:'Suivre les instructions du personnel de sécurité.',mtf:'MTF Epsilon-11',colorClass:'superblue'},
+  {code:'GREEN',name:'CODE: GREEN',priority:'critical',description:'Menace biohazardeuse ou infectieuse. Quarantaine immédiate.',guidance:'Éviter tout contact. Quarantaine après recontainment.',mtf:'MTF Beta-7 "Maz Hatters"',colorClass:'green'},
+  {code:'RED',name:'CODE: RED',priority:'critical',description:'Agresseur à Grande Échelle hors confinement.',guidance:'Suivre les instructions du personnel de sécurité.',mtf:'MTF Nu-7 "Hammer Down"',colorClass:'red'},
+  {code:'BLACK',name:'CODE: BLACK',priority:'critical',description:'Menace Non-Terminable hors confinement. Affrontement proscrit.',guidance:'Éviter l\'affrontement. Ralentir uniquement.',mtf:'MTF Epsilon-11, MTF Sigma-23',colorClass:'black'},
+  {code:'WHITE',name:'CODE: WHITE',priority:'critical',description:'Installation assaillie par une force hostile extérieure.',guidance:'Évacuation du personnel. Sécuriser les SCPs. Chiffrer les données.',mtf:'AMTF Nu-7 "Hammer Down"',colorClass:'white'},
+  {code:'GRAY',name:'CODE: GRAY',priority:'critical',description:'Incursion hostile depuis l\'intérieur du site.',guidance:'Plan d\'évacuation identique au CODE: WHITE.',mtf:'AMTF Nu-7 "Hammer Down"',colorClass:'gray'},
+  {code:'MAGENTA',name:'CODE: MAGENTA',priority:'high',description:'Menace dimensionnelle: altérations spatiales/temporelles.',guidance:'Évacuation. Attente prolongée probable.',mtf:'MTF Zeta-9, MTF Lambda-5',colorClass:'magenta'},
+  {code:'BLANK',name:'CODE: BLANK',priority:'high',description:'Menace survenue mais non décrite.',guidance:'Suivre les ordres du personnel de sécurité.',mtf:'N/A',colorClass:'blank'},
+  {code:'SUPERBLANK',name:'CODE: SUPERBLANK',priority:'critical',description:'Menace survenue mais ne pouvant pas être décrite.',guidance:'Suivre les ordres du personnel de sécurité.',mtf:'N/A',colorClass:'superblank'},
+  {code:'COLDSILVER',name:'CODE: COLDSILVER',priority:'critical',description:'Événement allant fatalement endommager les opérations de la Fondation.',guidance:'Suivre les ordres. Anticiper une liquidation éventuelle.',mtf:'N/A',colorClass:'coldsilver'}
+];
+
+let protocols=[], evaluations=[], rapports=[], sanctions=[], secUsers=[], agents=[];
+let appelSessions=[], currentAppel=null, activeAppelFilter='all', noteTargetAgentId=null;
+let editingProtoId=null, editingEvalId=null, editingRapportId=null;
+let activeRapportFilter='all', activeEvalFilter='all', protoFilter='all';
+let currentRapport=null;
+
+// ── Dossiers state ──
+let dossiers = [];           // sec_dossiers collection — { agentId, internalNote, createdAt }
+let dossierNotes = [];       // sec_dossier_notes collection — { agentId, type, date, author, content, ... }
+let currentDossierAgentId = null;
+
+fbListen('sec_protocols',      d => { protocols   = d; renderProtocols(); updateStats(); });
+fbListen('sec_evals',          d => { evaluations = d; renderEvals();     updateStats(); });
+fbListen('sec_rapports',       d => { rapports    = d; renderRapports();  updateStats(); });
+fbListen('sanctions',          d => { sanctions   = d; renderEffectifs(); });
+fbListen('sec_users',          d => { secUsers    = d; renderEffectifs(); });
+fbListen('sec_agents',         d => { agents      = d; renderAgentMgmt(); if(currentAppel) renderAppelSession(); });
+fbListen('sec_appel_sessions', d => { appelSessions = d; renderAppelHistorique(); renderEffectifs(); });
+// Dossiers — écoute en temps réel (admin seulement en pratique, mais pas de règle Firestore ici)
+fbListen('sec_dossiers',       d => { dossiers    = d; });
+fbListen('sec_dossier_notes',  d => { dossierNotes = d; if(currentDossierAgentId) refreshDossierContent(); });
+
+function updateStats() {
+  SCPIntranet.updateStat('statProto',   protocols.length);
+  SCPIntranet.updateStat('statEval',    evaluations.length);
+  SCPIntranet.updateStat('statRapport', rapports.length);
+  SCPIntranet.updateStat('statMorph',   MORPH_DATA.length);
+  SCPIntranet.updateStat('protoCount',  protocols.length + ' protocoles chargés');
+  SCPIntranet.updateStat('evalCount',   evaluations.length + ' évaluations');
+  SCPIntranet.updateStat('rapportCount',rapports.length + ' rapports');
+}
+
+function requireAuth(action) {
+  if (!isAuthenticated) { openAuthFlyout(); SCPIntranet.addHistory('⚠ Connexion requise pour: ' + action); return false; }
+  return true;
+}
+
+// ══════════════════════════════════════════
+// DOSSIER AGENT — Logique
+// ══════════════════════════════════════════
+
+function requireAdmin(action) {
+  if (currentRole !== 'admin') {
+    alert('⛔ Accès refusé — Cette fonctionnalité est réservée aux administrateurs.');
+    SCPIntranet.addHistory('⛔ Accès dossier refusé (rôle insuffisant) pour: ' + action);
+    return false;
+  }
+  return true;
+}
+
+function getDossierForAgent(agentId) {
+  return dossiers.find(d => d.agentId === agentId) || null;
+}
+
+function getDossierNotesForAgent(agentId) {
+  return dossierNotes.filter(n => n.agentId === agentId).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+}
+
+async function openDossierModal(agent) {
+  if (!requireAuth('ouvrir un dossier')) return;
+  if (!requireAdmin('dossier agent')) return;
+
+  currentDossierAgentId = agent._id;
+  const cls = parseClasse(agent.rank);
+
+  // Header
+  const initiales = (agent.name||'?').replace(/[^A-Z.]/g,'').substring(0,2) || (agent.name||'?').substring(0,2).toUpperCase();
+  document.getElementById('dossierAvatar').textContent = initiales;
+  document.getElementById('dossierAgentName').textContent = agent.name || '—';
+  document.getElementById('dossierAgentRank').textContent = agent.rank || 'Grade non défini';
+
+  // Infos de base
+  document.getElementById('dInfoName').textContent    = agent.name || '—';
+  document.getElementById('dInfoUser').textContent    = agent.username ? '@' + agent.username : '—';
+  document.getElementById('dInfoRank').textContent    = agent.rank || '—';
+  document.getElementById('dInfoSection').textContent = cls.label || '—';
+  document.getElementById('dInfoStatus').innerHTML    = agent.online
+    ? '<span style="color:var(--safe)">⬤ EN LIGNE</span>'
+    : '<span style="color:var(--text-dim)">○ HORS LIGNE</span>';
+  document.getElementById('dInfoDate').textContent    = agent.createdAt ? SCPIntranet.fmtDate(agent.createdAt.split('T')[0]) : '—';
+
+  // Note interne existante
+  const dossier = getDossierForAgent(agent._id);
+  document.getElementById('dossierInternalNote').value = dossier?.internalNote || '';
+
+  // Défaut tab → infos
+  activateDossierTab('infos');
+  refreshDossierContent();
+
+  // Date par défaut pour ajout note
+  document.getElementById('dNoteDate').value = SCPIntranet.today();
+  document.getElementById('dNoteAuthor').value = currentUser?.displayName || currentUser?.username || '';
+  document.getElementById('dNoteContent').value = '';
+
+  SCPIntranet.openModal('modalDossier');
+  SCPIntranet.addHistory('Dossier ouvert : ' + agent.name);
+}
+
+function refreshDossierContent() {
+  if (!currentDossierAgentId) return;
+  const agentId = currentDossierAgentId;
+  const source = secUsers.length > 0 ? secUsers : agents;
+  const agent = source.find(a => a._id === agentId);
+  const agentEvals = evaluations.filter(e => e.name?.toLowerCase() === agent?.name?.toLowerCase());
+  const agentNotesArr = getDossierNotesForAgent(agentId);
+  const presStats = getAgentPresenceStats(agentId);
+
+  // Stats header
+  const nbAvertissements = agentNotesArr.filter(n => n.type === 'avertissement' || n.type === 'sanction').length;
+  const lastEval = agentEvals.length ? agentEvals[agentEvals.length - 1] : null;
+  document.getElementById('dStatEvals').textContent     = agentEvals.length;
+  document.getElementById('dStatPresence').textContent  = presStats.pct !== null ? presStats.pct + '%' : '—';
+  document.getElementById('dStatSanctions').textContent = nbAvertissements;
+  document.getElementById('dStatScore').textContent     = lastEval ? lastEval.total + '/60' : '—';
+
+  // Panel Notes
+  renderDossierNotes(agentNotesArr);
+  // Panel Evals
+  renderDossierEvals(agentEvals);
+  // Panel Présences
+  renderDossierPresences(agentId, presStats);
+}
+
+function renderDossierNotes(notes) {
+  const el = document.getElementById('dossierNotesList'); if (!el) return;
+  if (!notes.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-text" style="font-size:11px">Aucune note pour cet agent</div></div>';
+    return;
+  }
+  const typeLabels = { observation:'🔵 Observation', avertissement:'🟡 Avertissement', sanction:'🔴 Sanction', felicitation:'🟢 Félicitation' };
+  el.innerHTML = notes.map(n => `
+    <div class="dossier-note-item type-${n.type}">
+      <div class="dossier-note-meta">
+        <span class="dossier-note-type type-${n.type}">${typeLabels[n.type] || n.type}</span>
+        <span class="dossier-note-date">${n.date || '—'}</span>
+      </div>
+      <div class="dossier-note-author">Par ${esc(n.author || '—')}</div>
+      <div class="dossier-note-content">${esc(n.content || '—')}</div>
+      <button class="dossier-note-del" data-del-dossier-note="${n._id}">✕</button>
+    </div>
+  `).join('');
+}
+
+function renderDossierEvals(evals) {
+  const el = document.getElementById('dossierEvalsList'); if (!el) return;
+  if (!evals.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-text" style="font-size:11px">Aucune évaluation liée à cet agent</div></div>';
+    return;
+  }
+  const decLabels = { promu:'✅ Promu', valide:'✔ Validé', avertissement:'⚠ Avertissement', recale:'❌ Recalé', expulse:'🚫 Expulsé' };
+  el.innerHTML = [...evals].reverse().map(ev => {
+    const m = SCPIntranet.getEvalMention(ev.total);
+    return `<div class="dossier-eval-row">
+      <div class="dossier-eval-score" style="color:${m.color}">${ev.total}<small style="font-size:11px;font-weight:400;color:var(--text-dim)">/60</small></div>
+      <div class="dossier-eval-info">
+        <div class="dossier-eval-name">${esc(ev.name)}</div>
+        <div class="dossier-eval-meta">${ev.date} — Éval: ${esc(ev.author)}</div>
+        <div class="dossier-eval-meta" style="margin-top:2px">${decLabels[ev.decision]||ev.decision} — ${ev.rank||'—'}</div>
+        ${ev.comments ? `<div class="dossier-eval-meta" style="color:var(--text);margin-top:3px;font-style:italic">${esc(ev.comments)}</div>` : ''}
+      </div>
+      <span class="dossier-eval-badge" style="color:${m.color};border-color:${m.color}">${m.text}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderDossierPresences(agentId, stats) {
+  const el = document.getElementById('dossierPresencesList'); if (!el) return;
+  const sessions = appelSessions.filter(s => {
+    const snap = s.snapshot || [];
+    return snap.some(a => a._id === agentId);
+  });
+  if (!sessions.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-text" style="font-size:11px">Aucune session d\'appel enregistrée</div></div>';
+    return;
+  }
+  const statusIcons = { present:'<span style="color:var(--safe)">✓ Présent</span>', absent:'<span style="color:var(--danger)">✕ Absent</span>', retard:'<span style="color:var(--warn)">⏱ Retard</span>', nc:'<span style="color:var(--text-dim)">? Non répondu</span>' };
+  el.innerHTML = `
+    <div style="background:var(--surface2);border:1px solid var(--border);padding:10px 14px;margin-bottom:12px;display:flex;gap:20px">
+      <div style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--safe)">${stats.present}</div><div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim)">Présents</div></div>
+      <div style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--warn)">${stats.retard}</div><div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim)">Retards</div></div>
+      <div style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--danger)">${stats.absent}</div><div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim)">Absents</div></div>
+      <div style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:${stats.pct !== null ? (stats.pct >= 75 ? 'var(--safe)' : stats.pct >= 50 ? 'var(--warn)' : 'var(--danger)') : 'var(--text-dim)'}">${stats.pct !== null ? stats.pct + '%' : '—'}</div><div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim)">Taux</div></div>
+    </div>
+    ${[...sessions].reverse().map(s => {
+      const snap = s.snapshot || [];
+      const entry = snap.find(a => a._id === agentId);
+      const status = entry?.entry?.status || 'nc';
+      const note = entry?.entry?.note || '';
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid ${status === 'present' ? 'var(--safe)' : status === 'absent' ? 'var(--danger)' : status === 'retard' ? 'var(--warn)' : 'var(--border2)'};padding:10px 14px;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--white);text-transform:uppercase">${esc(s.title)}</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:2px">${s.date} — ${esc(s.responsable)} — ${s.type}</div>
+            ${note ? `<div style="font-family:'Courier Prime',monospace;font-size:10px;color:var(--warn);margin-top:3px;font-style:italic">📝 ${esc(note)}</div>` : ''}
+          </div>
+          <div>${statusIcons[status] || statusIcons['nc']}</div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+function activateDossierTab(tabName) {
+  document.querySelectorAll('.dossier-tab').forEach(t => t.classList.toggle('active', t.dataset.dossierTab === tabName));
+  document.querySelectorAll('.dossier-panel').forEach(p => p.classList.toggle('active', p.id === 'dossier-panel-' + tabName));
+}
+
+// Tabs dossier clicks
+document.addEventListener('click', e => {
+  const tab = e.target.closest('[data-dossier-tab]');
+  if (tab) { activateDossierTab(tab.dataset.dossierTab); refreshDossierContent(); return; }
+});
+
+// Sauvegarder note interne globale
+document.getElementById('dossierSaveInternal')?.addEventListener('click', async () => {
+  if (!currentDossierAgentId) return;
+  const note = document.getElementById('dossierInternalNote').value.trim();
+  const existing = getDossierForAgent(currentDossierAgentId);
+  if (existing) {
+    await fbUpdate('sec_dossiers', existing._id, { internalNote: note });
+  } else {
+    await fbAdd('sec_dossiers', { agentId: currentDossierAgentId, internalNote: note });
+  }
+  SCPIntranet.addHistory('Note interne sauvegardée.');
+  const btn = document.getElementById('dossierSaveInternal');
+  const orig = btn.textContent; btn.textContent = '✓ Sauvegardé'; btn.style.color = 'var(--safe)';
+  setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+});
+
+// Ajouter note au dossier
+document.getElementById('dossierAddNoteBtn')?.addEventListener('click', async () => {
+  if (!currentDossierAgentId) return;
+  const type    = document.getElementById('dNoteType').value;
+  const date    = document.getElementById('dNoteDate').value;
+  const author  = document.getElementById('dNoteAuthor').value.trim();
+  const content = document.getElementById('dNoteContent').value.trim();
+  if (!content) { alert('Le contenu de la note est requis.'); return; }
+  await fbAdd('sec_dossier_notes', { agentId: currentDossierAgentId, type, date, author, content });
+  document.getElementById('dNoteContent').value = '';
+  SCPIntranet.addHistory('Note ajoutée au dossier.');
+});
+
+// Supprimer note dossier — via dispatcher global
+// Export dossier
+document.getElementById('dossierExportBtn')?.addEventListener('click', () => {
+  if (!currentDossierAgentId) return;
+  const source = secUsers.length > 0 ? secUsers : agents;
+  const agent = source.find(a => a._id === currentDossierAgentId);
+  if (!agent) return;
+  const agentNotes = getDossierNotesForAgent(currentDossierAgentId);
+  const agentEvals = evaluations.filter(e => e.name?.toLowerCase() === agent.name?.toLowerCase());
+  const dossier = getDossierForAgent(currentDossierAgentId);
+  const stats = getAgentPresenceStats(currentDossierAgentId);
+  const typeLabels = { observation:'OBSERVATION', avertissement:'AVERTISSEMENT', sanction:'SANCTION', felicitation:'FELICITATION' };
+  const lines = [
+    '══════════════════════════════════════════',
+    'SCP FOUNDATION — SITE-15',
+    'DOSSIER CONFIDENTIEL — PERSONNEL D.SE',
+    '══════════════════════════════════════════',
+    `AGENT         : ${agent.name}`,
+    `USERNAME      : ${agent.username ? '@'+agent.username : '—'}`,
+    `GRADE         : ${agent.rank || '—'}`,
+    `STATUT        : ${agent.online ? 'EN LIGNE' : 'HORS LIGNE'}`,
+    '══════════════════════════════════════════',
+    'STATISTIQUES',
+    '══════════════════════════════════════════',
+    `Évaluations   : ${agentEvals.length}`,
+    `Taux présence : ${stats.pct !== null ? stats.pct + '%' : '—'} (${stats.present} présents / ${stats.retard} retards / ${stats.absent} absents)`,
+    `Avert./Sanct. : ${agentNotes.filter(n => n.type === 'avertissement' || n.type === 'sanction').length}`,
+    '',
+    '══════════════════════════════════════════',
+    'REMARQUES INTERNES',
+    '══════════════════════════════════════════',
+    dossier?.internalNote || '(Aucune remarque)',
+    '',
+    '══════════════════════════════════════════',
+    'NOTES AU DOSSIER (' + agentNotes.length + ')',
+    '══════════════════════════════════════════',
+    ...agentNotes.map(n => [`[${typeLabels[n.type]||n.type}] ${n.date} — Par ${n.author}`, n.content, ''].flat()),
+    '══════════════════════════════════════════',
+    'ÉVALUATIONS (' + agentEvals.length + ')',
+    '══════════════════════════════════════════',
+    ...agentEvals.map(ev => [`Score: ${ev.total}/60 — ${ev.date} — Éval: ${ev.author}`, `Décision: ${ev.decision}`, ev.comments||'', ''].flat()),
+    '══════════════════════════════════════════',
+    `[Généré le ${new Date().toLocaleString('fr-FR')} — ACCÈS RESTREINT ADMIN]`,
+  ];
+  const blob = new Blob([lines.join('\n')], { type:'text/plain;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'DOSSIER_' + (agent.name||'agent').replace(/[^a-z0-9]/gi,'_') + '.txt'; a.click();
+  SCPIntranet.addHistory('Dossier exporté : ' + agent.name);
+});
+
+// ══════════════════════════════════════════
+// LRC
+// ══════════════════════════════════════════
+function renderLRC() {
+  const el = document.getElementById('lrcGrid'); if (!el) return;
+  el.innerHTML = LRC_CODES.map(l => {
+    const pc = l.priority === 'critical' ? 'critical' : l.priority === 'high' ? 'high' : 'medium';
+    return `<div class="lrc-card lrc-card--${l.colorClass}">
+      <div class="lrc-name">${l.name}</div>
+      <div class="lrc-pri ${pc}">${l.priority}</div>
+      <div class="lrc-desc">${l.description}</div>
+      <div class="lrc-guid">${l.guidance}</div>
+      <div class="lrc-mtf">MTF: ${l.mtf}</div>
+      <div class="lrc-acts"><button class="btn btn-xs btn-ghost" data-lrc="${l.code}">⧉ Copier alerte</button></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// DISPATCHER GLOBAL
+// ══════════════════════════════════════════
+document.addEventListener('click', async e => {
+  // LRC
+  const lb = e.target.closest('[data-lrc]');
+  if (lb) { const code = lb.dataset.lrc; SCPIntranet.copyText(`ALERTE SITE-15 — CODE: ${code} ACTIVÉ. Toutes les unités appliquer le protocole d'urgence.`, lb, 'Copié'); SCPIntranet.addHistory('Alerte LRC copiée: CODE ' + code); return; }
+
+  // EFFECTIFS filtres
+  const effPill = e.target.closest('[data-eff-filter]');
+  if (effPill) { document.querySelectorAll('[data-eff-filter]').forEach(p => p.classList.remove('active')); effPill.classList.add('active'); effectifsFilter = effPill.dataset.effFilter; renderEffectifs(); return; }
+
+  // EFFECTIFS supprimer
+  const dsb = e.target.closest('[data-del-sec-user]');
+  if (dsb) { if (!requireAuth('supprimer un agent')) return; const id = dsb.dataset.delSecUser; const agent = (secUsers.length > 0 ? secUsers : agents).find(a => a._id === id); if (!confirm('Supprimer ' + (agent?.name || id) + ' ?')) return; await secUserDelete(id); SCPIntranet.addHistory('Personnel supprimé : ' + (agent?.name || id)); return; }
+
+  // EFFECTIFS toggle en ligne
+  const tob = e.target.closest('[data-toggle-online]');
+  if (tob) { if (!requireAuth('modifier le statut')) return; const id = tob.dataset.toggleOnline; const agent = (secUsers.length > 0 ? secUsers : agents).find(a => a._id === id); if (!agent) return; await secUserUpdate(id, { online: !agent.online }); SCPIntranet.addHistory((agent.online ? '○ Hors ligne' : '⬤ En ligne') + ' : ' + agent.name); return; }
+
+  // EFFECTIFS rank toggle
+  const rtb = e.target.closest('[data-rank-toggle]');
+  if (rtb) { if (!isAuthenticated) return; const id = rtb.dataset.rankToggle; const input = document.getElementById('rank-input-' + id); if (!input) return; const isVisible = input.style.display === 'block'; if (isVisible) { input.style.display = 'none'; rtb.style.display = 'inline-block'; } else { input.style.display = 'block'; rtb.style.display = 'none'; input.focus(); input.select(); } return; }
+
+  // EFFECTIFS copier morph
+  const meb = e.target.closest('[data-morph-effectif]');
+  if (meb) { const id = meb.dataset.morphEffectif; const agent = (secUsers.length > 0 ? secUsers : agents).find(a => a._id === id); if (!agent) return; const morphEntry = MORPH_DATA.find(m => m.name === agent.name || m.username === agent.username); if (!morphEntry) return; await SCPIntranet.copyText(morphEntry.command, meb, 'Copié !'); SCPIntranet.addHistory('Morph copié : ' + agent.name); return; }
+
+  // ── DOSSIER AGENT (admin) ──
+  const dosBtn = e.target.closest('[data-open-dossier]');
+  if (dosBtn) {
+    const id = dosBtn.dataset.openDossier;
+    const source = secUsers.length > 0 ? secUsers : agents;
+    const agent = source.find(a => a._id === id);
+    if (agent) await openDossierModal(agent);
+    return;
+  }
+
+  // Supprimer note dossier
+  const delNote = e.target.closest('[data-del-dossier-note]');
+  if (delNote) {
+    if (!requireAdmin('supprimer une note')) return;
+    if (!confirm('Supprimer cette note ?')) return;
+    await fbDelete('sec_dossier_notes', delNote.dataset.delDossierNote);
+    SCPIntranet.addHistory('Note dossier supprimée.');
+    return;
+  }
+
+  // PROTOCOLES
+  const cp = e.target.closest('[data-copy-p]');
+  if (cp) { const p = protocols.find(x=>x._id===cp.dataset.copyP); if(p) SCPIntranet.copyText(p.content, cp, 'Copié'); return; }
+  const ep = e.target.closest('[data-edit-p]');
+  if (ep) { if(!requireAuth('modifier un protocole')) return; openProtoModal(protocols.find(x=>x._id===ep.dataset.editP)); return; }
+  const dp = e.target.closest('[data-del-p]');
+  if (dp) { if(!requireAuth('supprimer un protocole')) return; if(!confirm('Supprimer ce protocole ?')) return; await fbDelete('sec_protocols', dp.dataset.delP); SCPIntranet.addHistory('Protocole supprimé.'); return; }
+
+  // ÉVALUATIONS (nouveau système)
+  const eDetBtn = e.target.closest('[data-eval-open]');
+  if (eDetBtn) { openEvalDetail(eDetBtn.dataset.evalOpen); return; }
+  const eSignBtn = e.target.closest('[data-eval-sign]');
+  if (eSignBtn) { await evalSign(eSignBtn.dataset.evalSign, parseInt(eSignBtn.dataset.evalSigIdx)); return; }
+  const eRejectBtn = e.target.closest('[data-eval-reject]');
+  if (eRejectBtn) { await evalReject(eRejectBtn.dataset.evalReject, parseInt(eRejectBtn.dataset.evalSigIdx)); return; }
+  const eRevokeBtn = e.target.closest('[data-eval-revoke]');
+  if (eRevokeBtn) { await evalRevoke(eRevokeBtn.dataset.evalRevoke, parseInt(eRevokeBtn.dataset.evalSigIdx)); return; }
+
+  // RAPPORTS
+  const vb = e.target.closest('[data-view-r]');
+  if (vb) { viewRapport(rapports.find(x=>x._id===vb.dataset.viewR)); return; }
+  const exb = e.target.closest('[data-exp-r]');
+  if (exb) { const r=rapports.find(x=>x._id===exb.dataset.expR); if(r) SCPIntranet.exportRapport(r); return; }
+  const db3 = e.target.closest('[data-del-r]');
+  if (db3) { if(!requireAuth('supprimer un rapport')) return; if(!confirm('Supprimer ?')) return; await fbDelete('sec_rapports', db3.dataset.delR); return; }
+
+  // MORPHS
+  const mb = e.target.closest('[data-morph-i]');
+  if (mb) { const m = MORPH_DATA[parseInt(mb.dataset.morphI)]; if(!m) return; await SCPIntranet.copyText(m.command, mb, 'Copié !'); SCPIntranet.addHistory('Morph copié: ' + m.name); return; }
+
+  // APPEL status
+  const sb = e.target.closest('[data-status-agent]');
+  if (sb) { setEntry(sb.dataset.statusAgent, sb.dataset.status); return; }
+
+  // APPEL note
+  const nb = e.target.closest('[data-note-agent]');
+  if (nb) { noteTargetAgentId = nb.dataset.noteAgent; const agent = agents.find(a => a._id === noteTargetAgentId); document.getElementById('modalNoteTitle').textContent = 'Note — ' + (agent?.name || ''); document.getElementById('agentNoteInput').value = getEntry(noteTargetAgentId).note || ''; SCPIntranet.openModal('modalNote'); return; }
+
+  // APPEL historique
+  const reexp = e.target.closest('[data-reexport-appel]');
+  if (reexp) { const s = appelSessions.find(x => x._id === reexp.dataset.reexportAppel); if (s) exportAppelRapport(s); return; }
+  const db4 = e.target.closest('[data-del-appel]');
+  if (db4) { if (!requireAuth('supprimer une session')) return; if (!confirm('Supprimer cette session ?')) return; await fbDelete('sec_appel_sessions', db4.dataset.delAppel); return; }
+
+  // AGENTS modale
+  const dag = e.target.closest('[data-del-agent]');
+  if (dag) { if (!requireAuth('supprimer un agent')) return; if (!confirm('Supprimer cet agent ?')) return; await secUserDelete(dag.dataset.delAgent); return; }
+
+  // Fermer modales
+  if (e.target.dataset.closeModal) { SCPIntranet.closeModal(e.target.dataset.closeModal); return; }
+  if (e.target.classList.contains('modal-ov')) { SCPIntranet.closeModal(e.target.id); return; }
+});
+
+// ══════════════════════════════════════════
+// EFFECTIFS
+// ══════════════════════════════════════════
+let effectifsFilter = 'all';
+
+function getAgentPresenceStats(agentId) {
+  let total = 0, present = 0, retard = 0, absent = 0;
+  appelSessions.forEach(s => {
+    const snap = s.snapshot || [];
+    const entry = snap.find(a => a._id === agentId);
+    if (entry) { total++; if (entry.entry?.status === 'present') present++; else if (entry.entry?.status === 'retard') retard++; else if (entry.entry?.status === 'absent') absent++; }
+  });
+  return { total, present, retard, absent, pct: total ? Math.round((present + retard) / total * 100) : null };
+}
+
+function getAgentSanctions(username) {
+  return sanctions ? sanctions.filter(s => s.username?.toLowerCase() === username?.toLowerCase() || s.player?.toLowerCase() === username?.toLowerCase()).length : 0;
+}
+
+function renderEffectifs() {
+  const el = document.getElementById('effectifsList'); if (!el) return;
+  const search = (document.getElementById('effectifsSearch')?.value || '').toLowerCase();
+  const sectionFilter = document.getElementById('effectifsFilterSection')?.value || '';
+  const source = secUsers.length > 0 ? secUsers : agents;
+  let list = [...source];
+  if (search) list = list.filter(a => a.name?.toLowerCase().includes(search) || (a.rank || '').toLowerCase().includes(search));
+  if (sectionFilter) list = list.filter(a => { const c = parseClasse(a.rank); return c.section === sectionFilter; });
+  if (effectifsFilter === 'online')  list = list.filter(a => !!a.online);
+  if (effectifsFilter === 'offline') list = list.filter(a => !a.online);
+
+  const onlineCount = source.filter(a => a.online).length;
+  const totalEl = document.getElementById('effectifsCount');
+  const onlineEl = document.getElementById('effectifsOnlineCount');
+  if (totalEl) totalEl.textContent = source.length + ' agent' + (source.length > 1 ? 's' : '') + ' — ' + onlineCount + ' en ligne';
+  if (onlineEl) onlineEl.textContent = '⬤ ' + onlineCount + ' EN LIGNE';
+  SCPIntranet.updateStat('statMorph', source.length);
+
+  const addForm = isAuthenticated ? `
+    <div style="background:var(--surface2);border:1px dashed var(--border2);padding:14px;margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:2;min-width:120px;"><div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px;">Nom *</div><input id="newSecUserName" class="effectif-search" style="margin:0" placeholder="Ex: M.NOWAK"/></div>
+      <div style="flex:3;min-width:180px;"><div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4px;">Grade DSE</div><input id="newSecUserRank" class="effectif-search" style="margin:0" placeholder="Ex: [D.SE] Cadet"/></div>
+      <button class="btn btn-primary btn-sm" id="btnAddSecUser">+ Ajouter</button>
+    </div>` : '';
+
+  if (!list.length) { el.innerHTML = addForm + '<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">' + (secUsers.length ? 'Aucun agent correspondant' : 'Aucun personnel enregistré') + '</div></div>'; bindEffectifsForm(); return; }
+
+  const grouped = {};
+  list.forEach(a => { const c = parseClasse(a.rank); const key = c.section || 'STD'; if (!grouped[key]) grouped[key] = { info: c, list: [] }; grouped[key].list.push(a); });
+  const ORDER = ['DIR','DIR.','SC','SF','BSI','DSI','STD'];
+  const sortedGroups = Object.entries(grouped).sort(([a],[b]) => (ORDER.indexOf(a) === -1 ? 99 : ORDER.indexOf(a)) - (ORDER.indexOf(b) === -1 ? 99 : ORDER.indexOf(b)));
+
+  let html = addForm;
+  sortedGroups.forEach(([key, g]) => {
+    const sOnline = g.list.filter(a => a.online).length;
+    html += `<div class="effectif-section-hdr" style="border-left-color:${g.info.color}">
+      <span style="color:${g.info.color}">${g.info.label} — ${g.list.length} agent${g.list.length > 1 ? 's' : ''}</span>
+      <span style="color:var(--safe)">${sOnline > 0 ? '⬤ ' + sOnline + ' en ligne' : ''}</span>
+    </div>
+    <div class="effectifs-grid">`;
+
+    g.list.forEach(a => {
+      const stats = getAgentPresenceStats(a._id);
+      const sanctions_count = getAgentSanctions(a.name);
+      const online = !!a.online;
+      const morphEntry = MORPH_DATA.find(m => m.name === a.name || m.rank === a.rank);
+      const pctColor = stats.pct === null ? 'var(--text-dim)' : stats.pct >= 80 ? 'var(--safe)' : stats.pct >= 50 ? 'var(--warn)' : 'var(--danger)';
+      const rankHtml = a.rank ? esc(a.rank) : '<span style="color:var(--text-dim);font-style:italic">Grade non défini</span>';
+
+      // Compter les notes dossier de cet agent pour le badge
+      const agentDossierNotes = dossierNotes.filter(n => n.agentId === a._id);
+      const hasDossierNotes = agentDossierNotes.length > 0;
+
+      html += `<div class="effectif-card ${online ? 'online' : 'offline'}" style="position:relative">
+        ${currentRole === 'admin' && hasDossierNotes ? '<div class="dossier-has-notes-badge visible" title="Dossier contient des notes" style="position:absolute;top:10px;right:36px"></div>' : ''}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="effectif-status-dot ${online ? 'online' : 'offline'}"></div>
+            <div><div class="effectif-name">${esc(a.name)}</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:${online ? 'var(--safe)' : 'var(--text-dim)'};text-transform:uppercase;letter-spacing:0.1em">${online ? '⬤ EN LIGNE' : '○ HORS LIGNE'}</div>
+            ${isAuthenticated ? `<button class="btn btn-xs btn-danger" data-del-sec-user="${a._id}" style="opacity:0.6">✕</button>` : ''}
+          </div>
+        </div>
+
+        <div class="effectif-rank-display" data-rank-toggle="${a._id}" title="${isAuthenticated ? 'Cliquer pour modifier le grade' : 'Grade DSE'}">${rankHtml}</div>
+        ${isAuthenticated ? `<input class="effectif-rank-input" id="rank-input-${a._id}" data-rank-save="${a._id}" value="${esc(a.rank || '')}" placeholder="Ex: [D.SE] Cadet"/>` : ''}
+
+        <div class="effectif-stats">
+          <div class="effectif-stat"><div class="effectif-stat-val" style="color:${pctColor}">${stats.pct !== null ? stats.pct + '%' : '—'}</div><div class="effectif-stat-lbl">Présence</div></div>
+          <div class="effectif-stat"><div class="effectif-stat-val" style="color:var(--safe)">${stats.present}</div><div class="effectif-stat-lbl">Présents</div></div>
+          <div class="effectif-stat"><div class="effectif-stat-val" style="color:var(--warn)">${stats.retard}</div><div class="effectif-stat-lbl">Retards</div></div>
+          <div class="effectif-stat"><div class="effectif-stat-val" style="color:${sanctions_count > 0 ? 'var(--danger)' : 'var(--text-dim)'}">${sanctions_count}</div><div class="effectif-stat-lbl">Sanctions</div></div>
+        </div>
+
+        <div class="effectif-actions">
+          ${isAuthenticated ? `<button class="btn btn-xs ${online ? 'btn-danger' : 'btn-ghost'}" data-toggle-online="${a._id}">${online ? '○ Hors ligne' : '⬤ En ligne'}</button>` : ''}
+          ${morphEntry ? `<button class="btn btn-xs btn-ghost" data-morph-effectif="${a._id}">⧉ Morph</button>` : ''}
+          ${currentRole === 'admin' ? `<button class="btn-dossier" data-open-dossier="${a._id}">🔐 Dossier</button>` : ''}
+          ${stats.total > 0 ? `<span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)">${stats.total} appel(s)</span>` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+  bindEffectifsForm();
+}
+
+function bindEffectifsForm() {
+  document.getElementById('btnAddSecUser')?.addEventListener('click', async () => {
+    if (!requireAuth('ajouter un agent')) return;
+    const name = document.getElementById('newSecUserName')?.value.trim();
+    if (!name) return;
+    const rank = document.getElementById('newSecUserRank')?.value.trim() || '';
+    await secUserAdd({ name, rank });
+    SCPIntranet.addHistory('Personnel ajouté : ' + name);
+    if (document.getElementById('newSecUserName')) document.getElementById('newSecUserName').value = '';
+    if (document.getElementById('newSecUserRank')) document.getElementById('newSecUserRank').value = '';
+  });
+}
+
+document.getElementById('effectifsSearch')?.addEventListener('input', renderEffectifs);
+document.getElementById('effectifsFilterSection')?.addEventListener('change', renderEffectifs);
+
+document.addEventListener('keydown', async e => {
+  if (e.key !== 'Enter') return;
+  const input = e.target.closest('[data-rank-save]');
+  if (!input) return;
+  await saveAgentRank(input);
+});
+document.addEventListener('blur', async e => {
+  const input = e.target.closest('[data-rank-save]');
+  if (!input) return;
+  await saveAgentRank(input);
+}, true);
+
+async function saveAgentRank(input) {
+  if (!requireAuth('modifier le grade')) return;
+  const id = input.dataset.rankSave;
+  const newRank = input.value.trim();
+  await secUserUpdate(id, { rank: newRank });
+  const display = input.previousElementSibling;
+  if (display) { display.innerHTML = newRank || '<span style="color:var(--text-dim);font-style:italic">Grade non défini</span>'; display.style.display = 'inline-block'; }
+  input.style.display = 'none';
+  SCPIntranet.addHistory('Grade mis à jour : ' + newRank);
+}
+
+// ══════════════════════════════════════════
+// PROTOCOLS
+// ══════════════════════════════════════════
+function renderProtocols() {
+  const el = document.getElementById('protoList'); if (!el) return;
+  const q = document.getElementById('protoSearch')?.value.toLowerCase() || '';
+  let list = protocols.filter(p => protoFilter === 'all' || p.category === protoFilter);
+  if (q) list = list.filter(p => (p.title+p.content).toLowerCase().includes(q));
+  const cats = ['all','urgent','confinement','patrouille','personnel'];
+  cats.forEach(c => { const n = document.getElementById('cnt-' + c); if (n) n.textContent = c === 'all' ? protocols.length : protocols.filter(p => p.category === c).length; });
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-text">Aucun protocole trouvé</div></div>'; return; }
+  const catTag = {urgent:'tag-urgent',confinement:'tag-warn',patrouille:'tag-safe',personnel:''};
+  el.innerHTML = list.map(p => `
+    <div class="item-card cat-${p.category}">
+      <div class="item-head"><div class="item-title">${p.title}</div><div class="item-tags"><span class="tag ${catTag[p.category]||''}">${p.category}</span>${p.status ? `<span class="tag">${p.status}</span>` : ''}</div></div>
+      <div class="item-meta">ID: ${p._id?.slice(-6)||'—'} · ${p.date}</div>
+      <div class="item-body">${p.content.substring(0,200)}${p.content.length>200?'…':''}</div>
+      <div class="item-actions">
+        <button class="btn btn-xs btn-ghost" data-copy-p="${p._id}">⧉ Copier</button>
+        ${isAuthenticated ? `<button class="btn btn-xs btn-primary" data-edit-p="${p._id}">✎ Modifier</button><button class="btn btn-xs btn-danger" data-del-p="${p._id}">✕</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+document.getElementById('protoSearch')?.addEventListener('input', renderProtocols);
+document.getElementById('protoFilters')?.addEventListener('click', e => { const pill = e.target.closest('.pill'); if (!pill) return; document.querySelectorAll('#protoFilters .pill').forEach(p => p.classList.remove('active')); pill.classList.add('active'); protoFilter = pill.dataset.cat; renderProtocols(); });
+document.getElementById('btnNewProto')?.addEventListener('click', () => { if (!requireAuth('créer un protocole')) return; openProtoModal(null); });
+function openProtoModal(p=null) {
+  editingProtoId = p?._id || null;
+  document.getElementById('protoModalTitle').textContent = p ? 'Modifier protocole' : 'Nouveau protocole';
+  document.getElementById('pTitle').value = p?.title || '';
+  document.getElementById('pCat').value = p?.category || 'urgent';
+  document.getElementById('pStatus').value = p?.status || 'Actif';
+  document.getElementById('pContent').value = p?.content || '';
+  SCPIntranet.openModal('modalProto');
+}
+document.getElementById('saveProtoBtn')?.addEventListener('click', async () => {
+  if (!requireAuth('sauvegarder un protocole')) return;
+  const title = document.getElementById('pTitle').value.trim();
+  const content = document.getElementById('pContent').value.trim();
+  if (!title || !content) { alert('Titre et contenu requis.'); return; }
+  const data = { title, category: document.getElementById('pCat').value, status: document.getElementById('pStatus').value, content, date: SCPIntranet.fmtDate(SCPIntranet.today()) };
+  if (editingProtoId) { await fbUpdate('sec_protocols', editingProtoId, data); } else { await fbAdd('sec_protocols', data); }
+  editingProtoId = null; SCPIntranet.closeModal('modalProto'); SCPIntranet.addHistory('Protocole sauvegardé: ' + title);
+});
+
+// ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// ÉVALUATIONS — Nouveau système
+// ══════════════════════════════════════════
+const EVAL_CRIT_DEF = [
+  { key:'Disc',  label:'Discipline',           desc:'Respect des règles, ponctualité, comportement en service', color:'#4cc3ff' },
+  { key:'Proto', label:'Protocoles',            desc:'Maîtrise et application des procédures D.SE',             color:'#7ab0ff' },
+  { key:'React', label:'Réactivité',            desc:'Capacité à répondre rapidement aux incidents',            color:'#00d97e' },
+  { key:'Comm',  label:'Communication',         desc:'Clarté des rapports, coordination avec les unités',       color:'#e8c84a' },
+  { key:'Hier',  label:'Hiérarchie',            desc:'Attitude vis-à-vis de la chaîne de commandement',         color:'#ffaa00' },
+  { key:'Comp',  label:'Comportement',          desc:'Professionnalisme, esprit d\'équipe, initiative',          color:'#a855f7' },
+];
+const EVAL_DEC_LABELS = { promu:'✅ PROMU', valide:'✔ VALIDÉ', avertissement:'⚠ AVERTISSEMENT', recale:'❌ RECALÉ', expulse:'🚫 EXPULSÉ' };
+const EVAL_DEC_COLORS = { promu:'var(--promo)', valide:'var(--safe)', avertissement:'var(--warn)', recale:'var(--danger)', expulse:'#555' };
+let activeEvalSort = 'date-desc';
+let currentEvalDetailId = null;
+let ewStep = 0;
+let ewSigs = [];
+let ewScores = {};
+
+function evalScoreColor(s){ return s>=8?'var(--safe)':s>=6?'#7ab0ff':s>=4?'var(--warn)':'var(--danger)'; }
+function evalGetMention(total){
+  const MAP=[{min:54,text:'EXCEPTIONNEL',color:'var(--safe)'},{min:48,text:'EXCELLENT',color:'var(--safe)'},{min:42,text:'TRÈS BON',color:'#7ab0ff'},{min:36,text:'SATISFAISANT',color:'var(--accent)'},{min:27,text:'INSUFFISANT',color:'var(--warn)'},{min:0,text:'RECALÉ',color:'var(--danger)'}];
+  return MAP.find(m=>total>=m.min)||MAP[MAP.length-1];
+}
+function evalGetValidStatus(ev){
+  if(!ev.signataires||!ev.signataires.length) return 'pending';
+  const req=ev.signataires.filter(s=>s.required);
+  if(req.every(s=>s.status==='signed')) return 'complete';
+  if(ev.signataires.some(s=>s.status==='rejected')) return 'rejected';
+  if(ev.signataires.some(s=>s.status==='signed')) return 'partial';
+  return 'pending';
+}
+function evalValidBadge(status){
+  return {pending:{text:'EN ATTENTE',cls:'eval-valid-badge--pending'},partial:{text:'PARTIEL',cls:'eval-valid-badge--partial'},complete:{text:'VALIDÉ ✓',cls:'eval-valid-badge--complete'},rejected:{text:'REFUSÉ',cls:'eval-valid-badge--rejected'}}[status]||{text:'—',cls:'eval-valid-badge--pending'};
+}
+
+function renderEvals(){
+  const el=document.getElementById('evalList'); if(!el) return;
+  const q=(document.getElementById('evalSearch')?.value||'').toLowerCase();
+  const sort=document.getElementById('evalSort')?.value||'date-desc';
+  SCPIntranet.updateStat('evalCount', evaluations.length+' évaluations enregistrées');
+
+  // Stats bar
+  const cnt={promu:0,valide:0,avertissement:0,recale:0,pending:0};
+  evaluations.forEach(e=>{
+    if(cnt[e.decision]!==undefined) cnt[e.decision]++;
+    if(evalGetValidStatus(e)!=='complete') cnt.pending++;
+  });
+  ['Promu','Valide','Avert','Recale','Pending','Total'].forEach(k=>{
+    const id='evalStat'+k; const el2=document.getElementById(id);
+    if(!el2) return;
+    if(k==='Total') el2.textContent=evaluations.length;
+    else if(k==='Avert') el2.textContent=cnt.avertissement||0;
+    else el2.textContent=cnt[k.toLowerCase()]||0;
+  });
+
+  let list=[...evaluations];
+  if(activeEvalFilter==='pending') list=list.filter(e=>evalGetValidStatus(e)!=='complete');
+  else if(activeEvalFilter!=='all') list=list.filter(e=>e.decision===activeEvalFilter);
+  if(q) list=list.filter(e=>(e.name||'').toLowerCase().includes(q)||(e.author||'').toLowerCase().includes(q)||(e.username||'').toLowerCase().includes(q));
+  if(sort==='date-desc') list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  else if(sort==='date-asc') list.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  else if(sort==='score-desc') list.sort((a,b)=>(b.total||0)-(a.total||0));
+  else if(sort==='score-asc') list.sort((a,b)=>(a.total||0)-(b.total||0));
+
+  if(!list.length){ el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation trouvée</div></div>'; return; }
+
+  el.innerHTML=list.map(ev=>{
+    const total=ev.total||0;
+    const m=evalGetMention(total);
+    const vs=evalGetValidStatus(ev);
+    const vb=evalValidBadge(vs);
+    const decColor=EVAL_DEC_COLORS[ev.decision]||'#888';
+    const scoresHtml=EVAL_CRIT_DEF.map(c=>{
+      const s=ev.scores?.[c.key]??5;
+      return `<div class="eval-score-row2">
+        <span class="eval-score-lbl2">${c.label.split(' ')[0]}</span>
+        <div class="eval-score-bar-wrap2"><div class="eval-score-bar-fill2" style="width:${s*10}%;background:${c.color}55;outline:1px solid ${c.color}60"></div></div>
+        <span class="eval-score-val2" style="color:${evalScoreColor(s)}">${s}</span>
+      </div>`;
+    }).join('');
+    const sigsHtml=(ev.signataires||[]).map(s=>{
+      const dc=s.status==='signed'?'var(--safe)':s.status==='rejected'?'var(--danger)':'var(--border2)';
+      return `<span class="eval-sig-mini2 ${s.status}"><span class="eval-sig-dot2" style="background:${dc}"></span>${esc((s.role||'').split('/')[0].trim().substring(0,12))}</span>`;
+    }).join('');
+    return `<div class="eval-card-new eval-card-new--${ev.decision||'valide'}" data-eval-open="${ev._id}" onclick="openEvalDetail('${ev._id}')">
+      <span class="eval-valid-badge ${vb.cls}">${vb.text}</span>
+      <div class="eval-card-head">
+        <div class="eval-card-agent-name">${esc(ev.name||'—')}</div>
+        <div class="eval-card-rank-lbl">${esc(ev.rank||'—')}</div>
+        <div class="eval-card-dec-row">
+          <span class="eval-dec-badge eval-dec-badge--${ev.decision}" style="color:${decColor}">${EVAL_DEC_LABELS[ev.decision]||ev.decision}</span>
+        </div>
+        <div class="eval-card-meta-lbl">${ev.date||'—'} — Éval. ${esc(ev.author||'—')}</div>
+      </div>
+      <div class="eval-card-scores-wrap">${scoresHtml}</div>
+      <div class="eval-card-foot">
+        <div style="display:flex;align-items:baseline;gap:3px">
+          <div class="eval-total-num2" style="color:${m.color}">${total}</div>
+          <div class="eval-total-max2">/60</div>
+        </div>
+        <span class="eval-mention2" style="color:${m.color};border-color:${m.color}40">${m.text}</span>
+      </div>
+      ${sigsHtml?`<div class="eval-card-sigs-row">${sigsHtml}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('evalFilters')?.addEventListener('click',e=>{
+  const pill=e.target.closest('.pill'); if(!pill||!pill.dataset.evalFilter) return;
+  document.querySelectorAll('#evalFilters .pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active'); activeEvalFilter=pill.dataset.evalFilter; renderEvals();
+});
+document.getElementById('evalSearch')?.addEventListener('input',renderEvals);
+document.getElementById('evalSort')?.addEventListener('change',renderEvals);
+
+// ── MODAL DÉTAIL ──
+function openEvalDetail(id){
+  const ev=evaluations.find(e=>e._id===id); if(!ev) return;
+  currentEvalDetailId=id;
+  const total=ev.total||0; const m=evalGetMention(total);
+  document.getElementById('detailEvalTitle').textContent=ev.name||'—';
+  document.getElementById('detailEvalName').textContent=ev.name||'—';
+  document.getElementById('detailEvalRank').textContent=ev.rank||'—';
+  document.getElementById('detailEvalScore').textContent=total;
+  document.getElementById('detailEvalScore').style.color=m.color;
+  document.getElementById('detailEvalMention').textContent=m.text;
+  document.getElementById('detailEvalMention').style.color=m.color;
+  const db=document.getElementById('detailEvalDecBadge');
+  db.textContent=EVAL_DEC_LABELS[ev.decision]||ev.decision;
+  db.className='eval-dec-badge eval-dec-badge--'+(ev.decision||'valide');
+  document.getElementById('detailEvalMeta').textContent=`${ev.date||'—'} — Évaluateur: ${ev.author||'—'}${ev.username?' | @'+ev.username:''}`;
+  const cb=document.getElementById('detailEvalCommentsBox');
+  if(ev.comments){ cb.style.display='block'; document.getElementById('detailEvalComments').textContent=ev.comments; } else cb.style.display='none';
+  document.getElementById('detailEvalScoresBrief').innerHTML=EVAL_CRIT_DEF.map(c=>{
+    const s=ev.scores?.[c.key]??5;
+    return `<div class="eval-score-row2"><span class="eval-score-lbl2" style="min-width:110px">${c.label}</span><div class="eval-score-bar-wrap2"><div class="eval-score-bar-fill2" style="width:${s*10}%;background:${c.color}"></div></div><span class="eval-score-val2" style="color:${evalScoreColor(s)}">${s}<span style="font-size:9px;color:var(--text-dim)">/10</span></span></div>`;
+  }).join('');
+  document.getElementById('detailEvalCritGrid').innerHTML=EVAL_CRIT_DEF.map(c=>{
+    const s=ev.scores?.[c.key]??5;
+    return `<div class="eval-crit-card2"><div class="eval-crit-name2">${c.label}</div><div class="eval-crit-score2" style="color:${c.color}">${s}<span style="font-size:13px;font-weight:400;color:var(--text-dim)">/10</span></div><div class="eval-crit-bar2"><div style="height:100%;width:${s*10}%;background:${c.color}"></div></div><div class="eval-crit-desc2">${c.desc}</div></div>`;
+  }).join('');
+  renderEvalSigsPanel(ev);
+  activateEvalDTab('resume');
+  SCPIntranet.openModal('modalEvalDetail');
+}
+function renderEvalSigsPanel(ev){
+  const sigs=ev.signataires||[];
+  const req=sigs.filter(s=>s.required);
+  const signedReq=req.filter(s=>s.status==='signed').length;
+  const hasRejected=sigs.some(s=>s.status==='rejected');
+  document.getElementById('evalValDots').innerHTML=sigs.map(s=>`<div class="eval-val-dot ${s.status==='signed'?'done':s.status==='rejected'?'rejected':''}" title="${esc(s.role)}"></div>`).join('');
+  document.getElementById('evalValLabel').textContent=`${signedReq} / ${req.length} validation${req.length>1?'s':''} requise${req.length>1?'s':''}`;
+  const allDone=req.length>0&&req.every(s=>s.status==='signed');
+  const fb=document.getElementById('evalFinalizeBtn');
+  fb.className=allDone?'eval-finalize2 eval-finalize2--ready':'eval-finalize2 eval-finalize2--disabled';
+  fb.textContent=allDone?'✓ Finaliser':`En attente (${req.length-signedReq} sig.)`;
+  document.getElementById('evalSigsGrid').innerHTML=sigs.map((s,i)=>{
+    const sc=s.status==='signed'?'signed':s.status==='rejected'?'rejected':'pending';
+    const st=s.status==='signed'?'✓ SIGNÉ':s.status==='rejected'?'✕ REFUSÉ':'○ EN ATTENTE';
+    const canSign=isAuthenticated&&!s.status||s.status==='pending';
+    return `<div class="eval-sig-card2 eval-sig-card2--${sc}">
+      <div class="eval-sig-role2">Niveau ${s.level||i+1}${s.required?' <span style="color:var(--danger)">*</span>':''}</div>
+      <div class="eval-sig-name2">${esc(s.role||'—')}</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text-dim);margin-top:2px">${esc(s.name||'—')}</div>
+      <div class="eval-sig-status2 ${sc}">${st}</div>
+      ${s.signedAt?`<div class="eval-sig-ts">${s.signedAt}</div>`:''}
+      ${canSign&&isAuthenticated?`<button class="eval-sig-action eval-sig-action--sign" data-eval-sign="${ev._id}" data-eval-sig-idx="${i}">✍ Signer</button><button class="eval-sig-action eval-sig-action--reject" data-eval-reject="${ev._id}" data-eval-sig-idx="${i}">✕ Refuser</button>`:''}
+      ${s.status==='signed'?`<div class="eval-sig-stamp2">OK</div>${isAuthenticated?`<button class="eval-sig-revoke" data-eval-revoke="${ev._id}" data-eval-sig-idx="${i}">↩ Révoquer</button>`:''}` :''}
+    </div>`;
+  }).join('');
+  const rejs=sigs.find(s=>s.status==='rejected');
+  const rp=document.getElementById('evalRejectedPanel');
+  if(rejs){ rp.style.display='block'; document.getElementById('evalRejectedReason').textContent=`Refusé par: ${rejs.name||rejs.role} — ${rejs.signedAt||''}`; } else rp.style.display='none';
+}
+function activateEvalDTab(tab){
+  document.querySelectorAll('.eval-dtab').forEach(t=>t.classList.toggle('active',t.dataset.evalDtab===tab));
+  document.querySelectorAll('.eval-dpanel').forEach(p=>p.classList.toggle('active',p.id==='evalDPanel-'+tab));
+}
+document.addEventListener('click',e=>{
+  const dt=e.target.closest('.eval-dtab'); if(dt&&dt.dataset.evalDtab){ activateEvalDTab(dt.dataset.evalDtab); return; }
+});
+
+// Signer / refuser / révoquer
+async function evalSign(evalId,idx){
+  if(!requireAuth('signer')) return;
+  const ev=evaluations.find(e=>e._id===evalId); if(!ev) return;
+  if(!ev.signataires[idx]) return;
+  ev.signataires[idx].status='signed';
+  ev.signataires[idx].signedAt=new Date().toLocaleString('fr-FR');
+  await fbUpdate('sec_evals',evalId,{signataires:ev.signataires});
+  renderEvalSigsPanel(ev); renderEvals();
+  SCPIntranet.addHistory('Signature apposée sur éval: '+ev.name);
+}
+async function evalReject(evalId,idx){
+  if(!requireAuth('refuser')) return;
+  const ev=evaluations.find(e=>e._id===evalId); if(!ev) return;
+  if(!ev.signataires[idx]) return;
+  ev.signataires[idx].status='rejected';
+  ev.signataires[idx].signedAt=new Date().toLocaleString('fr-FR');
+  await fbUpdate('sec_evals',evalId,{signataires:ev.signataires});
+  renderEvalSigsPanel(ev); renderEvals();
+  SCPIntranet.addHistory('Évaluation refusée: '+ev.name);
+}
+async function evalRevoke(evalId,idx){
+  if(!requireAuth('révoquer')) return;
+  if(!confirm('Révoquer cette signature ?')) return;
+  const ev=evaluations.find(e=>e._id===evalId); if(!ev) return;
+  if(!ev.signataires[idx]) return;
+  ev.signataires[idx].status='pending';
+  ev.signataires[idx].signedAt=null;
+  await fbUpdate('sec_evals',evalId,{signataires:ev.signataires});
+  renderEvalSigsPanel(ev); renderEvals();
+}
+document.getElementById('evalFinalizeBtn')?.addEventListener('click',async()=>{
+  const ev=evaluations.find(e=>e._id===currentEvalDetailId); if(!ev) return;
+  if(!ev.signataires.filter(s=>s.required).every(s=>s.status==='signed')) return;
+  await fbUpdate('sec_evals',currentEvalDetailId,{finalized:true});
+  SCPIntranet.addHistory('Évaluation finalisée: '+ev.name);
+});
+document.getElementById('evalDetailDeleteBtn')?.addEventListener('click',async()=>{
+  if(!requireAuth('supprimer')) return;
+  if(!confirm('Supprimer cette évaluation ?')) return;
+  await fbDelete('sec_evals',currentEvalDetailId);
+  SCPIntranet.closeModal('modalEvalDetail');
+  SCPIntranet.addHistory('Évaluation supprimée.');
+});
+document.getElementById('evalDetailExportBtn')?.addEventListener('click',()=>{
+  const ev=evaluations.find(e=>e._id===currentEvalDetailId); if(!ev) return;
+  const m=evalGetMention(ev.total||0);
+  const lines=['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','RAPPORT D\'ÉVALUATION — DÉPARTEMENT SÉCURITÉ','══════════════════════════════════════════',
+    `ID       : ${ev._id}`,`DATE     : ${ev.date||'—'}`,`AGENT    : ${ev.name||'—'}`,`USERNAME : ${ev.username?'@'+ev.username:'—'}`,`GRADE    : ${ev.rank||'—'}`,`ÉVAL.    : ${ev.author||'—'}`,
+    '══════════════════════════════════════════',`SCORE    : ${ev.total||0} / 60 — ${m.text}`,`DÉCISION : ${EVAL_DEC_LABELS[ev.decision]||ev.decision}`,'══════════════════════════════════════════','COMPÉTENCES',
+    ...EVAL_CRIT_DEF.map(c=>`  ${(c.label).padEnd(20)}: ${ev.scores?.[c.key]??5}/10`),
+    '','══════════════════════════════════════════','COMMENTAIRES',(ev.comments||'(aucun)'),
+    '','══════════════════════════════════════════','SIGNATURES',
+    ...(ev.signataires||[]).map(s=>`  Niv.${s.level||'?'} ${(s.role||'').padEnd(28)}: ${s.status==='signed'?'✓ SIGNÉ':s.status==='rejected'?'✕ REFUSÉ':'○ EN ATTENTE'} ${s.signedAt||''}`),
+    '',`[Généré le ${new Date().toLocaleString('fr-FR')}]`,'══════════════════════════════════════════'];
+  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`EVAL_${(ev.name||'agent').replace(/[^a-z0-9]/gi,'_')}_${ev.date||'nodate'}.txt`; a.click();
+  SCPIntranet.addHistory('Export évaluation: '+ev.name);
+});
+
+// ── WIZARD NOUVELLE ÉVALUATION ──
+const EW_STEP_TITLES=['Informations de base','Notation par compétences','Récapitulatif','Validation & Signatures'];
+const EW_DEFAULT_SIGS=[
+  {level:1,role:'Évaluateur direct',name:'',required:true,status:'pending',signedAt:null},
+  {level:2,role:'Superviseur / Chef de section',name:'',required:true,status:'pending',signedAt:null},
+  {level:3,role:'Direction D.SE',name:'',required:false,status:'pending',signedAt:null},
+];
+function ewResetForm(){
+  ewStep=0;
+  ewSigs=EW_DEFAULT_SIGS.map(s=>({...s}));
+  EVAL_CRIT_DEF.forEach(c=>ewScores[c.key]=5);
+  const today=SCPIntranet.today();
+  ['ewName','ewUser','ewRank','ewAuthor','ewContext','ewComments'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const ed=document.getElementById('ewDate'); if(ed) ed.value=today;
+  const edec=document.getElementById('ewDecision'); if(edec) edec.value='valide';
+  ewRenderSigList(); ewRenderCompSliders(); ewUpdateUI();
+}
+function ewRenderSigList(){
+  const el=document.getElementById('ewSigList'); if(!el) return;
+  el.innerHTML=ewSigs.map((s,i)=>`
+    <div class="eval-sig-setup-card">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);white-space:nowrap">NIV.${s.level}</span>
+      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Rôle" value="${esc(s.role)}" oninput="ewSigs[${i}].role=this.value"/>
+      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Nom du signataire" value="${esc(s.name)}" oninput="ewSigs[${i}].name=this.value"/>
+      <label style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap">
+        <input type="checkbox" ${s.required?'checked':''} onchange="ewSigs[${i}].required=this.checked"/> Requis
+      </label>
+      ${ewSigs.length>1?`<button class="btn btn-xs btn-danger" onclick="ewRemoveSig(${i})">✕</button>`:''}
+    </div>`).join('');
+}
+function ewRemoveSig(i){ewSigs.splice(i,1);ewSigs.forEach((s,idx)=>s.level=idx+1);ewRenderSigList();}
+document.getElementById('ewAddSigBtn')?.addEventListener('click',()=>{
+  ewSigs.push({level:ewSigs.length+1,role:'',name:'',required:false,status:'pending',signedAt:null});
+  ewRenderSigList();
+});
+function ewRenderCompSliders(){
+  const el=document.getElementById('ewCompList'); if(!el) return;
+  el.innerHTML=EVAL_CRIT_DEF.map(c=>`
+    <div class="eval-comp-item">
+      <div class="eval-comp-hdr">
+        <div class="eval-comp-name">${c.label}</div>
+        <div class="eval-comp-disp" id="ewDisp_${c.key}" style="color:${c.color}">${ewScores[c.key]||5}</div>
+      </div>
+      <div class="eval-comp-desc">${c.desc}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)">0</span>
+        <input type="range" class="eval-comp-slider" min="0" max="10" step="1" value="${ewScores[c.key]||5}" style="flex:1;accent-color:${c.color}" oninput="ewUpdateScore('${c.key}',this.value)"/>
+        <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)">10</span>
+      </div>
+    </div>`).join('');
+}
+function ewUpdateScore(key,val){
+  ewScores[key]=parseInt(val);
+  const el=document.getElementById('ewDisp_'+key);
+  if(el){el.textContent=val;el.style.color=evalScoreColor(parseInt(val));}
+}
+function ewRenderRecap(){
+  const total=Object.values(ewScores).reduce((s,v)=>s+v,0);
+  const m=evalGetMention(total);
+  const sc=document.getElementById('ewRecapScore'); if(sc){sc.textContent=total;sc.style.color=m.color;}
+  const mn=document.getElementById('ewRecapMention'); if(mn){mn.textContent=m.text;mn.style.color=m.color;mn.style.borderColor=m.color+'40';}
+  const bd=document.getElementById('ewRecapBreakdown');
+  if(bd) bd.innerHTML=EVAL_CRIT_DEF.map(c=>`<div style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:${c.color}">${ewScores[c.key]||0}</div><div style="font-family:'Share Tech Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">${c.label.split(' ')[0]}</div></div>`).join('');
+  const ig=document.getElementById('ewRecapInfoGrid');
+  if(ig) ig.innerHTML=[
+    {lbl:'Agent',val:document.getElementById('ewName')?.value||'—'},
+    {lbl:'Grade',val:document.getElementById('ewRank')?.value||'—'},
+    {lbl:'Évaluateur',val:document.getElementById('ewAuthor')?.value||'—'},
+    {lbl:'Date',val:document.getElementById('ewDate')?.value||'—'},
+    {lbl:'Décision',val:EVAL_DEC_LABELS[document.getElementById('ewDecision')?.value]||'—'},
+    {lbl:'Signataires',val:ewSigs.filter(s=>s.name).map(s=>s.name).join(', ')||'—'},
+  ].map(i=>`<div class="eval-recap-item2"><div class="eval-recap-lbl2">${i.lbl}</div><div class="eval-recap-val2">${esc(i.val)}</div></div>`).join('');
+}
+function ewRenderSigPreview(){
+  const el=document.getElementById('ewSigPreviewGrid'); if(!el) return;
+  el.innerHTML=ewSigs.map(s=>`<div class="eval-sig-card2 eval-sig-card2--pending">
+    <div class="eval-sig-role2">Niveau ${s.level}${s.required?' <span style="color:var(--danger)">— Requis</span>':''}</div>
+    <div class="eval-sig-name2">${esc(s.role||'—')}</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--dept-color);margin-top:2px">${esc(s.name||'Non défini')}</div>
+    <div class="eval-sig-status2 pending">○ EN ATTENTE DE SIGNATURE</div>
+  </div>`).join('');
+}
+function ewUpdateUI(){
+  const wt=document.getElementById('evalWizTitle'); if(wt) wt.textContent=EW_STEP_TITLES[ewStep];
+  const si=document.getElementById('ewStepInfo'); if(si) si.textContent=`Étape ${ewStep+1} / 4`;
+  document.querySelectorAll('.eval-wiz-step').forEach((el,i)=>{el.classList.toggle('active',i===ewStep);el.classList.toggle('done',i<ewStep);});
+  document.querySelectorAll('.eval-step-panel2').forEach((p,i)=>p.classList.toggle('active',i===ewStep));
+  const bb=document.getElementById('ewBackBtn'); if(bb) bb.style.visibility=ewStep>0?'visible':'hidden';
+  const nb=document.getElementById('ewNextBtn');
+  if(nb){
+    if(ewStep===3){nb.textContent='💾 Enregistrer';nb.className='eval-wiz-btn eval-wiz-btn--save';}
+    else{nb.textContent='Suivant →';nb.className='eval-wiz-btn eval-wiz-btn--next';}
+  }
+  if(ewStep===2) ewRenderRecap();
+  if(ewStep===3) ewRenderSigPreview();
+}
+document.getElementById('ewNextBtn')?.addEventListener('click',async()=>{
+  if(!requireAuth('créer une évaluation')) return;
+  if(ewStep===0){
+    if(!document.getElementById('ewName')?.value.trim()||!document.getElementById('ewAuthor')?.value.trim()||!document.getElementById('ewDate')?.value){alert('Nom de l\'agent, évaluateur et date requis.');return;}
+  }
+  if(ewStep<3){ewStep++;ewUpdateUI();}
+  else await ewSaveEvaluation();
+});
+document.getElementById('ewBackBtn')?.addEventListener('click',()=>{if(ewStep>0){ewStep--;ewUpdateUI();}});
+async function ewSaveEvaluation(){
+  if(!requireAuth('sauvegarder une évaluation')) return;
+  const total=Object.values(ewScores).reduce((s,v)=>s+v,0);
+  const data={
+    name:document.getElementById('ewName').value.trim(),
+    username:document.getElementById('ewUser').value.trim(),
+    rank:document.getElementById('ewRank').value.trim(),
+    author:document.getElementById('ewAuthor').value.trim(),
+    date:document.getElementById('ewDate').value,
+    decision:document.getElementById('ewDecision').value,
+    context:document.getElementById('ewContext').value.trim(),
+    comments:document.getElementById('ewComments').value.trim(),
+    scores:{...ewScores},
+    total,
+    signataires:ewSigs.map(s=>({...s,status:'pending',signedAt:null})),
+    finalized:false,
+  };
+  await fbAdd('sec_evals',data);
+  SCPIntranet.closeModal('modalEvalForm');
+  SCPIntranet.addHistory('Évaluation enregistrée: '+data.name);
+}
+document.getElementById('btnNewEval')?.addEventListener('click',()=>{
+  if(!requireAuth('créer une évaluation')) return;
+  ewResetForm();
+  SCPIntranet.openModal('modalEvalForm');
+});
+
+// ══════════════════════════════════════════
+// RAPPORTS
+// ══════════════════════════════════════════
+
+function renderRapports() {
+  const el = document.getElementById('rapportList'); if (!el) return;
+  let list = activeRapportFilter==='all' ? rapports : rapports.filter(r=>r.type===activeRapportFilter);
+  SCPIntranet.updateStat('rapportCount', rapports.length+' rapports');
+  if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport</div></div>';return;}
+  el.innerHTML=[...list].reverse().map(r=>{
+    const sev=SCPIntranet.getSevStyle(r.severity);
+    return `<div class="card">
+      <div class="card-hdr"><div class="card-id">${r._id?.slice(-6)||'—'}</div><div class="card-sev" style="color:${sev.color};border-color:${sev.color}">${sev.label}</div></div>
+      <div class="card-type">${SCPIntranet.getTypeLabel(r.type)}</div>
+      <div class="card-title">${r.title}</div>
+      <div class="card-meta"><span>${r.author}</span><span>${r.date}</span>${r.lrc?`<span style="color:var(--warn)">CODE: ${r.lrc}</span>`:''}</div>
+      <div class="card-excerpt">${r.description.substring(0,100)}${r.description.length>100?'…':''}</div>
+      <div class="card-acts">
+        <button class="btn btn-xs btn-primary" data-view-r="${r._id}">📄 Voir</button>
+        <button class="btn btn-xs btn-ghost" data-exp-r="${r._id}">⬇</button>
+        ${isAuthenticated ? `<button class="btn btn-xs btn-danger" data-del-r="${r._id}">✕</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+document.getElementById('rapportFilters')?.addEventListener('click',e=>{ const pill=e.target.closest('.pill');if(!pill)return; document.querySelectorAll('#rapportFilters .pill').forEach(p=>p.classList.remove('active')); pill.classList.add('active');activeRapportFilter=pill.dataset.rFilter;renderRapports(); });
+function viewRapport(r){
+  if(!r)return;currentRapport=r;
+  const sev=SCPIntranet.getSevStyle(r.severity);
+  document.getElementById('rvId').textContent=r._id?.slice(-8)||'—'; document.getElementById('rvType').textContent=SCPIntranet.getTypeLabel(r.type);
+  document.getElementById('rvTitle').textContent=r.title; document.getElementById('rvSev').textContent=sev.label; document.getElementById('rvSev').style.color=sev.color;
+  document.getElementById('rvDate').textContent=r.date; document.getElementById('rvAuthor').textContent=r.author+(r.username?' (@'+r.username+')':'');
+  document.getElementById('rvLRC').textContent=r.lrc?'CODE: '+r.lrc:'—'; document.getElementById('rvWitnesses').textContent=r.witnesses?.join(', ')||'—';
+  document.getElementById('rvDesc').textContent=r.description; document.getElementById('rvConc').textContent=r.conclusion||'—';
+  SCPIntranet.openModal('modalRapportView');
+}
+document.getElementById('rvExportBtn')?.addEventListener('click',()=>{if(currentRapport)SCPIntranet.exportRapport(currentRapport);});
+document.getElementById('btnNewRapport')?.addEventListener('click',()=>{ if(!requireAuth('créer un rapport')) return; openRapportForm(null); });
+['rapportCancelBtn','rapportCancelBtn2'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{document.getElementById('rapportFormPanel').style.display='none';editingRapportId=null;}));
+function openRapportForm(r=null){
+  editingRapportId=r?._id||null;
+  document.getElementById('rapportFormTitle').textContent=r?'Modifier — '+(r._id?.slice(-6)||'—'):'Nouveau rapport';
+  document.getElementById('rTitle').value=r?.title||''; document.getElementById('rType').value=r?.type||'incident'; document.getElementById('rSev').value=r?.severity||'moderate';
+  document.getElementById('rAuthor').value=r?.author||''; document.getElementById('rUser').value=r?.username||''; document.getElementById('rDate').value=r?.date||SCPIntranet.today();
+  document.getElementById('rDesc').value=r?.description||''; document.getElementById('rConc').value=r?.conclusion||'';
+  document.getElementById('rWitnesses').value=r?.witnesses?.join(', ')||''; document.getElementById('rLRC').value=r?.lrc||'';
+  const panel=document.getElementById('rapportFormPanel'); panel.style.display='block'; panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.getElementById('rapportSaveBtn')?.addEventListener('click', async ()=>{
+  if(!requireAuth('sauvegarder un rapport')) return;
+  const title=document.getElementById('rTitle').value.trim(); const author=document.getElementById('rAuthor').value.trim(); const desc=document.getElementById('rDesc').value.trim(); const date=document.getElementById('rDate').value;
+  if(!title||!author||!desc||!date){alert('Remplir les champs obligatoires.');return;}
+  const witnesses=document.getElementById('rWitnesses').value.trim().split(',').map(w=>w.trim()).filter(Boolean);
+  const data={title,type:document.getElementById('rType').value,severity:document.getElementById('rSev').value,author,username:document.getElementById('rUser').value.trim(),date,description:desc,conclusion:document.getElementById('rConc').value.trim(),witnesses,lrc:document.getElementById('rLRC').value,dept:'Département de la Sécurité'};
+  if(editingRapportId){ await fbUpdate('sec_rapports', editingRapportId, data); } else { await fbAdd('sec_rapports', data); }
+  document.getElementById('rapportFormPanel').style.display='none'; editingRapportId=null; SCPIntranet.addHistory('Rapport enregistré: '+title);
+});
+
+// ══════════════════════════════════════════
+// APPEL NOMINAL
+// ══════════════════════════════════════════
+function parseClasse(rank) {
+  if (!rank) return { tag: '—', section: '', base: '', label: '—', color: '#7090b0' };
+  const m = rank.match(/^\[([^\]]+)\]/);
+  if (!m) return { tag: rank.substring(0,15), section: '', base: '', label: rank.substring(0,15), color: '#7090b0' };
+  const tag = m[1]; const parts = tag.split('-'); const base = parts[0]; const section = parts.slice(1).join('-') || '';
+  const SECTION_MAP = { '':{ label:'Standard', color:'#4cc3ff' }, 'SF':{ label:'SF — Spéc. Forces', color:'#ffa500' }, 'DSI':{ label:'DSI — Int. Dept', color:'#cc55ff' }, 'BSI':{ label:'BSI — Bureau Int.', color:'#cc55ff' }, 'SC':{ label:'SC — Sect. Chef', color:'#00e676' }, 'DIR':{ label:'DIR — Direction', color:'#ff3355' }, 'DIR.':{ label:'DIR — Direction', color:'#ff3355' } };
+  const info = SECTION_MAP[section] || { label: section || 'Standard', color: '#4cc3ff' };
+  return { tag, section, base, label: info.label, color: info.color };
+}
+function classBadge(rank) { const c = parseClasse(rank); return `<span class="appel-class-badge" style="border-color:${c.color};color:${c.color}">[${c.tag}]</span>`; }
+
+function renderAgentMgmt() {
+  const el = document.getElementById('agentMgmtList'); if (!el) return;
+  if (!agents.length) { el.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:10px;color:var(--text-dim);padding:10px">Aucun agent enregistré.</div>'; return; }
+  const grouped = {}; agents.forEach(a => { const c = parseClasse(a.rank); const key = c.section || 'STD'; if (!grouped[key]) grouped[key] = { info: c, list: [] }; grouped[key].list.push(a); });
+  let html = '';
+  Object.entries(grouped).forEach(([key, g]) => {
+    html += `<div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:${g.info.color};text-transform:uppercase;letter-spacing:0.12em;padding:6px 0 4px;border-bottom:1px solid var(--border);margin-bottom:6px">${g.info.label} (${g.list.length})</div>`;
+    g.list.forEach(a => { html += `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid ${g.info.color};padding:8px 12px;margin-bottom:4px"><div style="flex:1"><div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);text-transform:uppercase">${a.name}</div><div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)">${a.username ? '@'+a.username+' · ' : ''}${a.rank||'—'}</div></div><button class="btn btn-xs btn-danger" data-del-agent="${a._id}">✕</button></div>`; });
+  });
+  el.innerHTML = html;
+}
+
+document.getElementById('agentImportMorphBtn')?.addEventListener('click', async () => {
+  if (!requireAuth('importer des agents')) return;
+  if (!confirm('Importer tous les agents depuis la liste Morphs ?')) return;
+  let added = 0;
+  for (const m of MORPH_DATA) {
+    const alreadyInUsers  = secUsers.find(a => a.name === m.name);
+    const alreadyInAgents = agents.find(a => a.username === m.username);
+    if (!alreadyInUsers && !alreadyInAgents) { await secUserAdd({ name: m.name, rank: m.rank, username: m.username }); added++; }
+  }
+  document.getElementById('agentImportInfo').textContent = `${added} agent(s) importé(s).`;
+  SCPIntranet.addHistory(`Import Morphs: ${added} agent(s) ajouté(s).`);
+});
+
+document.getElementById('agentClearAll')?.addEventListener('click', async () => {
+  if (!requireAuth('vider la liste agents')) return;
+  if (!confirm('Vider toute la liste des agents ?')) return;
+  const [snapU, snapA] = await Promise.all([getDocs(collection(db, 'sec_users')), getDocs(collection(db, 'sec_agents'))]);
+  for (const d of snapU.docs) await deleteDoc(doc(db, 'sec_users', d.id));
+  for (const d of snapA.docs) await deleteDoc(doc(db, 'sec_agents', d.id));
+});
+
+document.getElementById('agentAddBtn')?.addEventListener('click', async () => {
+  if (!requireAuth('ajouter un agent')) return;
+  const name = document.getElementById('agentInputName').value.trim(); if (!name) return;
+  const rank = document.getElementById('agentInputRank').value.trim(); const username = document.getElementById('agentInputUser').value.trim();
+  await secUserAdd({ name, rank, username });
+  document.getElementById('agentInputName').value = ''; document.getElementById('agentInputUser').value = ''; document.getElementById('agentInputRank').value = '';
+  SCPIntranet.addHistory('Agent ajouté : ' + name);
+});
+
+document.getElementById('btnManageAgents')?.addEventListener('click', () => { if (!requireAuth('gérer les agents')) return; renderAgentMgmt(); SCPIntranet.openModal('modalAgents'); });
+
+function getEntry(agentId) { return currentAppel?.entries.find(e => e.agentId === agentId) || { agentId, status: 'nc', note: '' }; }
+function setEntry(agentId, status) { if (!currentAppel) return; const i = currentAppel.entries.findIndex(e => e.agentId === agentId); if (i >= 0) currentAppel.entries[i].status = status; else currentAppel.entries.push({ agentId, status, note: '' }); renderAppelSession(); }
+function setEntryNote(agentId, note) { if (!currentAppel) return; const i = currentAppel.entries.findIndex(e => e.agentId === agentId); if (i >= 0) currentAppel.entries[i].note = note; else currentAppel.entries.push({ agentId, status: 'nc', note }); }
+function appelCounts() {
+  const entries = currentAppel?.entries || [];
+  const present = entries.filter(e => e.status === 'present').length; const absent = entries.filter(e => e.status === 'absent').length; const retard = entries.filter(e => e.status === 'retard').length;
+  const nc = Math.max(0, agents.length - present - absent - retard);
+  return { present, absent, retard, nc };
+}
+
+function renderAppelSession() {
+  if (!currentAppel) return;
+  const counts = appelCounts();
+  document.getElementById('acntPresent').textContent = counts.present; document.getElementById('acntAbsent').textContent = counts.absent; document.getElementById('acntRetard').textContent = counts.retard; document.getElementById('acntNC').textContent = counts.nc;
+  const responded = counts.present + counts.absent + counts.retard;
+  const pct = agents.length ? Math.round(responded / agents.length * 100) : 0;
+  document.getElementById('appelProgressBar').style.width = pct + '%'; document.getElementById('appelProgressText').textContent = responded + '/' + agents.length;
+  const search = (document.getElementById('appelSearch')?.value || '').toLowerCase();
+  let list = agents.filter(a => {
+    if (search && !a.name.toLowerCase().includes(search) && !(a.username||'').toLowerCase().includes(search)) return false;
+    const status = getEntry(a._id).status;
+    if (activeAppelFilter !== 'all' && status !== activeAppelFilter) return false;
+    return true;
+  });
+  const el = document.getElementById('appelAgentList');
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-text" style="font-size:11px">Aucun agent correspondant</div></div>'; return; }
+  const grouped = {}; list.forEach(a => { const c = parseClasse(a.rank); const key = c.section || 'STD'; if (!grouped[key]) grouped[key] = { info: c, list: [] }; grouped[key].list.push(a); });
+  let html = '';
+  Object.entries(grouped).forEach(([key, g]) => {
+    const sPresent = g.list.filter(a => getEntry(a._id).status === 'present').length;
+    html += `<div class="appel-section-hdr" style="border-color:${g.info.color}"><span style="color:${g.info.color}">${g.info.label}</span><span class="appel-section-count">${sPresent}/${g.list.length} présents</span></div>`;
+    g.list.forEach(a => {
+      const entry = getEntry(a._id); const cls = parseClasse(a.rank);
+      html += `<div class="appel-agent-row ${entry.status !== 'nc' ? 'is-'+entry.status : ''}" style="${entry.status !== 'nc' ? '' : 'border-left:3px solid '+cls.color}">
+        <div class="appel-agent-info"><div class="appel-agent-name">${classBadge(a.rank)} ${a.name}</div><div class="appel-agent-sub">${a.username ? '@'+a.username : ''}${a.rank ? ' · '+a.rank.replace(/^\[[^\]]+\]\s*/,'') : ''}</div>${entry.note ? `<div class="appel-agent-note">📝 ${entry.note}</div>` : ''}</div>
+        <div class="appel-btn-group">
+          <button class="appel-status-btn ${entry.status==='present'?'active-present':''}" data-status-agent="${a._id}" data-status="present">✓ Présent</button>
+          <button class="appel-status-btn ${entry.status==='retard'?'active-retard':''}" data-status-agent="${a._id}" data-status="retard">⏱ Retard</button>
+          <button class="appel-status-btn ${entry.status==='absent'?'active-absent':''}" data-status-agent="${a._id}" data-status="absent">✕ Absent</button>
+          <button class="appel-note-btn ${entry.note?'has-note':''}" data-note-agent="${a._id}">📝</button>
+        </div>
+      </div>`;
+    });
+  });
+  el.innerHTML = html;
+}
+
+document.getElementById('agentNoteSaveBtn')?.addEventListener('click', () => { if (!noteTargetAgentId) return; setEntryNote(noteTargetAgentId, document.getElementById('agentNoteInput').value.trim()); SCPIntranet.closeModal('modalNote'); noteTargetAgentId = null; renderAppelSession(); });
+document.getElementById('appelFilters')?.addEventListener('click', e => { const pill = e.target.closest('.pill'); if (!pill) return; document.querySelectorAll('#appelFilters .pill').forEach(p => p.classList.remove('active')); pill.classList.add('active'); activeAppelFilter = pill.dataset.appelFilter; renderAppelSession(); });
+document.getElementById('appelSearch')?.addEventListener('input', () => renderAppelSession());
+document.getElementById('appelMarkAllPresent')?.addEventListener('click', () => { if (!currentAppel || !confirm('Marquer tous les agents comme présents ?')) return; agents.forEach(a => { const i = currentAppel.entries.findIndex(e => e.agentId === a._id); if (i >= 0) currentAppel.entries[i].status = 'present'; else currentAppel.entries.push({ agentId: a._id, status: 'present', note: '' }); }); renderAppelSession(); });
+document.getElementById('appelReset')?.addEventListener('click', () => { if (!currentAppel || !confirm('Réinitialiser ?')) return; currentAppel.entries = []; renderAppelSession(); });
+
+document.getElementById('btnNewAppel')?.addEventListener('click', () => { if (!requireAuth('démarrer un appel')) return; document.getElementById('appelDate').value = SCPIntranet.today(); document.getElementById('appelTitle').value = ''; document.getElementById('appelResponsable').value = ''; document.getElementById('appelNotes').value = ''; SCPIntranet.openModal('modalNewAppel'); });
+document.getElementById('appelStartBtn')?.addEventListener('click', () => {
+  const title = document.getElementById('appelTitle').value.trim(); const resp = document.getElementById('appelResponsable').value.trim(); const date = document.getElementById('appelDate').value;
+  if (!title || !resp || !date) { alert('Remplir les champs obligatoires.'); return; }
+  if (!agents.length) { alert('Aucun agent dans la liste.'); return; }
+  currentAppel = { id: SCPIntranet.genId('APPEL'), title, responsable: resp, date, type: document.getElementById('appelType').value, notes: document.getElementById('appelNotes').value.trim(), entries: [], startedAt: new Date().toISOString(), closed: false };
+  SCPIntranet.closeModal('modalNewAppel');
+  const typeLabel = document.getElementById('appelType').options[document.getElementById('appelType').selectedIndex].text;
+  document.getElementById('appelSessionTitle').textContent = title; document.getElementById('appelSessionMeta').textContent = `${date} — ${resp} — ${typeLabel} — ${agents.length} agents`;
+  document.getElementById('appelSessionPanel').style.display = 'block'; document.getElementById('appelEmptyState').style.display = 'none';
+  document.getElementById('appelCount').textContent = `Session active: ${title} (${agents.length} agents)`;
+  renderAppelSession(); SCPIntranet.addHistory('Appel démarré: ' + title);
+});
+document.getElementById('appelCloseSession')?.addEventListener('click', async () => {
+  if (!currentAppel) return;
+  if (!confirm('Clôturer la session et exporter ?')) return;
+  currentAppel.closedAt = new Date().toISOString(); currentAppel.closed = true;
+  currentAppel.snapshot = agents.map(a => ({ ...a, entry: getEntry(a._id), classe: parseClasse(a.rank) }));
+  await fbAdd('sec_appel_sessions', currentAppel); exportAppelRapport(currentAppel);
+  currentAppel = null; document.getElementById('appelSessionPanel').style.display = 'none'; document.getElementById('appelEmptyState').style.display = 'block';
+  document.getElementById('appelCount').textContent = 'Aucune session en cours'; SCPIntranet.addHistory('Appel clôturé et exporté.');
+});
+
+function exportAppelRapport(session) {
+  const snap = session.snapshot || [];
+  const grouped = {}; snap.forEach(a => { const key = a.classe?.section || 'STD'; const label = a.classe?.label || 'Standard'; if (!grouped[key]) grouped[key] = { label, list: [] }; grouped[key].list.push(a); });
+  const statusIcon = { present:'✓', absent:'✕', retard:'⏱', nc:'?' };
+  const present = snap.filter(a => a.entry.status === 'present').length; const absent = snap.filter(a => a.entry.status === 'absent').length; const retard = snap.filter(a => a.entry.status === 'retard').length; const nc = snap.filter(a => a.entry.status === 'nc').length;
+  const lines = ['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','RAPPORT D\'APPEL NOMINAL','══════════════════════════════════════════',`ID SESSION    : ${session.id}`,`TITRE         : ${session.title}`,`TYPE          : ${session.type.toUpperCase()}`,`DATE          : ${session.date}`,`RESPONSABLE   : ${session.responsable}`,`NOTES         : ${session.notes || '—'}`,'══════════════════════════════════════════',`TOTAL AGENTS  : ${snap.length}`,`PRÉSENTS      : ${present}`,`RETARDS       : ${retard}`,`ABSENTS       : ${absent}`,`NON RÉPONDUS  : ${nc}`,`TAUX PRÉSENCE : ${snap.length ? Math.round((present+retard)/snap.length*100) : 0}%`,'══════════════════════════════════════════',''];
+  Object.entries(grouped).forEach(([, g]) => { const gPresent = g.list.filter(a => a.entry.status === 'present').length; lines.push(`── ${g.label.toUpperCase()} (${gPresent}/${g.list.length}) ──`); g.list.forEach(a => { const icon = statusIcon[a.entry.status] || '?'; const noteStr = a.entry.note ? ` [${a.entry.note}]` : ''; lines.push(`  ${icon}  [${a.rank?.match(/^\[([^\]]+)\]/)?.[1]||'—'}] ${a.name}${a.username?' (@'+a.username+')':''}${noteStr}`); }); lines.push(''); });
+  lines.push('══════════════════════════════════════════'); lines.push(`[Généré le ${new Date().toLocaleString('fr-FR')}]`);
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = session.id + '_appel_' + session.date + '.txt'; a.click();
+}
+
+function renderAppelHistorique() {
+  const el = document.getElementById('appelHistoList'); if (!el) return;
+  if (!appelSessions.length) { el.innerHTML = '<div class="empty-state"><div class="empty-text" style="font-size:11px">Aucune session archivée</div></div>'; return; }
+  el.innerHTML = [...appelSessions].reverse().map(s => {
+    const snap = s.snapshot || [];
+    const p=snap.filter(a=>a.entry.status==='present').length, ab=snap.filter(a=>a.entry.status==='absent').length, r=snap.filter(a=>a.entry.status==='retard').length, nc=snap.filter(a=>a.entry.status==='nc').length;
+    const pct = snap.length ? Math.round((p+r)/snap.length*100) : 0;
+    return `<div class="appel-histo-card">
+      <div class="appel-histo-info"><div class="appel-histo-title">${s.title}</div><div class="appel-histo-meta">${s.date} — ${s.responsable} — ${s.type} — ${snap.length} agents</div>
+      <div class="appel-histo-badges"><span class="appel-badge appel-badge--p">✓ ${p} présents</span><span class="appel-badge appel-badge--r">⏱ ${r} retards</span><span class="appel-badge appel-badge--a">✕ ${ab} absents</span>${nc ? `<span class="appel-badge appel-badge--nc">? ${nc} N/R</span>` : ''}<span class="appel-badge" style="border-color:var(--accent);color:var(--accent)">${pct}% présence</span></div></div>
+      <div style="display:flex;gap:6px"><button class="btn btn-xs btn-ghost" data-reexport-appel="${s._id}">⬇ Export</button>${isAuthenticated ? `<button class="btn btn-xs btn-danger" data-del-appel="${s._id}">✕</button>` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+SCPIntranet.initTabs('.nav-tab','view-');
+SCPIntranet.initModalClose();
+SCPIntranet.fillSelect('rType', SCPIntranet.RAPPORT_TYPES);
+SCPIntranet.fillSelect('rSev',  SCPIntranet.RAPPORT_SEV);
+renderLRC();
+updateStats();
+SCPIntranet.addHistory('Intranet Sécurité chargé.');
+initApp();
+</script>
+</body>
+</html>
