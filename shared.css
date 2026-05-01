@@ -1,0 +1,36 @@
+/* shared.css — Site-15 Shared Styles */
+/* Import this file in all sub-pages for consistent theming */
+
+:root {
+  --bg: #06080a;
+  --surface: #0a0d10;
+  --surface2: #0e1215;
+  --border: #161c22;
+  --border2: #1e2830;
+  --accent: #00d4ff;
+  --accent2: #0099bb;
+  --accent-dim: rgba(0,212,255,0.12);
+  --danger: #ff3b3b;
+  --safe: #00e676;
+  --euclid: #ff9800;
+  --keter: #ff3b3b;
+  --thaumiel: #b388ff;
+  --text: #8ba0b0;
+  --text-dim: #3d5060;
+  --white: #e8eef2;
+  --teal: #00bfa5;
+  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Rajdhani', sans-serif;
+  --font-body: 'IBM Plex Mono', monospace;
+}
+
+.clearance-1 { color: var(--safe); }
+.clearance-2 { color: var(--euclid); }
+.clearance-3 { color: var(--keter); }
+.clearance-4 { color: var(--thaumiel); }
+.clearance-5 { color: var(--accent); }
+
+.class-safe { color: var(--safe); border-color: rgba(0,230,118,0.4); }
+.class-euclid { color: var(--euclid); border-color: rgba(255,152,0,0.4); }
+.class-keter { color: var(--keter); border-color: rgba(255,59,59,0.4); }
+.class-thaumiel { color: var(--thaumiel); border-color: rgba(179,136,255,0.4); }

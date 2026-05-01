@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITE-15 — Fondation SCP | Roleplay Roblox</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@300;400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="shared.css" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #06080a;
+  --surface: #0a0d10;
+  --surface2: #0e1215;
+  --border: #161c22;
+  --border2: #1e2830;
+  --accent: #00d4ff;
+  --accent2: #0099bb;
+  --accent-dim: rgba(0,212,255,0.12);
+  --danger: #ff3b3b;
+  --safe: #00e676;
+  --euclid: #ff9800;
+  --keter: #ff3b3b;
+  --thaumiel: #b388ff;
+  --text: #8ba0b0;
+  --text-dim: #3d5060;
+  --white: #e8eef2;
+  --teal: #00bfa5;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  cursor: crosshair;
+  overflow-x: hidden;
+}
+
+/* SCANLINES */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 3px,
+    rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ANIMATED HEX GRID BG */
+.hex-bg {
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104' viewBox='0 0 60 104'%3E%3Cpath d='M30 2 L58 18 L58 50 L30 66 L2 50 L2 18 Z' fill='none' stroke='rgba(0,212,255,0.025)' stroke-width='1'/%3E%3Cpath d='M30 38 L58 54 L58 86 L30 102 L2 86 L2 54 Z' fill='none' stroke='rgba(0,212,255,0.025)' stroke-width='1'/%3E%3Cpath d='M60 2 L88 18 L88 50 L60 66 L32 50 L32 18 Z' fill='none' stroke='rgba(0,212,255,0.025)' stroke-width='1'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+  animation: hexDrift 40s linear infinite;
+}
+@keyframes hexDrift {
+  from { background-position: 0 0; }
+  to { background-position: 60px 104px; }
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48px;
+  height: 60px;
+  background: rgba(6,8,10,0.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+}
+.nav-logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nav-logo-emblem {
+  width: 28px; height: 28px;
+  border: 1px solid var(--accent);
+  transform: rotate(45deg);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-logo-emblem span {
+  transform: rotate(-45deg);
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.nav-links {
+  display: flex;
+  gap: 36px;
+  list-style: none;
+}
+.nav-links a {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.2s;
+  position: relative;
+}
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0; right: 0;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+.nav-links a:hover { color: var(--accent); }
+.nav-links a:hover::after { transform: scaleX(1); }
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.nav-alert {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--safe);
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid rgba(0,230,118,0.3);
+}
+.alert-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--safe);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.nav-clearance {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+.nav-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 8px 20px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  transition: all 0.2s;
+  cursor: pointer;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+.nav-btn:hover {
+  background: #33ddff;
+  box-shadow: 0 0 20px rgba(0,212,255,0.4);
+}
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  position: relative;
+  padding: 80px 0 0;
+  overflow: hidden;
+}
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; text-align: center; }
+  .hero-visual { display: none; }
+}
+.hero-content {
+  padding: 80px 48px 80px;
+  position: relative;
+  z-index: 2;
+}
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: fadeUp 0.8s ease both;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 40px; height: 1px;
+  background: var(--accent);
+}
+.hero-tag {
+  border: 1px solid rgba(0,212,255,0.3);
+  padding: 4px 14px;
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.25em;
+}
+.hero-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(64px, 9vw, 110px);
+  font-weight: 700;
+  line-height: 0.9;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  animation: fadeUp 0.8s ease 0.1s both;
+}
+.hero-title .accent { color: var(--accent); }
+.hero-title .num {
+  display: block;
+  font-size: 0.45em;
+  font-weight: 300;
+  color: var(--text-dim);
+  letter-spacing: 0.4em;
+  margin-bottom: 4px;
+}
+.hero-subtitle {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 36px;
+  animation: fadeUp 0.8s ease 0.2s both;
+}
+.hero-brief {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.9;
+  max-width: 480px;
+  margin-bottom: 48px;
+  padding: 20px 24px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  position: relative;
+  animation: fadeUp 0.8s ease 0.3s both;
+}
+.hero-brief::before {
+  content: '> BRIEFING // SITE-15';
+  display: block;
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.2em;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.hero-corner {
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: var(--accent);
+  border-style: solid;
+  opacity: 0.5;
+}
+.hero-corner.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.hero-corner.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  animation: fadeUp 0.8s ease 0.4s both;
+}
+.btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  padding: 14px 28px;
+  border: 1px solid;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+}
+.btn-primary:hover {
+  background: #33ddff;
+  box-shadow: 0 0 40px rgba(0,212,255,0.3);
+  transform: translateY(-2px);
+}
+.btn-secondary {
+  background: transparent;
+  border-color: var(--border2);
+  color: var(--text);
+}
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* HERO VISUAL */
+.hero-visual {
+  height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.site-diagram {
+  position: relative;
+  width: 420px; height: 420px;
+}
+.diagram-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: rotateSlow linear infinite;
+}
+.ring-1 {
+  width: 420px; height: 420px;
+  border-color: rgba(0,212,255,0.08);
+  animation-duration: 60s;
+}
+.ring-2 {
+  width: 300px; height: 300px;
+  border-color: rgba(0,212,255,0.12);
+  animation-duration: 40s;
+  animation-direction: reverse;
+}
+.ring-3 {
+  width: 180px; height: 180px;
+  border-color: rgba(0,212,255,0.2);
+  animation-duration: 25s;
+}
+@keyframes rotateSlow { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+.diagram-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px; height: 100px;
+  border: 2px solid var(--accent);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,212,255,0.05);
+  animation: glow 3s ease-in-out infinite;
+}
+@keyframes glow {
+  0%,100% { box-shadow: 0 0 20px rgba(0,212,255,0.2); }
+  50% { box-shadow: 0 0 60px rgba(0,212,255,0.5); }
+}
+.diagram-center span {
+  font-family: 'Space Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+  transform: rotate(0deg);
+  letter-spacing: -0.02em;
+}
+.diagram-node {
+  position: absolute;
+  width: 48px; height: 48px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  transform: translate(-50%, -50%);
+}
+.node-safe { border-color: rgba(0,230,118,0.4); color: var(--safe); }
+.node-euclid { border-color: rgba(255,152,0,0.4); color: var(--euclid); }
+.node-keter { border-color: rgba(255,59,59,0.4); color: var(--keter); }
+.node-thaumiel { border-color: rgba(179,136,255,0.4); color: var(--thaumiel); }
+/* positions */
+.n1 { top: 10%; left: 50%; }
+.n2 { top: 50%; left: 90%; }
+.n3 { top: 90%; left: 50%; }
+.n4 { top: 50%; left: 10%; }
+.n5 { top: 25%; left: 80%; }
+.n6 { top: 75%; left: 80%; }
+.n7 { top: 75%; left: 20%; }
+.n8 { top: 25%; left: 20%; }
+.diagram-line {
+  position: absolute;
+  background: rgba(0,212,255,0.1);
+  top: 50%; left: 50%;
+  height: 1px;
+  transform-origin: left center;
+}
+
+/* SCROLL HINT */
+.scroll-hint {
+  position: absolute;
+  bottom: 48px; left: 48px;
+  display: flex; align-items: center; gap: 12px;
+  animation: fadeUp 1s ease 1s both;
+}
+.scroll-hint span {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.25em;
+  color: var(--text-dim); text-transform: uppercase;
+}
+.scroll-line {
+  width: 40px; height: 1px;
+  background: linear-gradient(to right, var(--accent), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse { 0%,100%{opacity:0.3; width:20px} 50%{opacity:1; width:40px} }
+
+/* SECTIONS */
+section { padding: 100px 48px; position: relative; z-index: 1; }
+.container { max-width: 1240px; margin: 0 auto; }
+.section-header { margin-bottom: 64px; }
+.section-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.35em; color: var(--accent);
+  text-transform: uppercase; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-tag::before { content: ''; width: 30px; height: 1px; background: var(--accent); }
+.section-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(40px, 5.5vw, 72px);
+  font-weight: 700;
+  color: var(--white);
+  text-transform: uppercase;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+}
+
+/* DIVIDER */
+.divider {
+  display: flex; align-items: center; gap: 20px;
+  padding: 0 48px;
+  max-width: 1240px; margin: 0 auto;
+}
+.div-line { flex: 1; height: 1px; background: var(--border); }
+.div-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.35em; color: var(--text-dim);
+  text-transform: uppercase; white-space: nowrap;
+}
+.div-diamond {
+  width: 6px; height: 6px;
+  background: var(--border2);
+  transform: rotate(45deg);
+}
+
+/* SCP FILES */
+.files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2px;
+}
+.file-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.file-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.file-card.safe::before { background: var(--safe); }
+.file-card.euclid::before { background: var(--euclid); }
+.file-card.keter::before { background: var(--keter); }
+.file-card.thaumiel::before { background: var(--thaumiel); }
+.file-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(0,212,255,0.02), transparent 60%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.file-card:hover { border-color: rgba(0,212,255,0.2); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+.file-card:hover::after { opacity: 1; }
+.file-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 20px;
+}
+.file-class {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+  padding: 4px 10px; border: 1px solid; display: inline-block;
+}
+.file-card.safe .file-class { color: var(--safe); border-color: rgba(0,230,118,0.4); }
+.file-card.euclid .file-class { color: var(--euclid); border-color: rgba(255,152,0,0.4); }
+.file-card.keter .file-class { color: var(--keter); border-color: rgba(255,59,59,0.4); }
+.file-card.thaumiel .file-class { color: var(--thaumiel); border-color: rgba(179,136,255,0.4); }
+.file-clearance {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.2em; color: var(--text-dim);
+}
+.file-number {
+  font-family: 'Space Mono', monospace;
+  font-size: 32px; font-weight: 700; color: var(--white);
+  letter-spacing: -0.02em; margin-bottom: 6px;
+}
+.file-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px; font-weight: 600; color: var(--white);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px;
+}
+.file-desc {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; color: var(--text-dim); line-height: 1.75;
+}
+.file-redacted {
+  background: var(--text-dim); color: transparent; padding: 0 3px;
+  font-size: 11px; user-select: none;
+}
+.file-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.file-status {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+}
+.status-contained { color: var(--safe); }
+.status-monitoring { color: var(--euclid); }
+.status-breach { color: var(--keter); animation: pulse 1s infinite; }
+.status-active { color: var(--thaumiel); }
+.file-read {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.15em; color: var(--accent);
+  text-decoration: none; text-transform: uppercase;
+  transition: letter-spacing 0.2s;
+}
+.file-read:hover { letter-spacing: 0.25em; }
+
+/* FACTIONS */
+.factions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 2px;
+}
+.faction-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 32px;
+  position: relative;
+  transition: all 0.3s;
+}
+.faction-card:hover { border-color: rgba(0,212,255,0.2); }
+.faction-number {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.2em;
+  margin-bottom: 16px;
+}
+.faction-icon-wrap {
+  width: 48px; height: 48px;
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  font-size: 22px;
+  clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  background: var(--surface2);
+}
+.faction-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 24px; font-weight: 700;
+  color: var(--white); text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.faction-abbr {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.2em; color: var(--accent);
+  margin-bottom: 14px; text-transform: uppercase;
+}
+.faction-desc {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; color: var(--text-dim); line-height: 1.75;
+}
+.faction-slots {
+  display: flex; gap: 4px; margin-top: 20px; flex-wrap: wrap;
+}
+.slot {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 3px 8px; border: 1px solid var(--border2); color: var(--text-dim);
+}
+.slot.open { border-color: rgba(0,230,118,0.3); color: var(--safe); }
+.slot.limited { border-color: rgba(255,152,0,0.3); color: var(--euclid); }
+.slot.full { border-color: rgba(255,59,59,0.3); color: var(--keter); }
+
+/* INTRANET */
+.intranet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-bottom: 2px;
+}
+@media (max-width: 900px) { .intranet-grid { grid-template-columns: 1fr; } }
+.intranet-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 28px;
+  text-decoration: none;
+  display: flex; flex-direction: column;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.intranet-card:hover {
+  border-color: rgba(0,212,255,0.3);
+  transform: translateY(-2px);
+}
+.intranet-card:hover .ic-arrow { transform: translateX(4px); color: var(--accent); }
+.ic-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.ic-lvl {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 3px 10px; border: 1px solid;
+}
+.lvl-1 { color: var(--safe); border-color: rgba(0,230,118,0.35); }
+.lvl-2 { color: var(--euclid); border-color: rgba(255,152,0,0.35); }
+.lvl-3 { color: var(--keter); border-color: rgba(255,59,59,0.35); }
+.lvl-4 { color: var(--thaumiel); border-color: rgba(179,136,255,0.35); }
+.lvl-5 { color: var(--accent); border-color: rgba(0,212,255,0.35); }
+.ic-status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+}
+.ic-status-dot.online { background: var(--safe); animation: pulse 2s infinite; }
+.ic-status-dot.offline { background: var(--keter); }
+.ic-status-dot.warn { background: var(--euclid); animation: pulse 1.5s infinite; }
+.ic-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 26px; font-weight: 700; color: var(--white);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
+}
+.ic-code {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: var(--text-dim); letter-spacing: 0.2em;
+  margin-bottom: 14px;
+}
+.ic-desc {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; color: var(--text-dim); line-height: 1.75; flex: 1;
+}
+.ic-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border);
+}
+.ic-status-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+}
+.ic-status-text.online { color: var(--safe); }
+.ic-status-text.offline { color: var(--keter); }
+.ic-status-text.warn { color: var(--euclid); }
+.ic-arrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--text-dim);
+  transition: all 0.2s;
+}
+.intranet-wide {
+  grid-column: span 3;
+  flex-direction: row; align-items: center; gap: 40px;
+}
+@media (max-width: 900px) { .intranet-wide { grid-column: span 1; flex-direction: column; } }
+
+/* RULES */
+.rules-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+@media (max-width: 800px) { .rules-layout { grid-template-columns: 1fr; } }
+.rules-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 36px;
+}
+.rules-panel-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 28px;
+  display: flex; align-items: center; gap: 12px;
+}
+.rules-panel-title::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
+.rule-item {
+  display: flex; gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rule-item:last-child { border-bottom: none; }
+.rule-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--accent);
+  min-width: 28px; padding-top: 1px;
+}
+.rule-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; color: var(--text); line-height: 1.65;
+}
+.terminal-panel {
+  background: #050608;
+  border: 1px solid var(--border);
+  padding: 28px;
+  font-family: 'Space Mono', monospace;
+}
+.term-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.term-dot { width: 8px; height: 8px; border-radius: 50%; }
+.term-dot.r { background: var(--keter); }
+.term-dot.y { background: var(--euclid); }
+.term-dot.g { background: var(--safe); }
+.term-title {
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.2em; margin-left: 8px;
+}
+.t { font-size: 11px; line-height: 2.2; display: block; }
+.t .p { color: var(--accent); }
+.t .ok { color: var(--safe); }
+.t .warn { color: var(--euclid); }
+.t .err { color: var(--keter); }
+.t .dim { color: var(--text-dim); }
+.cursor {
+  display: inline-block; width: 7px; height: 13px;
+  background: var(--accent); vertical-align: middle;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* SERVER STATUS */
+.status-section {
+  padding: 60px 48px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.status-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+.status-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.3em; color: var(--accent);
+  text-transform: uppercase; display: flex; align-items: center; gap: 12px;
+}
+.status-title::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+.status-live {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.2em; color: var(--safe);
+  border: 1px solid rgba(0,230,118,0.3); padding: 5px 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.status-main {
+  display: grid; grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 32px;
+  padding: 24px 28px;
+  background: var(--surface); border: 1px solid var(--border);
+  margin-bottom: 2px; position: relative;
+}
+.status-main::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--safe);
+}
+.status-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 24px; font-weight: 700; color: var(--white);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.status-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: var(--text-dim); letter-spacing: 0.15em; margin-top: 4px;
+}
+.sbar-wrap { display: flex; flex-direction: column; gap: 8px; }
+.sbar-label {
+  display: flex; justify-content: space-between;
+  font-family: 'Space Mono', monospace; font-size: 9px;
+  color: var(--text-dim); letter-spacing: 0.1em;
+}
+.sbar-track { height: 3px; background: var(--border2); position: relative; }
+.sbar-fill {
+  height: 100%; background: var(--accent); transition: width 1s ease;
+}
+.sbadge {
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  letter-spacing: 0.15em; padding: 6px 16px; border: 1px solid;
+  text-transform: uppercase; white-space: nowrap;
+}
+.sbadge.ok { color: var(--safe); border-color: rgba(0,230,118,0.4); background: rgba(0,230,118,0.05); }
+.sbadge.warn { color: var(--euclid); border-color: rgba(255,152,0,0.4); }
+.sbadge.crit { color: var(--keter); border-color: rgba(255,59,59,0.4); }
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 2px; margin-bottom: 2px;
+}
+@media (max-width: 800px) { .metrics-grid { grid-template-columns: repeat(2,1fr); } }
+.metric {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 20px 22px;
+}
+.metric-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 0.2em; color: var(--text-dim);
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.metric-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 32px; color: var(--white); line-height: 1;
+}
+.metric-val .unit { font-size: 12px; color: var(--text-dim); margin-left: 3px; }
+.metric-trend {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--text-dim); margin-top: 6px; letter-spacing: 0.1em;
+}
+.metric-trend.up { color: var(--safe); }
+.metric-trend.down { color: var(--keter); }
+
+/* CTA */
+.cta {
+  padding: 140px 48px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.cta-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(0,212,255,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-frame {
+  position: absolute; inset: 60px;
+  border: 1px solid var(--border);
+  pointer-events: none;
+}
+.cta-corner {
+  position: absolute; width: 16px; height: 16px;
+  border-color: var(--accent); border-style: solid;
+}
+.cta-corner.tl { top: 60px; left: 60px; border-width: 2px 0 0 2px; }
+.cta-corner.tr { top: 60px; right: 60px; border-width: 2px 2px 0 0; }
+.cta-corner.bl { bottom: 60px; left: 60px; border-width: 0 0 2px 2px; }
+.cta-corner.br { bottom: 60px; right: 60px; border-width: 0 2px 2px 0; }
+.cta-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.4em; color: var(--accent);
+  text-transform: uppercase; margin-bottom: 20px; display: block;
+}
+.cta-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(52px, 8vw, 100px);
+  font-weight: 700; color: var(--white);
+  text-transform: uppercase; line-height: 0.9;
+  letter-spacing: -0.02em; margin-bottom: 12px;
+}
+.cta-sub {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; color: var(--text-dim);
+  margin-bottom: 48px; max-width: 420px; margin-left: auto; margin-right: auto;
+}
+.cta-actions {
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+}
+
+/* FOOTER */
+footer {
+  padding: 40px 48px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 20px;
+  position: relative; z-index: 1;
+}
+.footer-left {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; color: var(--text-dim); letter-spacing: 0.15em;
+}
+.footer-mid {
+  display: flex; gap: 32px;
+}
+.footer-mid a {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim);
+  text-decoration: none; text-transform: uppercase;
+  transition: color 0.2s;
+}
+.footer-mid a:hover { color: var(--accent); }
+.footer-right {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--text-dim);
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ALERT BANNER */
+.alert-banner {
+  background: rgba(255,59,59,0.05);
+  border: 1px solid rgba(255,59,59,0.2);
+  border-left: 3px solid var(--keter);
+  padding: 14px 24px;
+  margin-top: 2px;
+  display: flex; align-items: center; gap: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px; color: var(--text);
+}
+.alert-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--keter); letter-spacing: 0.2em;
+  white-space: nowrap;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  section { padding: 70px 20px; }
+  .hero-content { padding: 60px 20px; }
+  .divider { padding: 0 20px; }
+  footer { padding: 30px 20px; flex-direction: column; text-align: center; }
+  .footer-mid { flex-wrap: wrap; justify-content: center; }
+  .cta { padding: 100px 20px; }
+  .cta-frame, .cta-corner { display: none; }
+  .status-section { padding: 50px 20px; }
+  .status-main { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="hex-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-emblem"><span>15</span></div>
+    SITE-15 // FONDATION SCP
+  </div>
+  <ul class="nav-links">
+    <li><a href="#fichiers">Fichiers SCP</a></li>
+    <li><a href="#factions">Factions</a></li>
+    <li><a href="#intranet">Intranet</a></li>
+    <li><a href="#regles">Règlements</a></li>
+    <li><a href="#statut">Statut</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="nav-alert">
+      <div class="alert-dot"></div>
+      NIVEAU DE MENACE : NOMINAL
+    </div>
+    <span class="nav-clearance">NHC-4 REQUIS</span>
+    <a href="#rejoindre" class="nav-btn">Rejoindre</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <div class="hero-tag">CLASSIFIED // NIVEAU 4</div>
+      FONDATION SCP — INSTALLATION SÉCURISÉE
+    </div>
+    <h1 class="hero-title">
+      <span class="num">INSTALLATION</span>
+      SITE<span class="accent">-15</span>
+    </h1>
+    <p class="hero-subtitle">Sécuriser · Contenir · Protéger</p>
+    <div class="hero-brief">
+      <div class="hero-corner tl"></div>
+      <div class="hero-corner br"></div>
+      Le Site-15 est un complexe souterrain de recherche et de confinement de niveau maximal, 
+      spécialisé dans les entités à propriétés cognitivo-perceptuelles anormales. 
+      Toute activité au sein de cette installation est soumise aux protocoles O5 et aux 
+      directives du Conseil d'Administration.
+    </div>
+    <div class="hero-actions">
+      <a href="#rejoindre" class="btn btn-primary">
+        → Rejoindre le serveur
+      </a>
+      <a href="#fichiers" class="btn btn-secondary">
+        Consulter les fichiers
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="site-diagram">
+      <div class="diagram-ring ring-1"></div>
+      <div class="diagram-ring ring-2"></div>
+      <div class="diagram-ring ring-3"></div>
+
+      <div class="diagram-node node-safe n1">SAFE</div>
+      <div class="diagram-node node-euclid n2">EUC</div>
+      <div class="diagram-node node-keter n3">KTR</div>
+      <div class="diagram-node node-thaumiel n4">THM</div>
+      <div class="diagram-node n5" style="font-size:8px;color:var(--text-dim)">LAB A</div>
+      <div class="diagram-node n6" style="font-size:8px;color:var(--text-dim)">LAB B</div>
+      <div class="diagram-node n7" style="font-size:8px;color:var(--text-dim)">MED</div>
+      <div class="diagram-node n8" style="font-size:8px;color:var(--text-dim)">ADM</div>
+
+      <div class="diagram-center"><span>S15</span></div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Défiler</span>
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="divider">
+  <div class="div-line"></div>
+  <div class="div-diamond"></div>
+  <span class="div-label">Dossiers SCP — Accès restreint NHC-2+</span>
+  <div class="div-diamond"></div>
+  <div class="div-line"></div>
+</div>
+
+<!-- FICHIERS SCP -->
+<section id="fichiers">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-tag">Entités Confinées</p>
+      <h2 class="section-title">FICHIERS SCP<br><span style="color:var(--text-dim);font-weight:300;">SITE-15</span></h2>
+    </div>
+
+    <div class="files-grid">
+
+      <div class="file-card safe reveal">
+        <div class="file-header">
+          <span class="file-class">SAFE</span>
+          <span class="file-clearance">NHC-2</span>
+        </div>
+        <div class="file-number">SCP-914</div>
+        <div class="file-name">La Grande Machine</div>
+        <p class="file-desc">Appareil mécanique complexe de <span class="file-redacted">████</span> mètres de diamètre. 
+        Capable de transformer tout objet introduit en un objet similaire selon cinq réglages distincts. 
+        Mécanisme de transformation <span class="file-redacted">████████</span> inconnu.</p>
+        <div class="file-footer">
+          <span class="file-status status-contained">● Contenu</span>
+          <a href="#" class="file-read">Lire →</a>
+        </div>
+      </div>
+
+      <div class="file-card euclid reveal">
+        <div class="file-header">
+          <span class="file-class">EUCLIDE</span>
+          <span class="file-clearance">NHC-3</span>
+        </div>
+        <div class="file-number">SCP-1048</div>
+        <div class="file-name">L'Ours Constructeur</div>
+        <p class="file-desc">Ours en peluche de taille ordinaire aux comportements jugés anormaux. 
+        Capable de <span class="file-redacted">████</span> et de créer des copies de lui-même à partir 
+        de matériaux <span class="file-redacted">████████████</span>. Niveau de danger variable.</p>
+        <div class="file-footer">
+          <span class="file-status status-monitoring">◉ Surveillance active</span>
+          <a href="#" class="file-read">Lire →</a>
+        </div>
+      </div>
+
+      <div class="file-card keter reveal">
+        <div class="file-header">
+          <span class="file-class">KETER</span>
+          <span class="file-clearance">NHC-4</span>
+        </div>
+        <div class="file-number">SCP-096</div>
+        <div class="file-name">Le Timide</div>
+        <p class="file-desc">Entité humanoïde mesurant approximativement 2,38 m. 
+        La visualisation de son visage, directe ou indirecte, déclenche un état d'agitation 
+        extrême suivi d'une <span class="file-redacted">██████████████</span> irréversible.</p>
+        <div class="file-footer">
+          <span class="file-status status-contained">● Contenu</span>
+          <a href="#" class="file-read">Lire →</a>
+        </div>
+      </div>
+
+      <div class="file-card keter reveal">
+        <div class="file-header">
+          <span class="file-class">KETER</span>
+          <span class="file-clearance">NHC-4</span>
+        </div>
+        <div class="file-number">SCP-173</div>
+        <div class="file-name">La Sculpture</div>
+        <p class="file-desc">Sculpture en béton armé animée. Se déplace à vitesse supra-humaine 
+        lorsqu'elle n'est pas observée directement. Protocole de contact visuel permanent 
+        obligatoire lors de toute entrée en zone de confinement.</p>
+        <div class="file-footer">
+          <span class="file-status status-contained">● Contenu</span>
+          <a href="#" class="file-read">Lire →</a>
+        </div>
+      </div>
+
+      <div class="file-card euclid reveal">
+        <div class="file-header">
+          <span class="file-class">EUCLIDE</span>
+          <span class="file-clearance">NHC-2</span>
+        </div>
+        <div class="file-number">SCP-049</div>
+        <div class="file-name">Le Médecin de la Peste</div>
+        <p class="file-desc">Entité humanoïde revêtue des habits traditionnels d'un médecin 
+        de la peste médiévale. Prétend détecter et traiter une affliction désignée 
+        <span class="file-redacted">████████</span> chez les individus.</p>
+        <div class="file-footer">
+          <span class="file-status status-monitoring">◉ Sous observation</span>
+          <a href="#" class="file-read">Lire →</a>
+        </div>
+      </div>
+
+      <div class="file-card thaumiel reveal">
+        <div class="file-header">
+          <span class="file-class">THAUMIEL</span>
+          <span class="file-clearance">NHC-5</span>
+        </div>
+        <div class="file-number">SCP-<span class="file-redacted">████</span></div>
+        <div class="file-name"><span class="file-redacted">███████████████</span></div>
+        <p class="file-desc">Fichier classifié niveau Conseil O5. 
+        Accès restreint aux membres du <span class="file-redacted">████████████</span>. 
+        Toute tentative d'accès non autorisé déclenchera le <span class="file-redacted">████████████████</span>.</p>
+        <div class="file-footer">
+          <span class="file-status status-active">◆ Actif</span>
+          <a href="#" class="file-read">Accès refusé →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="alert-banner reveal">
+      <span class="alert-label">⚠ AVIS</span>
+      Les fichiers présentés sont des extraits d'aperçu. Accès complet disponible via l'intranet de Site-15 selon niveau d'habilitation. Toute tentative de brèche sera consignée et sanctionnée conformément aux protocoles disciplinaires.
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="divider">
+  <div class="div-line"></div>
+  <div class="div-diamond"></div>
+  <span class="div-label">Factions Opérationnelles</span>
+  <div class="div-diamond"></div>
+  <div class="div-line"></div>
+</div>
+
+<!-- FACTIONS -->
+<section id="factions">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-tag">Groupes & Divisions</p>
+      <h2 class="section-title">LES FACTIONS<br><span style="color:var(--text-dim);font-weight:300;">DU SITE-15</span></h2>
+    </div>
+
+    <div class="factions-grid">
+
+      <div class="faction-card reveal">
+        <div class="faction-number">01 // FONDATION</div>
+        <div class="faction-icon-wrap">🔬</div>
+        <div class="faction-name">Chercheurs</div>
+        <div class="faction-abbr">CHR // Recherche Scientifique</div>
+        <p class="faction-desc">Scientifiques et techniciens chargés de l'étude et de la documentation des anomalies. 
+        Disposent d'un accès prioritaire aux SCP pour fins d'expérimentation encadrée.</p>
+        <div class="faction-slots">
+          <span class="slot open">Recrutement ouvert</span>
+          <span class="slot">NHC 1-3</span>
+        </div>
+      </div>
+
+      <div class="faction-card reveal">
+        <div class="faction-number">02 // FONDATION</div>
+        <div class="faction-icon-wrap">🪖</div>
+        <div class="faction-name">FIM</div>
+        <div class="faction-abbr">FIM // Force d'Intervention Mobile</div>
+        <p class="faction-desc">Unités tactiques d'élite déployées pour la capture, le confinement et la neutralisation 
+        des anomalies à risque élevé. Accès autorisé à l'armurerie centrale.</p>
+        <div class="faction-slots">
+          <span class="slot limited">Places limitées</span>
+          <span class="slot">NHC 2-4</span>
+        </div>
+      </div>
+
+      <div class="faction-card reveal">
+        <div class="faction-number">03 // FONDATION</div>
+        <div class="faction-icon-wrap">🏥</div>
+        <div class="faction-name">Corps Médical</div>
+        <div class="faction-abbr">MED // Département Médical</div>
+        <p class="faction-desc">Médecins, chirurgiens et infirmiers assurant la santé du personnel et participant 
+        aux tests biologiques supervisés. Autorisés à pratiquer sur sujets-D.</p>
+        <div class="faction-slots">
+          <span class="slot open">Recrutement ouvert</span>
+          <span class="slot">NHC 1-2</span>
+        </div>
+      </div>
+
+      <div class="faction-card reveal">
+        <div class="faction-number">04 // FONDATION</div>
+        <div class="faction-icon-wrap">🔐</div>
+        <div class="faction-name">Sécurité</div>
+        <div class="faction-abbr">SEC // Département de Sécurité</div>
+        <p class="faction-desc">Agents chargés du maintien de l'ordre interne, de la surveillance des accès 
+        et de la gestion des protocoles d'urgence lors de brèches de confinement.</p>
+        <div class="faction-slots">
+          <span class="slot open">Recrutement ouvert</span>
+          <span class="slot">NHC 1-3</span>
+        </div>
+      </div>
+
+      <div class="faction-card reveal">
+        <div class="faction-number">05 // FONDATION</div>
+        <div class="faction-icon-wrap">⚙️</div>
+        <div class="faction-name">Techniciens</div>
+        <div class="faction-abbr">TEC // Département Technique</div>
+        <p class="faction-desc">Personnel technique assurant le bon fonctionnement des systèmes de confinement, 
+        des installations électriques, HVAC et des protocoles de verrouillage d'urgence.</p>
+        <div class="faction-slots">
+          <span class="slot open">Recrutement ouvert</span>
+          <span class="slot">NHC 1-2</span>
+        </div>
+      </div>
+
+      <div class="faction-card reveal">
+        <div class="faction-number">06 // ANTAGONISTE</div>
+        <div class="faction-icon-wrap" style="font-size:20px;">☣</div>
+        <div class="faction-name">Chaos Insurgency</div>
+        <div class="faction-abbr">CI // Organisation Hostile</div>
+        <p class="faction-desc">Faction dissidente cherchant à s'emparer des SCP pour ses propres fins. 
+        Considérée comme ennemie de la Fondation. Infiltration signalée au NHC-3+.</p>
+        <div class="faction-slots">
+          <span class="slot full">Accès restreint</span>
+          <span class="slot">NHC 3+</span>
+        </div>
+      </div>
+
+      <div class="faction-card reveal">
+        <div class="faction-number">07 // ANTAGONISTE</div>
+        <div class="faction-icon-wrap" style="font-size:20px;">⛧</div>
+        <div class="faction-name">Serpent's Hand</div>
+        <div class="faction-abbr">SH // Organisation Hostile</div>
+        <p class="faction-desc">Organisation prônant la libération des SCP et leur intégration dans la société. 
+        S'oppose activement aux protocoles de confinement de la Fondation.</p>
+        <div class="faction-slots">
+          <span class="slot full">Accès restreint</span>
+          <span class="slot">NHC 3+</span>
+        </div>
+      </div>
+
+      <div class="faction-card reveal">
+        <div class="faction-number">08 // SPÉCIAL</div>
+        <div class="faction-icon-wrap">👔</div>
+        <div class="faction-name">Administration</div>
+        <div class="faction-abbr">ADM // Direction du Site</div>
+        <p class="faction-desc">Direction opérationnelle du Site-15. Comprend le Directeur de Site, 
+        les chefs de département et le personnel O5 en déplacement. Autorisation suprême.</p>
+        <div class="faction-slots">
+          <span class="slot full">Sur invitation</span>
+          <span class="slot">NHC 4-5</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="divider">
+  <div class="div-line"></div>
+  <div class="div-diamond"></div>
+  <span class="div-label">Intranet — Portail Interne</span>
+  <div class="div-diamond"></div>
+  <div class="div-line"></div>
+</div>
+
+<!-- INTRANET -->
+<section id="intranet">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-tag">Portail Interne</p>
+      <h2 class="section-title">INTRANET<br><span style="color:var(--text-dim);font-weight:300;">SITE-15</span></h2>
+    </div>
+
+    <div class="intranet-grid">
+
+      <a href="#" class="intranet-card reveal">
+        <div class="ic-top">
+          <span class="ic-lvl lvl-2">NHC-2</span>
+          <div class="ic-status-dot online"></div>
+        </div>
+        <div class="ic-name">Fichiers SCP</div>
+        <div class="ic-code">MODULE :: SCP-DATABASE-V4</div>
+        <p class="ic-desc">Base de données complète des entités confinées au Site-15. 
+        Rapports d'incident, procédures de confinement et journaux d'expérimentation.</p>
+        <div class="ic-footer">
+          <span class="ic-status-text online">En ligne</span>
+          <span class="ic-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="#" class="intranet-card reveal">
+        <div class="ic-top">
+          <span class="ic-lvl lvl-1">NHC-1</span>
+          <div class="ic-status-dot online"></div>
+        </div>
+        <div class="ic-name">Protocoles</div>
+        <div class="ic-code">MODULE :: PROTOCOL-CENTRAL</div>
+        <p class="ic-desc">Documentation officielle des procédures opérationnelles standard. 
+        Protocoles d'urgence, de brèche et d'évacuation.</p>
+        <div class="ic-footer">
+          <span class="ic-status-text online">En ligne</span>
+          <span class="ic-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="#" class="intranet-card reveal">
+        <div class="ic-top">
+          <span class="ic-lvl lvl-3">NHC-3</span>
+          <div class="ic-status-dot warn"></div>
+        </div>
+        <div class="ic-name">Armurerie</div>
+        <div class="ic-code">MODULE :: WEAPONS-VAULT</div>
+        <p class="ic-desc">Gestion de l'équipement, attribution des armes et enregistrement 
+        des munitions. Accès FIM et Sécurité uniquement.</p>
+        <div class="ic-footer">
+          <span class="ic-status-text warn">Accès restreint</span>
+          <span class="ic-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="#" class="intranet-card reveal">
+        <div class="ic-top">
+          <span class="ic-lvl lvl-1">NHC-1</span>
+          <div class="ic-status-dot online"></div>
+        </div>
+        <div class="ic-name">Infirmerie</div>
+        <div class="ic-code">MODULE :: MEDICAL-CENTRAL</div>
+        <p class="ic-desc">Registres médicaux, demandes de traitement et rapports 
+        d'expérimentation biologique. Département médical.</p>
+        <div class="ic-footer">
+          <span class="ic-status-text online">En ligne</span>
+          <span class="ic-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="#" class="intranet-card reveal">
+        <div class="ic-top">
+          <span class="ic-lvl lvl-2">NHC-2</span>
+          <div class="ic-status-dot online"></div>
+        </div>
+        <div class="ic-name">Rapports</div>
+        <div class="ic-code">MODULE :: INCIDENT-LOG</div>
+        <p class="ic-desc">Journal des incidents, rapports de brèche et comptes rendus 
+        de tests. Soumission et consultation des rapports officiels.</p>
+        <div class="ic-footer">
+          <span class="ic-status-text online">En ligne</span>
+          <span class="ic-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="#" class="intranet-card reveal">
+        <div class="ic-top">
+          <span class="ic-lvl lvl-4">NHC-4</span>
+          <div class="ic-status-dot offline"></div>
+        </div>
+        <div class="ic-name">Archives O5</div>
+        <div class="ic-code">MODULE :: COUNCIL-RESTRICTED</div>
+        <p class="ic-desc">Archives du Conseil O5 et documents classifiés de 
+        niveau maximum. Accès conditionnel soumis à vérification biométrique.</p>
+        <div class="ic-footer">
+          <span class="ic-status-text offline">Hors ligne</span>
+          <span class="ic-arrow">→</span>
+        </div>
+      </a>
+
+      <a href="#" class="intranet-card intranet-wide reveal">
+        <div style="flex:1">
+          <div class="ic-top">
+            <span class="ic-lvl lvl-5">NHC-5</span>
+            <div class="ic-status-dot warn"></div>
+          </div>
+          <div class="ic-name">Terminal Omega</div>
+          <div class="ic-code">MODULE :: OMEGA-TERMINATION-PROTOCOL — ACCÈS CONSEIL UNIQUEMENT</div>
+          <p class="ic-desc">Interface d'activation des protocoles de terminaison Omega. 
+          Usage en cas de scénario XK exclusivement. Nécessite la validation de 3 membres O5 minimum. 
+          <span style="color:var(--keter)">Toute activation non autorisée constitue une infraction de catégorie-Alpha.</span></p>
+        </div>
+        <div class="ic-footer" style="margin-top:0; border-top:none; border-left: 1px solid var(--border); padding-left: 40px; min-width:200px; flex-direction:column; align-items:flex-end;">
+          <span class="ic-status-text warn" style="margin-bottom:8px">En attente</span>
+          <span class="ic-arrow" style="font-size:24px">→</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="divider">
+  <div class="div-line"></div>
+  <div class="div-diamond"></div>
+  <span class="div-label">Règlements & Directives</span>
+  <div class="div-diamond"></div>
+  <div class="div-line"></div>
+</div>
+
+<!-- RÈGLES -->
+<section id="regles">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-tag">Code de conduite</p>
+      <h2 class="section-title">RÈGLEMENTS<br><span style="color:var(--text-dim);font-weight:300;">EN VIGUEUR</span></h2>
+    </div>
+
+    <div class="rules-layout">
+
+      <div class="rules-panel reveal">
+        <div class="rules-panel-title">Règles Générales</div>
+        <div class="rule-item">
+          <span class="rule-num">01</span>
+          <p class="rule-text">Le respect des membres et du staff est obligatoire. Toute forme de harcèlement entraîne un bannissement immédiat.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">02</span>
+          <p class="rule-text">Le RDM (Random Deathmatch) et le RDA (Random Arrest) sont strictement interdits. Toute action doit être justifiée par le roleplay.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">03</span>
+          <p class="rule-text">La communication hors-rôle (OOC) doit rester dans les zones prévues. Pas de OOC en zone de roleplay actif.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">04</span>
+          <p class="rule-text">Le power-gaming et le meta-gaming sont des infractions sanctionnables. Le roleplay doit rester cohérent avec les capacités de votre personnage.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">05</span>
+          <p class="rule-text">Respectez les zones d'accès selon votre niveau d'habilitation. Toute intrusion non autorisée sera considérée comme une infraction roleplay.</p>
+        </div>
+        <div class="rule-item">
+          <span class="rule-num">06</span>
+          <p class="rule-text">Les décisions du staff sont finales en jeu. Les contestations se font uniquement via le système de tickets Discord.</p>
+        </div>
+      </div>
+
+      <div class="terminal-panel reveal">
+        <div class="term-header">
+          <div class="term-dot r"></div>
+          <div class="term-dot y"></div>
+          <div class="term-dot g"></div>
+          <span class="term-title">TERMINAL // SITE-15 SECURE SHELL</span>
+        </div>
+        <span class="t"><span class="p">root@site15:~$</span> <span class="dim">system.status --verbose</span></span>
+        <span class="t"><span class="ok">[OK]</span> <span class="dim">Systèmes de confinement opérationnels</span></span>
+        <span class="t"><span class="ok">[OK]</span> <span class="dim">Protocoles de sécurité actifs</span></span>
+        <span class="t"><span class="warn">[WRN]</span> <span class="dim">SCP-096 — Activité accrue détectée</span></span>
+        <span class="t"><span class="ok">[OK]</span> <span class="dim">Systèmes HVAC nominaux</span></span>
+        <span class="t"><span class="ok">[OK]</span> <span class="dim">Alimentation secteurs A-F stable</span></span>
+        <span class="t"><span class="dim">─────────────────────────────────</span></span>
+        <span class="t"><span class="p">root@site15:~$</span> <span class="dim">alerts --active</span></span>
+        <span class="t"><span class="warn">[!]</span> <span class="dim">Test SCP-049 prévu dans 4h</span></span>
+        <span class="t"><span class="warn">[!]</span> <span class="dim">Recrutement FIM — 3 postes ouverts</span></span>
+        <span class="t"><span class="err">[!!]</span> <span class="dim">Rapport de brèche — Sector-D — En cours d'examen</span></span>
+        <span class="t"><span class="dim">─────────────────────────────────</span></span>
+        <span class="t"><span class="p">root@site15:~$</span> <span class="cursor"></span></span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SERVER STATUS -->
+<div class="status-section" id="statut">
+  <div class="container" style="max-width:1240px">
+    <div class="status-header">
+      <div class="status-title">Statut Opérationnel — Site-15</div>
+      <div style="display:flex;gap:16px;align-items:center">
+        <div class="status-live">
+          <div class="alert-dot"></div>
+          LIVE
+        </div>
+        <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.1em">
+          MAJ: <span id="updateTime">—</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="status-main reveal">
+      <div>
+        <div class="status-name">Serveur Principal</div>
+        <div class="status-sub">SITE-15-ROBLOX-MAIN — REGION EU-WEST</div>
+      </div>
+      <div class="sbar-wrap">
+        <div class="sbar-label">
+          <span>Charge du serveur</span>
+          <span id="loadVal">42%</span>
+        </div>
+        <div class="sbar-track"><div class="sbar-fill" id="loadBar" style="width:42%"></div></div>
+        <div class="sbar-label" style="margin-top:6px">
+          <span>Stabilité de confinement</span>
+          <span id="stabVal">98%</span>
+        </div>
+        <div class="sbar-track"><div class="sbar-fill" id="stabBar" style="width:98%"></div></div>
+      </div>
+      <div class="sbadge ok">OPÉRATIONNEL</div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric reveal">
+        <div class="metric-label">Personnel actif</div>
+        <div class="metric-val" id="metricPersonnel">—</div>
+        <div class="metric-trend up" id="metricPersonnelTrend">Chargement...</div>
+      </div>
+      <div class="metric reveal">
+        <div class="metric-label">SCP confinés</div>
+        <div class="metric-val">6<span class="unit">/8</span></div>
+        <div class="metric-trend">2 en cours de test</div>
+      </div>
+      <div class="metric reveal">
+        <div class="metric-label">Incidents (24h)</div>
+        <div class="metric-val" id="metricIncidents">—</div>
+        <div class="metric-trend" id="metricIncidentsTrend">Chargement...</div>
+      </div>
+      <div class="metric reveal">
+        <div class="metric-label">Uptime</div>
+        <div class="metric-val">99<span class="unit">%</span></div>
+        <div class="metric-trend up">Ce mois</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA / REJOINDRE -->
+<section class="cta" id="rejoindre">
+  <div class="cta-bg"></div>
+  <div class="cta-frame"></div>
+  <div class="cta-corner tl"></div>
+  <div class="cta-corner tr"></div>
+  <div class="cta-corner bl"></div>
+  <div class="cta-corner br"></div>
+
+  <div style="position:relative;z-index:1">
+    <span class="cta-tag">Recrutement Ouvert</span>
+    <h2 class="cta-title">REJOIGNEZ<br><span style="color:var(--accent)">SITE-15</span></h2>
+    <p class="cta-sub">
+      La Fondation recherche du personnel qualifié pour toutes ses divisions.
+      Remplissez votre formulaire de candidature et passez la vérification de sécurité.
+    </p>
+    <div class="cta-actions">
+      <a href="https://discord.gg/" class="btn btn-primary">→ Rejoindre le Discord</a>
+      <a href="https://www.roblox.com/" class="btn btn-secondary">Jouer sur Roblox</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    SITE-15 // FONDATION SCP — ROBLOX ROLEPLAY<br>
+    <span style="font-size:9px;opacity:0.5">Sécuriser · Contenir · Protéger</span>
+  </div>
+  <nav class="footer-mid">
+    <a href="#fichiers">Fichiers SCP</a>
+    <a href="#factions">Factions</a>
+    <a href="#intranet">Intranet</a>
+    <a href="#regles">Règlements</a>
+    <a href="#statut">Statut</a>
+  </nav>
+  <div class="footer-right">
+    © 2025 Site-15 — Non affilié à la Fondation SCP officielle.
+  </div>
+</footer>
+
+<script>
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 60);
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+reveals.forEach(el => observer.observe(el));
+
+// Live time
+function updateTime() {
+  const now = new Date();
+  document.getElementById('updateTime').textContent = now.toLocaleTimeString('fr-FR');
+}
+updateTime();
+setInterval(updateTime, 1000);
+
+// Simulated live metrics
+function randomBetween(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function updateMetrics() {
+  const personnel = randomBetween(18, 47);
+  const incidents = randomBetween(0, 4);
+  const load = randomBetween(28, 68);
+
+  document.getElementById('metricPersonnel').textContent = personnel;
+  document.getElementById('metricPersonnelTrend').textContent = 
+    `+${randomBetween(1,5)} dernière heure`;
+  document.getElementById('metricPersonnelTrend').className = 'metric-trend up';
+
+  document.getElementById('metricIncidents').textContent = incidents;
+  document.getElementById('metricIncidentsTrend').textContent = 
+    incidents > 2 ? `⚠ Activité élevée` : `Niveau normal`;
+  document.getElementById('metricIncidentsTrend').className = 
+    'metric-trend ' + (incidents > 2 ? 'down' : 'up');
+
+  document.getElementById('loadVal').textContent = load + '%';
+  document.getElementById('loadBar').style.width = load + '%';
+}
+updateMetrics();
+setInterval(updateMetrics, 8000);
+
+// Nav active state
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  nav.style.borderBottomColor = window.scrollY > 50 ? 'var(--border2)' : 'var(--border)';
+});
+</script>
+</body>
+</html>
