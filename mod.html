@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SITE-15 — Espace Modération</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@300;400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #06080a;
+      --surface: #0a0d10;
+      --surface2: #0e1215;
+      --border: #161c22;
+      --border2: #1e2830;
+      --accent: #00d4ff;
+      --accent2: #0099bb;
+      --accent-dim: rgba(0,212,255,0.12);
+      --danger: #ff3b3b;
+      --safe: #00e676;
+      --warn: #ff9800;
+      --euclid: #ff9800;
+      --keter: #ff3b3b;
+      --thaumiel: #b388ff;
+      --text: #8ba0b0;
+      --text-dim: #3d5060;
+      --white: #e8eef2;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      cursor: default;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.1) 3px,rgba(0,0,0,0.1) 4px);
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* ── LOGIN ── */
+    .login-screen {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; align-items: center; justify-content: center; z-index: 500;
+    }
+    .login-screen.hidden { display: none; }
+    .login-box {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-top: 2px solid var(--accent); width: 100%; max-width: 400px; padding: 40px;
+      box-shadow: 0 0 80px rgba(0,212,255,0.06), 0 0 40px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .login-box::before {
+      content:''; position:absolute; top:8px; right:8px; width:12px; height:12px;
+      border-top:1px solid var(--accent); border-right:1px solid var(--accent); opacity:0.4;
+    }
+    .login-box::after {
+      content:''; position:absolute; bottom:8px; left:8px; width:12px; height:12px;
+      border-bottom:1px solid var(--accent); border-left:1px solid var(--accent); opacity:0.4;
+    }
+    .login-logo { text-align: center; margin-bottom: 32px; }
+    .login-logo .l-tag { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.3em; color:var(--text-dim); text-transform:uppercase; margin-bottom:8px; }
+    .login-logo .l-emblem {
+      width:56px; height:56px; border:1px solid var(--accent); margin:16px auto 12px;
+      clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,212,255,0.05);
+    }
+    .login-logo .l-emblem span { font-family:'Space Mono',monospace; font-size:14px; font-weight:700; color:var(--accent); }
+    .login-logo .l-title { font-family:'Rajdhani',sans-serif; font-size:30px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:0.06em; }
+    .login-logo .l-title span { color:var(--accent); }
+    .login-logo .l-sub { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.2em; margin-top:4px; }
+    .login-field { margin-bottom:14px; }
+    .login-field label { font-family:'Space Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.25em; color:var(--text-dim); display:block; margin-bottom:6px; }
+    .login-field input { width:100%; background:var(--surface2); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:12px; padding:10px 14px; outline:none; transition:border-color 0.2s; }
+    .login-field input:focus { border-color:var(--accent); }
+    .login-btn { width:100%; padding:12px; background:rgba(0,212,255,0.08); border:1px solid var(--accent); color:var(--accent); font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.25em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; margin-top:8px; clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%); }
+    .login-btn:hover { background:rgba(0,212,255,0.18); box-shadow:0 0 20px rgba(0,212,255,0.2); }
+    .login-error { font-family:'Space Mono',monospace; font-size:10px; color:var(--danger); letter-spacing:0.1em; margin-top:12px; text-align:center; min-height:16px; }
+    .login-loading { text-align:center; padding:12px; font-family:'Space Mono',monospace; font-size:11px; color:var(--text-dim); letter-spacing:0.2em; animation:blink 1s step-end infinite; }
+    @keyframes blink { 50%{opacity:0.3} }
+
+    /* ── ROLE BADGE ── */
+    .role-badge { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.2em; padding:2px 8px; border:1px solid; text-transform:uppercase; }
+    .role-badge.admin       { color:var(--danger);   border-color:rgba(255,59,59,0.5);    background:rgba(255,59,59,0.08); }
+    .role-badge.moderateur  { color:var(--accent);   border-color:rgba(0,212,255,0.4);    background:rgba(0,212,255,0.06); }
+    .role-badge.responsable { color:#4cc3ff;          border-color:rgba(76,195,255,0.4);   background:rgba(76,195,255,0.07); }
+    .role-badge.junior      { color:#a8d8a8;          border-color:rgba(168,216,168,0.4);  background:rgba(168,216,168,0.06); }
+    .role-badge.animateur   { color:var(--warn);      border-color:rgba(255,152,0,0.4);    background:rgba(255,152,0,0.07); }
+    .role-badge.morpheur    { color:var(--thaumiel);  border-color:rgba(179,136,255,0.4);  background:rgba(179,136,255,0.07); }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position:sticky; top:0; z-index:200;
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+      padding:0 28px; height:56px;
+      background:rgba(6,8,10,0.97); border-bottom:1px solid var(--border);
+      backdrop-filter:blur(16px);
+    }
+    .topbar-brand { display:flex; align-items:center; gap:14px; }
+    .topbar-back { font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); text-decoration:none; letter-spacing:0.15em; transition:color 0.2s; }
+    .topbar-back:hover { color:var(--accent); }
+    .topbar-divider { width:1px; height:24px; background:var(--border2); }
+    .topbar-title { font-family:'Rajdhani',sans-serif; font-size:18px; font-weight:700; color:var(--white); letter-spacing:0.06em; text-transform:uppercase; }
+    .topbar-dept { font-family:'Space Mono',monospace; font-size:9px; color:var(--accent); letter-spacing:0.15em; }
+    .topbar-right { display:flex; align-items:center; gap:12px; }
+    .topbar-user { font-family:'Space Mono',monospace; font-size:11px; color:var(--white); letter-spacing:0.1em; }
+
+    /* ── DEPT NAV ── */
+    .dept-nav { display:flex; gap:2px; padding:0 28px; background:var(--surface); border-bottom:1px solid var(--border); overflow-x:auto; }
+    .nav-tab { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; padding:14px 20px; border:none; border-bottom:2px solid transparent; background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+    .nav-tab:hover { color:var(--accent); }
+    .nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); background:rgba(0,212,255,0.04); }
+    .nav-tab-icon { margin-right:6px; font-size:11px; }
+
+    /* ── LAYOUT ── */
+    .app-layout { display:grid; grid-template-columns:1fr 260px; gap:0; padding:24px 28px; max-width:1400px; margin:0 auto; }
+    @media (max-width:900px) { .app-layout { grid-template-columns:1fr; } }
+    .main-content { min-width:0; padding-right:20px; }
+    @media (max-width:900px) { .main-content { padding-right:0; } }
+    .sidebar { display:flex; flex-direction:column; gap:16px; }
+    .view { display:none; }
+    .view.active { display:block; }
+
+    /* ── WIDGETS ── */
+    .widget { background:var(--surface); border:1px solid var(--border); margin-bottom:16px; }
+    .widget-hdr { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
+    .widget-title { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent); }
+    .widget-body { padding:14px 16px; }
+
+    /* ── SECTION HEADERS ── */
+    .sec-hdr { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+    .sec-tag { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px; }
+    .sec-title { font-family:'Rajdhani',sans-serif; font-size:32px; font-weight:700; text-transform:uppercase; color:var(--white); letter-spacing:-0.01em; line-height:1; }
+    .sec-title span { color:var(--accent); }
+    .sec-sub { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.15em; margin-top:6px; text-transform:uppercase; }
+    .sec-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+    /* ── BUTTONS ── */
+    .btn { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; padding:8px 18px; border:1px solid; cursor:pointer; transition:all 0.2s; background:transparent; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+    .btn-primary { background:rgba(0,212,255,0.1); border-color:var(--accent); color:var(--accent); }
+    .btn-primary:hover { background:rgba(0,212,255,0.22); box-shadow:0 0 16px rgba(0,212,255,0.2); }
+    .btn-danger { background:rgba(255,59,59,0.08); border-color:rgba(255,59,59,0.5); color:var(--danger); }
+    .btn-danger:hover { background:rgba(255,59,59,0.18); }
+    .btn-ghost { border-color:var(--border2); color:var(--text-dim); }
+    .btn-ghost:hover { border-color:var(--border2); color:var(--text); }
+    .btn-sm { padding:6px 14px; font-size:9px; }
+    .btn-xs { padding:4px 10px; font-size:9px; }
+
+    /* ── FORMS ── */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+    .form-field { display:flex; flex-direction:column; gap:5px; }
+    .form-field.full { grid-column:1/-1; }
+    .form-field label { font-family:'Space Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.2em; color:var(--text-dim); }
+    .form-field input, .form-field select, .form-field textarea { background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:11px; padding:8px 12px; outline:none; width:100%; transition:border-color 0.2s; }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color:var(--accent); }
+    .form-field input::placeholder, .form-field textarea::placeholder { color:var(--text-dim); }
+    .form-field select option { background:var(--surface2); }
+    .form-field textarea { resize:vertical; line-height:1.5; font-family:'IBM Plex Mono',monospace; font-size:11px; }
+    .form-actions { display:flex; gap:8px; align-items:center; }
+
+    /* ── MODALS ── */
+    .modal-ov { position:fixed; inset:0; background:rgba(6,8,10,0.88); display:none; align-items:center; justify-content:center; z-index:400; backdrop-filter:blur(4px); }
+    .modal-ov.open { display:flex; }
+    .modal-box { background:var(--surface); border:1px solid var(--border2); border-top:2px solid var(--accent); width:100%; max-width:560px; max-height:90vh; overflow-y:auto; }
+    .modal-hdr { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
+    .modal-title { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; color:var(--white); text-transform:uppercase; letter-spacing:0.05em; }
+    .modal-close { background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:16px; padding:4px; transition:color 0.2s; }
+    .modal-close:hover { color:var(--danger); }
+    .modal-body { padding:20px; }
+    .modal-footer { padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+    .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+    .meta-item { background:var(--surface2); border:1px solid var(--border); padding:10px 14px; }
+    .meta-item label { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.15em; text-transform:uppercase; display:block; margin-bottom:4px; }
+    .meta-item span { font-family:'Space Mono',monospace; font-size:11px; color:var(--white); }
+    .msec { margin-bottom:14px; }
+    .msec-lbl { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:6px; }
+    .msec-content { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text); line-height:1.6; background:var(--surface2); border:1px solid var(--border); padding:12px; }
+
+    /* ── STAT SIDEBAR ── */
+    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+    .stat-box { background:var(--surface2); border:1px solid var(--border); padding:14px; text-align:center; }
+    .stat-val { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--white); line-height:1; margin-bottom:4px; }
+    .stat-lbl { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.15em; text-transform:uppercase; }
+    .hlog { padding:12px 14px; display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto; }
+    .hlog-item { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-dim); border-left:2px solid var(--border2); padding-left:8px; line-height:1.4; }
+    .hlog-item span { color:var(--accent); font-size:9px; display:block; margin-bottom:2px; }
+
+    /* ── STATS BAR ── */
+    .mod-stats-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; margin-bottom:24px; }
+    .mod-stat { background:var(--surface); border:1px solid var(--border); padding:16px 20px; position:relative; overflow:hidden; }
+    .mod-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .mod-stat.warns::before  { background:var(--warn); }
+    .mod-stat.kicks::before  { background:var(--accent); }
+    .mod-stat.bans::before   { background:var(--danger); }
+    .mod-stat.mutes::before  { background:var(--thaumiel); }
+    .mod-stat-val { font-family:'Rajdhani',sans-serif; font-size:42px; font-weight:700; line-height:1; margin-bottom:4px; }
+    .mod-stat.warns  .mod-stat-val { color:var(--warn); }
+    .mod-stat.kicks  .mod-stat-val { color:var(--accent); }
+    .mod-stat.bans   .mod-stat-val { color:var(--danger); }
+    .mod-stat.mutes  .mod-stat-val { color:var(--thaumiel); }
+    .mod-stat-lbl { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--text-dim); }
+    .mod-stat-icon { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:28px; opacity:0.07; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar { display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+    .filter-bar input[type=text] { flex:1; min-width:180px; background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:10px; padding:8px 12px; outline:none; }
+    .filter-bar input[type=text]::placeholder { color:var(--text-dim); }
+    .filter-bar input[type=text]:focus { border-color:var(--accent); }
+    .filter-bar select { background:var(--surface); border:1px solid var(--border2); color:var(--text); font-family:'Space Mono',monospace; font-size:10px; padding:8px 10px; outline:none; cursor:pointer; }
+    .filter-bar select option { background:var(--surface2); }
+
+    /* ── TABLE ── */
+    .sanction-table { width:100%; border-collapse:collapse; font-family:'Space Mono',monospace; font-size:10px; }
+    .sanction-table thead tr { background:var(--surface2); border-bottom:1px solid var(--border2); }
+    .sanction-table thead th { padding:10px 14px; text-align:left; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--text-dim); font-weight:normal; }
+    .sanction-table thead th:first-child { color:var(--accent); }
+    .sanction-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
+    .sanction-table tbody tr:hover { background:rgba(0,212,255,0.02); }
+    .sanction-table td { padding:10px 14px; color:var(--text); vertical-align:middle; }
+    .sanction-table td.td-id { font-size:9px; color:var(--accent2); letter-spacing:0.1em; }
+    .sanction-table td.td-player { color:var(--white); font-weight:bold; }
+    .sanction-table td.td-date { color:var(--text-dim); font-size:9px; }
+
+    /* ── TYPE BADGE ── */
+    .type-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; border:1px solid; }
+    .type-badge.warn  { color:var(--warn);     border-color:rgba(255,152,0,0.4);   background:rgba(255,152,0,0.07); }
+    .type-badge.kick  { color:var(--accent);   border-color:rgba(0,212,255,0.4);   background:rgba(0,212,255,0.06); }
+    .type-badge.ban   { color:var(--danger);   border-color:rgba(255,59,59,0.4);   background:rgba(255,59,59,0.07); }
+    .type-badge.mute  { color:var(--thaumiel); border-color:rgba(179,136,255,0.4); background:rgba(179,136,255,0.07); }
+
+    /* ── PAGINATION ── */
+    .pagination { display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); }
+    .page-btns { display:flex; gap:4px; }
+    .page-btn { padding:4px 10px; border:1px solid var(--border2); background:transparent; color:var(--text-dim); font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; transition:all 0.2s; }
+    .page-btn:hover, .page-btn.active { border-color:var(--accent); color:var(--accent); }
+    .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+    /* ── MISC ── */
+    .empty-row td { text-align:center; padding:48px; color:var(--text-dim); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; }
+    .empty-row td span { display:block; font-size:28px; margin-bottom:10px; opacity:0.2; }
+    .no-player { text-align:center; padding:40px; border:1px dashed var(--border); font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:0.12em; text-transform:uppercase; }
+    .no-player .np-icon { font-size:32px; opacity:0.2; display:block; margin-bottom:12px; }
+    .confirm-zone { background:rgba(255,59,59,0.05); border:1px solid rgba(255,59,59,0.3); padding:16px; margin-top:14px; font-family:'Space Mono',monospace; font-size:10px; color:var(--danger); }
+    .confirm-zone strong { display:block; margin-bottom:6px; font-size:11px; letter-spacing:0.15em; }
+    .loading-spinner { text-align:center; padding:32px; font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:0.2em; animation:blink 1s step-end infinite; }
+
+    /* ── PLAYER HISTORY ── */
+    .player-lookup { display:flex; gap:10px; margin-bottom:20px; }
+    .player-lookup input { flex:1; background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:11px; padding:10px 14px; outline:none; }
+    .player-lookup input:focus { border-color:var(--accent); }
+    .player-lookup input::placeholder { color:var(--text-dim); }
+    .player-profile { display:none; background:var(--surface2); border:1px solid var(--border2); border-top:2px solid var(--accent); padding:20px; margin-bottom:20px; }
+    .player-profile.visible { display:block; }
+    .player-profile-hdr { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+    .player-name-big { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--white); text-transform:uppercase; }
+    .player-username { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent); margin-top:4px; }
+    .player-score-grid { display:flex; gap:20px; flex-wrap:wrap; }
+    .player-score-item { text-align:center; }
+    .player-score-val { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; line-height:1; }
+    .player-score-lbl { font-family:'Space Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:0.15em; color:var(--text-dim); margin-top:3px; }
+    .risk-bar-wrap { margin-top:14px; }
+    .risk-bar-lbl { display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px; }
+    .risk-bar-track { height:6px; background:var(--surface); border:1px solid var(--border); }
+    .risk-bar-fill { height:100%; transition:width 0.5s ease; }
+    .timeline { display:flex; flex-direction:column; }
+    .tl-item { display:flex; gap:16px; padding:12px 0; border-bottom:1px solid var(--border); }
+    .tl-item:last-child { border-bottom:none; }
+    .tl-dot { width:10px; height:10px; border-radius:50%; border:2px solid; flex-shrink:0; margin-top:4px; }
+    .tl-dot.warn  { border-color:var(--warn);     background:rgba(255,152,0,0.3); }
+    .tl-dot.kick  { border-color:var(--accent);   background:rgba(0,212,255,0.3); }
+    .tl-dot.ban   { border-color:var(--danger);   background:rgba(255,59,59,0.3); }
+    .tl-dot.mute  { border-color:var(--thaumiel); background:rgba(179,136,255,0.3); }
+    .tl-content { flex:1; }
+    .tl-top { display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap; }
+    .tl-reason { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text); line-height:1.5; }
+    .tl-meta { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); margin-top:4px; }
+
+    /* ── SERVER STATUS WIDGET ── */
+    .server-widget { background:var(--surface2); border:1px solid rgba(0,212,255,0.25); border-top:2px solid var(--accent); padding:20px; margin-bottom:20px; }
+    .server-widget-title { font-family:'Rajdhani',sans-serif; font-size:18px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid rgba(0,212,255,0.15); }
+    .server-toggle-row { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px; }
+    .server-state-display { display:flex; align-items:center; gap:12px; }
+    .srv-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; transition:all 0.4s; }
+    .srv-dot.open   { background:var(--safe);   box-shadow:0 0 10px rgba(0,230,118,0.5); animation:srv-pulse 2s infinite; }
+    .srv-dot.closed { background:var(--danger); box-shadow:0 0 8px rgba(255,59,59,0.4); }
+    @keyframes srv-pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+    .srv-label { font-family:'Rajdhani',sans-serif; font-size:26px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; transition:color 0.3s; }
+    .srv-label.open   { color:var(--safe); }
+    .srv-label.closed { color:var(--danger); }
+    .srv-meta { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); margin-top:3px; letter-spacing:0.1em; }
+    .srv-btn { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; padding:10px 22px; border:1px solid; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
+    .srv-btn.to-open  { color:var(--safe);   border-color:var(--safe);   background:rgba(0,230,118,0.07); }
+    .srv-btn.to-open:hover  { background:rgba(0,230,118,0.18); }
+    .srv-btn.to-close { color:var(--danger); border-color:var(--danger); background:rgba(255,59,59,0.07); }
+    .srv-btn.to-close:hover { background:rgba(255,59,59,0.18); }
+    .srv-fields { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+    @media(max-width:700px){ .srv-fields { grid-template-columns:1fr; } }
+    .srv-field label { font-family:'Space Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.15em; color:var(--text-dim); display:block; margin-bottom:5px; }
+    .srv-field input, .srv-field select { width:100%; background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:10px; padding:7px 10px; outline:none; }
+    .srv-field input:focus, .srv-field select:focus { border-color:var(--accent); }
+    .srv-field input::placeholder { color:var(--text-dim); }
+    .srv-field.full { grid-column:1/-1; }
+    .srv-log-row { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+    .srv-log-entry { display:flex; gap:6px; align-items:center; }
+    .srv-log-entry input { flex:1; background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:10px; padding:5px 8px; outline:none; }
+    .srv-log-entry select { background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:10px; padding:5px; outline:none; }
+    .srv-scps-row { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+    .srv-scp-entry { display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:6px; align-items:center; }
+    .srv-scp-entry input, .srv-scp-entry select { background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:10px; padding:5px 8px; outline:none; width:100%; }
+    .srv-save-btn { width:100%; margin-top:16px; padding:10px; background:rgba(0,212,255,0.07); border:1px solid var(--accent); color:var(--accent); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.25em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+    .srv-save-btn:hover { background:rgba(0,212,255,0.18); }
+
+    /* ── ADMIN ── */
+    .admin-section { background:var(--surface2); border:1px solid rgba(255,59,59,0.3); border-top:2px solid var(--danger); padding:20px; margin-bottom:20px; }
+    .admin-section-title { font-family:'Rajdhani',sans-serif; font-size:19px; font-weight:700; color:var(--danger); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid rgba(255,59,59,0.2); }
+    .user-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:10px; }
+    .user-row:last-child { border-bottom:none; }
+    .user-email { font-family:'Space Mono',monospace; font-size:11px; color:var(--white); }
+    .user-meta { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); margin-top:2px; }
+
+    /* ── ROSTER ── */
+    .roster-tabs { display:flex; gap:2px; margin-bottom:14px; flex-wrap:wrap; }
+    .roster-tab { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; padding:8px 16px; border:1px solid var(--border2); background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.2s; }
+    .roster-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,0.05); }
+    .roster-dept-panel { display:none; }
+    .roster-dept-panel.active { display:block; }
+    .roster-agent-card { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--border2); padding:14px 18px; margin-bottom:4px; transition:all 0.2s; }
+    .roster-agent-card:hover { background:var(--surface2); }
+    .roster-agent-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px; }
+    .roster-agent-name { font-family:'Rajdhani',sans-serif; font-size:19px; font-weight:700; color:var(--white); text-transform:uppercase; }
+    .roster-agent-rank { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.1em; margin-top:1px; }
+    .roster-agent-user { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent); }
+    .roster-command-preview { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-dim); background:var(--bg); padding:6px 10px; border:1px solid var(--border); margin:8px 0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; cursor:pointer; }
+    .roster-command-preview:hover { border-color:var(--border2); color:var(--text); }
+    .roster-card-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+    .roster-copy-btn { font-family:'Space Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.12em; padding:5px 12px; border:1px solid var(--border2); background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.2s; }
+    .roster-copy-btn:hover { border-color:var(--safe); color:var(--safe); }
+    .roster-edit-btn { font-family:'Space Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.12em; padding:5px 12px; border:1px solid var(--border2); background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.2s; }
+    .roster-edit-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .roster-del-btn { font-family:'Space Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.12em; padding:5px 10px; border:1px solid transparent; background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.2s; }
+    .roster-del-btn:hover { border-color:rgba(255,59,59,0.4); color:var(--danger); }
+    .roster-date-badge { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); flex-shrink:0; }
+    .roster-edit-form { background:var(--surface2); border:1px solid var(--border2); border-top:2px solid var(--accent); padding:16px; margin-bottom:4px; }
+    .roster-edit-form .ef-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+    .roster-edit-form .ef-full { grid-column:1/-1; }
+    .roster-edit-form label { font-family:'Space Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.15em; color:var(--text-dim); display:block; margin-bottom:5px; }
+    .roster-edit-form input, .roster-edit-form textarea, .roster-edit-form select { width:100%; background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:11px; padding:7px 10px; outline:none; box-sizing:border-box; }
+    .roster-edit-form input:focus, .roster-edit-form textarea:focus { border-color:var(--accent); }
+    .roster-edit-form textarea { resize:vertical; min-height:70px; font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.5; }
+    .roster-edit-actions { display:flex; gap:8px; }
+    .roster-add-zone { background:var(--surface2); border:1px solid rgba(0,212,255,0.18); border-top:2px solid var(--accent2); padding:16px; margin-top:12px; }
+    .roster-add-title { font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; color:var(--accent2); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px; }
+    .roster-dept-manager { background:var(--surface2); border:1px solid rgba(0,212,255,0.2); border-top:2px solid var(--accent); padding:16px; margin-bottom:16px; }
+    .roster-dept-manager-title { font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px; }
+    .roster-dept-list { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .roster-dept-chip { display:flex; align-items:center; gap:6px; padding:4px 12px; border:1px solid var(--border2); font-family:'Space Mono',monospace; font-size:10px; color:var(--text); }
+    .roster-dept-chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .roster-dept-chip-del { background:none; border:none; color:var(--text-dim); cursor:pointer; padding:0; font-size:12px; line-height:1; transition:color 0.15s; }
+    .roster-dept-chip-del:hover { color:var(--danger); }
+    .roster-dept-add-row { display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
+    .roster-dept-add-row input { background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:11px; padding:7px 10px; outline:none; flex:1; min-width:120px; }
+    .roster-dept-add-row input:focus { border-color:var(--accent); }
+    .dept-color-pick { width:36px; height:34px; border:1px solid var(--border2); background:var(--surface); cursor:pointer; padding:2px; }
+    .roster-save-indicator { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.1em; padding:4px 12px; transition:all 0.3s; }
+    .roster-save-indicator.saving { color:var(--warn); }
+    .roster-save-indicator.saved  { color:var(--safe); }
+    .roster-save-indicator.error  { color:var(--danger); }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="l-tag">// Accès restreint — Site-15</div>
+      <div class="l-emblem"><span>15</span></div>
+      <div class="l-title">SITE<span>-15</span> MOD</div>
+      <div class="l-sub">Registre de Modération — Authentification requise</div>
+    </div>
+    <div id="loginForm">
+      <div class="login-field">
+        <label>Nom d'utilisateur</label>
+        <input type="text" id="loginUsername" placeholder="Agent_Nom" autocomplete="username" />
+      </div>
+      <div class="login-field">
+        <label>Mot de passe</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" />
+      </div>
+      <button class="login-btn" onclick="doLogin()">→ Accéder au registre</button>
+      <div class="login-error" id="loginError"></div>
+      <div style="text-align:center;margin-top:14px;">
+        <span onclick="toggleRecovery()" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);cursor:pointer;letter-spacing:0.1em;text-decoration:underline;opacity:0.5;">Récupération compte</span>
+      </div>
+    </div>
+
+    <div id="recoveryPanel" style="display:none;">
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--warn);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:14px;text-align:center;">⚠ Récupération d'urgence</div>
+      <div class="login-field">
+        <label>Code secret</label>
+        <input type="password" id="recoveryCode" placeholder="Code admin…" />
+      </div>
+      <div class="login-field">
+        <label>Identifiant du compte (nom ou email)</label>
+        <input type="text" id="recoveryUsername" placeholder="A.MAX ou admin@site15.scp" />
+      </div>
+      <div class="login-field">
+        <label>Nouveau mot de passe</label>
+        <input type="password" id="recoveryNewPwd" placeholder="Nouveau mot de passe" />
+      </div>
+      <button class="login-btn" onclick="doRecovery()" style="border-color:var(--warn);color:var(--warn);">→ Réinitialiser</button>
+      <div class="login-error" id="recoveryError"></div>
+      <div style="text-align:center;margin-top:10px;">
+        <span onclick="toggleRecovery()" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);cursor:pointer;letter-spacing:0.1em;text-decoration:underline;">← Retour connexion</span>
+      </div>
+    </div>
+
+    <div class="login-loading" id="loginLoading" style="display:none;">AUTHENTIFICATION EN COURS…</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="appRoot" style="display:none;">
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <a href="index.html" class="topbar-back">← Accueil</a>
+    <div class="topbar-divider"></div>
+    <div>
+      <div class="topbar-title">⚖ Modération</div>
+      <div class="topbar-dept">Site-15 — Registre Firebase</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span id="topbarRoleBadge"></span>
+    <div class="topbar-user" id="topbarUser"></div>
+    <button class="btn btn-ghost btn-xs" onclick="doLogout()">Déconnexion</button>
+  </div>
+</div>
+
+<div class="dept-nav">
+  <button class="nav-tab active" data-view="sanctions"><span class="nav-tab-icon">📋</span> Sanctions</button>
+  <button class="nav-tab" data-view="historique"><span class="nav-tab-icon">🔍</span> Historique joueur</button>
+  <button class="nav-tab" data-view="stats"><span class="nav-tab-icon">📊</span> Statistiques</button>
+  <button class="nav-tab" data-view="roster"><span class="nav-tab-icon">👥</span> Rosters</button>
+  <button class="nav-tab" data-view="admin" id="adminTab" style="display:none;"><span class="nav-tab-icon">🔐</span> Admin</button>
+</div>
+
+<div class="app-layout">
+  <div class="main-content">
+
+    <!-- VUE : SANCTIONS -->
+    <div class="view active" id="view-sanctions">
+      <div class="mod-stats-bar">
+        <div class="mod-stat warns"><div class="mod-stat-val" id="statWarnCount">—</div><div class="mod-stat-lbl">Avertissements</div><div class="mod-stat-icon">⚠</div></div>
+        <div class="mod-stat kicks"><div class="mod-stat-val" id="statKickCount">—</div><div class="mod-stat-lbl">Expulsions</div><div class="mod-stat-icon">👟</div></div>
+        <div class="mod-stat bans"><div class="mod-stat-val" id="statBanCount">—</div><div class="mod-stat-lbl">Bannissements</div><div class="mod-stat-icon">🔨</div></div>
+        <div class="mod-stat mutes"><div class="mod-stat-val" id="statMuteCount">—</div><div class="mod-stat-lbl">Mutes</div><div class="mod-stat-icon">🔇</div></div>
+      </div>
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-tag">// Registre de Modération — Temps réel</div>
+          <div class="sec-title">SANCTIONS <span>ACTIVES</span></div>
+          <div class="sec-sub" id="liveIndicator" style="color:var(--text-dim);">⬤ CONNEXION…</div>
+        </div>
+        <div class="sec-actions">
+          <button class="btn btn-ghost btn-sm" onclick="exportAll()">⬇ Exporter</button>
+          <button class="btn btn-primary btn-sm" onclick="SCPIntranet.openModal('modalNewSanction')">+ Nouvelle sanction</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="filterSearch" placeholder="🔍  Rechercher joueur, raison…" oninput="renderTable()" />
+        <select id="filterType" onchange="renderTable()">
+          <option value="">Tous les types</option>
+          <option value="warn">Avertissement</option>
+          <option value="kick">Expulsion</option>
+          <option value="ban">Bannissement</option>
+          <option value="mute">Mute</option>
+        </select>
+        <select id="filterSort" onchange="renderTable()">
+          <option value="date-desc">Plus récent</option>
+          <option value="date-asc">Plus ancien</option>
+          <option value="player">Joueur A→Z</option>
+          <option value="type">Type</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕ Reset</button>
+      </div>
+      <div style="overflow-x:auto;border:1px solid var(--border);">
+        <table class="sanction-table">
+          <thead><tr><th>ID</th><th>Joueur</th><th>Type</th><th>Raison</th><th>Modérateur</th><th>Durée</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="sanctionTableBody"><tr><td colspan="8"><div class="loading-spinner">CONNEXION À FIREBASE…</div></td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span id="paginationInfo">—</span>
+        <div class="page-btns" id="paginationBtns"></div>
+      </div>
+    </div>
+
+    <!-- VUE : HISTORIQUE JOUEUR -->
+    <div class="view" id="view-historique">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-tag">// Dossier individuel</div>
+          <div class="sec-title">HISTORIQUE <span>JOUEUR</span></div>
+          <div class="sec-sub">RECHERCHE PAR NOM D'UTILISATEUR ROBLOX</div>
+        </div>
+      </div>
+      <div class="player-lookup">
+        <input type="text" id="playerSearchInput" placeholder="Nom du joueur Roblox…" />
+        <button class="btn btn-primary" onclick="lookupPlayer()">🔍 Rechercher</button>
+      </div>
+      <div class="player-profile" id="playerProfile">
+        <div class="player-profile-hdr">
+          <div>
+            <div class="player-name-big" id="profileName">—</div>
+            <div class="player-username" id="profileUsername"></div>
+          </div>
+          <div class="player-score-grid">
+            <div class="player-score-item"><div class="player-score-val" id="profileWarnCount" style="color:var(--warn)">0</div><div class="player-score-lbl">Warns</div></div>
+            <div class="player-score-item"><div class="player-score-val" id="profileKickCount" style="color:var(--accent)">0</div><div class="player-score-lbl">Kicks</div></div>
+            <div class="player-score-item"><div class="player-score-val" id="profileBanCount" style="color:var(--danger)">0</div><div class="player-score-lbl">Bans</div></div>
+            <div class="player-score-item"><div class="player-score-val" id="profileTotal" style="color:var(--white)">0</div><div class="player-score-lbl">Total</div></div>
+          </div>
+        </div>
+        <div class="risk-bar-wrap">
+          <div class="risk-bar-lbl"><span>Niveau de risque</span><span id="profileRiskLabel">—</span></div>
+          <div class="risk-bar-track"><div class="risk-bar-fill" id="profileRiskFill" style="width:0%;background:var(--safe);"></div></div>
+        </div>
+      </div>
+      <div class="no-player" id="noPlayerState">
+        <span class="np-icon">🔍</span>Entrez un nom de joueur pour afficher son dossier
+      </div>
+      <div id="playerTimeline"></div>
+    </div>
+
+    <!-- VUE : STATS -->
+    <div class="view" id="view-stats">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-tag">// Analyse disciplinaire</div>
+          <div class="sec-title">STATISTIQUES <span>MODÉRATION</span></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div class="widget"><div class="widget-hdr"><span class="widget-title">Répartition par type</span></div><div class="widget-body"><div id="chartTypes"></div></div></div>
+        <div class="widget"><div class="widget-hdr"><span class="widget-title">Top modérateurs</span></div><div class="widget-body"><div id="chartMods"></div></div></div>
+      </div>
+      <div class="widget" style="margin-bottom:20px;">
+        <div class="widget-hdr">
+          <span class="widget-title">Activité — 30 derniers jours</span>
+          <span id="statsActivityCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);"></span>
+        </div>
+        <div class="widget-body">
+          <div id="chartActivity" style="display:flex;align-items:flex-end;gap:3px;height:80px;"></div>
+          <div id="chartActivityLabels" style="display:flex;gap:3px;margin-top:4px;"></div>
+        </div>
+      </div>
+      <div class="widget">
+        <div class="widget-hdr"><span class="widget-title">Top récidivistes</span></div>
+        <div class="widget-body" style="padding:0;">
+          <table class="sanction-table">
+            <thead><tr><th>#</th><th>Joueur</th><th>Warns</th><th>Kicks</th><th>Bans</th><th>Total</th><th>Risque</th></tr></thead>
+            <tbody id="topOffenders"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE : ROSTERS -->
+    <div class="view" id="view-roster">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-tag">// Commandes Roblox par département</div>
+          <div class="sec-title">ROSTERS <span>MORPHS</span></div>
+          <div class="sec-sub">Roster des agents — édition et copie de la commande morph</div>
+        </div>
+        <div class="sec-actions">
+          <span class="roster-save-indicator" id="rosterSaveIndicator"></span>
+        </div>
+      </div>
+
+      <div class="roster-dept-manager" id="rosterDeptManager" style="display:none;">
+        <div class="roster-dept-manager-title">⚙ Départements</div>
+        <div class="roster-dept-list" id="rosterDeptList"></div>
+        <div class="roster-dept-add-row">
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Nom</label>
+            <input type="text" id="newDeptName" placeholder="Ex: Recherche" maxlength="30" />
+          </div>
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Icône</label>
+            <input type="text" id="newDeptIcon" placeholder="🔬" maxlength="4" style="width:60px;" />
+          </div>
+          <div>
+            <label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Couleur</label>
+            <input type="color" id="newDeptColor" value="#00d4ff" class="dept-color-pick" />
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="addDept()">+ Ajouter département</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <input type="text" id="rosterSearch" placeholder="🔍  Rechercher un agent, username, grade…"
+          oninput="filterRoster()"
+          style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:9px 14px;outline:none;box-sizing:border-box;"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='var(--border2)'"
+        />
+        <div id="rosterSearchInfo" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;margin-top:5px;min-height:14px;"></div>
+      </div>
+
+      <div class="roster-tabs" id="rosterTabs"></div>
+      <div id="rosterPanels"></div>
+    </div>
+
+    <!-- VUE : ADMIN -->
+    <div class="view" id="view-admin">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-tag">// Accès administrateur</div>
+          <div class="sec-title">GESTION <span>COMPTES</span></div>
+        </div>
+      </div>
+
+      <!-- STATUT SERVEUR -->
+      <div class="server-widget">
+        <div class="server-widget-title">🖥 Statut du Serveur Roblox — Temps Réel</div>
+        <div class="server-toggle-row">
+          <div class="server-state-display">
+            <div class="srv-dot closed" id="srvDot"></div>
+            <div>
+              <div class="srv-label closed" id="srvLabel">CHARGEMENT…</div>
+              <div class="srv-meta" id="srvMeta">—</div>
+            </div>
+          </div>
+          <button class="srv-btn to-open" id="srvBtn">Chargement…</button>
+        </div>
+        <div class="srv-fields">
+          <div class="srv-field"><label>Raison / Message</label><input type="text" id="srvReason" placeholder="Ex: Maintenance, Événement…" maxlength="120"/></div>
+          <div class="srv-field"><label>Stabilité confinement (%)</label><input type="number" id="srvStability" min="0" max="100" placeholder="96"/></div>
+          <div class="srv-field"><label>Joueurs connectés</label><input type="text" id="srvPlayers" placeholder="Ex: 24"/></div>
+          <div class="srv-field"><label>Agents Fondation actifs</label><input type="text" id="srvFoundation" placeholder="Ex: 12"/></div>
+          <div class="srv-field"><label>SCPs confinés</label><input type="number" id="srvScps" min="0" placeholder="Ex: 6"/></div>
+          <div class="srv-field"><label>Total SCPs</label><input type="number" id="srvScpsTotal" min="1" placeholder="8"/></div>
+          <div class="srv-field"><label>Alertes actives</label><input type="number" id="srvAlerts" min="0" placeholder="0"/></div>
+          <div class="srv-field full">
+            <label>Journal des événements <button class="btn btn-ghost btn-xs" id="addLogBtn" style="margin-left:8px">+ Ajouter ligne</button></label>
+            <div class="srv-log-row" id="srvLogRows">
+              <div class="srv-log-entry">
+                <input type="text" placeholder="HH:MM:SS" style="max-width:80px"/>
+                <select><option value="INFO">INFO</option><option value="ALERTE">ALERTE</option><option value="CRITIQUE">CRITIQUE</option></select>
+                <input type="text" placeholder="Message…"/>
+                <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-log-entry').remove()">✕</button>
+              </div>
+            </div>
+          </div>
+          <div class="srv-field full">
+            <label>État de confinement SCPs <button class="btn btn-ghost btn-xs" id="addScpBtn" style="margin-left:8px">+ Ajouter SCP</button></label>
+            <div class="srv-scps-row" id="srvScpRows">
+              <div class="srv-scp-entry">
+                <input type="text" placeholder="Nom (ex: SCP-173)"/>
+                <select><option value="SAFE">SAFE</option><option value="EUCLIDE">EUCLIDE</option><option value="KETER">KETER</option></select>
+                <select><option value="Confiné">Confiné</option><option value="Brèche">Brèche</option><option value="Non localisé">Non localisé</option></select>
+                <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-scp-entry').remove()">✕</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="srv-save-btn" id="srvSaveBtn">💾 Sauvegarder toutes les modifications</button>
+      </div>
+
+      <!-- BROADCAST -->
+      <div class="admin-section" style="border-top-color:var(--thaumiel);border-color:rgba(179,136,255,0.3);background:rgba(179,136,255,0.03);">
+        <div class="admin-section-title" style="color:var(--thaumiel);">📡 Broadcast — Alerte Site-15</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+          <div class="form-field">
+            <label>Auteur (personnage RP) *</label>
+            <input type="text" id="bcAuthor" placeholder="Ex: Directeur A.MAX, O5-7…" />
+          </div>
+          <div class="form-field">
+            <label>Niveau d'alerte</label>
+            <select id="bcLevel">
+              <option value="info">ℹ️  Information</option>
+              <option value="warn">⚠️  Avertissement</option>
+              <option value="critical">🔴  Critique — Brèche</option>
+            </select>
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label>Message *</label>
+            <textarea id="bcMessage" rows="3" placeholder="Contenu de l'alerte diffusée sur le site public…" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:10px 14px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.6;"></textarea>
+          </div>
+          <div class="form-field" style="grid-column:1/-1;">
+            <label>Son d'alerte</label>
+            <select id="bcSound">
+              <option value="alarm">🔔  Alarme générale</option>
+              <option value="breach">🚨  Brèche de confinement</option>
+              <option value="lockdown">🔒  Confinement — Lockdown</option>
+              <option value="allclear">✅  Fin d'alerte — All Clear</option>
+              <option value="none">🔇  Aucun son</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-sm" onclick="sendBroadcast()" style="background:rgba(179,136,255,0.1);border:1px solid var(--thaumiel);color:var(--thaumiel);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:10px 24px;cursor:pointer;transition:all 0.2s;">📡 Diffuser l'alerte</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearBroadcast()">✕ Effacer</button>
+        </div>
+        <div id="bcMsg" style="font-family:'Space Mono',monospace;font-size:10px;margin-top:10px;min-height:16px;"></div>
+      </div>
+
+      <!-- CRÉER UN COMPTE -->
+      <div class="admin-section">
+        <div class="admin-section-title">⚙ Créer un compte</div>
+        <div class="form-grid">
+          <div class="form-field"><label>Nom d'utilisateur *</label><input type="text" id="newUserUsername" placeholder="Agent_Nom" autocomplete="off" /></div>
+          <div class="form-field"><label>Mot de passe *</label><input type="password" id="newUserPassword" placeholder="Min. 4 caractères" /></div>
+          <div class="form-field"><label>Nom affiché</label><input type="text" id="newUserDisplayName" placeholder="Ex: M.NOWAK (optionnel)" /></div>
+          <div class="form-field"><label>Rôle</label>
+            <select id="newUserRole"><option value="moderateur">Modérateur</option><option value="responsable">Responsable</option><option value="junior">Modérateur Junior</option><option value="animateur">Animateur</option><option value="morpheur">Morpheur</option><option value="admin">Administrateur</option></select>
+          </div>
+        </div>
+        <div class="form-actions"><button class="btn btn-danger btn-sm" onclick="createUser()">+ Créer le compte</button></div>
+        <div id="createUserMsg" style="font-family:'Space Mono',monospace;font-size:10px;margin-top:10px;min-height:16px;"></div>
+      </div>
+
+      <!-- COMPTES ENREGISTRÉS -->
+      <div class="widget">
+        <div class="widget-hdr">
+          <span class="widget-title">Comptes enregistrés</span>
+          <button class="btn btn-ghost btn-xs" onclick="loadUsers()">↻ Actualiser</button>
+        </div>
+        <div class="widget-body" style="padding:0 14px;"><div id="usersList"><div class="loading-spinner">Chargement…</div></div></div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="widget">
+      <div class="widget-hdr"><span class="widget-title">Journal d'actions</span></div>
+      <div class="hlog" id="historyList"></div>
+    </div>
+    <div class="widget">
+      <div class="widget-hdr"><span class="widget-title">Résumé</span></div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="sbTotal">—</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-box"><div class="stat-val" id="sbToday" style="color:var(--safe)">—</div><div class="stat-lbl">Aujourd'hui</div></div>
+        <div class="stat-box"><div class="stat-val" id="sbBans" style="color:var(--danger)">—</div><div class="stat-lbl">Bans</div></div>
+        <div class="stat-box"><div class="stat-val" id="sbPlayers">—</div><div class="stat-lbl">Joueurs</div></div>
+      </div>
+    </div>
+    <div class="widget">
+      <div class="widget-hdr"><span class="widget-title">Connexion</span></div>
+      <div class="widget-body">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text-dim);line-height:2.2;">
+          <div>USER : <span id="sidebarUser" style="color:var(--white)">—</span></div>
+          <div>RÔLE : <span id="sidebarRole" style="color:var(--accent)">—</span></div>
+          <div>DB   : <span style="color:var(--safe)">Firebase ⬤</span></div>
+          <div>SYNC : <span id="sidebarSync" style="color:var(--safe)">Temps réel</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /app-layout -->
+</div><!-- /appRoot -->
+
+<!-- MODAL : NOUVELLE SANCTION -->
+<div class="modal-ov" id="modalNewSanction">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-title">⚖ Nouvelle Sanction</span>
+      <button class="modal-close" data-close-modal="modalNewSanction">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label>Nom du joueur *</label><input type="text" id="fPlayer" placeholder="Nom Roblox" /></div>
+        <div class="form-field"><label>Username (@)</label><input type="text" id="fUsername" placeholder="@username" /></div>
+        <div class="form-field"><label>Type *</label>
+          <select id="fType" onchange="toggleDuration()">
+            <option value="warn">⚠ Avertissement</option>
+            <option value="kick">👟 Expulsion</option>
+            <option value="ban">🔨 Bannissement</option>
+            <option value="mute">🔇 Mute</option>
+          </select>
+        </div>
+        <div class="form-field" id="fieldDuration"><label>Durée</label>
+          <select id="fDuration">
+            <option value="1h">1 heure</option><option value="6h">6 heures</option>
+            <option value="24h">24 heures</option><option value="3j">3 jours</option>
+            <option value="7j">7 jours</option><option value="30j">30 jours</option>
+            <option value="Permanent">Permanent</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Date *</label><input type="date" id="fDate" /></div>
+        <div class="form-field full"><label>Raison *</label><input type="text" id="fReason" placeholder="Motif de la sanction…" /></div>
+        <div class="form-field full"><label>Détails / Preuves (optionnel)</label><textarea id="fDetails" rows="3" placeholder="Lien screenshot, description…"></textarea></div>
+      </div>
+      <div id="saveError" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--danger);margin-top:8px;min-height:16px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modalNewSanction">Annuler</button>
+      <button class="btn btn-primary" id="saveSanctionBtn" onclick="saveSanction()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : DÉTAIL -->
+<div class="modal-ov" id="modalDetail">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-title" id="detailTitle">Sanction</span>
+      <button class="modal-close" data-close-modal="modalDetail">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="meta-grid" id="detailMeta"></div>
+      <div class="msec"><div class="msec-lbl">Raison</div><div class="msec-content" id="detailReason"></div></div>
+      <div class="msec" id="detailDetailsWrap"><div class="msec-lbl">Détails / Preuves</div><div class="msec-content" id="detailDetails"></div></div>
+      <div class="confirm-zone" id="deleteConfirm" style="display:none;">
+        <strong>⚠ CONFIRMER LA SUPPRESSION</strong>
+        Cette action est irréversible. La sanction sera supprimée de Firebase.
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('deleteConfirm').style.display='none'">Annuler</button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDelete()">🗑 Supprimer définitivement</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="deleteBtn" onclick="document.getElementById('deleteConfirm').style.display='block'" style="display:none;">🗑 Supprimer</button>
+      <button class="btn btn-ghost" data-close-modal="modalDetail">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE + LOGIQUE (identique à Site-19, même config Firebase) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc, getDocs, where }
+                                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain: "scp-site19.firebaseapp.com",
+  projectId: "scp-site19",
+  storageBucket: "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId: "1:245750946774:web:821944a85e207094b22277"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── Session custom ──
+const MOD_SESSION_KEY = 'scp_mod_session';
+function loadModSession()  { try { return JSON.parse(localStorage.getItem(MOD_SESSION_KEY)); } catch { return null; } }
+function saveModSession(u) { localStorage.setItem(MOD_SESSION_KEY, JSON.stringify(u)); }
+function clearModSession() { localStorage.removeItem(MOD_SESSION_KEY); }
+
+let sanctions   = [];
+let currentUser = null;
+let currentRole = null;
+let currentPage = 1;
+let activeDocId = null;
+let unsubscribe = null;
+let unsubServer  = null;
+let serverStatus = { open: false };
+
+// ── SERVER STATUS LISTENER ──
+function startServerListen() {
+  unsubServer = onSnapshot(doc(db, 'server_status', 'current'), snap => {
+    serverStatus = snap.exists() ? snap.data() : { open:false };
+    renderServerWidget();
+    populateServerForm();
+  });
+}
+
+function renderServerWidget() {
+  const isOpen = !!serverStatus.open;
+  const dot   = document.getElementById('srvDot');
+  const label = document.getElementById('srvLabel');
+  const meta  = document.getElementById('srvMeta');
+  const btn   = document.getElementById('srvBtn');
+  if (!dot) return;
+  dot.className   = 'srv-dot '   + (isOpen ? 'open'   : 'closed');
+  label.className = 'srv-label ' + (isOpen ? 'open'   : 'closed');
+  label.textContent = isOpen ? '⬤ OUVERT' : '⬤ FERMÉ';
+  const parts = [];
+  if (serverStatus.reason)    parts.push(serverStatus.reason);
+  if (serverStatus.updatedBy) parts.push('par ' + serverStatus.updatedBy);
+  if (serverStatus.updatedAt) parts.push(new Date(serverStatus.updatedAt).toLocaleString('fr-FR'));
+  meta.textContent = parts.join(' · ') || '—';
+  btn.className   = 'srv-btn ' + (isOpen ? 'to-close' : 'to-open');
+  btn.textContent = isOpen ? '🔒 Fermer le serveur' : '🔓 Ouvrir le serveur';
+}
+
+function populateServerForm() {
+  const s = serverStatus;
+  const g = id => document.getElementById(id);
+  if (g('srvReason'))     g('srvReason').value     = s.reason     || '';
+  if (g('srvStability'))  g('srvStability').value  = s.stability  ?? 96;
+  if (g('srvPlayers'))    g('srvPlayers').value     = s.players    || '';
+  if (g('srvFoundation')) g('srvFoundation').value  = s.foundation || '';
+  if (g('srvScps'))       g('srvScps').value        = s.scps       ?? 0;
+  if (g('srvScpsTotal'))  g('srvScpsTotal').value   = s.scpsTotal  ?? 8;
+  if (g('srvAlerts'))     g('srvAlerts').value      = s.alerts     ?? 0;
+  const logContainer = g('srvLogRows');
+  if (logContainer && s.logList?.length) {
+    logContainer.innerHTML = s.logList.map(e => `
+      <div class="srv-log-entry">
+        <input type="text" value="${e.time||''}" style="max-width:80px" placeholder="HH:MM:SS"/>
+        <select>
+          <option ${e.sev==='INFO'?'selected':''}>INFO</option>
+          <option ${e.sev==='ALERTE'?'selected':''}>ALERTE</option>
+          <option ${e.sev==='CRITIQUE'?'selected':''}>CRITIQUE</option>
+        </select>
+        <input type="text" value="${(e.msg||'').replace(/"/g,'&quot;')}" placeholder="Message…"/>
+        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-log-entry').remove()">✕</button>
+      </div>`).join('');
+  }
+  const scpContainer = g('srvScpRows');
+  if (scpContainer && s.scpList?.length) {
+    scpContainer.innerHTML = s.scpList.map(e => `
+      <div class="srv-scp-entry">
+        <input type="text" value="${e.name||''}" placeholder="Nom (ex: SCP-173)"/>
+        <select>
+          <option ${e.class==='SAFE'?'selected':''}>SAFE</option>
+          <option ${e.class==='EUCLIDE'?'selected':''}>EUCLIDE</option>
+          <option ${e.class==='KETER'?'selected':''}>KETER</option>
+        </select>
+        <select>
+          <option ${e.status==='Confiné'?'selected':''}>Confiné</option>
+          <option ${e.status==='Brèche'?'selected':''}>Brèche</option>
+          <option ${e.status==='Non localisé'?'selected':''}>Non localisé</option>
+        </select>
+        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-scp-entry').remove()">✕</button>
+      </div>`).join('');
+  }
+}
+
+async function saveServerStatus(newOpen) {
+  if (currentRole !== 'admin') return;
+  const name = currentUser?.displayName || currentUser?.username || '—';
+  const g = id => document.getElementById(id);
+  const isOpen = newOpen !== undefined ? newOpen : serverStatus.open;
+  const logList = [...document.querySelectorAll('#srvLogRows .srv-log-entry')].map(row => {
+    const inputs = row.querySelectorAll('input');
+    const sel    = row.querySelector('select');
+    return { time: inputs[0]?.value.trim()||'', sev: sel?.value||'INFO', msg: inputs[1]?.value.trim()||'' };
+  }).filter(e => e.msg);
+  const scpList = [...document.querySelectorAll('#srvScpRows .srv-scp-entry')].map(row => {
+    const inputs  = row.querySelectorAll('input');
+    const selects = row.querySelectorAll('select');
+    return { name: inputs[0]?.value.trim()||'', class: selects[0]?.value||'SAFE', status: selects[1]?.value||'Confiné' };
+  }).filter(e => e.name);
+  const data = {
+    open:       isOpen,
+    reason:     g('srvReason')?.value.trim()    || '',
+    stability:  parseInt(g('srvStability')?.value) || (isOpen ? 96 : 15),
+    players:    g('srvPlayers')?.value.trim()   || '—',
+    foundation: g('srvFoundation')?.value.trim()|| '—',
+    scps:       parseInt(g('srvScps')?.value)   || 0,
+    scpsTotal:  parseInt(g('srvScpsTotal')?.value) || 8,
+    alerts:     parseInt(g('srvAlerts')?.value) || 0,
+    logList, scpList,
+    updatedBy:  name,
+    updatedAt:  new Date().toISOString(),
+  };
+  await setDoc(doc(db, 'server_status', 'current'), data);
+  SCPIntranet.addHistory('Statut serveur mis à jour — ' + (isOpen ? 'OUVERT' : 'FERMÉ'));
+}
+
+document.addEventListener('click', e => {
+  if (e.target.id === 'srvBtn')     saveServerStatus(!serverStatus.open);
+  if (e.target.id === 'srvSaveBtn') saveServerStatus(serverStatus.open);
+  if (e.target.id === 'addLogBtn') {
+    document.getElementById('srvLogRows').insertAdjacentHTML('beforeend', `
+      <div class="srv-log-entry">
+        <input type="text" placeholder="HH:MM:SS" style="max-width:80px"/>
+        <select><option>INFO</option><option>ALERTE</option><option>CRITIQUE</option></select>
+        <input type="text" placeholder="Message…"/>
+        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-log-entry').remove()">✕</button>
+      </div>`);
+  }
+  if (e.target.id === 'addScpBtn') {
+    document.getElementById('srvScpRows').insertAdjacentHTML('beforeend', `
+      <div class="srv-scp-entry">
+        <input type="text" placeholder="Nom (ex: SCP-173)"/>
+        <select><option>SAFE</option><option>EUCLIDE</option><option>KETER</option></select>
+        <select><option>Confiné</option><option>Brèche</option><option>Non localisé</option></select>
+        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-scp-entry').remove()">✕</button>
+      </div>`);
+  }
+});
+
+const PAGE_SIZE = 10;
+
+// ── AUTH CUSTOM ──
+function showLogin() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('loginLoading').style.display = 'none';
+  document.getElementById('loginError').textContent = '';
+}
+
+function showApp(name, role) {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appRoot').style.display = 'block';
+  document.getElementById('topbarUser').textContent = name;
+  document.getElementById('sidebarUser').textContent = name;
+  document.getElementById('sidebarRole').textContent = role.toUpperCase();
+  const badge = document.getElementById('topbarRoleBadge');
+  badge.className = 'role-badge ' + role;
+  const roleLabels = {
+    admin:'🔐 Admin', responsable:'⭐ Responsable', moderateur:'🛡 Modérateur',
+    junior:'🔰 Modo Junior', animateur:'🎭 Animateur', morpheur:'🎭 Morpheur',
+  };
+  badge.textContent = roleLabels[role] || ('🛡 ' + role);
+  const isAdmin = role === 'admin';
+  document.getElementById('adminTab').style.display = isAdmin ? '' : 'none';
+  document.getElementById('deleteBtn').style.display = isAdmin ? '' : 'none';
+  const deptMgr = document.getElementById('rosterDeptManager');
+  if (deptMgr) deptMgr.style.display = canEditRoster(role) ? '' : 'none';
+  document.getElementById('fDate').value = today();
+  toggleDuration();
+  if (isAdmin) loadUsers();
+  SCPIntranet.initTabs();
+  SCPIntranet.initModalClose();
+  SCPIntranet.addHistory('Connecté : ' + name);
+}
+
+function matchUser(u, input) {
+  const q = input.toLowerCase();
+  if (u.username?.toLowerCase() === q) return true;
+  if (u.name?.toLowerCase() === q) return true;
+  if (u.email?.toLowerCase() === q) return true;
+  return false;
+}
+function getDisplayName(u) { return u.displayName || u.username || u.name || u.email || '—'; }
+function getLoginKey(u) { return u.username || u.name || u.email || ''; }
+
+// ── Restaurer session ──
+(async () => {
+  const sess = loadModSession();
+  if (sess?.username && sess?.password) {
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      let found = null;
+      snap.forEach(d => { const u = d.data(); if (matchUser(u, sess.username)) found = { _id: d.id, ...u }; });
+      if (found && found.password === sess.password) {
+        currentUser = found;
+        currentRole = found.role || 'moderateur';
+        showApp(getDisplayName(found), currentRole);
+        startListen();
+        startServerListen();
+        startRosterListen();
+        return;
+      }
+    } catch(e) { console.warn('Session restore error:', e); }
+    clearModSession();
+  }
+  showLogin();
+})();
+
+// ── LOGIN ──
+window.doLogin = async function() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const pass     = document.getElementById('loginPassword').value;
+  const errEl    = document.getElementById('loginError');
+  errEl.textContent = '';
+  if (!username || !pass) { errEl.textContent = '⚠ Nom d\'utilisateur et mot de passe requis.'; return; }
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('loginLoading').style.display = 'block';
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    let found = null;
+    snap.forEach(d => { const u = d.data(); if (!found && matchUser(u, username)) found = { _id: d.id, ...u }; });
+    if (!found) {
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('loginLoading').style.display = 'none';
+      errEl.textContent = '⚠ Identifiant introuvable.';
+      return;
+    }
+    if (found.password !== pass) {
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('loginLoading').style.display = 'none';
+      errEl.textContent = !found.password
+        ? '⚠ Ce compte n\'a pas de mot de passe défini. Demandez à un admin.'
+        : '⚠ Mot de passe incorrect.';
+      return;
+    }
+    currentUser = found;
+    currentRole = found.role || 'moderateur';
+    saveModSession({ username: getLoginKey(found), password: found.password });
+    showApp(getDisplayName(found), currentRole);
+    startListen();
+    startServerListen();
+    startRosterListen();
+  } catch(e) {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('loginLoading').style.display = 'none';
+    errEl.textContent = '⚠ Erreur : ' + e.message;
+  }
+};
+document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key==='Enter') window.doLogin(); });
+document.getElementById('loginUsername').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPassword').focus(); });
+
+// ── RÉCUPÉRATION ──
+const RECOVERY_SECRET = 'site19-admin-recovery';
+window.toggleRecovery = function() {
+  const form  = document.getElementById('loginForm');
+  const panel = document.getElementById('recoveryPanel');
+  const isShowing = panel.style.display !== 'none';
+  form.style.display  = isShowing ? 'block' : 'none';
+  panel.style.display = isShowing ? 'none'  : 'block';
+  document.getElementById('recoveryError').textContent = '';
+  if (!isShowing) document.getElementById('recoveryCode').focus();
+};
+
+window.doRecovery = async function() {
+  const code   = document.getElementById('recoveryCode').value;
+  const ident  = document.getElementById('recoveryUsername').value.trim();
+  const newPwd = document.getElementById('recoveryNewPwd').value;
+  const errEl  = document.getElementById('recoveryError');
+  errEl.textContent = ''; errEl.style.color = 'var(--danger)';
+  if (code !== RECOVERY_SECRET) { errEl.textContent = '⚠ Code secret incorrect.'; return; }
+  if (!ident || !newPwd || newPwd.length < 2) { errEl.textContent = '⚠ Identifiant et nouveau mot de passe requis.'; return; }
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    let found = null;
+    snap.forEach(d => { const u = d.data(); if (!found && matchUser(u, ident)) found = { _id: d.id, ...u }; });
+    if (!found) { errEl.textContent = '⚠ Compte introuvable.'; return; }
+    await setDoc(doc(db, 'users', found._id), { password: newPwd, username: found.username || found.name || ident }, { merge: true });
+    errEl.style.color = 'var(--safe)';
+    errEl.textContent = '✓ Mot de passe mis à jour pour ' + (found.displayName || found.username || found.name) + '. Connexion dans 2s…';
+    document.getElementById('recoveryCode').value = '';
+    document.getElementById('recoveryNewPwd').value = '';
+    setTimeout(() => {
+      window.toggleRecovery();
+      document.getElementById('loginUsername').value = found.username || found.name || ident;
+      document.getElementById('loginPassword').focus();
+    }, 2000);
+  } catch(e) { errEl.textContent = '⚠ Erreur : ' + e.message; }
+};
+
+window.doLogout = function() {
+  currentUser = null; currentRole = null;
+  clearModSession();
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  if (unsubServer) { unsubServer(); unsubServer = null; }
+  if (unsubRoster) { unsubRoster(); unsubRoster = null; }
+  showLogin();
+};
+
+// ── FIRESTORE LISTENER ──
+function startListen() {
+  const q = query(collection(db, 'sanctions'), orderBy('date', 'desc'));
+  unsubscribe = onSnapshot(q, snap => {
+    sanctions = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    currentPage = 1;
+    renderAll();
+    const li = document.getElementById('liveIndicator');
+    li.textContent = '⬤ EN DIRECT — ' + sanctions.length + ' sanctions';
+    li.style.color = 'var(--safe)';
+    document.getElementById('sidebarSync').textContent = 'Sync ' + nowStr();
+  }, () => {
+    document.getElementById('liveIndicator').textContent = '⚠ Erreur Firebase';
+    document.getElementById('liveIndicator').style.color = 'var(--danger)';
+  });
+}
+
+// ── BROADCAST ──
+window.sendBroadcast = async function() {
+  const author  = document.getElementById('bcAuthor').value.trim();
+  const message = document.getElementById('bcMessage').value.trim();
+  const level   = document.getElementById('bcLevel').value;
+  const sound   = document.getElementById('bcSound').value;
+  const msgEl   = document.getElementById('bcMsg');
+  msgEl.textContent = ''; msgEl.style.color = '';
+  if (!author || !message) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Auteur et message obligatoires.'; return; }
+  try {
+    await setDoc(doc(db, 'broadcast', 'current'), {
+      author, message, level, sound, active: true,
+      sentBy: currentUser?.displayName || currentUser?.username || '—',
+      sentAt: new Date().toISOString(),
+    });
+    msgEl.style.color = 'var(--safe)';
+    msgEl.textContent = '✓ Alerte diffusée sur le site public.';
+    SCPIntranet.addHistory('Broadcast envoyé : [' + level.toUpperCase() + '] ' + author);
+    setTimeout(() => { msgEl.textContent = ''; }, 4000);
+  } catch(e) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ '+e.message; }
+};
+
+window.clearBroadcast = async function() {
+  if (!confirm('Retirer l\'alerte du site public ?')) return;
+  try {
+    await setDoc(doc(db, 'broadcast', 'current'), { active: false, clearedAt: new Date().toISOString() });
+    document.getElementById('bcMsg').style.color = 'var(--safe)';
+    document.getElementById('bcMsg').textContent = '✓ Alerte retirée du site.';
+    SCPIntranet.addHistory('Broadcast effacé');
+  } catch(e) { alert('Erreur : ' + e.message); }
+};
+
+// ── SAVE SANCTION ──
+window.saveSanction = async function() {
+  const player = document.getElementById('fPlayer').value.trim();
+  const reason = document.getElementById('fReason').value.trim();
+  const errEl  = document.getElementById('saveError');
+  errEl.textContent = '';
+  if (!player || !reason) { errEl.textContent = '⚠ Joueur et raison sont obligatoires.'; return; }
+  const type = document.getElementById('fType').value;
+  const btn  = document.getElementById('saveSanctionBtn');
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const modName = currentUser?.displayName || currentUser?.username || '—';
+    await addDoc(collection(db, 'sanctions'), {
+      player,
+      username: document.getElementById('fUsername').value.trim(),
+      type, reason,
+      details: document.getElementById('fDetails').value.trim(),
+      mod: modName,
+      modUid: currentUser?._id || '—',
+      duration: ['ban','mute'].includes(type) ? document.getElementById('fDuration').value : '—',
+      date: document.getElementById('fDate').value || today(),
+      createdAt: new Date().toISOString(),
+    });
+    SCPIntranet.closeModal('modalNewSanction');
+    SCPIntranet.addHistory('Sanction : ' + typeName(type) + ' → ' + player);
+    ['fPlayer','fUsername','fReason','fDetails'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fDate').value = today();
+  } catch(e) {
+    errEl.textContent = '⚠ ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ Enregistrer';
+  }
+};
+
+// ── OPEN DETAIL ──
+window.openDetail = function(docId) {
+  const s = sanctions.find(x => x._id === docId);
+  if (!s) return;
+  activeDocId = docId;
+  document.getElementById('deleteConfirm').style.display = 'none';
+  document.getElementById('deleteBtn').style.display = currentRole === 'admin' ? '' : 'none';
+  document.getElementById('detailTitle').textContent = typeName(s.type) + ' — ' + s.player;
+  document.getElementById('detailMeta').innerHTML = `
+    <div class="meta-item"><label>Type</label><span><span class="type-badge ${s.type}">${typeName(s.type)}</span></span></div>
+    <div class="meta-item"><label>Joueur</label><span>${esc(s.player)}</span></div>
+    <div class="meta-item"><label>Username</label><span>${esc(s.username)||'—'}</span></div>
+    <div class="meta-item"><label>Modérateur</label><span>${esc(s.mod)}</span></div>
+    <div class="meta-item"><label>Durée</label><span>${s.duration||'—'}</span></div>
+    <div class="meta-item"><label>Date</label><span>${fmtDate(s.date)}</span></div>`;
+  document.getElementById('detailReason').textContent = s.reason;
+  const dw = document.getElementById('detailDetailsWrap');
+  if (s.details) { dw.style.display=''; document.getElementById('detailDetails').textContent = s.details; }
+  else dw.style.display = 'none';
+  SCPIntranet.openModal('modalDetail');
+};
+
+// ── DELETE ──
+window.confirmDelete = async function() {
+  if (!activeDocId || currentRole !== 'admin') return;
+  const s = sanctions.find(x => x._id === activeDocId);
+  try {
+    await deleteDoc(doc(db, 'sanctions', activeDocId));
+    SCPIntranet.closeModal('modalDetail');
+    SCPIntranet.addHistory('Suppression : ' + (s ? s.player : activeDocId));
+    activeDocId = null;
+  } catch(e) { alert('Erreur : ' + e.message); }
+};
+
+// ── CREATE USER ──
+window.createUser = async function() {
+  const username    = document.getElementById('newUserUsername').value.trim();
+  const pass        = document.getElementById('newUserPassword').value;
+  const displayName = document.getElementById('newUserDisplayName').value.trim();
+  const role        = document.getElementById('newUserRole').value;
+  const msg         = document.getElementById('createUserMsg');
+  msg.textContent = ''; msg.style.color = '';
+  if (!username || !pass) { msg.style.color='var(--danger)'; msg.textContent='⚠ Nom d\'utilisateur et mot de passe requis.'; return; }
+  if (pass.length < 4) { msg.style.color='var(--danger)'; msg.textContent='⚠ Mot de passe min. 4 caractères.'; return; }
+  try {
+    const existing = await getDocs(collection(db, 'users'));
+    let duplicate = false;
+    existing.forEach(d => { if (d.data().username?.toLowerCase() === username.toLowerCase()) duplicate = true; });
+    if (duplicate) { msg.style.color='var(--danger)'; msg.textContent='⚠ Ce nom d\'utilisateur est déjà utilisé.'; return; }
+    await addDoc(collection(db, 'users'), {
+      username, password: pass,
+      displayName: displayName || username,
+      role, createdAt: new Date().toISOString(),
+      createdBy: currentUser?.username || '—'
+    });
+    msg.style.color = 'var(--safe)';
+    msg.textContent = '✓ Compte créé : ' + (displayName || username) + ' [' + role + ']';
+    SCPIntranet.addHistory('Compte créé : ' + (displayName || username));
+    ['newUserUsername','newUserPassword','newUserDisplayName'].forEach(id => document.getElementById(id).value = '');
+    loadUsers();
+  } catch(e) { msg.style.color='var(--danger)'; msg.textContent='⚠ '+e.message; }
+};
+
+window.loadUsers = async function() {
+  if (currentRole !== 'admin') return;
+  const el = document.getElementById('usersList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-spinner">Chargement…</div>';
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    if (snap.empty) { el.innerHTML = '<div style="padding:14px;color:var(--text-dim);font-family:monospace;font-size:11px;">Aucun utilisateur.</div>'; return; }
+    el.innerHTML = snap.docs.map(d => {
+      const u = d.data();
+      const isMe = d.id === currentUser?._id;
+      const displayName = u.displayName || u.username || u.name || '—';
+      const loginId = u.username || u.name || u.email || '—';
+      const hasPwd = !!u.password;
+      const roleStr = u.role || 'moderateur';
+      return `<div class="user-row">
+        <div>
+          <div class="user-email">${esc(displayName)}${isMe?' <span style="font-size:9px;color:var(--text-dim)">(vous)</span>':''}</div>
+          <div class="user-meta">@${esc(loginId)} · mdp: ${hasPwd ? esc(u.password) : '<span style="color:var(--warn)">⚠ non défini</span>'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span class="role-badge ${roleStr}">${roleStr}</span>
+          ${!hasPwd ? `<button class="btn btn-ghost btn-xs" onclick="setUserPassword('${d.id}','${esc(displayName)}')">🔑 Définir mdp</button>` : ''}
+          ${!isMe?`<button class="btn btn-danger btn-xs" onclick="deleteUser('${d.id}','${esc(displayName)}')">Supprimer</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { el.innerHTML = '<div style="padding:14px;color:var(--danger);font-family:monospace;font-size:11px;">Erreur : '+e.message+'</div>'; }
+};
+
+window.deleteUser = async function(uid, name) {
+  if (!confirm('Supprimer le compte de ' + name + ' ?')) return;
+  try {
+    await deleteDoc(doc(db, 'users', uid));
+    SCPIntranet.addHistory('Compte supprimé : ' + name);
+    loadUsers();
+  } catch(e) { alert('Erreur : ' + e.message); }
+};
+
+window.setUserPassword = async function(uid, name) {
+  const newPwd = prompt('Définir le mot de passe pour ' + name + ' :');
+  if (!newPwd || newPwd.trim().length < 2) return;
+  try {
+    await setDoc(doc(db, 'users', uid), { password: newPwd.trim() }, { merge: true });
+    SCPIntranet.addHistory('Mot de passe défini pour : ' + name);
+    loadUsers();
+  } catch(e) { alert('Erreur : ' + e.message); }
+};
+
+// ── PLAYER LOOKUP ──
+window.lookupPlayer = function() {
+  const q = document.getElementById('playerSearchInput').value.trim().toLowerCase();
+  if (!q) return;
+  const matches = sanctions.filter(s => s.player.toLowerCase().includes(q) || (s.username&&s.username.toLowerCase().includes(q)));
+  const profile  = document.getElementById('playerProfile');
+  const noState  = document.getElementById('noPlayerState');
+  const timeline = document.getElementById('playerTimeline');
+  if (!matches.length) {
+    profile.classList.remove('visible'); noState.style.display='';
+    noState.innerHTML='<span class="np-icon">❌</span>Aucun joueur trouvé';
+    timeline.innerHTML=''; return;
+  }
+  const warns=matches.filter(s=>s.type==='warn').length;
+  const kicks=matches.filter(s=>s.type==='kick').length;
+  const bans =matches.filter(s=>s.type==='ban').length;
+  document.getElementById('profileName').textContent    = matches[0].player;
+  document.getElementById('profileUsername').textContent= matches[0].username||'';
+  document.getElementById('profileWarnCount').textContent=warns;
+  document.getElementById('profileKickCount').textContent=kicks;
+  document.getElementById('profileBanCount').textContent =bans;
+  document.getElementById('profileTotal').textContent    =matches.length;
+  const risk=Math.min(100,warns*10+kicks*20+bans*40);
+  const rc=risk>=70?'var(--danger)':risk>=40?'var(--warn)':'var(--safe)';
+  document.getElementById('profileRiskLabel').textContent=risk>=70?'🔴 ÉLEVÉ':risk>=40?'🟡 MODÉRÉ':'🟢 FAIBLE';
+  document.getElementById('profileRiskFill').style.cssText=`width:${risk}%;background:${rc}`;
+  profile.classList.add('visible'); noState.style.display='none';
+  const sorted=[...matches].sort((a,b)=>b.date.localeCompare(a.date));
+  timeline.innerHTML=`<div class="widget" style="margin-top:16px;">
+    <div class="widget-hdr"><span class="widget-title">Historique (${matches.length})</span></div>
+    <div class="widget-body"><div class="timeline">
+      ${sorted.map(s=>`<div class="tl-item"><div class="tl-dot ${s.type}"></div><div class="tl-content">
+        <div class="tl-top"><span class="type-badge ${s.type}">${typeName(s.type)}</span>${s.duration&&s.duration!=='—'?`<span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim)">⏱ ${s.duration}</span>`:''}</div>
+        <div class="tl-reason">${esc(s.reason)}</div>
+        <div class="tl-meta">Par ${esc(s.mod)} — ${fmtDate(s.date)}</div>
+      </div></div>`).join('')}
+    </div></div></div>`;
+  SCPIntranet.addHistory('Historique : ' + matches[0].player);
+};
+
+document.getElementById('playerSearchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.lookupPlayer();
+});
+
+// ── RENDER ALL ──
+function renderAll() { renderTable(); renderSidebar(); renderStats(); }
+
+// ── RENDER TABLE ──
+window.renderTable = function() {
+  const search=document.getElementById('filterSearch').value.toLowerCase();
+  const typeF =document.getElementById('filterType').value;
+  const sort  =document.getElementById('filterSort').value;
+  let data=sanctions.filter(s=>{
+    const ms=!search||[s.player,s.username,s.reason,s._id,s.mod].some(v=>v&&v.toLowerCase().includes(search));
+    return ms&&(!typeF||s.type===typeF);
+  });
+  if(sort==='date-desc') data.sort((a,b)=>b.date.localeCompare(a.date));
+  else if(sort==='date-asc') data.sort((a,b)=>a.date.localeCompare(b.date));
+  else if(sort==='player') data.sort((a,b)=>a.player.localeCompare(b.player));
+  else if(sort==='type') data.sort((a,b)=>a.type.localeCompare(b.type));
+  const total=data.length, totalPages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+  if(currentPage>totalPages) currentPage=totalPages;
+  const page=data.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  const tbody=document.getElementById('sanctionTableBody');
+  tbody.innerHTML=page.length===0
+    ?'<tr class="empty-row"><td colspan="8"><span>📋</span>Aucune sanction trouvée</td></tr>'
+    :page.map(s=>`<tr>
+      <td class="td-id" style="font-size:9px;" title="${s._id}">…${s._id.slice(-6)}</td>
+      <td class="td-player">${esc(s.player)}</td>
+      <td><span class="type-badge ${s.type}">${typeName(s.type)}</span></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(s.reason)}">${esc(s.reason)}</td>
+      <td style="color:var(--text-dim)">${esc(s.mod||'—')}</td>
+      <td style="color:var(--text-dim)">${s.duration||'—'}</td>
+      <td class="td-date">${fmtDate(s.date)}</td>
+      <td><button class="btn btn-ghost btn-xs" onclick="openDetail('${s._id}')">Voir</button></td>
+    </tr>`).join('');
+  document.getElementById('paginationInfo').textContent=`${total} sanction${total>1?'s':''} — page ${currentPage}/${totalPages}`;
+  let btns=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>‹</button>`;
+  for(let p=1;p<=totalPages;p++){
+    if(totalPages<=7||Math.abs(p-currentPage)<=1||p===1||p===totalPages)
+      btns+=`<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    else if(Math.abs(p-currentPage)===2) btns+=`<span style="padding:0 4px;color:var(--text-dim)">…</span>`;
+  }
+  btns+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>›</button>`;
+  document.getElementById('paginationBtns').innerHTML=btns;
+};
+window.goPage=function(p){currentPage=Math.max(1,Math.min(p,Math.ceil(sanctions.length/PAGE_SIZE)));renderTable();};
+
+function renderSidebar(){
+  const t=today();
+  document.getElementById('statWarnCount').textContent=sanctions.filter(s=>s.type==='warn').length;
+  document.getElementById('statKickCount').textContent=sanctions.filter(s=>s.type==='kick').length;
+  document.getElementById('statBanCount').textContent =sanctions.filter(s=>s.type==='ban').length;
+  document.getElementById('statMuteCount').textContent=sanctions.filter(s=>s.type==='mute').length;
+  document.getElementById('sbTotal').textContent  =sanctions.length;
+  document.getElementById('sbToday').textContent  =sanctions.filter(s=>s.date===t).length;
+  document.getElementById('sbBans').textContent   =sanctions.filter(s=>s.type==='ban').length;
+  document.getElementById('sbPlayers').textContent=new Set(sanctions.map(s=>s.player.toLowerCase())).size;
+}
+
+function renderStats(){
+  const total=sanctions.length||1;
+  const tc={warn:0,kick:0,ban:0,mute:0};
+  sanctions.forEach(s=>{if(tc[s.type]!==undefined)tc[s.type]++;});
+  const tColors={warn:'var(--warn)',kick:'var(--accent)',ban:'var(--danger)',mute:'var(--thaumiel)'};
+  const tLabels={warn:'Avertissement',kick:'Expulsion',ban:'Bannissement',mute:'Mute'};
+  document.getElementById('chartTypes').innerHTML=Object.entries(tc).map(([t,c])=>{
+    const p=Math.round(c/total*100);
+    return `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span class="type-badge ${t}">${tLabels[t]}</span><span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text)">${c} <span style="color:var(--text-dim)">(${p}%)</span></span></div><div style="height:4px;background:var(--surface);border:1px solid var(--border);"><div style="height:100%;width:${p}%;background:${tColors[t]};"></div></div></div>`;
+  }).join('');
+  const mc={};sanctions.forEach(s=>{mc[s.mod]=(mc[s.mod]||0)+1;});
+  const sm=Object.entries(mc).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const mm=sm[0]?.[1]||1;
+  document.getElementById('chartMods').innerHTML=sm.map(([m,c],i)=>`<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--white)">${i===0?'🥇 ':''}${esc(m)}</span><span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent)">${c}</span></div><div style="height:4px;background:var(--surface);border:1px solid var(--border);"><div style="height:100%;width:${Math.round(c/mm*100)}%;background:var(--accent2);"></div></div></div>`).join('')||'<div style="color:var(--text-dim);font-family:monospace;font-size:11px;padding:8px;">Aucune donnée</div>';
+  const days=[];const now=new Date();
+  for(let i=29;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const ds=d.toISOString().split('T')[0];days.push({ds,count:sanctions.filter(s=>s.date===ds).length});}
+  const md=Math.max(...days.map(d=>d.count),1);
+  document.getElementById('chartActivity').innerHTML=days.map(d=>{const h=Math.max(4,Math.round(d.count/md*80));const c=d.count===0?'var(--border2)':d.count>=3?'var(--danger)':d.count>=2?'var(--warn)':'var(--accent2)';return `<div title="${d.ds}: ${d.count}" style="flex:1;height:${h}px;background:${c};min-width:6px;"></div>`;}).join('');
+  document.getElementById('chartActivityLabels').innerHTML=days.map((d,i)=>`<div style="flex:1;font-family:'Space Mono',monospace;font-size:8px;color:var(--text-dim);text-align:center;">${i%7===0||i===29?d.ds.slice(5):''}</div>`).join('');
+  document.getElementById('statsActivityCount').textContent=days.reduce((a,d)=>a+d.count,0)+' actions ce mois';
+  const pd={};sanctions.forEach(s=>{const k=s.player.toLowerCase();if(!pd[k])pd[k]={name:s.player,warn:0,kick:0,ban:0,total:0};if(s.type==='warn')pd[k].warn++;else if(s.type==='kick')pd[k].kick++;else if(s.type==='ban')pd[k].ban++;pd[k].total++;});
+  const top=Object.values(pd).sort((a,b)=>b.total-a.total).slice(0,8);const mx=top[0]?.total||1;
+  document.getElementById('topOffenders').innerHTML=top.map((p,i)=>{const r=Math.min(100,Math.round((p.warn*10+p.kick*20+p.ban*40)/(mx*40)*100));const rc=r>70?'var(--danger)':r>40?'var(--warn)':'var(--safe)';return `<tr><td style="color:var(--text-dim)">${i+1}</td><td class="td-player">${esc(p.name)}</td><td style="color:var(--warn)">${p.warn}</td><td style="color:var(--accent)">${p.kick}</td><td style="color:var(--danger)">${p.ban}</td><td style="color:var(--white);font-weight:bold">${p.total}</td><td><span style="font-family:'Space Mono',monospace;font-size:9px;color:${rc}">${r>70?'ÉLEVÉ':r>40?'MODÉRÉ':'FAIBLE'}</span></td></tr>`;}).join('')||'<tr class="empty-row"><td colspan="7"><span>📊</span>Aucune donnée</td></tr>';
+}
+
+window.exportAll=function(){
+  const lines=['══════════════════════════════════','SCP FOUNDATION — SITE-15','EXPORT REGISTRE MODÉRATION',`Généré le ${new Date().toLocaleString('fr-FR')}`,`Total : ${sanctions.length} sanctions`,'══════════════════════════════════',''];
+  sanctions.forEach(s=>lines.push(`${s.date} | ${typeName(s.type).toUpperCase()} | ${s.player} | ${s.reason} | par ${s.mod}`));
+  const b=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`site15_sanctions_${today()}.txt`;a.click();
+  SCPIntranet.addHistory('Export généré');
+};
+
+window.toggleDuration=function(){const t=document.getElementById('fType').value;document.getElementById('fieldDuration').style.display=['ban','mute'].includes(t)?'':'none';};
+window.clearFilters=function(){document.getElementById('filterSearch').value='';document.getElementById('filterType').value='';document.getElementById('filterSort').value='date-desc';currentPage=1;renderTable();};
+
+function typeName(t){return{warn:'⚠ Warn',kick:'👟 Kick',ban:'🔨 Ban',mute:'🔇 Mute'}[t]||t;}
+function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtDate(d){if(!d)return'—';try{return new Date(d+'T12:00:00').toLocaleDateString('fr-FR');}catch{return d;}}
+function nowStr(){const d=new Date();return`[${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}]`;}
+
+document.addEventListener('click',e=>{
+  if(e.target.dataset.closeModal)SCPIntranet.closeModal(e.target.dataset.closeModal);
+  if(e.target.classList.contains('modal-ov'))SCPIntranet.closeModal(e.target.id);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-ov.open').forEach(m=>m.classList.remove('open'));});
+
+// ══════════════════════════════════════════════════════
+// ── ROSTERS — Firebase + édition complète ──
+// ══════════════════════════════════════════════════════
+let rosterData = {};
+let activeDeptId = null;
+let unsubRoster  = null;
+
+const ROSTER_SEED = {
+  security: {
+    id:'security', name:'Sécurité', icon:'🔒', color:'#00d4ff',
+    agents:[
+      {id:'a1',name:'"ECHO"',username:'alcbasket',rank:'[D.SE-SF] Agent de 1ère Classe',date:'13/02/2026',command:`run team alcbasket Département de la Sécurité F & permntag alcbasket "ECHO" & permrtag alcbasket [D.SE-SF] Agent de 1ère Classe & permmorph alc reset & permhat alc Vest & permhat alc holster & permhat alc kneepads & permhat alc 11515337829,11515333598 & permhat alc 15081386107 & permhat alc helmet & permhat alc 15949578750 & permhat alc 4684658997 & permmorph alcbasket DSF Cadet & startergear alcbasket laser pistol & startergear alcbasket L4 & res alcbasket`},
+      {id:'a2',name:'N.HACK',username:'momo907526',rank:'[D.SE] Cadet',date:'04/03/2026',command:`run team momo907526 Sec & permntag momo907526 N.HACK & permrtag momo907526 [D.SE] Cadet & startergear momo907526 laser pistol & permmorph momo907526 SD`},
+      {id:'a3',name:'A.MAX',username:'mrgraschat',rank:'[D.SE-DIR.] Directeur',date:'13/02/2026',command:`run team mrgraschat Département de la Sécurité F & permntag mrgraschat A.MAX & permrtag mrgraschat [D.SE-DIR.] Directeur de la Sécurité & permmorph mrgraschat Commandant & startergear mrgraschat laser pistol & startergear mrgraschat o5 & permscale mrgraschat 1.2`},
+      {id:'a4',name:'M.FRANCOIS',username:'Matheo50534',rank:'[D.SE-DSI] Cadet',date:'13/02/2026',command:`run team Matheo50534 Internal D & permntag Matheo50534 M.FRANCOIS & permrtag Matheo50534 [D.SE-DSI] Cadet & startergear Matheo50534 laser pistol & permmorph Matheo50534 ISD`},
+      {id:'a5',name:'M.NOWAK',username:'FlofloParis',rank:'[D.SE] Cadet',date:'15/02/2026',command:`run team FlofloParis Security & permntag FlofloParis M.NOWAK & permrtag FlofloParis [D.SE] Cadet & startergear FlofloParis laser pistol & permmorph FlofloParis SD`},
+      {id:'a6',name:'D.LUNE',username:'Art_mat246',rank:'[D.SE] Cadet',date:'21/02/2026',command:`run team Art_mat246 Security & permntag Art_mat246 D.LUNE & permrtag Art_mat246 [D.SE] Cadet & startergear Art_mat246 laser pistol & permmorph Art_mat246 SD`},
+      {id:'a7',name:'E.TERNON',username:'sans_argent2',rank:'[D.SE-BSI] Caporal-Chef',date:'22/02/2026',command:`run team sans_argent2 Internal & permntag sans_argent2 E.TERNON & permrtag sans_argent2 [D.SE-BSI] Caporal & startergear sans_argent2 laser pistol & permmorph sans_argent2 ISD`},
+      {id:'a8',name:'J.DEGOBERT',username:'poloman2023',rank:'[D.SE-SC] Agent 2ème cl.',date:'24/02/2026',command:`run team poloman2023 Security & permntag poloman2023 J.DEGOBERT & permrtag poloman2023 [D.SE-SC] Agent de 2ème classe & startergear poloman2023 laser pistol & permmorph poloman2023 SD`},
+      {id:'a9',name:'N.BEDIN',username:'kileurZH_1',rank:'[D.SE] Agent de 2ème Classe',date:'03/03/2026',command:`run team kileurZH_1 Security & permntag kileurZH_1 N.BEDIN & permrtag kileurZH_1 [D.SE] Agent de 2ème Classe & permmorph kileurZH_1 SD & startergear kileurZH_1 laser pistol`},
+      {id:'a10',name:'Y.CREPEAU',username:'yerzits3',rank:'[D.SE] Cadet',date:'04/03/2026',command:`run team yerzits3 Security & permntag yerzits3 Y.CREPEAU & permrtag yerzits3 [D.SE] Cadet & permmorph yerzits3 SD & startergear yerzits3 laser pistol`},
+    ]
+  },
+  medical: {
+    id:'medical', name:'Médical', icon:'⚕️', color:'#00e676',
+    agents:[
+      {id:'b1',name:'M.KOLIANSKY',username:'mrgraschat',rank:'[D.M-PSY] Psychologue',date:'',command:`run team mrgraschat Medic & permntag mrgraschat M.KOLIANSKY & permrtag mrgraschat [D.M-PSY] Psychologue & permmorph mrgraschat DM & startergear mrgraschat authorize & startergear mrgraschat o5 & startergear mrgraschat clipboard`},
+    ]
+  },
+  scientific: {
+    id:'scientific', name:'Scientifique', icon:'🔬', color:'#b388ff',
+    agents:[
+      {id:'c1',name:'"Élégant"',username:'gaziakzebibou',rank:'[D.SCI-DIR.] Directeur des recherches',date:'',command:`run permntag gaziakzebibou M.Élégant & permrtag gaziakzebibou [D.SCI-DIR.] Directeur des recherches & startergear gaziakzebibou O & startergear gaziakzebibou clipboard & startergear gaziakzebibou auth & startergear gaziakzebibou det`},
+    ]
+  }
+};
+
+function canEditRoster(role) {
+  return ['admin', 'responsable'].includes(role || currentRole);
+}
+
+function startRosterListen() {
+  if (unsubRoster) { unsubRoster(); unsubRoster = null; }
+  unsubRoster = onSnapshot(doc(db, 'rosters', 'data'), snap => {
+    if (snap.exists()) {
+      rosterData = snap.data().depts || {};
+    } else {
+      rosterData = JSON.parse(JSON.stringify(ROSTER_SEED));
+      saveRosterToFirebase(false);
+    }
+    renderAllRosters();
+  }, err => { console.error('Roster listen error:', err); });
+}
+
+async function saveRosterToFirebase(showFeedback = true) {
+  const ind = document.getElementById('rosterSaveIndicator');
+  if (ind && showFeedback) { ind.textContent = '⟳ Sauvegarde…'; ind.className = 'roster-save-indicator saving'; }
+  try {
+    await setDoc(doc(db, 'rosters', 'data'), { depts: rosterData, updatedAt: new Date().toISOString() });
+    if (ind && showFeedback) {
+      ind.textContent = '✓ Sauvegardé'; ind.className = 'roster-save-indicator saved';
+      setTimeout(() => { ind.textContent = ''; ind.className = 'roster-save-indicator'; }, 2500);
+    }
+  } catch(e) {
+    if (ind) { ind.textContent = '✕ Erreur Firebase'; ind.className = 'roster-save-indicator error'; }
+    console.error(e);
+  }
+}
+
+function ruid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function renderAllRosters() {
+  renderRosterTabs();
+  renderRosterPanels();
+  renderDeptChips();
+}
+
+function renderRosterTabs() {
+  const depts = Object.values(rosterData);
+  const tabsEl = document.getElementById('rosterTabs');
+  if (!tabsEl) return;
+  if (!activeDeptId || !rosterData[activeDeptId]) {
+    activeDeptId = depts[0]?.id || null;
+  }
+  tabsEl.innerHTML = depts.map(d => `
+    <button class="roster-tab ${d.id === activeDeptId ? 'active' : ''}" data-roster="${d.id}">
+      ${d.icon || ''} ${d.name} (${d.agents?.length || 0})
+    </button>`).join('');
+}
+
+function renderRosterPanels() {
+  const depts = Object.values(rosterData);
+  const panelsEl = document.getElementById('rosterPanels');
+  if (!panelsEl) return;
+  panelsEl.innerHTML = depts.map(d => `
+    <div class="roster-dept-panel ${d.id === activeDeptId ? 'active' : ''}" id="roster-panel-${d.id}">
+      ${renderAgentCards(d)}
+      ${canEditRoster() ? renderAddAgentForm(d.id) : ''}
+    </div>`).join('');
+}
+
+function renderAgentCards(dept) {
+  const agents = dept.agents || [];
+  if (!agents.length) {
+    return `<div style="text-align:center;padding:40px;color:var(--text-dim);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;border:1px dashed var(--border);margin-bottom:8px;">◈ Aucun agent — ajoutez le premier ci-dessous</div>`;
+  }
+  return agents.map(a => `
+    <div class="roster-agent-card" id="card-${dept.id}-${a.id}" style="border-left-color:${dept.color || '#00d4ff'}">
+      <div class="roster-agent-head">
+        <div>
+          <div class="roster-agent-name">${escR(a.name)}</div>
+          <div class="roster-agent-rank">${escR(a.rank)}</div>
+          <div class="roster-agent-user">@${escR(a.username)}</div>
+        </div>
+        <div class="roster-date-badge">${escR(a.date) || '—'}</div>
+      </div>
+      <div class="roster-command-preview" title="Cliquer pour voir la commande complète" onclick="toggleCommandFull('${dept.id}','${a.id}')" id="cmdprev-${dept.id}-${a.id}">${escR(a.command).substring(0,110)}…</div>
+      <div class="roster-card-actions">
+        <button class="roster-copy-btn" data-copy-dept="${dept.id}" data-copy-agent="${a.id}">⧉ Copier morph</button>
+        ${canEditRoster() ? `<button class="roster-edit-btn" data-edit-dept="${dept.id}" data-edit-agent="${a.id}">✏ Modifier</button>` : ''}
+        ${canEditRoster() ? `<button class="roster-del-btn" data-del-dept="${dept.id}" data-del-agent="${a.id}" title="Supprimer">🗑</button>` : ''}
+      </div>
+    </div>
+    <div class="roster-edit-form" id="editform-${dept.id}-${a.id}" style="display:none;">
+      <div class="ef-grid">
+        <div><label>Nom affiché *</label><input id="ef-name-${dept.id}-${a.id}" value="${escAttr(a.name)}" placeholder="Ex: A.DUPONT" /></div>
+        <div><label>Username Roblox *</label><input id="ef-user-${dept.id}-${a.id}" value="${escAttr(a.username)}" placeholder="username_roblox" /></div>
+        <div><label>Grade / Rang</label><input id="ef-rank-${dept.id}-${a.id}" value="${escAttr(a.rank)}" placeholder="[D.SE] Cadet" /></div>
+        <div><label>Date recrutement</label><input id="ef-date-${dept.id}-${a.id}" value="${escAttr(a.date)}" placeholder="JJ/MM/AAAA" /></div>
+        <div class="ef-full"><label>Commande morph *</label><textarea id="ef-cmd-${dept.id}-${a.id}" rows="4">${escR(a.command)}</textarea></div>
+      </div>
+      <div class="roster-edit-actions">
+        <button class="btn btn-primary btn-sm" data-save-dept="${dept.id}" data-save-agent="${a.id}">✓ Enregistrer</button>
+        <button class="btn btn-ghost btn-sm" data-cancel-edit="${dept.id}-${a.id}">Annuler</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderAddAgentForm(deptId) {
+  const s = id => `style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;"`;
+  return `
+    <div class="roster-add-zone">
+      <div class="roster-add-title">+ Nouvel agent</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Nom affiché *</label>
+          <input type="text" id="new-name-${deptId}" placeholder="Ex: A.DUPONT" ${s()} /></div>
+        <div><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Username Roblox *</label>
+          <input type="text" id="new-user-${deptId}" placeholder="username_roblox" ${s()} /></div>
+        <div><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Grade / Rang</label>
+          <input type="text" id="new-rank-${deptId}" placeholder="[D.SE] Cadet" ${s()} /></div>
+        <div><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Date recrutement</label>
+          <input type="text" id="new-date-${deptId}" placeholder="JJ/MM/AAAA" ${s()} /></div>
+        <div style="grid-column:1/-1;"><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Commande morph *</label>
+          <textarea id="new-cmd-${deptId}" rows="3" placeholder="run team username …" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:7px 10px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.5;"></textarea></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-primary btn-sm" data-add-agent="${deptId}">+ Ajouter l'agent</button>
+        <span id="add-err-${deptId}" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--danger);"></span>
+      </div>
+    </div>`;
+}
+
+function renderDeptChips() {
+  const el = document.getElementById('rosterDeptList');
+  if (!el) return;
+  const depts = Object.values(rosterData);
+  if (!depts.length) { el.innerHTML = '<span style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--text-dim);">Aucun département</span>'; return; }
+  el.innerHTML = depts.map(d => `
+    <div class="roster-dept-chip">
+      <div class="roster-dept-chip-dot" style="background:${d.color || '#888'}"></div>
+      <span>${d.icon || ''} ${escR(d.name)}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);margin-left:4px;">(${d.agents?.length || 0})</span>
+      <button class="roster-dept-chip-del" data-del-dept-id="${d.id}" title="Supprimer le département">✕</button>
+    </div>`).join('');
+}
+
+window.toggleCommandFull = function(deptId, agentId) {
+  const el = document.getElementById(`cmdprev-${deptId}-${agentId}`);
+  if (!el) return;
+  const agent = rosterData[deptId]?.agents?.find(a => a.id === agentId);
+  if (!agent) return;
+  const full = el.dataset.expanded === '1';
+  if (full) { el.textContent = agent.command.substring(0, 110) + '…'; el.dataset.expanded = '0'; }
+  else { el.textContent = agent.command; el.dataset.expanded = '1'; }
+};
+
+window.addDept = function() {
+  if (!canEditRoster()) return;
+  const name  = document.getElementById('newDeptName').value.trim();
+  const icon  = document.getElementById('newDeptIcon').value.trim() || '📁';
+  const color = document.getElementById('newDeptColor').value || '#00d4ff';
+  if (!name) return;
+  const id = name.toLowerCase().replace(/[^a-z0-9]/g,'_') + '_' + ruid();
+  rosterData[id] = { id, name, icon, color, agents: [] };
+  document.getElementById('newDeptName').value = '';
+  document.getElementById('newDeptIcon').value = '';
+  saveRosterToFirebase();
+  SCPIntranet.addHistory('Département ajouté : ' + name);
+};
+
+function deleteDept(deptId) {
+  if (!canEditRoster()) return;
+  const dept = rosterData[deptId];
+  if (!dept) return;
+  if (!confirm(`Supprimer le département "${dept.name}" et ses ${dept.agents?.length || 0} agents ?`)) return;
+  delete rosterData[deptId];
+  if (activeDeptId === deptId) activeDeptId = Object.keys(rosterData)[0] || null;
+  saveRosterToFirebase();
+  SCPIntranet.addHistory('Département supprimé : ' + dept.name);
+}
+
+function addAgent(deptId) {
+  if (!canEditRoster()) return;
+  const g = s => document.getElementById(s)?.value.trim() || '';
+  const name    = g(`new-name-${deptId}`);
+  const username= g(`new-user-${deptId}`);
+  const rank    = g(`new-rank-${deptId}`);
+  const date    = g(`new-date-${deptId}`);
+  const command = g(`new-cmd-${deptId}`);
+  const errEl   = document.getElementById(`add-err-${deptId}`);
+  if (errEl) errEl.textContent = '';
+  if (!name || !command) { if (errEl) errEl.textContent = '⚠ Nom et commande obligatoires'; return; }
+  if (!rosterData[deptId]) return;
+  if (!rosterData[deptId].agents) rosterData[deptId].agents = [];
+  rosterData[deptId].agents.push({ id: ruid(), name, username, rank, date, command });
+  saveRosterToFirebase();
+  SCPIntranet.addHistory('Agent ajouté : ' + name + ' → ' + rosterData[deptId].name);
+  ['name','user','rank','date','cmd'].forEach(f => { const el = document.getElementById(`new-${f}-${deptId}`); if (el) el.value = ''; });
+}
+
+function openEditForm(deptId, agentId) {
+  document.querySelectorAll('.roster-edit-form').forEach(f => f.style.display = 'none');
+  const form = document.getElementById(`editform-${deptId}-${agentId}`);
+  if (form) form.style.display = 'block';
+}
+
+function closeEditForm(deptId, agentId) {
+  const form = document.getElementById(`editform-${deptId}-${agentId}`);
+  if (form) form.style.display = 'none';
+}
+
+function saveAgent(deptId, agentId) {
+  if (!canEditRoster()) return;
+  const dept = rosterData[deptId];
+  if (!dept) return;
+  const agent = dept.agents?.find(a => a.id === agentId);
+  if (!agent) return;
+  const g = id => document.getElementById(id)?.value.trim() || '';
+  const name    = g(`ef-name-${deptId}-${agentId}`);
+  const username= g(`ef-user-${deptId}-${agentId}`);
+  const rank    = g(`ef-rank-${deptId}-${agentId}`);
+  const date    = g(`ef-date-${deptId}-${agentId}`);
+  const command = g(`ef-cmd-${deptId}-${agentId}`);
+  if (!name || !command) { alert('Nom et commande obligatoires.'); return; }
+  agent.name = name; agent.username = username;
+  agent.rank = rank; agent.date = date; agent.command = command;
+  saveRosterToFirebase();
+  SCPIntranet.addHistory('Agent modifié : ' + name);
+}
+
+function deleteAgent(deptId, agentId) {
+  if (!canEditRoster()) return;
+  const dept = rosterData[deptId];
+  if (!dept) return;
+  const agent = dept.agents?.find(a => a.id === agentId);
+  if (!agent) return;
+  if (!confirm(`Supprimer ${agent.name} du roster ?`)) return;
+  dept.agents = dept.agents.filter(a => a.id !== agentId);
+  saveRosterToFirebase();
+  SCPIntranet.addHistory('Agent supprimé : ' + agent.name);
+}
+
+async function copyAgentCommand(deptId, agentId) {
+  const agent = rosterData[deptId]?.agents?.find(a => a.id === agentId);
+  if (!agent) return;
+  const btn = document.querySelector(`[data-copy-dept="${deptId}"][data-copy-agent="${agentId}"]`);
+  try {
+    await navigator.clipboard.writeText(agent.command);
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Copié !';
+      btn.style.color = 'var(--safe)'; btn.style.borderColor = 'var(--safe)';
+      setTimeout(() => { btn.textContent = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1500);
+    }
+    SCPIntranet.addHistory('Morph copié : ' + agent.name);
+  } catch { if (btn) btn.textContent = '✕ Erreur'; }
+}
+
+function escR(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+window.filterRoster = function() {
+  const q = document.getElementById('rosterSearch')?.value.trim().toLowerCase() || '';
+  const infoEl = document.getElementById('rosterSearchInfo');
+  if (!q) {
+    document.querySelectorAll('.roster-agent-card, .roster-edit-form, .roster-add-zone').forEach(el => { el.style.display = ''; });
+    document.querySelectorAll('.roster-dept-panel').forEach(p => { p.style.display = p.classList.contains('active') ? '' : 'none'; });
+    if (infoEl) infoEl.textContent = '';
+    return;
+  }
+  document.querySelectorAll('.roster-dept-panel').forEach(p => p.style.display = '');
+  document.querySelectorAll('.roster-add-zone').forEach(z => z.style.display = 'none');
+  let totalFound = 0;
+  Object.values(rosterData).forEach(dept => {
+    const panel = document.getElementById(`roster-panel-${dept.id}`);
+    if (!panel) return;
+    let deptFound = 0;
+    (dept.agents || []).forEach(agent => {
+      const card = document.getElementById(`card-${dept.id}-${agent.id}`);
+      const form = document.getElementById(`editform-${dept.id}-${agent.id}`);
+      const match = [agent.name, agent.username, agent.rank, agent.date, agent.command].some(v => v && v.toLowerCase().includes(q));
+      if (card) card.style.display = match ? '' : 'none';
+      if (form) form.style.display = 'none';
+      if (match) deptFound++;
+    });
+    totalFound += deptFound;
+    if (panel) panel.style.display = deptFound === 0 ? 'none' : '';
+  });
+  if (infoEl) {
+    infoEl.textContent = totalFound === 0 ? '⚠ Aucun agent trouvé' : `${totalFound} agent${totalFound > 1 ? 's' : ''} trouvé${totalFound > 1 ? 's' : ''}`;
+    infoEl.style.color = totalFound === 0 ? 'var(--danger)' : 'var(--safe)';
+  }
+};
+
+document.addEventListener('click', e => {
+  const tab = e.target.closest('.roster-tab[data-roster]');
+  if (tab) { activeDeptId = tab.dataset.roster; renderAllRosters(); return; }
+  const copyBtn = e.target.closest('[data-copy-dept]');
+  if (copyBtn) { copyAgentCommand(copyBtn.dataset.copyDept, copyBtn.dataset.copyAgent); return; }
+  const editBtn = e.target.closest('[data-edit-dept]');
+  if (editBtn) { openEditForm(editBtn.dataset.editDept, editBtn.dataset.editAgent); return; }
+  const cancelBtn = e.target.closest('[data-cancel-edit]');
+  if (cancelBtn) {
+    const key = cancelBtn.dataset.cancelEdit;
+    const deptId  = key.substring(0, key.indexOf('-'));
+    const agentId = key.substring(key.indexOf('-') + 1);
+    closeEditForm(deptId, agentId);
+    return;
+  }
+  const saveBtn = e.target.closest('[data-save-dept]');
+  if (saveBtn) { saveAgent(saveBtn.dataset.saveDept, saveBtn.dataset.saveAgent); return; }
+  const addBtn = e.target.closest('[data-add-agent]');
+  if (addBtn) { addAgent(addBtn.dataset.addAgent); return; }
+  const delBtn = e.target.closest('[data-del-dept]');
+  if (delBtn) { deleteAgent(delBtn.dataset.delDept, delBtn.dataset.delAgent); return; }
+  const delDeptBtn = e.target.closest('[data-del-dept-id]');
+  if (delDeptBtn) { deleteDept(delDeptBtn.dataset.delDeptId); return; }
+});
+
+</script>
+<script src="shared.js"></script>
+</body>
+</html>
