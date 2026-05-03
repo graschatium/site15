@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SITE-15 // TERMINAL D'ACCÈS</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700&family=Rajdhani:wght@300;400;600;700&family=IBM+Plex+Mono:wght@300;400;700&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #06080a;
+  --surface: #090c0f;
+  --surface2: #0c1014;
+  --border: #141a20;
+  --border2: #1c262e;
+  --accent: #00d4ff;
+  --danger: #ff3b3b;
+  --safe: #00e676;
+  --warn: #ffb300;
+  --purple: #b388ff;
+  --text: #7a95a8;
+  --text-dim: #2e4050;
+  --white: #dde8ee;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+  cursor: crosshair;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 3px);
+  pointer-events: none; z-index: 9999;
+}
+.grid-bg {
+  position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(0,212,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none; z-index: 0;
+}
+.vignette {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, transparent 40%, rgba(0,0,0,0.75) 100%);
+  pointer-events: none; z-index: 0;
+}
+.corner { position: fixed; width: 36px; height: 36px; border-color: var(--border2); border-style: solid; z-index: 2; }
+.corner.tl { top: 18px; left: 18px; border-width: 1px 0 0 1px; }
+.corner.tr { top: 18px; right: 18px; border-width: 1px 1px 0 0; }
+.corner.bl { bottom: 18px; left: 18px; border-width: 0 0 1px 1px; }
+.corner.br { bottom: 18px; right: 18px; border-width: 0 1px 1px 0; }
+
+/* STATUS BAR */
+.statusbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 36px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(6,8,10,0.92);
+  backdrop-filter: blur(8px); z-index: 100;
+}
+.sb-text { font-size: 9px; letter-spacing: 0.25em; color: var(--text-dim); text-transform: uppercase; }
+.sb-live { display: flex; align-items: center; gap: 6px; font-size: 9px; letter-spacing: 0.2em; color: var(--safe); }
+.sb-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--safe); animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* WRAP */
+.wrap {
+  position: relative; z-index: 10;
+  width: 100%; max-width: 400px;
+  padding: 16px;
+}
+
+@keyframes stepIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── STEP 1 : INPUT ── */
+#step-input { animation: stepIn 0.5s ease both; }
+.logo-block { text-align: center; margin-bottom: 36px; }
+.logo-diamond {
+  width: 52px; height: 52px;
+  border: 1px solid var(--accent);
+  transform: rotate(45deg);
+  margin: 0 auto 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,212,255,0.04);
+  animation: diamondPulse 3s ease-in-out infinite;
+}
+@keyframes diamondPulse { 0%,100%{box-shadow:0 0 20px rgba(0,212,255,0.1)} 50%{box-shadow:0 0 45px rgba(0,212,255,0.22)} }
+.logo-diamond span {
+  transform: rotate(-45deg);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 17px; font-weight: 700; color: var(--accent);
+}
+.logo-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 24px; font-weight: 700; color: var(--white);
+  letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px;
+}
+.logo-sub { font-size: 9px; color: var(--text-dim); letter-spacing: 0.35em; text-transform: uppercase; }
+
+.input-block {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 26px;
+  position: relative;
+}
+.input-block::before {
+  content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.4;
+}
+.ib-label {
+  font-size: 9px; color: var(--accent); letter-spacing: 0.3em;
+  text-transform: uppercase; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.ib-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.input-row {
+  display: flex; border: 1px solid var(--border2); transition: border-color 0.2s;
+}
+.input-row:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,212,255,0.05); }
+.input-row.shake { animation: shake 0.35s ease; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+.input-icon {
+  width: 40px; background: var(--surface2);
+  border-right: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0; color: var(--text-dim);
+}
+#pseudoInput {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px; color: var(--white); letter-spacing: 0.06em;
+  padding: 12px 12px; caret-color: var(--accent);
+}
+#pseudoInput::placeholder { color: var(--text-dim); font-size: 11px; letter-spacing: 0.1em; }
+.btn-go {
+  background: var(--accent); border: none; padding: 0 18px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; letter-spacing: 0.2em; color: var(--bg);
+  cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+  clip-path: polygon(8px 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+.btn-go:hover { background: #33ddff; }
+.input-hint { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; margin-top: 11px; text-align: center; }
+
+/* ── STEP 2 : LOADING ── */
+#step-loading { display: none; text-align: center; }
+.loading-ring {
+  width: 56px; height: 56px;
+  border: 1px solid var(--border2); border-top-color: var(--accent);
+  border-radius: 50%; margin: 0 auto 20px;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-lines { text-align: left; margin-top: 20px; }
+.loading-line {
+  font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em;
+  padding: 5px 0; display: flex; align-items: center; gap: 10px;
+  opacity: 0; animation: stepIn 0.25s ease forwards;
+}
+.ll-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.loading-line.pending .ll-dot { background: var(--accent); animation: blink 1s infinite; }
+.loading-line.done .ll-dot { background: var(--safe); }
+.loading-line.done { color: var(--text); }
+
+/* ── STEP 3 : PERSOS ── */
+#step-chars { display: none; }
+.chars-header { margin-bottom: 18px; }
+.chars-greeting {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--white);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px;
+}
+.chars-sub { font-size: 9px; color: var(--text-dim); letter-spacing: 0.25em; text-transform: uppercase; }
+
+.chars-list { display: flex; flex-direction: column; gap: 2px; }
+.char-item {
+  display: flex; align-items: center;
+  background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.2s;
+  position: relative; overflow: hidden;
+  opacity: 0; animation: stepIn 0.3s ease forwards;
+}
+.char-item:hover { border-color: rgba(0,212,255,0.3); transform: translateX(4px); }
+.char-item:hover .char-arrow { color: var(--accent); transform: translateX(3px); }
+
+.char-dept-bar { width: 3px; align-self: stretch; flex-shrink: 0; opacity: 0.6; transition: opacity 0.2s; }
+.char-item:hover .char-dept-bar { opacity: 1; }
+.dept-scientific     { background: var(--accent); }
+.dept-security       { background: var(--warn); }
+.dept-medical        { background: var(--safe); }
+.dept-administration { background: var(--purple); }
+.dept-moderator      { background: var(--danger); }
+
+.char-nhc {
+  width: 44px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-right: 1px solid var(--border);
+  padding: 14px 0; background: var(--surface2);
+}
+.nhc-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; color: var(--text-dim); letter-spacing: 0.08em;
+  writing-mode: vertical-lr; transform: rotate(180deg); text-transform: uppercase;
+}
+.char-info { flex: 1; padding: 13px 14px; }
+.char-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 17px; font-weight: 700; color: var(--white);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px;
+}
+.char-dept-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.18em; text-transform: uppercase; }
+.char-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 2px 7px; border: 1px solid; margin-right: 12px; flex-shrink: 0;
+}
+.tag-scientific     { color: var(--accent);  border-color: rgba(0,212,255,0.3); }
+.tag-security       { color: var(--warn);    border-color: rgba(255,179,0,0.3); }
+.tag-medical        { color: var(--safe);    border-color: rgba(0,230,118,0.3); }
+.tag-administration { color: var(--purple);  border-color: rgba(179,136,255,0.3); }
+.tag-moderator      { color: var(--danger);  border-color: rgba(255,59,59,0.3); }
+.char-arrow { padding-right: 14px; color: var(--text-dim); font-size: 11px; transition: all 0.2s; }
+
+.char-item:nth-child(1){animation-delay:0.05s}
+.char-item:nth-child(2){animation-delay:0.10s}
+.char-item:nth-child(3){animation-delay:0.16s}
+.char-item:nth-child(4){animation-delay:0.22s}
+
+.chars-footer { margin-top: 12px; text-align: right; }
+.btn-back {
+  background: none; border: none; cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.18em;
+  text-transform: uppercase; transition: color 0.2s;
+}
+.btn-back:hover { color: var(--text); }
+
+/* ── STEP 4 : ERROR ── */
+#step-error { display: none; text-align: center; }
+.err-icon { font-size: 26px; margin-bottom: 14px; opacity: 0.5; }
+.err-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--danger);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+}
+.err-msg { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 22px; line-height: 1.7; white-space: pre-line; }
+.btn-retry {
+  background: none; border: 1px solid var(--border2); cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--text); letter-spacing: 0.2em;
+  text-transform: uppercase; padding: 9px 22px; transition: all 0.2s;
+}
+.btn-retry:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── TRANSITION ── */
+.tr-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.tr-overlay.show { opacity: 1; pointer-events: all; }
+.tr-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px; font-weight: 700; color: var(--white);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;
+}
+.tr-dept-text { font-size: 10px; color: var(--text-dim); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 28px; }
+.tr-bar { width: 140px; height: 1px; background: var(--border2); overflow: hidden; }
+.tr-fill { height: 100%; width: 0%; background: var(--accent); transition: width 1s linear; }
+.tr-fill.go { width: 100%; }
+
+/* BOTTOM */
+.bottombar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 30px;
+  border-top: 1px solid var(--border); background: rgba(6,8,10,0.85);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; z-index: 100;
+}
+.bb-text { font-size: 9px; color: var(--text-dim); letter-spacing: 0.2em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="vignette"></div>
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<div class="statusbar">
+  <div class="sb-text">SITE-15 // SCP FOUNDATION</div>
+  <div class="sb-live"><div class="sb-dot"></div>TERMINAL ACTIF</div>
+  <div class="sb-text" id="clock">--:--:--</div>
+</div>
+
+<div class="wrap">
+
+  <!-- STEP 1 -->
+  <div id="step-input">
+    <div class="logo-block">
+      <div class="logo-diamond"><span>15</span></div>
+      <div class="logo-title">Site-15</div>
+      <div class="logo-sub">Terminal d'accès personnel</div>
+    </div>
+    <div class="input-block">
+      <div class="ib-label">Identification</div>
+      <div class="input-row" id="inputRow">
+        <div class="input-icon">⬡</div>
+        <input type="text" id="pseudoInput" placeholder="Votre pseudo Roblox..." autocomplete="off" spellcheck="false" />
+        <button class="btn-go" id="btnGo">ACCÈS →</button>
+      </div>
+      <div class="input-hint">Entrez votre pseudo Roblox exact</div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step-loading">
+    <div class="loading-ring"></div>
+    <div class="loading-lines" id="loadingLines"></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step-chars">
+    <div class="chars-header">
+      <div class="chars-greeting" id="charsGreeting">Bonjour, Agent</div>
+      <div class="chars-sub">Sélectionnez votre personnage</div>
+    </div>
+    <div class="chars-list" id="charsList"></div>
+    <div class="chars-footer">
+      <button class="btn-back" onclick="goBack()">← Changer de compte</button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div id="step-error">
+    <div class="err-icon">✕</div>
+    <div class="err-title" id="errTitle">Accès Refusé</div>
+    <div class="err-msg" id="errMsg">Pseudo introuvable dans le système.</div>
+    <button class="btn-retry" onclick="goBack()">← Réessayer</button>
+  </div>
+
+</div>
+
+<!-- TRANSITION OVERLAY -->
+<div class="tr-overlay" id="trOverlay">
+  <div class="tr-name" id="trName">—</div>
+  <div class="tr-dept-text" id="trDeptText">—</div>
+  <div class="tr-bar"><div class="tr-fill" id="trFill"></div></div>
+</div>
+
+<div class="bottombar">
+  <div class="bb-text">FONDATION SCP — CONFIDENTIEL</div>
+  <div class="bb-text">v4.2.1</div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ════════════════════════════════════════════════
+  // ⚠️  REMPLACE ICI PAR TA VRAIE CONFIG FIREBASE
+  //     Firebase Console → Paramètres du projet → Tes applications
+  // ════════════════════════════════════════════════
+  const firebaseConfig = {
+  apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain: "scp-site19.firebaseapp.com",
+  projectId: "scp-site19",
+  storageBucket: "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId: "1:245750946774:web:821944a85e207094b22277"
+};
+  // ════════════════════════════════════════════════
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // ── Horloge ──────────────────────────────────────
+  setInterval(() => {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }, 1000);
+
+  // ── Données département ──────────────────────────
+  const DEPT_LABELS = {
+    scientific:     'Département Scientifique',
+    security:       'FIM / Sécurité',
+    medical:        'Corps Médical',
+    administration: 'Administration',
+    moderator:      'Modération',
+  };
+
+  // ── Redirections par rôle ────────────────────────
+  // Modifie ces chemins selon ta structure de fichiers
+  const REDIRECTS = {
+    scientific:     'scientific/index.html',
+    security:       'security/index.html',
+    medical:        'medical/index.html',
+    administration: 'administration/index.html',
+    moderator:      'mod.html',
+  };
+
+  // ── Navigation entre étapes ──────────────────────
+  function showStep(name) {
+    ['input', 'loading', 'chars', 'error'].forEach(s => {
+      const el = document.getElementById('step-' + s);
+      el.style.display = 'none';
+    });
+    const el = document.getElementById('step-' + name);
+    el.style.display = 'block';
+    // Force le re-déclenchement de l'animation CSS
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+  }
+
+  window.goBack = () => {
+    showStep('input');
+    document.getElementById('pseudoInput').value = '';
+    document.getElementById('pseudoInput').focus();
+  };
+
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // ── Animation des lignes de chargement ───────────
+  async function runLoadingLines(lines) {
+    const wrap = document.getElementById('loadingLines');
+    wrap.innerHTML = '';
+    for (let i = 0; i < lines.length; i++) {
+      const el = document.createElement('div');
+      el.className = 'loading-line pending';
+      el.style.animationDelay = (i * 0.12) + 's';
+      el.innerHTML = `<span class="ll-dot"></span><span>${lines[i]}</span>`;
+      wrap.appendChild(el);
+      await delay(350);
+      el.classList.replace('pending', 'done');
+    }
+  }
+
+  // ── Connexion principale ─────────────────────────
+  async function handleLogin() {
+    const pseudo = document.getElementById('pseudoInput').value.trim();
+
+    // Champ vide → secouer le champ
+    if (!pseudo) {
+      const row = document.getElementById('inputRow');
+      row.classList.add('shake');
+      setTimeout(() => row.classList.remove('shake'), 400);
+      return;
+    }
+
+    showStep('loading');
+
+    await runLoadingLines([
+      'Connexion au serveur Site-15...',
+      `Identification de "${pseudo}"...`,
+      'Vérification des accréditations...',
+      'Chargement des personnages...',
+    ]);
+
+    await delay(300);
+
+    try {
+      // Recherche dans Firestore : collection "players", champ "robloxName"
+      const q    = query(collection(db, 'players'), where('robloxName', '==', pseudo));
+      const snap = await getDocs(q);
+
+      // Aucun document trouvé
+      if (snap.empty) {
+        showStep('error');
+        document.getElementById('errTitle').textContent = 'Agent Introuvable';
+        document.getElementById('errMsg').textContent =
+          `Aucun compte lié au pseudo "${pseudo}".\nContactez un modérateur.`;
+        return;
+      }
+
+      // Filtrer les comptes bannis
+      const chars = snap.docs
+        .map(d => ({ uid: d.id, ...d.data() }))
+        .filter(c => c.status !== 'banned');
+
+      if (!chars.length) {
+        showStep('error');
+        document.getElementById('errTitle').textContent = 'Accès Révoqué';
+        document.getElementById('errMsg').textContent =
+          'Votre accès a été suspendu.\nContactez un modérateur.';
+        return;
+      }
+
+      // Afficher la liste des personnages
+      document.getElementById('charsGreeting').textContent = `Bonjour, ${pseudo}`;
+      buildList(chars);
+      showStep('chars');
+
+    } catch (err) {
+      console.error('[Site-15] Erreur Firebase :', err);
+      showStep('error');
+      document.getElementById('errTitle').textContent = 'Erreur Système';
+      document.getElementById('errMsg').textContent =
+        err.message || 'Une erreur inattendue est survenue.';
+    }
+  }
+
+  // ── Construction de la liste des personnages ─────
+  function buildList(chars) {
+    const list = document.getElementById('charsList');
+    list.innerHTML = '';
+
+    chars.forEach((c, i) => {
+      const role = c.role || 'scientific';
+      const nhc  = c.nhc != null ? `NHC-${c.nhc}` : 'NHC-?';
+      const name = esc(c.displayName || c.character || 'Agent');
+
+      const el = document.createElement('div');
+      el.className = 'char-item';
+      el.style.animationDelay = (i * 0.07) + 's';
+      el.innerHTML = `
+        <div class="char-dept-bar dept-${role}"></div>
+        <div class="char-nhc"><span class="nhc-text">${nhc}</span></div>
+        <div class="char-info">
+          <div class="char-name">${name}</div>
+          <div class="char-dept-label">${DEPT_LABELS[role] || role}</div>
+        </div>
+        <span class="char-tag tag-${role}">${role}</span>
+        <span class="char-arrow">→</span>
+      `;
+      el.addEventListener('click', () => selectChar(c));
+      list.appendChild(el);
+    });
+  }
+
+  // ── Sélection d'un personnage + redirection ──────
+  function selectChar(c) {
+    const role = c.role || 'scientific';
+    const name = c.displayName || c.character || 'Agent';
+
+    // Sauvegarde en session pour les pages suivantes
+    sessionStorage.setItem('site15_uid',     c.uid);
+    sessionStorage.setItem('site15_role',    role);
+    sessionStorage.setItem('site15_name',    name);
+    sessionStorage.setItem('site15_profile', JSON.stringify(c));
+
+    // Affichage de l'overlay de transition
+    document.getElementById('trName').textContent    = name.toUpperCase();
+    document.getElementById('trDeptText').textContent = DEPT_LABELS[role] || role;
+    document.getElementById('trOverlay').classList.add('show');
+
+    // Lancer la barre de progression puis rediriger
+    setTimeout(() => document.getElementById('trFill').classList.add('go'), 80);
+    setTimeout(() => {
+      window.location.href = REDIRECTS[role] || 'index.html';
+    }, 1300);
+  }
+
+  // ── Utilitaire : échappement HTML ────────────────
+  function esc(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Listeners ────────────────────────────────────
+  document.getElementById('btnGo').addEventListener('click', handleLogin);
+  document.getElementById('pseudoInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleLogin();
+  });
+</script>
+</body>
+</html>
