@@ -967,6 +967,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
+window.db = db;
+window.firebaseFns = { collection, addDoc, getDocs, doc, updateDoc, deleteDoc };
+
 // ── Session custom ──
 const MOD_SESSION_KEY = 'scp_mod_session';
 function loadModSession()  { try { return JSON.parse(localStorage.getItem(MOD_SESSION_KEY)); } catch { return null; } }
@@ -1143,12 +1146,9 @@ function showApp(name, role) {
   if (deptMgr) deptMgr.style.display = canEditRoster(role) ? '' : 'none';
   document.getElementById('fDate').value = today();
   toggleDuration();
-// AFTER (fixed):
-if (isAdmin) loadUsers();
-setTimeout(() => {
-  if (typeof window.refreshPlayers === 'function') window.refreshPlayers();
-}, 0);
-SCPIntranet.initTabs();
+  if (isAdmin) loadUsers();
+  setTimeout(() => { if (typeof window.refreshPlayers === 'function') window.refreshPlayers(); }, 0);
+  SCPIntranet.initTabs();
   SCPIntranet.initModalClose();
   SCPIntranet.addHistory('Connecté : ' + name);
 }
