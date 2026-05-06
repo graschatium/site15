@@ -1255,6 +1255,17 @@ function getLoginKey(u) { return u.username || u.name || u.email || ''; }
         startListen();
         startServerListen();
         startRosterListen();
+        // Dans showApp(), à la fin :
+        waitSCP(() => {
+        SCPIntranet.initTabs();
+        SCPIntranet.initModalClose();
+        SCPIntranet.addHistory('Connecté : ' + name);
+       window.hideLoadingScreen(); // ← ici
+        });
+
+// Dans doLogin(), après showApp() :
+showApp(getDisplayName(found), currentRole);
+window.hideLoadingScreen(); // ← et ici
         // Attendre que le DOM et shared.js soient prêts
         setTimeout(() => showApp(getDisplayName(found), currentRole), 150);
         return;
