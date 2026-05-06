@@ -399,6 +399,84 @@
 </head>
 <body>
 
+<!-- ══ LOADING SCREEN ══ -->
+<div id="scpLoadingScreen" style="position:fixed;inset:0;background:#06080a;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Space Mono',monospace;transition:opacity 0.5s ease;">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.04) 1px,transparent 1px);background-size:48px 48px;animation:grid-drift 8s linear infinite;"></div>
+  <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.18) 3px,rgba(0,0,0,0.18) 4px);pointer-events:none;z-index:2;"></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(to bottom,transparent,rgba(0,212,255,0.02),transparent);animation:scanline 4s linear infinite;z-index:3;pointer-events:none;"></div>
+  <div style="position:absolute;top:16px;left:16px;width:20px;height:20px;border-top:1px solid #00d4ff;border-left:1px solid #00d4ff;opacity:0.5;z-index:4;"></div>
+  <div style="position:absolute;top:16px;right:16px;width:20px;height:20px;border-top:1px solid #00d4ff;border-right:1px solid #00d4ff;opacity:0.5;z-index:4;"></div>
+  <div style="position:absolute;bottom:16px;left:16px;width:20px;height:20px;border-bottom:1px solid #00d4ff;border-left:1px solid #00d4ff;opacity:0.5;z-index:4;"></div>
+  <div style="position:absolute;bottom:16px;right:16px;width:20px;height:20px;border-bottom:1px solid #00d4ff;border-right:1px solid #00d4ff;opacity:0.5;z-index:4;"></div>
+
+  <div style="position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;">
+    <div style="width:64px;height:64px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);border:1px solid #00d4ff;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;margin-bottom:24px;animation:emblem-pulse 2.4s ease-in-out infinite;">
+      <span style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:#00d4ff;">15</span>
+    </div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:#e8eef2;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">SITE<span style="color:#00d4ff;">-15</span> MOD</div>
+    <div style="font-size:9px;color:#3d5060;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:36px;">Registre de modération — Initialisation</div>
+    <div style="width:240px;margin-bottom:8px;">
+      <div style="height:2px;background:#0e1215;border:1px solid #161c22;position:relative;overflow:hidden;">
+        <div id="loadBarFill" style="height:100%;width:0%;background:#00d4ff;transition:width 0.4s ease;"></div>
+      </div>
+      <div id="loadBarPct" style="font-size:10px;color:#00d4ff;letter-spacing:0.2em;margin-top:6px;text-align:right;">0%</div>
+    </div>
+    <div id="loadLog" style="width:260px;border-left:1px solid #161c22;padding-left:12px;display:flex;flex-direction:column;gap:5px;min-height:80px;"></div>
+  </div>
+</div>
+
+<style>
+  @keyframes grid-drift { from{background-position:0 0} to{background-position:48px 48px} }
+  @keyframes scanline   { from{top:-100%} to{top:200%} }
+  @keyframes emblem-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,0)} 50%{box-shadow:0 0 0 12px rgba(0,212,255,0.08)} }
+</style>
+
+<script>
+(function() {
+  const steps = [
+    {pct:15, msg:'Connexion Firebase…'},
+    {pct:35, msg:'Vérification session locale…'},
+    {pct:55, msg:'Chargement collection users…'},
+    {pct:75, msg:'Authentification en cours…'},
+    {pct:90, msg:'Initialisation interface…'},
+  ];
+  let si = 0;
+  const bar  = document.getElementById('loadBarFill');
+  const pct  = document.getElementById('loadBarPct');
+  const log  = document.getElementById('loadLog');
+
+  function addLog(msg, p) {
+    bar.style.width = p + '%';
+    pct.textContent = p + '%';
+    const now = new Date();
+    const ts  = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+    const div = document.createElement('div');
+    div.style.cssText = 'font-size:9px;color:#5d8090;letter-spacing:0.1em;animation:none;';
+    div.innerHTML = '<span style="color:#00d4ff;margin-right:6px;">['+ts+']</span>' + msg;
+    log.appendChild(div);
+    if (log.children.length > 5) log.children[0].remove();
+  }
+
+  const iv = setInterval(() => {
+    if (si >= steps.length) { clearInterval(iv); return; }
+    addLog(steps[si].msg, steps[si].pct);
+    si++;
+  }, 380);
+
+  window.hideLoadingScreen = function() {
+    const screen = document.getElementById('scpLoadingScreen');
+    if (!screen) return;
+    bar.style.width = '100%';
+    pct.textContent = '100%';
+    addLog('Authentification réussie ✓', 100);
+    setTimeout(() => {
+      screen.style.opacity = '0';
+      setTimeout(() => screen.remove(), 500);
+    }, 400);
+  };
+})();
+</script>
+
 <!-- ══ LOGIN ══ -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
