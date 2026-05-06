@@ -572,14 +572,22 @@ body::after {
 </div>
 
 <script type="module">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, query, where, getDocs, doc, updateDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ════════════════════════════════════════════════
-  // ⚠️  REMPLACE ICI PAR TON IMPORT FIREBASE CONFIG
-  // ════════════════════════════════════════════════
-  import { db } from "./firebase-config.js";
-  // ════════════════════════════════════════════════
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+    authDomain:        "scp-site19.firebaseapp.com",
+    projectId:         "scp-site19",
+    storageBucket:     "scp-site19.firebasestorage.app",
+    messagingSenderId: "245750946774",
+    appId:             "1:245750946774:web:821944a85e207094b22277"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
 
   // ── Horloge ──────────────────────────────────────
   setInterval(() => {
