@@ -292,6 +292,27 @@ body::after {
   padding: 0 24px; z-index: 100;
 }
 .bb-text { font-size: 9px; color: var(--text-dim); letter-spacing: 0.2em; text-transform: uppercase; }
+
+/* ── STEP 3.5 : PIN ── */
+.pin-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1px solid var(--border2); background: transparent;
+  transition: all .2s;
+}
+.pin-dot.filled { background: var(--accent); border-color: var(--accent); }
+.pin-dot.error  { background: var(--danger); border-color: var(--danger); }
+
+.btn-num {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px; padding: 13px 0; cursor: pointer;
+  transition: all .15s;
+}
+.btn-num:hover { border-color: rgba(0,212,255,0.4); color: var(--white); }
+.btn-num-wide  { grid-column: span 2; }
+.btn-num-del   { color: var(--text-dim); }
+.btn-num-del:hover { border-color: var(--danger); color: var(--danger); }
+
 </style>
 </head>
 <body>
@@ -355,6 +376,38 @@ body::after {
     <button class="btn-retry" onclick="goBack()">← Réessayer</button>
   </div>
 
+  <!-- STEP 3.5 : PIN -->
+<div id="step-pin" style="display:none; text-align:center; animation: stepIn 0.4s ease both;">
+  <div class="chars-greeting" id="pinCharName" style="margin-bottom:4px;">—</div>
+  <div class="chars-sub" style="margin-bottom:28px;">Entrez votre code PIN</div>
+
+  <div id="pinDots" style="display:flex; gap:14px; justify-content:center; margin-bottom:28px;">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+
+  <div id="pinPad" style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:14px;">
+    <button class="btn-num" onclick="pinPress('1')">1</button>
+    <button class="btn-num" onclick="pinPress('2')">2</button>
+    <button class="btn-num" onclick="pinPress('3')">3</button>
+    <button class="btn-num" onclick="pinPress('4')">4</button>
+    <button class="btn-num" onclick="pinPress('5')">5</button>
+    <button class="btn-num" onclick="pinPress('6')">6</button>
+    <button class="btn-num" onclick="pinPress('7')">7</button>
+    <button class="btn-num" onclick="pinPress('8')">8</button>
+    <button class="btn-num" onclick="pinPress('9')">9</button>
+    <button class="btn-num btn-num-wide" onclick="pinPress('0')">0</button>
+    <button class="btn-num btn-num-del" onclick="pinDel()">⌫</button>
+  </div>
+
+  <div id="pinErr" style="font-size:10px; min-height:16px; letter-spacing:.12em; color:var(--danger);"></div>
+  <div class="chars-footer" style="margin-top:16px;">
+    <button class="btn-back" onclick="showStep('chars')">← Changer de personnage</button>
+  </div>
+</div>
+
 </div>
 
 <!-- TRANSITION OVERLAY -->
@@ -377,14 +430,8 @@ body::after {
   // ⚠️  REMPLACE ICI PAR TA VRAIE CONFIG FIREBASE
   //     Firebase Console → Paramètres du projet → Tes applications
   // ════════════════════════════════════════════════
-  const firebaseConfig = {
-  apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
-  authDomain: "scp-site19.firebaseapp.com",
-  projectId: "scp-site19",
-  storageBucket: "scp-site19.firebasestorage.app",
-  messagingSenderId: "245750946774",
-  appId: "1:245750946774:web:821944a85e207094b22277"
-};
+import { db } from "./firebase-config.js";
+// (supprime les lignes initializeApp et firebaseConfig)
   // ════════════════════════════════════════════════
 
   const app = initializeApp(firebaseConfig);
@@ -545,28 +592,73 @@ body::after {
   }
 
   // ── Sélection d'un personnage + redirection ──────
-  function selectChar(c) {
-    const role = c.role || 'scientific';
-    const name = c.displayName || c.character || 'Agent';
+  // Variable pour stocker le perso en attente de validation PIN
+let pendingChar = null;
+let pinValue = '';
 
-    // Sauvegarde en session pour les pages suivantes
-    sessionStorage.setItem('site15_uid',     c.uid);
-    sessionStorage.setItem('site15_role',    role);
-    sessionStorage.setItem('site15_name',    name);
-    sessionStorage.setItem('site15_profile', JSON.stringify(c));
+function selectChar(c) {
+  pendingChar = c;
+  pinValue = '';
+  updatePinDots();
+  document.getElementById('pinCharName').textContent =
+    (c.displayName || c.character || 'Agent').toUpperCase();
+  document.getElementById('pinErr').textContent = '';
+  showStep('pin');
+}
 
-    // Affichage de l'overlay de transition
-    document.getElementById('trName').textContent    = name.toUpperCase();
-    document.getElementById('trDeptText').textContent = DEPT_LABELS[role] || role;
-    document.getElementById('trOverlay').classList.add('show');
-
-    // Lancer la barre de progression puis rediriger
-    setTimeout(() => document.getElementById('trFill').classList.add('go'), 80);
-    setTimeout(() => {
-      window.location.href = REDIRECTS[role] || 'index.html';
-    }, 1300);
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('pd' + i);
+    d.className = 'pin-dot' + (i < pinValue.length ? ' filled' : '');
   }
+}
 
+window.pinPress = function(k) {
+  if (pinValue.length >= 4) return;
+  pinValue += k;
+  updatePinDots();
+  if (pinValue.length === 4) setTimeout(verifyPin, 120);
+};
+
+window.pinDel = function() {
+  if (!pinValue.length) return;
+  pinValue = pinValue.slice(0, -1);
+  updatePinDots();
+};
+
+function verifyPin() {
+  const stored = String(pendingChar.pin || '');
+  if (pinValue === stored) {
+    launchChar(pendingChar);
+  } else {
+    document.getElementById('pinErr').textContent = 'Code incorrect. Réessayez.';
+    for (let i = 0; i < 4; i++)
+      document.getElementById('pd' + i).className = 'pin-dot filled error';
+    setTimeout(() => {
+      pinValue = '';
+      updatePinDots();
+      document.getElementById('pinErr').textContent = '';
+    }, 700);
+  }
+}
+
+// L'ancienne logique de sélection (overlay + redirect) est maintenant ici
+function launchChar(c) {
+  const role = c.role || 'scientific';
+  const name = c.displayName || c.character || 'Agent';
+
+  sessionStorage.setItem('site15_uid',     c.uid);
+  sessionStorage.setItem('site15_role',    role);
+  sessionStorage.setItem('site15_name',    name);
+  sessionStorage.setItem('site15_profile', JSON.stringify(c));
+
+  document.getElementById('trName').textContent     = name.toUpperCase();
+  document.getElementById('trDeptText').textContent = DEPT_LABELS[role] || role;
+  document.getElementById('trOverlay').classList.add('show');
+
+  setTimeout(() => document.getElementById('trFill').classList.add('go'), 80);
+  setTimeout(() => { window.location.href = REDIRECTS[role] || 'index.html'; }, 1300);
+}
   // ── Utilitaire : échappement HTML ────────────────
   function esc(s) {
     return String(s)
