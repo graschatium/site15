@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SITE-15 — Espace Modération</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@300;400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="shared.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -408,7 +407,6 @@
   <div style="position:absolute;top:16px;right:16px;width:20px;height:20px;border-top:1px solid #00d4ff;border-right:1px solid #00d4ff;opacity:0.5;z-index:4;"></div>
   <div style="position:absolute;bottom:16px;left:16px;width:20px;height:20px;border-bottom:1px solid #00d4ff;border-left:1px solid #00d4ff;opacity:0.5;z-index:4;"></div>
   <div style="position:absolute;bottom:16px;right:16px;width:20px;height:20px;border-bottom:1px solid #00d4ff;border-right:1px solid #00d4ff;opacity:0.5;z-index:4;"></div>
-
   <div style="position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;">
     <div style="width:64px;height:64px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);border:1px solid #00d4ff;background:rgba(0,212,255,0.06);display:flex;align-items:center;justify-content:center;margin-bottom:24px;animation:emblem-pulse 2.4s ease-in-out infinite;">
       <span style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:#00d4ff;">15</span>
@@ -574,7 +572,7 @@
         </div>
         <div class="sec-actions">
           <button class="btn btn-ghost btn-sm" onclick="exportAll()">⬇ Exporter</button>
-          <button class="btn btn-primary btn-sm" onclick="SCPIntranet.openModal('modalNewSanction')">+ Nouvelle sanction</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modalNewSanction')">+ Nouvelle sanction</button>
         </div>
       </div>
       <div class="filter-bar">
@@ -733,11 +731,9 @@
         </div>
         <div class="sec-actions">
           <button class="btn btn-ghost btn-sm" onclick="refreshPlayers()">↻ Actualiser</button>
-          <button class="btn btn-primary btn-sm" onclick="SCPIntranet.openModal('modalNewPlayer')">+ Nouveau joueur</button>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modalNewPlayer')">+ Nouveau joueur</button>
         </div>
       </div>
-
-      <!-- RECHERCHE JOUEUR -->
       <div style="margin-bottom:16px;">
         <div class="filter-bar">
           <input type="text" id="playerFilterInput" placeholder="🔍  Rechercher par pseudo Roblox…" oninput="filterPlayersList()" />
@@ -745,8 +741,6 @@
         </div>
         <div id="playerFilterInfo" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;margin-top:4px;min-height:14px;"></div>
       </div>
-
-      <!-- LISTE JOUEURS -->
       <div id="playersListContainer">
         <div class="no-player"><span class="np-icon">🎮</span>Chargement des joueurs…</div>
       </div>
@@ -1027,11 +1021,11 @@
   </div>
 </div>
 
-<!-- FIREBASE + LOGIQUE (identique à Site-19, même config Firebase) -->
+<!-- ══ FIREBASE + LOGIQUE PRINCIPALE ══ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc, getDocs, where, updateDoc }
-                                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc, getDocs, updateDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
@@ -1045,8 +1039,38 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-window.db = db;
-window.firebaseFns = { collection, addDoc, getDocs, doc, updateDoc, deleteDoc };
+// ── Helpers modals (autonomes, sans dépendance à shared.js) ──
+function openModal(id)  { document.getElementById(id)?.classList.add('open'); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+window.openModal  = openModal;
+window.closeModal = closeModal;
+
+// ── Nav tabs (autonome) ──
+function initTabs() {
+  document.querySelectorAll('.nav-tab[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      const vEl = document.getElementById('view-' + btn.dataset.view);
+      if (vEl) vEl.classList.add('active');
+    });
+  });
+}
+
+// ── History log ──
+function addHistory(msg) {
+  const el = document.getElementById('historyList');
+  if (!el) return;
+  const now = new Date();
+  const ts = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+  const div = document.createElement('div');
+  div.className = 'hlog-item';
+  div.innerHTML = `<span>${ts}</span>${esc(msg)}`;
+  el.insertBefore(div, el.firstChild);
+  if (el.children.length > 30) el.lastChild.remove();
+}
+window.addHistory = addHistory;
 
 // ── Session custom ──
 const MOD_SESSION_KEY = 'scp_mod_session';
@@ -1055,153 +1079,39 @@ function saveModSession(u) { localStorage.setItem(MOD_SESSION_KEY, JSON.stringif
 function clearModSession() { localStorage.removeItem(MOD_SESSION_KEY); }
 
 let sanctions   = [];
-let playersData = []; // collection 'players' Firestore
+let playersData = [];
 let currentUser = null;
 let currentRole = null;
 let currentPage = 1;
 let activeDocId = null;
 let unsubscribe = null;
-let unsubServer  = null;
+let unsubServer = null;
+let unsubRoster = null;
 let serverStatus = { open: false };
-
-// ── SERVER STATUS LISTENER ──
-function startServerListen() {
-  unsubServer = onSnapshot(doc(db, 'server_status', 'current'), snap => {
-    serverStatus = snap.exists() ? snap.data() : { open:false };
-    renderServerWidget();
-    populateServerForm();
-  });
-}
-
-function renderServerWidget() {
-  const isOpen = !!serverStatus.open;
-  const dot   = document.getElementById('srvDot');
-  const label = document.getElementById('srvLabel');
-  const meta  = document.getElementById('srvMeta');
-  const btn   = document.getElementById('srvBtn');
-  if (!dot) return;
-  dot.className   = 'srv-dot '   + (isOpen ? 'open'   : 'closed');
-  label.className = 'srv-label ' + (isOpen ? 'open'   : 'closed');
-  label.textContent = isOpen ? '⬤ OUVERT' : '⬤ FERMÉ';
-  const parts = [];
-  if (serverStatus.reason)    parts.push(serverStatus.reason);
-  if (serverStatus.updatedBy) parts.push('par ' + serverStatus.updatedBy);
-  if (serverStatus.updatedAt) parts.push(new Date(serverStatus.updatedAt).toLocaleString('fr-FR'));
-  meta.textContent = parts.join(' · ') || '—';
-  btn.className   = 'srv-btn ' + (isOpen ? 'to-close' : 'to-open');
-  btn.textContent = isOpen ? '🔒 Fermer le serveur' : '🔓 Ouvrir le serveur';
-}
-
-function populateServerForm() {
-  const s = serverStatus;
-  const g = id => document.getElementById(id);
-  if (g('srvReason'))     g('srvReason').value     = s.reason     || '';
-  if (g('srvStability'))  g('srvStability').value  = s.stability  ?? 96;
-  if (g('srvPlayers'))    g('srvPlayers').value     = s.players    || '';
-  if (g('srvFoundation')) g('srvFoundation').value  = s.foundation || '';
-  if (g('srvScps'))       g('srvScps').value        = s.scps       ?? 0;
-  if (g('srvScpsTotal'))  g('srvScpsTotal').value   = s.scpsTotal  ?? 8;
-  if (g('srvAlerts'))     g('srvAlerts').value      = s.alerts     ?? 0;
-  const logContainer = g('srvLogRows');
-  if (logContainer && s.logList?.length) {
-    logContainer.innerHTML = s.logList.map(e => `
-      <div class="srv-log-entry">
-        <input type="text" value="${e.time||''}" style="max-width:80px" placeholder="HH:MM:SS"/>
-        <select>
-          <option ${e.sev==='INFO'?'selected':''}>INFO</option>
-          <option ${e.sev==='ALERTE'?'selected':''}>ALERTE</option>
-          <option ${e.sev==='CRITIQUE'?'selected':''}>CRITIQUE</option>
-        </select>
-        <input type="text" value="${(e.msg||'').replace(/"/g,'&quot;')}" placeholder="Message…"/>
-        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-log-entry').remove()">✕</button>
-      </div>`).join('');
-  }
-  const scpContainer = g('srvScpRows');
-  if (scpContainer && s.scpList?.length) {
-    scpContainer.innerHTML = s.scpList.map(e => `
-      <div class="srv-scp-entry">
-        <input type="text" value="${e.name||''}" placeholder="Nom (ex: SCP-173)"/>
-        <select>
-          <option ${e.class==='SAFE'?'selected':''}>SAFE</option>
-          <option ${e.class==='EUCLIDE'?'selected':''}>EUCLIDE</option>
-          <option ${e.class==='KETER'?'selected':''}>KETER</option>
-        </select>
-        <select>
-          <option ${e.status==='Confiné'?'selected':''}>Confiné</option>
-          <option ${e.status==='Brèche'?'selected':''}>Brèche</option>
-          <option ${e.status==='Non localisé'?'selected':''}>Non localisé</option>
-        </select>
-        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-scp-entry').remove()">✕</button>
-      </div>`).join('');
-  }
-}
-
-async function saveServerStatus(newOpen) {
-  if (currentRole !== 'admin') return;
-  const name = currentUser?.displayName || currentUser?.username || '—';
-  const g = id => document.getElementById(id);
-  const isOpen = newOpen !== undefined ? newOpen : serverStatus.open;
-  const logList = [...document.querySelectorAll('#srvLogRows .srv-log-entry')].map(row => {
-    const inputs = row.querySelectorAll('input');
-    const sel    = row.querySelector('select');
-    return { time: inputs[0]?.value.trim()||'', sev: sel?.value||'INFO', msg: inputs[1]?.value.trim()||'' };
-  }).filter(e => e.msg);
-  const scpList = [...document.querySelectorAll('#srvScpRows .srv-scp-entry')].map(row => {
-    const inputs  = row.querySelectorAll('input');
-    const selects = row.querySelectorAll('select');
-    return { name: inputs[0]?.value.trim()||'', class: selects[0]?.value||'SAFE', status: selects[1]?.value||'Confiné' };
-  }).filter(e => e.name);
-  const data = {
-    open:       isOpen,
-    reason:     g('srvReason')?.value.trim()    || '',
-    stability:  parseInt(g('srvStability')?.value) || (isOpen ? 96 : 15),
-    players:    g('srvPlayers')?.value.trim()   || '—',
-    foundation: g('srvFoundation')?.value.trim()|| '—',
-    scps:       parseInt(g('srvScps')?.value)   || 0,
-    scpsTotal:  parseInt(g('srvScpsTotal')?.value) || 8,
-    alerts:     parseInt(g('srvAlerts')?.value) || 0,
-    logList, scpList,
-    updatedBy:  name,
-    updatedAt:  new Date().toISOString(),
-  };
-  await setDoc(doc(db, 'server_status', 'current'), data);
-  SCPIntranet.addHistory('Statut serveur mis à jour — ' + (isOpen ? 'OUVERT' : 'FERMÉ'));
-}
-
-document.addEventListener('click', e => {
-  if (e.target.id === 'srvBtn')     saveServerStatus(!serverStatus.open);
-  if (e.target.id === 'srvSaveBtn') saveServerStatus(serverStatus.open);
-  if (e.target.id === 'addLogBtn') {
-    document.getElementById('srvLogRows').insertAdjacentHTML('beforeend', `
-      <div class="srv-log-entry">
-        <input type="text" placeholder="HH:MM:SS" style="max-width:80px"/>
-        <select><option>INFO</option><option>ALERTE</option><option>CRITIQUE</option></select>
-        <input type="text" placeholder="Message…"/>
-        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-log-entry').remove()">✕</button>
-      </div>`);
-  }
-  if (e.target.id === 'addScpBtn') {
-    document.getElementById('srvScpRows').insertAdjacentHTML('beforeend', `
-      <div class="srv-scp-entry">
-        <input type="text" placeholder="Nom (ex: SCP-173)"/>
-        <select><option>SAFE</option><option>EUCLIDE</option><option>KETER</option></select>
-        <select><option>Confiné</option><option>Brèche</option><option>Non localisé</option></select>
-        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-scp-entry').remove()">✕</button>
-      </div>`);
-  }
-});
 
 const PAGE_SIZE = 10;
 
-// ── AUTH CUSTOM ──
-function showLogin() {
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('appRoot').style.display = 'none';
-  document.getElementById('loginForm').style.display = 'block';
-  document.getElementById('loginLoading').style.display = 'none';
-  document.getElementById('loginError').textContent = '';
-}
+// ── Helpers ──
+function typeName(t){return{warn:'⚠ Warn',kick:'👟 Kick',ban:'🔨 Ban',mute:'🔇 Mute'}[t]||t;}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escR(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function today(){return new Date().toISOString().split('T')[0];}
+function fmtDate(d){if(!d)return'—';try{return new Date(d+'T12:00:00').toLocaleDateString('fr-FR');}catch{return d;}}
+function nowStr(){const d=new Date();return`[${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}]`;}
 
+// ── Match user ──
+function matchUser(u, input) {
+  const q = input.toLowerCase();
+  if (u.username?.toLowerCase() === q) return true;
+  if (u.name?.toLowerCase() === q) return true;
+  if (u.email?.toLowerCase() === q) return true;
+  return false;
+}
+function getDisplayName(u) { return u.displayName || u.username || u.name || u.email || '—'; }
+function getLoginKey(u)    { return u.username || u.name || u.email || ''; }
+
+// ── showApp ──
 function showApp(name, role) {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('appRoot').style.display = 'block';
@@ -1225,46 +1135,35 @@ function showApp(name, role) {
   document.getElementById('fDate').value = today();
   toggleDuration();
   if (isAdmin) loadUsers();
-  setTimeout(() => { if (typeof window.refreshPlayers === 'function') window.refreshPlayers(); }, 0);
-  SCPIntranet.initTabs();
-  SCPIntranet.initModalClose();
-  SCPIntranet.addHistory('Connecté : ' + name);
+  initTabs();
+  refreshPlayers();
+  addHistory('Connecté : ' + name);
 }
 
-function matchUser(u, input) {
-  const q = input.toLowerCase();
-  if (u.username?.toLowerCase() === q) return true;
-  if (u.name?.toLowerCase() === q) return true;
-  if (u.email?.toLowerCase() === q) return true;
-  return false;
+function showLogin() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('loginLoading').style.display = 'none';
+  document.getElementById('loginError').textContent = '';
 }
-function getDisplayName(u) { return u.displayName || u.username || u.name || u.email || '—'; }
-function getLoginKey(u) { return u.username || u.name || u.email || ''; }
 
 // ── Restaurer session ──
-const waitSCP = (fn, retries = 30) => {
-  if (typeof SCPIntranet !== 'undefined') { fn(); }
-  else if (retries > 0) { setTimeout(() => waitSCP(fn, retries - 1), 100); }
-  else { console.warn('SCPIntranet non disponible après timeout'); }
-};
-
 (async () => {
   const sess = loadModSession();
   if (sess?.username && sess?.password) {
     try {
       const snap = await getDocs(collection(db, 'users'));
       let found = null;
-      snap.forEach(d => { const u = d.data(); if (matchUser(u, sess.username)) found = { _id: d.id, ...u }; });
+      snap.forEach(d => { const u = d.data(); if (!found && matchUser(u, sess.username)) found = { _id: d.id, ...u }; });
       if (found && found.password === sess.password) {
         currentUser = found;
         currentRole = found.role || 'moderateur';
         startListen();
         startServerListen();
         startRosterListen();
-        waitSCP(() => {
-          showApp(getDisplayName(found), currentRole);
-          window.hideLoadingScreen();
-        });
+        showApp(getDisplayName(found), currentRole);
+        window.hideLoadingScreen();
         return;
       }
     } catch(e) { console.warn('Session restore error:', e); }
@@ -1315,6 +1214,7 @@ window.doLogin = async function() {
     errEl.textContent = '⚠ Erreur : ' + e.message;
   }
 };
+
 document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key==='Enter') window.doLogin(); });
 document.getElementById('loginUsername').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPassword').focus(); });
 
@@ -1365,7 +1265,7 @@ window.doLogout = function() {
   showLogin();
 };
 
-// ── FIRESTORE LISTENER ──
+// ── FIRESTORE LISTENER sanctions ──
 function startListen() {
   const q = query(collection(db, 'sanctions'), orderBy('date', 'desc'));
   unsubscribe = onSnapshot(q, snap => {
@@ -1377,9 +1277,114 @@ function startListen() {
     li.style.color = 'var(--safe)';
     document.getElementById('sidebarSync').textContent = 'Sync ' + nowStr();
   }, () => {
-    document.getElementById('liveIndicator').textContent = '⚠ Erreur Firebase';
-    document.getElementById('liveIndicator').style.color = 'var(--danger)';
+    const li = document.getElementById('liveIndicator');
+    li.textContent = '⚠ Erreur Firebase';
+    li.style.color = 'var(--danger)';
   });
+}
+
+// ── SERVER STATUS ──
+function startServerListen() {
+  unsubServer = onSnapshot(doc(db, 'server_status', 'current'), snap => {
+    serverStatus = snap.exists() ? snap.data() : { open: false };
+    renderServerWidget();
+    populateServerForm();
+  });
+}
+
+function renderServerWidget() {
+  const isOpen = !!serverStatus.open;
+  const dot    = document.getElementById('srvDot');
+  const label  = document.getElementById('srvLabel');
+  const meta   = document.getElementById('srvMeta');
+  const btn    = document.getElementById('srvBtn');
+  if (!dot) return;
+  dot.className   = 'srv-dot '   + (isOpen ? 'open'   : 'closed');
+  label.className = 'srv-label ' + (isOpen ? 'open'   : 'closed');
+  label.textContent = isOpen ? '⬤ OUVERT' : '⬤ FERMÉ';
+  const parts = [];
+  if (serverStatus.reason)    parts.push(serverStatus.reason);
+  if (serverStatus.updatedBy) parts.push('par ' + serverStatus.updatedBy);
+  if (serverStatus.updatedAt) parts.push(new Date(serverStatus.updatedAt).toLocaleString('fr-FR'));
+  meta.textContent = parts.join(' · ') || '—';
+  btn.className   = 'srv-btn ' + (isOpen ? 'to-close' : 'to-open');
+  btn.textContent = isOpen ? '🔒 Fermer le serveur' : '🔓 Ouvrir le serveur';
+}
+
+function populateServerForm() {
+  const s = serverStatus;
+  const g = id => document.getElementById(id);
+  if (g('srvReason'))     g('srvReason').value     = s.reason     || '';
+  if (g('srvStability'))  g('srvStability').value  = s.stability  ?? 96;
+  if (g('srvPlayers'))    g('srvPlayers').value     = s.players    || '';
+  if (g('srvFoundation')) g('srvFoundation').value  = s.foundation || '';
+  if (g('srvScps'))       g('srvScps').value        = s.scps       ?? 0;
+  if (g('srvScpsTotal'))  g('srvScpsTotal').value   = s.scpsTotal  ?? 8;
+  if (g('srvAlerts'))     g('srvAlerts').value      = s.alerts     ?? 0;
+  const logContainer = g('srvLogRows');
+  if (logContainer && s.logList?.length) {
+    logContainer.innerHTML = s.logList.map(e => `
+      <div class="srv-log-entry">
+        <input type="text" value="${escAttr(e.time||'')}" style="max-width:80px" placeholder="HH:MM:SS"/>
+        <select>
+          <option ${e.sev==='INFO'?'selected':''}>INFO</option>
+          <option ${e.sev==='ALERTE'?'selected':''}>ALERTE</option>
+          <option ${e.sev==='CRITIQUE'?'selected':''}>CRITIQUE</option>
+        </select>
+        <input type="text" value="${escAttr(e.msg||'')}" placeholder="Message…"/>
+        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-log-entry').remove()">✕</button>
+      </div>`).join('');
+  }
+  const scpContainer = g('srvScpRows');
+  if (scpContainer && s.scpList?.length) {
+    scpContainer.innerHTML = s.scpList.map(e => `
+      <div class="srv-scp-entry">
+        <input type="text" value="${escAttr(e.name||'')}" placeholder="Nom (ex: SCP-173)"/>
+        <select>
+          <option ${e.class==='SAFE'?'selected':''}>SAFE</option>
+          <option ${e.class==='EUCLIDE'?'selected':''}>EUCLIDE</option>
+          <option ${e.class==='KETER'?'selected':''}>KETER</option>
+        </select>
+        <select>
+          <option ${e.status==='Confiné'?'selected':''}>Confiné</option>
+          <option ${e.status==='Brèche'?'selected':''}>Brèche</option>
+          <option ${e.status==='Non localisé'?'selected':''}>Non localisé</option>
+        </select>
+        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-scp-entry').remove()">✕</button>
+      </div>`).join('');
+  }
+}
+
+async function saveServerStatus(newOpen) {
+  if (currentRole !== 'admin') return;
+  const name = currentUser?.displayName || currentUser?.username || '—';
+  const g = id => document.getElementById(id);
+  const isOpen = newOpen !== undefined ? newOpen : serverStatus.open;
+  const logList = [...document.querySelectorAll('#srvLogRows .srv-log-entry')].map(row => {
+    const inputs = row.querySelectorAll('input');
+    const sel    = row.querySelector('select');
+    return { time: inputs[0]?.value.trim()||'', sev: sel?.value||'INFO', msg: inputs[1]?.value.trim()||'' };
+  }).filter(e => e.msg);
+  const scpList = [...document.querySelectorAll('#srvScpRows .srv-scp-entry')].map(row => {
+    const inputs  = row.querySelectorAll('input');
+    const selects = row.querySelectorAll('select');
+    return { name: inputs[0]?.value.trim()||'', class: selects[0]?.value||'SAFE', status: selects[1]?.value||'Confiné' };
+  }).filter(e => e.name);
+  const data = {
+    open:       isOpen,
+    reason:     g('srvReason')?.value.trim()    || '',
+    stability:  parseInt(g('srvStability')?.value) || (isOpen ? 96 : 15),
+    players:    g('srvPlayers')?.value.trim()   || '—',
+    foundation: g('srvFoundation')?.value.trim()|| '—',
+    scps:       parseInt(g('srvScps')?.value)   || 0,
+    scpsTotal:  parseInt(g('srvScpsTotal')?.value) || 8,
+    alerts:     parseInt(g('srvAlerts')?.value) || 0,
+    logList, scpList,
+    updatedBy:  name,
+    updatedAt:  new Date().toISOString(),
+  };
+  await setDoc(doc(db, 'server_status', 'current'), data);
+  addHistory('Statut serveur mis à jour — ' + (isOpen ? 'OUVERT' : 'FERMÉ'));
 }
 
 // ── BROADCAST ──
@@ -1399,7 +1404,7 @@ window.sendBroadcast = async function() {
     });
     msgEl.style.color = 'var(--safe)';
     msgEl.textContent = '✓ Alerte diffusée sur le site public.';
-    SCPIntranet.addHistory('Broadcast envoyé : [' + level.toUpperCase() + '] ' + author);
+    addHistory('Broadcast envoyé : [' + level.toUpperCase() + '] ' + author);
     setTimeout(() => { msgEl.textContent = ''; }, 4000);
   } catch(e) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ '+e.message; }
 };
@@ -1410,7 +1415,7 @@ window.clearBroadcast = async function() {
     await setDoc(doc(db, 'broadcast', 'current'), { active: false, clearedAt: new Date().toISOString() });
     document.getElementById('bcMsg').style.color = 'var(--safe)';
     document.getElementById('bcMsg').textContent = '✓ Alerte retirée du site.';
-    SCPIntranet.addHistory('Broadcast effacé');
+    addHistory('Broadcast effacé');
   } catch(e) { alert('Erreur : ' + e.message); }
 };
 
@@ -1437,8 +1442,8 @@ window.saveSanction = async function() {
       date: document.getElementById('fDate').value || today(),
       createdAt: new Date().toISOString(),
     });
-    SCPIntranet.closeModal('modalNewSanction');
-    SCPIntranet.addHistory('Sanction : ' + typeName(type) + ' → ' + player);
+    closeModal('modalNewSanction');
+    addHistory('Sanction : ' + typeName(type) + ' → ' + player);
     ['fPlayer','fUsername','fReason','fDetails'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('fDate').value = today();
   } catch(e) {
@@ -1467,7 +1472,7 @@ window.openDetail = function(docId) {
   const dw = document.getElementById('detailDetailsWrap');
   if (s.details) { dw.style.display=''; document.getElementById('detailDetails').textContent = s.details; }
   else dw.style.display = 'none';
-  SCPIntranet.openModal('modalDetail');
+  openModal('modalDetail');
 };
 
 // ── DELETE ──
@@ -1476,8 +1481,8 @@ window.confirmDelete = async function() {
   const s = sanctions.find(x => x._id === activeDocId);
   try {
     await deleteDoc(doc(db, 'sanctions', activeDocId));
-    SCPIntranet.closeModal('modalDetail');
-    SCPIntranet.addHistory('Suppression : ' + (s ? s.player : activeDocId));
+    closeModal('modalDetail');
+    addHistory('Suppression : ' + (s ? s.player : activeDocId));
     activeDocId = null;
   } catch(e) { alert('Erreur : ' + e.message); }
 };
@@ -1505,7 +1510,7 @@ window.createUser = async function() {
     });
     msg.style.color = 'var(--safe)';
     msg.textContent = '✓ Compte créé : ' + (displayName || username) + ' [' + role + ']';
-    SCPIntranet.addHistory('Compte créé : ' + (displayName || username));
+    addHistory('Compte créé : ' + (displayName || username));
     ['newUserUsername','newUserPassword','newUserDisplayName'].forEach(id => document.getElementById(id).value = '');
     loadUsers();
   } catch(e) { msg.style.color='var(--danger)'; msg.textContent='⚠ '+e.message; }
@@ -1545,7 +1550,7 @@ window.deleteUser = async function(uid, name) {
   if (!confirm('Supprimer le compte de ' + name + ' ?')) return;
   try {
     await deleteDoc(doc(db, 'users', uid));
-    SCPIntranet.addHistory('Compte supprimé : ' + name);
+    addHistory('Compte supprimé : ' + name);
     loadUsers();
   } catch(e) { alert('Erreur : ' + e.message); }
 };
@@ -1555,12 +1560,202 @@ window.setUserPassword = async function(uid, name) {
   if (!newPwd || newPwd.trim().length < 2) return;
   try {
     await setDoc(doc(db, 'users', uid), { password: newPwd.trim() }, { merge: true });
-    SCPIntranet.addHistory('Mot de passe défini pour : ' + name);
+    addHistory('Mot de passe défini pour : ' + name);
     loadUsers();
   } catch(e) { alert('Erreur : ' + e.message); }
 };
 
-// ── PLAYER LOOKUP ──
+// ── PLAYERS (vue Joueurs) ──
+window.refreshPlayers = async function() {
+  const container = document.getElementById('playersListContainer');
+  if (!container) return;
+  container.innerHTML = '<div class="no-player"><span class="np-icon">🎮</span>Chargement…</div>';
+  try {
+    const snap = await getDocs(collection(db, 'players'));
+    playersData = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    renderPlayersList(playersData);
+  } catch(e) {
+    container.innerHTML = `<div class="no-player"><span class="np-icon">⚠</span>Erreur : ${esc(e.message)}</div>`;
+  }
+};
+
+function renderPlayersList(list) {
+  const container = document.getElementById('playersListContainer');
+  const infoEl    = document.getElementById('playerFilterInfo');
+  if (!container) return;
+  if (!list.length) {
+    container.innerHTML = '<div class="no-player"><span class="np-icon">🎮</span>Aucun joueur enregistré</div>';
+    if (infoEl) infoEl.textContent = '';
+    return;
+  }
+  if (infoEl) infoEl.textContent = list.length + ' joueur' + (list.length > 1 ? 's' : '');
+  container.innerHTML = list.map(p => {
+    const chars = p.characters || [];
+    const name  = p.robloxName || p.displayName || '—';
+    const sanctions_count = sanctions.filter(s => s.player.toLowerCase() === name.toLowerCase()).length;
+    return `<div class="player-card" id="pcard-${p._id}">
+      <div class="player-card-hdr" onclick="togglePlayerCard('${p._id}')">
+        <div>
+          <div class="player-card-name">${esc(name)}</div>
+          <div class="player-card-meta">${chars.length} personnage${chars.length>1?'s':''} · ${sanctions_count} sanction${sanctions_count>1?'s':''}</div>
+        </div>
+        <div class="player-card-actions">
+          <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();openNewCharModal('${p._id}')">+ Perso</button>
+          <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();deletePlayer('${p._id}','${escAttr(name)}')">🗑</button>
+        </div>
+      </div>
+      <div class="player-card-body" id="pbody-${p._id}">
+        <div class="chars-grid">
+          ${chars.length ? chars.map(c => `
+            <div class="char-row">
+              <div class="char-row-info">
+                <div class="char-row-name">${esc(c.name)}</div>
+                <div class="char-row-meta">${esc(c.rank||'')}${c.pin?' · PIN: '+c.pin:''}</div>
+              </div>
+              <span class="char-row-dept ${c.role||'scientific'}">${c.role||'scientific'}</span>
+              <div class="char-row-actions">
+                <button class="btn btn-ghost btn-xs" onclick="openEditCharModal('${p._id}','${escAttr(c.id)}')">✏</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteCharacter('${p._id}','${escAttr(c.id)}')">🗑</button>
+              </div>
+            </div>`).join('') : '<div class="no-chars">Aucun personnage</div>'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.togglePlayerCard = function(pid) {
+  const body = document.getElementById('pbody-' + pid);
+  if (body) body.classList.toggle('open');
+};
+
+window.filterPlayersList = function() {
+  const q      = document.getElementById('playerFilterInput')?.value.trim().toLowerCase() || '';
+  const infoEl = document.getElementById('playerFilterInfo');
+  if (!q) { renderPlayersList(playersData); return; }
+  const filtered = playersData.filter(p => {
+    const name = (p.robloxName || p.displayName || '').toLowerCase();
+    return name.includes(q);
+  });
+  renderPlayersList(filtered);
+  if (infoEl) {
+    infoEl.textContent = filtered.length === 0 ? '⚠ Aucun joueur trouvé' : filtered.length + ' joueur' + (filtered.length > 1 ? 's' : '') + ' trouvé' + (filtered.length > 1 ? 's' : '');
+    infoEl.style.color = filtered.length === 0 ? 'var(--danger)' : 'var(--safe)';
+  }
+};
+
+window.createPlayer = async function() {
+  const robloxName  = document.getElementById('npRobloxName').value.trim();
+  const displayName = document.getElementById('npDisplayName').value.trim();
+  const pin         = document.getElementById('npPin').value.trim();
+  const msgEl       = document.getElementById('newPlayerMsg');
+  msgEl.textContent = ''; msgEl.style.color = '';
+  if (!robloxName) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Pseudo Roblox obligatoire.'; return; }
+  try {
+    const existing = await getDocs(collection(db, 'players'));
+    let dup = false;
+    existing.forEach(d => { if (d.data().robloxName?.toLowerCase() === robloxName.toLowerCase()) dup = true; });
+    if (dup) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Ce joueur existe déjà.'; return; }
+    await addDoc(collection(db, 'players'), {
+      robloxName,
+      displayName: displayName || robloxName,
+      pin: pin || '',
+      characters: [],
+      createdAt: new Date().toISOString(),
+      createdBy: currentUser?.username || '—',
+    });
+    msgEl.style.color = 'var(--safe)';
+    msgEl.textContent = '✓ Joueur créé : ' + robloxName;
+    addHistory('Joueur créé : ' + robloxName);
+    ['npRobloxName','npDisplayName','npPin'].forEach(id => document.getElementById(id).value = '');
+    closeModal('modalNewPlayer');
+    refreshPlayers();
+  } catch(e) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ '+e.message; }
+};
+
+window.deletePlayer = async function(pid, name) {
+  if (!confirm('Supprimer le joueur ' + name + ' et tous ses personnages ?')) return;
+  try {
+    await deleteDoc(doc(db, 'players', pid));
+    addHistory('Joueur supprimé : ' + name);
+    refreshPlayers();
+  } catch(e) { alert('Erreur : ' + e.message); }
+};
+
+// ── PERSONNAGES ──
+window.openNewCharModal = function(playerId) {
+  document.getElementById('charModalTitle').textContent = '👤 Nouveau personnage';
+  document.getElementById('charEditPlayerId').value = playerId;
+  document.getElementById('charEditCharId').value   = '';
+  ['charName','charDisplayName','charRank','charPin','charDesc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('charRole').value = 'scientific';
+  document.getElementById('charMsg').textContent = '';
+  openModal('modalCharacter');
+};
+
+window.openEditCharModal = function(playerId, charId) {
+  const player = playersData.find(p => p._id === playerId);
+  const ch     = player?.characters?.find(c => c.id === charId);
+  if (!ch) return;
+  document.getElementById('charModalTitle').textContent = '✏ Modifier personnage';
+  document.getElementById('charEditPlayerId').value = playerId;
+  document.getElementById('charEditCharId').value   = charId;
+  document.getElementById('charName').value         = ch.name || '';
+  document.getElementById('charDisplayName').value  = ch.displayName || '';
+  document.getElementById('charRole').value         = ch.role || 'scientific';
+  document.getElementById('charRank').value         = ch.rank || '';
+  document.getElementById('charPin').value          = ch.pin  || '';
+  document.getElementById('charDesc').value         = ch.desc || '';
+  document.getElementById('charMsg').textContent    = '';
+  openModal('modalCharacter');
+};
+
+window.saveCharacter = async function() {
+  const playerId = document.getElementById('charEditPlayerId').value;
+  const charId   = document.getElementById('charEditCharId').value;
+  const name     = document.getElementById('charName').value.trim();
+  const msgEl    = document.getElementById('charMsg');
+  msgEl.textContent = '';
+  if (!playerId || !name) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Nom du personnage obligatoire.'; return; }
+  const player = playersData.find(p => p._id === playerId);
+  if (!player) return;
+  const chars = [...(player.characters || [])];
+  const charData = {
+    id:          charId || ruid(),
+    name,
+    displayName: document.getElementById('charDisplayName').value.trim(),
+    role:        document.getElementById('charRole').value,
+    rank:        document.getElementById('charRank').value.trim(),
+    pin:         document.getElementById('charPin').value.trim(),
+    desc:        document.getElementById('charDesc').value.trim(),
+  };
+  if (charId) {
+    const idx = chars.findIndex(c => c.id === charId);
+    if (idx >= 0) chars[idx] = charData; else chars.push(charData);
+  } else {
+    chars.push(charData);
+  }
+  try {
+    await setDoc(doc(db, 'players', playerId), { characters: chars }, { merge: true });
+    addHistory((charId ? 'Personnage modifié : ' : 'Personnage créé : ') + name);
+    closeModal('modalCharacter');
+    refreshPlayers();
+  } catch(e) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ '+e.message; }
+};
+
+window.deleteCharacter = async function(playerId, charId) {
+  const player = playersData.find(p => p._id === playerId);
+  const ch     = player?.characters?.find(c => c.id === charId);
+  if (!ch || !confirm('Supprimer le personnage ' + ch.name + ' ?')) return;
+  const chars = (player.characters || []).filter(c => c.id !== charId);
+  try {
+    await setDoc(doc(db, 'players', playerId), { characters: chars }, { merge: true });
+    addHistory('Personnage supprimé : ' + ch.name);
+    refreshPlayers();
+  } catch(e) { alert('Erreur : ' + e.message); }
+};
+
+// ── PLAYER LOOKUP (historique) ──
 window.lookupPlayer = function() {
   const q = document.getElementById('playerSearchInput').value.trim().toLowerCase();
   if (!q) return;
@@ -1576,12 +1771,12 @@ window.lookupPlayer = function() {
   const warns=matches.filter(s=>s.type==='warn').length;
   const kicks=matches.filter(s=>s.type==='kick').length;
   const bans =matches.filter(s=>s.type==='ban').length;
-  document.getElementById('profileName').textContent    = matches[0].player;
-  document.getElementById('profileUsername').textContent= matches[0].username||'';
-  document.getElementById('profileWarnCount').textContent=warns;
-  document.getElementById('profileKickCount').textContent=kicks;
-  document.getElementById('profileBanCount').textContent =bans;
-  document.getElementById('profileTotal').textContent    =matches.length;
+  document.getElementById('profileName').textContent     = matches[0].player;
+  document.getElementById('profileUsername').textContent = matches[0].username||'';
+  document.getElementById('profileWarnCount').textContent= warns;
+  document.getElementById('profileKickCount').textContent= kicks;
+  document.getElementById('profileBanCount').textContent = bans;
+  document.getElementById('profileTotal').textContent    = matches.length;
   const risk=Math.min(100,warns*10+kicks*20+bans*40);
   const rc=risk>=70?'var(--danger)':risk>=40?'var(--warn)':'var(--safe)';
   document.getElementById('profileRiskLabel').textContent=risk>=70?'🔴 ÉLEVÉ':risk>=40?'🟡 MODÉRÉ':'🟢 FAIBLE';
@@ -1597,7 +1792,7 @@ window.lookupPlayer = function() {
         <div class="tl-meta">Par ${esc(s.mod)} — ${fmtDate(s.date)}</div>
       </div></div>`).join('')}
     </div></div></div>`;
-  SCPIntranet.addHistory('Historique : ' + matches[0].player);
+  addHistory('Historique : ' + matches[0].player);
 };
 
 document.getElementById('playerSearchInput').addEventListener('keydown', e => {
@@ -1609,12 +1804,12 @@ function renderAll() { renderTable(); renderSidebar(); renderStats(); }
 
 // ── RENDER TABLE ──
 window.renderTable = function() {
-  const search=document.getElementById('filterSearch').value.toLowerCase();
-  const typeF =document.getElementById('filterType').value;
-  const sort  =document.getElementById('filterSort').value;
-  let data=sanctions.filter(s=>{
-    const ms=!search||[s.player,s.username,s.reason,s._id,s.mod].some(v=>v&&v.toLowerCase().includes(search));
-    return ms&&(!typeF||s.type===typeF);
+  const search = document.getElementById('filterSearch').value.toLowerCase();
+  const typeF  = document.getElementById('filterType').value;
+  const sort   = document.getElementById('filterSort').value;
+  let data = sanctions.filter(s => {
+    const ms = !search||[s.player,s.username,s.reason,s._id,s.mod].some(v=>v&&v.toLowerCase().includes(search));
+    return ms && (!typeF || s.type===typeF);
   });
   if(sort==='date-desc') data.sort((a,b)=>b.date.localeCompare(a.date));
   else if(sort==='date-asc') data.sort((a,b)=>a.date.localeCompare(b.date));
@@ -1646,9 +1841,9 @@ window.renderTable = function() {
   btns+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage>=totalPages?'disabled':''}>›</button>`;
   document.getElementById('paginationBtns').innerHTML=btns;
 };
-window.goPage=function(p){currentPage=Math.max(1,Math.min(p,Math.ceil(sanctions.length/PAGE_SIZE)));renderTable();};
+window.goPage = function(p) { currentPage=Math.max(1,Math.min(p,Math.ceil(sanctions.length/PAGE_SIZE))); renderTable(); };
 
-function renderSidebar(){
+function renderSidebar() {
   const t=today();
   document.getElementById('statWarnCount').textContent=sanctions.filter(s=>s.type==='warn').length;
   document.getElementById('statKickCount').textContent=sanctions.filter(s=>s.type==='kick').length;
@@ -1660,7 +1855,7 @@ function renderSidebar(){
   document.getElementById('sbPlayers').textContent=new Set(sanctions.map(s=>s.player.toLowerCase())).size;
 }
 
-function renderStats(){
+function renderStats() {
   const total=sanctions.length||1;
   const tc={warn:0,kick:0,ban:0,mute:0};
   sanctions.forEach(s=>{if(tc[s.type]!==undefined)tc[s.type]++;});
@@ -1685,35 +1880,94 @@ function renderStats(){
   document.getElementById('topOffenders').innerHTML=top.map((p,i)=>{const r=Math.min(100,Math.round((p.warn*10+p.kick*20+p.ban*40)/(mx*40)*100));const rc=r>70?'var(--danger)':r>40?'var(--warn)':'var(--safe)';return `<tr><td style="color:var(--text-dim)">${i+1}</td><td class="td-player">${esc(p.name)}</td><td style="color:var(--warn)">${p.warn}</td><td style="color:var(--accent)">${p.kick}</td><td style="color:var(--danger)">${p.ban}</td><td style="color:var(--white);font-weight:bold">${p.total}</td><td><span style="font-family:'Space Mono',monospace;font-size:9px;color:${rc}">${r>70?'ÉLEVÉ':r>40?'MODÉRÉ':'FAIBLE'}</span></td></tr>`;}).join('')||'<tr class="empty-row"><td colspan="7"><span>📊</span>Aucune donnée</td></tr>';
 }
 
-window.exportAll=function(){
+window.exportAll = function() {
   const lines=['══════════════════════════════════','SCP FOUNDATION — SITE-15','EXPORT REGISTRE MODÉRATION',`Généré le ${new Date().toLocaleString('fr-FR')}`,`Total : ${sanctions.length} sanctions`,'══════════════════════════════════',''];
   sanctions.forEach(s=>lines.push(`${s.date} | ${typeName(s.type).toUpperCase()} | ${s.player} | ${s.reason} | par ${s.mod}`));
   const b=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`site15_sanctions_${today()}.txt`;a.click();
-  SCPIntranet.addHistory('Export généré');
+  addHistory('Export généré');
 };
 
-window.toggleDuration=function(){const t=document.getElementById('fType').value;document.getElementById('fieldDuration').style.display=['ban','mute'].includes(t)?'':'none';};
-window.clearFilters=function(){document.getElementById('filterSearch').value='';document.getElementById('filterType').value='';document.getElementById('filterSort').value='date-desc';currentPage=1;renderTable();};
+window.toggleDuration = function() {
+  const t=document.getElementById('fType')?.value;
+  const fd=document.getElementById('fieldDuration');
+  if(fd) fd.style.display=['ban','mute'].includes(t)?'':'none';
+};
 
-function typeName(t){return{warn:'⚠ Warn',kick:'👟 Kick',ban:'🔨 Ban',mute:'🔇 Mute'}[t]||t;}
-function esc(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function today(){return new Date().toISOString().split('T')[0];}
-function fmtDate(d){if(!d)return'—';try{return new Date(d+'T12:00:00').toLocaleDateString('fr-FR');}catch{return d;}}
-function nowStr(){const d=new Date();return`[${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}]`;}
+window.clearFilters = function() {
+  document.getElementById('filterSearch').value='';
+  document.getElementById('filterType').value='';
+  document.getElementById('filterSort').value='date-desc';
+  currentPage=1; renderTable();
+};
 
-document.addEventListener('click',e=>{
-  if(e.target.dataset.closeModal)SCPIntranet.closeModal(e.target.dataset.closeModal);
-  if(e.target.classList.contains('modal-ov'))SCPIntranet.closeModal(e.target.id);
+// ── EVENT LISTENERS GLOBAUX ──
+document.addEventListener('click', e => {
+  // Fermeture modals via bouton close ou overlay
+  const closeBtn = e.target.closest('[data-close-modal]');
+  if (closeBtn) { closeModal(closeBtn.dataset.closeModal); return; }
+  if (e.target.classList.contains('modal-ov')) { closeModal(e.target.id); return; }
+
+  // Serveur
+  if (e.target.id === 'srvBtn')     { saveServerStatus(!serverStatus.open); return; }
+  if (e.target.id === 'srvSaveBtn') { saveServerStatus(serverStatus.open); return; }
+  if (e.target.id === 'addLogBtn') {
+    document.getElementById('srvLogRows').insertAdjacentHTML('beforeend', `
+      <div class="srv-log-entry">
+        <input type="text" placeholder="HH:MM:SS" style="max-width:80px"/>
+        <select><option>INFO</option><option>ALERTE</option><option>CRITIQUE</option></select>
+        <input type="text" placeholder="Message…"/>
+        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-log-entry').remove()">✕</button>
+      </div>`);
+    return;
+  }
+  if (e.target.id === 'addScpBtn') {
+    document.getElementById('srvScpRows').insertAdjacentHTML('beforeend', `
+      <div class="srv-scp-entry">
+        <input type="text" placeholder="Nom (ex: SCP-173)"/>
+        <select><option>SAFE</option><option>EUCLIDE</option><option>KETER</option></select>
+        <select><option>Confiné</option><option>Brèche</option><option>Non localisé</option></select>
+        <button class="btn btn-danger btn-xs" onclick="this.closest('.srv-scp-entry').remove()">✕</button>
+      </div>`);
+    return;
+  }
+
+  // Roster
+  const rosterTab = e.target.closest('.roster-tab[data-roster]');
+  if (rosterTab) { activeDeptId = rosterTab.dataset.roster; renderAllRosters(); return; }
+
+  const copyBtn = e.target.closest('[data-copy-dept]');
+  if (copyBtn) { copyAgentCommand(copyBtn.dataset.copyDept, copyBtn.dataset.copyAgent); return; }
+
+  const editBtn = e.target.closest('[data-edit-dept]');
+  if (editBtn) { openEditForm(editBtn.dataset.editDept, editBtn.dataset.editAgent); return; }
+
+  // FIX: data-cancel-dept + data-cancel-agent séparés
+  const cancelBtn = e.target.closest('[data-cancel-dept]');
+  if (cancelBtn) { closeEditForm(cancelBtn.dataset.cancelDept, cancelBtn.dataset.cancelAgent); return; }
+
+  const saveBtn = e.target.closest('[data-save-dept]');
+  if (saveBtn) { saveAgent(saveBtn.dataset.saveDept, saveBtn.dataset.saveAgent); return; }
+
+  const addAgentBtn = e.target.closest('[data-add-agent]');
+  if (addAgentBtn) { addAgent(addAgentBtn.dataset.addAgent); return; }
+
+  const delAgentBtn = e.target.closest('[data-del-dept]');
+  if (delAgentBtn) { deleteAgent(delAgentBtn.dataset.delDept, delAgentBtn.dataset.delAgent); return; }
+
+  const delDeptBtn = e.target.closest('[data-del-dept-id]');
+  if (delDeptBtn) { deleteDept(delDeptBtn.dataset.delDeptId); return; }
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-ov.open').forEach(m=>m.classList.remove('open'));});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-ov.open').forEach(m => m.classList.remove('open'));
+});
 
 // ══════════════════════════════════════════════════════
-// ── ROSTERS — Firebase + édition complète ──
+// ── ROSTERS — Firebase ──
 // ══════════════════════════════════════════════════════
-let rosterData = {};
+let rosterData  = {};
 let activeDeptId = null;
-let unsubRoster  = null;
 
 const ROSTER_SEED = {
   security: {
@@ -1749,6 +2003,8 @@ function canEditRoster(role) {
   return ['admin', 'responsable'].includes(role || currentRole);
 }
 
+function ruid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
 function startRosterListen() {
   if (unsubRoster) { unsubRoster(); unsubRoster = null; }
   unsubRoster = onSnapshot(doc(db, 'rosters', 'data'), snap => {
@@ -1777,8 +2033,6 @@ async function saveRosterToFirebase(showFeedback = true) {
   }
 }
 
-function ruid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
-
 function renderAllRosters() {
   renderRosterTabs();
   renderRosterPanels();
@@ -1786,12 +2040,10 @@ function renderAllRosters() {
 }
 
 function renderRosterTabs() {
-  const depts = Object.values(rosterData);
+  const depts  = Object.values(rosterData);
   const tabsEl = document.getElementById('rosterTabs');
   if (!tabsEl) return;
-  if (!activeDeptId || !rosterData[activeDeptId]) {
-    activeDeptId = depts[0]?.id || null;
-  }
+  if (!activeDeptId || !rosterData[activeDeptId]) activeDeptId = depts[0]?.id || null;
   tabsEl.innerHTML = depts.map(d => `
     <button class="roster-tab ${d.id === activeDeptId ? 'active' : ''}" data-roster="${d.id}">
       ${d.icon || ''} ${d.name} (${d.agents?.length || 0})
@@ -1799,7 +2051,7 @@ function renderRosterTabs() {
 }
 
 function renderRosterPanels() {
-  const depts = Object.values(rosterData);
+  const depts    = Object.values(rosterData);
   const panelsEl = document.getElementById('rosterPanels');
   if (!panelsEl) return;
   panelsEl.innerHTML = depts.map(d => `
@@ -1841,25 +2093,24 @@ function renderAgentCards(dept) {
       </div>
       <div class="roster-edit-actions">
         <button class="btn btn-primary btn-sm" data-save-dept="${dept.id}" data-save-agent="${a.id}">✓ Enregistrer</button>
-        <button class="btn btn-ghost btn-sm" data-cancel-edit="${dept.id}-${a.id}">Annuler</button>
+        <button class="btn btn-ghost btn-sm" data-cancel-dept="${dept.id}" data-cancel-agent="${a.id}">Annuler</button>
       </div>
     </div>`).join('');
 }
 
 function renderAddAgentForm(deptId) {
-  const s = id => `style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;"`;
   return `
     <div class="roster-add-zone">
       <div class="roster-add-title">+ Nouvel agent</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
         <div><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Nom affiché *</label>
-          <input type="text" id="new-name-${deptId}" placeholder="Ex: A.DUPONT" ${s()} /></div>
+          <input type="text" id="new-name-${deptId}" placeholder="Ex: A.DUPONT" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;" /></div>
         <div><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Username Roblox *</label>
-          <input type="text" id="new-user-${deptId}" placeholder="username_roblox" ${s()} /></div>
+          <input type="text" id="new-user-${deptId}" placeholder="username_roblox" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;" /></div>
         <div><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Grade / Rang</label>
-          <input type="text" id="new-rank-${deptId}" placeholder="[D.SE] Cadet" ${s()} /></div>
+          <input type="text" id="new-rank-${deptId}" placeholder="[D.SE] Cadet" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;" /></div>
         <div><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Date recrutement</label>
-          <input type="text" id="new-date-${deptId}" placeholder="JJ/MM/AAAA" ${s()} /></div>
+          <input type="text" id="new-date-${deptId}" placeholder="JJ/MM/AAAA" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:7px 10px;outline:none;box-sizing:border-box;" /></div>
         <div style="grid-column:1/-1;"><label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Commande morph *</label>
           <textarea id="new-cmd-${deptId}" rows="3" placeholder="run team username …" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:7px 10px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.5;"></textarea></div>
       </div>
@@ -1905,7 +2156,7 @@ window.addDept = function() {
   document.getElementById('newDeptName').value = '';
   document.getElementById('newDeptIcon').value = '';
   saveRosterToFirebase();
-  SCPIntranet.addHistory('Département ajouté : ' + name);
+  addHistory('Département ajouté : ' + name);
 };
 
 function deleteDept(deptId) {
@@ -1916,25 +2167,25 @@ function deleteDept(deptId) {
   delete rosterData[deptId];
   if (activeDeptId === deptId) activeDeptId = Object.keys(rosterData)[0] || null;
   saveRosterToFirebase();
-  SCPIntranet.addHistory('Département supprimé : ' + dept.name);
+  addHistory('Département supprimé : ' + dept.name);
 }
 
 function addAgent(deptId) {
   if (!canEditRoster()) return;
   const g = s => document.getElementById(s)?.value.trim() || '';
-  const name    = g(`new-name-${deptId}`);
-  const username= g(`new-user-${deptId}`);
-  const rank    = g(`new-rank-${deptId}`);
-  const date    = g(`new-date-${deptId}`);
-  const command = g(`new-cmd-${deptId}`);
-  const errEl   = document.getElementById(`add-err-${deptId}`);
+  const name     = g(`new-name-${deptId}`);
+  const username = g(`new-user-${deptId}`);
+  const rank     = g(`new-rank-${deptId}`);
+  const date     = g(`new-date-${deptId}`);
+  const command  = g(`new-cmd-${deptId}`);
+  const errEl    = document.getElementById(`add-err-${deptId}`);
   if (errEl) errEl.textContent = '';
   if (!name || !command) { if (errEl) errEl.textContent = '⚠ Nom et commande obligatoires'; return; }
   if (!rosterData[deptId]) return;
   if (!rosterData[deptId].agents) rosterData[deptId].agents = [];
   rosterData[deptId].agents.push({ id: ruid(), name, username, rank, date, command });
   saveRosterToFirebase();
-  SCPIntranet.addHistory('Agent ajouté : ' + name + ' → ' + rosterData[deptId].name);
+  addHistory('Agent ajouté : ' + name + ' → ' + rosterData[deptId].name);
   ['name','user','rank','date','cmd'].forEach(f => { const el = document.getElementById(`new-${f}-${deptId}`); if (el) el.value = ''; });
 }
 
@@ -1951,33 +2202,33 @@ function closeEditForm(deptId, agentId) {
 
 function saveAgent(deptId, agentId) {
   if (!canEditRoster()) return;
-  const dept = rosterData[deptId];
+  const dept  = rosterData[deptId];
   if (!dept) return;
   const agent = dept.agents?.find(a => a.id === agentId);
   if (!agent) return;
   const g = id => document.getElementById(id)?.value.trim() || '';
-  const name    = g(`ef-name-${deptId}-${agentId}`);
-  const username= g(`ef-user-${deptId}-${agentId}`);
-  const rank    = g(`ef-rank-${deptId}-${agentId}`);
-  const date    = g(`ef-date-${deptId}-${agentId}`);
-  const command = g(`ef-cmd-${deptId}-${agentId}`);
+  const name     = g(`ef-name-${deptId}-${agentId}`);
+  const username = g(`ef-user-${deptId}-${agentId}`);
+  const rank     = g(`ef-rank-${deptId}-${agentId}`);
+  const date     = g(`ef-date-${deptId}-${agentId}`);
+  const command  = g(`ef-cmd-${deptId}-${agentId}`);
   if (!name || !command) { alert('Nom et commande obligatoires.'); return; }
   agent.name = name; agent.username = username;
   agent.rank = rank; agent.date = date; agent.command = command;
   saveRosterToFirebase();
-  SCPIntranet.addHistory('Agent modifié : ' + name);
+  addHistory('Agent modifié : ' + name);
 }
 
 function deleteAgent(deptId, agentId) {
   if (!canEditRoster()) return;
-  const dept = rosterData[deptId];
+  const dept  = rosterData[deptId];
   if (!dept) return;
   const agent = dept.agents?.find(a => a.id === agentId);
   if (!agent) return;
   if (!confirm(`Supprimer ${agent.name} du roster ?`)) return;
   dept.agents = dept.agents.filter(a => a.id !== agentId);
   saveRosterToFirebase();
-  SCPIntranet.addHistory('Agent supprimé : ' + agent.name);
+  addHistory('Agent supprimé : ' + agent.name);
 }
 
 async function copyAgentCommand(deptId, agentId) {
@@ -1992,15 +2243,12 @@ async function copyAgentCommand(deptId, agentId) {
       btn.style.color = 'var(--safe)'; btn.style.borderColor = 'var(--safe)';
       setTimeout(() => { btn.textContent = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1500);
     }
-    SCPIntranet.addHistory('Morph copié : ' + agent.name);
+    addHistory('Morph copié : ' + agent.name);
   } catch { if (btn) btn.textContent = '✕ Erreur'; }
 }
 
-function escR(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-
 window.filterRoster = function() {
-  const q = document.getElementById('rosterSearch')?.value.trim().toLowerCase() || '';
+  const q      = document.getElementById('rosterSearch')?.value.trim().toLowerCase() || '';
   const infoEl = document.getElementById('rosterSearchInfo');
   if (!q) {
     document.querySelectorAll('.roster-agent-card, .roster-edit-form, .roster-add-zone').forEach(el => { el.style.display = ''; });
@@ -2032,33 +2280,7 @@ window.filterRoster = function() {
   }
 };
 
-document.addEventListener('click', e => {
-  const tab = e.target.closest('.roster-tab[data-roster]');
-  if (tab) { activeDeptId = tab.dataset.roster; renderAllRosters(); return; }
-  const copyBtn = e.target.closest('[data-copy-dept]');
-  if (copyBtn) { copyAgentCommand(copyBtn.dataset.copyDept, copyBtn.dataset.copyAgent); return; }
-  const editBtn = e.target.closest('[data-edit-dept]');
-  if (editBtn) { openEditForm(editBtn.dataset.editDept, editBtn.dataset.editAgent); return; }
-  const cancelBtn = e.target.closest('[data-cancel-edit]');
-  if (cancelBtn) {
-    const key = cancelBtn.dataset.cancelEdit;
-    const deptId  = key.substring(0, key.indexOf('-'));
-    const agentId = key.substring(key.indexOf('-') + 1);
-    closeEditForm(deptId, agentId);
-    return;
-  }
-  const saveBtn = e.target.closest('[data-save-dept]');
-  if (saveBtn) { saveAgent(saveBtn.dataset.saveDept, saveBtn.dataset.saveAgent); return; }
-  const addBtn = e.target.closest('[data-add-agent]');
-  if (addBtn) { addAgent(addBtn.dataset.addAgent); return; }
-  const delBtn = e.target.closest('[data-del-dept]');
-  if (delBtn) { deleteAgent(delBtn.dataset.delDept, delBtn.dataset.delAgent); return; }
-  const delDeptBtn = e.target.closest('[data-del-dept-id]');
-  if (delDeptBtn) { deleteDept(delDeptBtn.dataset.delDeptId); return; }
-});
-
 </script>
-<script type="module" src="firebase-config.js"></script>
-<script type="module" src="shared.js"></script>
+<!-- NOTE: firebase-config.js et shared.js supprimés — tout est géré dans le module ci-dessus -->
 </body>
 </html>
