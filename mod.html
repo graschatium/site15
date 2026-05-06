@@ -1143,9 +1143,12 @@ function showApp(name, role) {
   if (deptMgr) deptMgr.style.display = canEditRoster(role) ? '' : 'none';
   document.getElementById('fDate').value = today();
   toggleDuration();
-  if (isAdmin) loadUsers();
-  refreshPlayers();
-  SCPIntranet.initTabs();
+// AFTER (fixed):
+if (isAdmin) loadUsers();
+setTimeout(() => {
+  if (typeof window.refreshPlayers === 'function') window.refreshPlayers();
+}, 0);
+SCPIntranet.initTabs();
   SCPIntranet.initModalClose();
   SCPIntranet.addHistory('Connecté : ' + name);
 }
