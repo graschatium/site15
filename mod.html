@@ -1242,6 +1242,12 @@ function getDisplayName(u) { return u.displayName || u.username || u.name || u.e
 function getLoginKey(u) { return u.username || u.name || u.email || ''; }
 
 // ── Restaurer session ──
+const waitSCP = (fn, retries = 30) => {
+  if (typeof SCPIntranet !== 'undefined') { fn(); }
+  else if (retries > 0) { setTimeout(() => waitSCP(fn, retries - 1), 100); }
+  else { console.warn('SCPIntranet non disponible après timeout'); }
+};
+
 (async () => {
   const sess = loadModSession();
   if (sess?.username && sess?.password) {
@@ -1255,24 +1261,16 @@ function getLoginKey(u) { return u.username || u.name || u.email || ''; }
         startListen();
         startServerListen();
         startRosterListen();
-        // Dans showApp(), à la fin :
         waitSCP(() => {
-        SCPIntranet.initTabs();
-        SCPIntranet.initModalClose();
-        SCPIntranet.addHistory('Connecté : ' + name);
-       window.hideLoadingScreen(); // ← ici
+          showApp(getDisplayName(found), currentRole);
+          window.hideLoadingScreen();
         });
-
-// Dans doLogin(), après showApp() :
-showApp(getDisplayName(found), currentRole);
-window.hideLoadingScreen(); // ← et ici
-        // Attendre que le DOM et shared.js soient prêts
-        setTimeout(() => showApp(getDisplayName(found), currentRole), 150);
         return;
       }
     } catch(e) { console.warn('Session restore error:', e); }
     clearModSession();
   }
+  window.hideLoadingScreen();
   showLogin();
 })();
 
