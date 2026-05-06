@@ -1252,10 +1252,11 @@ function getLoginKey(u) { return u.username || u.name || u.email || ''; }
       if (found && found.password === sess.password) {
         currentUser = found;
         currentRole = found.role || 'moderateur';
-        showApp(getDisplayName(found), currentRole);
         startListen();
         startServerListen();
         startRosterListen();
+        // Attendre que le DOM et shared.js soient prêts
+        setTimeout(() => showApp(getDisplayName(found), currentRole), 150);
         return;
       }
     } catch(e) { console.warn('Session restore error:', e); }
