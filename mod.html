@@ -241,6 +241,30 @@
     .page-btn:hover, .page-btn.active { border-color:var(--accent); color:var(--accent); }
     .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
+    /* ── PLAYER CARDS ── */
+    .player-card { background:var(--surface); border:1px solid var(--border); margin-bottom:10px; transition:border-color 0.2s; }
+    .player-card:hover { border-color:var(--border2); }
+    .player-card-hdr { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; gap:12px; }
+    .player-card-hdr:hover { background:rgba(0,212,255,0.02); }
+    .player-card-name { font-family:'Rajdhani',sans-serif; font-size:17px; font-weight:700; color:var(--white); letter-spacing:0.04em; }
+    .player-card-meta { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.12em; margin-top:2px; }
+    .player-card-actions { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+    .player-card-body { padding:14px 16px; display:none; }
+    .player-card-body.open { display:block; }
+    .chars-grid { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+    .char-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface2); border:1px solid var(--border); padding:9px 14px; gap:10px; }
+    .char-row-info { flex:1; min-width:0; }
+    .char-row-name { font-family:'Space Mono',monospace; font-size:11px; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .char-row-meta { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); margin-top:2px; }
+    .char-row-dept { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; font-family:'Space Mono',monospace; font-size:9px; border:1px solid; letter-spacing:0.1em; text-transform:uppercase; flex-shrink:0; }
+    .char-row-dept.scientific     { color:#4dd0e1; border-color:rgba(77,208,225,0.3); background:rgba(77,208,225,0.06); }
+    .char-row-dept.security       { color:var(--danger); border-color:rgba(255,59,59,0.3); background:rgba(255,59,59,0.06); }
+    .char-row-dept.medical        { color:var(--safe); border-color:rgba(0,230,118,0.3); background:rgba(0,230,118,0.06); }
+    .char-row-dept.administration { color:var(--warn); border-color:rgba(255,152,0,0.3); background:rgba(255,152,0,0.06); }
+    .char-row-dept.moderator      { color:var(--thaumiel); border-color:rgba(179,136,255,0.3); background:rgba(179,136,255,0.06); }
+    .char-row-actions { display:flex; gap:6px; flex-shrink:0; }
+    .no-chars { font-family:'Space Mono',monospace; font-size:10px; color:var(--text-dim); letter-spacing:0.12em; text-align:center; padding:16px; border:1px dashed var(--border); }
+
     /* ── MISC ── */
     .empty-row td { text-align:center; padding:48px; color:var(--text-dim); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; }
     .empty-row td span { display:block; font-size:28px; margin-bottom:10px; opacity:0.2; }
@@ -449,6 +473,7 @@
   <button class="nav-tab" data-view="historique"><span class="nav-tab-icon">🔍</span> Historique joueur</button>
   <button class="nav-tab" data-view="stats"><span class="nav-tab-icon">📊</span> Statistiques</button>
   <button class="nav-tab" data-view="roster"><span class="nav-tab-icon">👥</span> Rosters</button>
+  <button class="nav-tab" data-view="joueurs" id="joueursTab"><span class="nav-tab-icon">🎮</span> Joueurs</button>
   <button class="nav-tab" data-view="admin" id="adminTab" style="display:none;"><span class="nav-tab-icon">🔐</span> Admin</button>
 </div>
 
@@ -618,6 +643,35 @@
 
       <div class="roster-tabs" id="rosterTabs"></div>
       <div id="rosterPanels"></div>
+    </div>
+
+    <!-- VUE : JOUEURS -->
+    <div class="view" id="view-joueurs">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-tag">// Collection players — Firebase</div>
+          <div class="sec-title">GESTION <span>JOUEURS</span></div>
+          <div class="sec-sub">Comptes Roblox et personnages Site-15</div>
+        </div>
+        <div class="sec-actions">
+          <button class="btn btn-ghost btn-sm" onclick="refreshPlayers()">↻ Actualiser</button>
+          <button class="btn btn-primary btn-sm" onclick="SCPIntranet.openModal('modalNewPlayer')">+ Nouveau joueur</button>
+        </div>
+      </div>
+
+      <!-- RECHERCHE JOUEUR -->
+      <div style="margin-bottom:16px;">
+        <div class="filter-bar">
+          <input type="text" id="playerFilterInput" placeholder="🔍  Rechercher par pseudo Roblox…" oninput="filterPlayersList()" />
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('playerFilterInput').value='';filterPlayersList()">✕ Reset</button>
+        </div>
+        <div id="playerFilterInfo" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;margin-top:4px;min-height:14px;"></div>
+      </div>
+
+      <!-- LISTE JOUEURS -->
+      <div id="playersListContainer">
+        <div class="no-player"><span class="np-icon">🎮</span>Chargement des joueurs…</div>
+      </div>
     </div>
 
     <!-- VUE : ADMIN -->
@@ -838,10 +892,67 @@
   </div>
 </div>
 
+<!-- MODAL : NOUVEAU JOUEUR -->
+<div class="modal-ov" id="modalNewPlayer">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-title">🎮 Nouveau Joueur</span>
+      <button class="modal-close" data-close-modal="modalNewPlayer">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field full"><label>Pseudo Roblox * <span style="color:var(--text-dim);font-size:9px;">(utilisé pour la connexion)</span></label><input type="text" id="npRobloxName" placeholder="PseudoExact" autocomplete="off" /></div>
+        <div class="form-field"><label>Nom affiché</label><input type="text" id="npDisplayName" placeholder="Optionnel" /></div>
+        <div class="form-field"><label>PIN (4 chiffres)</label><input type="text" id="npPin" placeholder="Laisser vide = aucun" maxlength="4" pattern="[0-9]*" /></div>
+      </div>
+      <div id="newPlayerMsg" style="font-family:'Space Mono',monospace;font-size:10px;margin-top:8px;min-height:16px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modalNewPlayer">Annuler</button>
+      <button class="btn btn-primary" onclick="createPlayer()">✓ Créer le joueur</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL : NOUVEAU / EDIT PERSONNAGE -->
+<div class="modal-ov" id="modalCharacter">
+  <div class="modal-box" style="max-width:620px;">
+    <div class="modal-hdr">
+      <span class="modal-title" id="charModalTitle">👤 Nouveau personnage</span>
+      <button class="modal-close" data-close-modal="modalCharacter">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="charEditPlayerId" />
+      <input type="hidden" id="charEditCharId" />
+      <div class="form-grid">
+        <div class="form-field"><label>Nom du personnage *</label><input type="text" id="charName" placeholder="Ex: Commandant M.NOWAK" /></div>
+        <div class="form-field"><label>Nom affiché (court)</label><input type="text" id="charDisplayName" placeholder="Ex: M.NOWAK" /></div>
+        <div class="form-field"><label>Rôle / Département *</label>
+          <select id="charRole">
+            <option value="scientific">🔬 Scientifique</option>
+            <option value="security">🛡 Sécurité (FIM)</option>
+            <option value="medical">💉 Corps Médical</option>
+            <option value="administration">📋 Administration</option>
+            <option value="moderator">⚖ Modérateur</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Grade / Rang</label><input type="text" id="charRank" placeholder="Ex: Chercheur Senior, Agent" /></div>
+        <div class="form-field"><label>PIN du personnage (4 chiffres)</label><input type="text" id="charPin" placeholder="Optionnel" maxlength="4" pattern="[0-9]*" /></div>
+        <div class="form-field"><label>Description / Notes</label><input type="text" id="charDesc" placeholder="Optionnel" /></div>
+      </div>
+      <div id="charMsg" style="font-family:'Space Mono',monospace;font-size:10px;margin-top:8px;min-height:16px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modalCharacter">Annuler</button>
+      <button class="btn btn-primary" id="charSaveBtn" onclick="saveCharacter()">✓ Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <!-- FIREBASE + LOGIQUE (identique à Site-19, même config Firebase) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc, getDocs, where }
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc, getDocs, where, updateDoc }
                                    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -863,6 +974,7 @@ function saveModSession(u) { localStorage.setItem(MOD_SESSION_KEY, JSON.stringif
 function clearModSession() { localStorage.removeItem(MOD_SESSION_KEY); }
 
 let sanctions   = [];
+let playersData = []; // collection 'players' Firestore
 let currentUser = null;
 let currentRole = null;
 let currentPage = 1;
@@ -1023,13 +1135,16 @@ function showApp(name, role) {
   };
   badge.textContent = roleLabels[role] || ('🛡 ' + role);
   const isAdmin = role === 'admin';
+  const canManagePlayers = isAdmin || role === 'responsable' || role === 'moderateur';
   document.getElementById('adminTab').style.display = isAdmin ? '' : 'none';
+  document.getElementById('joueursTab').style.display = canManagePlayers ? '' : 'none';
   document.getElementById('deleteBtn').style.display = isAdmin ? '' : 'none';
   const deptMgr = document.getElementById('rosterDeptManager');
   if (deptMgr) deptMgr.style.display = canEditRoster(role) ? '' : 'none';
   document.getElementById('fDate').value = today();
   toggleDuration();
   if (isAdmin) loadUsers();
+  refreshPlayers();
   SCPIntranet.initTabs();
   SCPIntranet.initModalClose();
   SCPIntranet.addHistory('Connecté : ' + name);
