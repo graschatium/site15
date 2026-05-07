@@ -72,6 +72,8 @@ body::after {
 .sb-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--safe); animation: blink 2s ease-in-out infinite; }
 .sb-warn { display: flex; align-items: center; gap: 6px; font-size: 9px; letter-spacing: 0.2em; color: var(--warn); }
 .sb-dot-warn { width: 4px; height: 4px; border-radius: 50%; background: var(--warn); animation: blink 1.2s ease-in-out infinite; }
+.sb-danger { display: flex; align-items: center; gap: 6px; font-size: 9px; letter-spacing: 0.2em; color: var(--danger); }
+.sb-dot-danger { width: 4px; height: 4px; border-radius: 50%; background: var(--danger); animation: blink 0.6s ease-in-out infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
 /* WRAP */
@@ -88,6 +90,11 @@ body::after {
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+@keyframes banPulse { 0%,100%{box-shadow:0 0 30px rgba(255,59,59,0.12)} 50%{box-shadow:0 0 70px rgba(255,59,59,0.28)} }
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(400px); }
+}
 
 /* ── STEP 1 : INPUT ── */
 #step-input { animation: stepIn 0.5s ease both; }
@@ -198,6 +205,24 @@ body::after {
 }
 .char-item:hover { border-color: rgba(0,212,255,0.3); transform: translateX(4px); }
 .char-item:hover .char-arrow { color: var(--accent); transform: translateX(3px); }
+
+/* Personnage banni dans la liste */
+.char-item.char-banned {
+  cursor: not-allowed;
+  opacity: 0.55;
+  border-color: rgba(255,59,59,0.2);
+}
+.char-item.char-banned:hover {
+  transform: none;
+  border-color: rgba(255,59,59,0.4);
+}
+.char-item.char-banned:hover .char-arrow { color: var(--danger); transform: none; }
+.char-banned-badge {
+  font-size: 8px; letter-spacing: 0.18em; color: var(--danger);
+  text-transform: uppercase; padding: 2px 7px; border: 1px solid rgba(255,59,59,0.35);
+  margin-right: 10px; flex-shrink: 0;
+}
+
 .char-dept-bar { width: 3px; align-self: stretch; flex-shrink: 0; opacity: 0.6; transition: opacity 0.2s; }
 .char-item:hover .char-dept-bar { opacity: 1; }
 .dept-scientific     { background: var(--accent); }
@@ -223,6 +248,7 @@ body::after {
   text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px;
 }
 .char-dept-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.18em; text-transform: uppercase; }
+.char-rank-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 1px; opacity: 0.7; }
 .char-tag {
   font-family: 'Space Mono', monospace;
   font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase;
@@ -247,23 +273,6 @@ body::after {
 }
 .btn-back:hover { color: var(--text); }
 
-/* ── STEP 4 : ERROR ── */
-#step-error { display: none; text-align: center; }
-.err-icon { font-size: 26px; margin-bottom: 14px; opacity: 0.5; }
-.err-title {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 20px; font-weight: 700; color: var(--danger);
-  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
-}
-.err-msg { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 22px; line-height: 1.7; white-space: pre-line; }
-.btn-retry {
-  background: none; border: 1px solid var(--border2); cursor: pointer;
-  font-family: 'Space Mono', monospace;
-  font-size: 10px; color: var(--text); letter-spacing: 0.2em;
-  text-transform: uppercase; padding: 9px 22px; transition: all 0.2s;
-}
-.btn-retry:hover { border-color: var(--accent); color: var(--accent); }
-
 /* ── STEP 3.5 : PIN (vérification) ── */
 #step-pin { display: none; text-align: center; animation: stepIn 0.4s ease both; }
 .pin-dot {
@@ -286,7 +295,106 @@ body::after {
 .btn-num.btn-num-del  { color: var(--text-dim); }
 .btn-num.btn-num-del:hover { border-color: var(--danger); color: var(--danger); }
 
-/* ── STEP 5 : SETUP PIN (première connexion) ── */
+/* ── STEP 4 : Erreur générique ── */
+#step-error { display: none; text-align: center; }
+.err-icon { font-size: 26px; margin-bottom: 14px; opacity: 0.5; }
+.err-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px; font-weight: 700; color: var(--danger);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+}
+.err-msg { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 22px; line-height: 1.7; white-space: pre-line; }
+.btn-retry {
+  background: none; border: 1px solid var(--border2); cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; color: var(--text); letter-spacing: 0.2em;
+  text-transform: uppercase; padding: 9px 22px; transition: all 0.2s;
+}
+.btn-retry:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── STEP BAN : Écran de bannissement ── */
+#step-ban {
+  display: none; text-align: center;
+  animation: stepIn 0.5s ease both;
+}
+.ban-frame {
+  border: 1px solid rgba(255,59,59,0.25);
+  background: var(--surface);
+  padding: 36px 28px;
+  position: relative;
+  overflow: hidden;
+  animation: banPulse 3s ease-in-out infinite;
+}
+.ban-frame::before {
+  content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--danger), transparent);
+  opacity: 0.6;
+}
+.ban-frame::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,59,59,0.5), transparent);
+  animation: scanline 3s linear infinite;
+}
+.ban-diamond {
+  width: 56px; height: 56px;
+  border: 1px solid var(--danger);
+  transform: rotate(45deg);
+  margin: 0 auto 24px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,59,59,0.06);
+}
+.ban-diamond-inner { transform: rotate(-45deg); font-size: 22px; }
+.ban-code {
+  font-size: 9px; letter-spacing: 0.35em; color: var(--danger);
+  text-transform: uppercase; margin-bottom: 16px; opacity: 0.7;
+}
+.ban-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 26px; font-weight: 700; color: var(--danger);
+  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px;
+}
+.ban-subtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; font-weight: 400; color: rgba(255,59,59,0.6);
+  text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 26px;
+}
+.ban-separator {
+  width: 60px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,59,59,0.4), transparent);
+  margin: 0 auto 26px;
+}
+.ban-detail {
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em;
+  line-height: 1.9; margin-bottom: 28px;
+}
+.ban-detail strong { color: rgba(255,59,59,0.7); }
+.ban-id {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: var(--text-dim); letter-spacing: 0.18em;
+  border: 1px solid var(--border2); padding: 8px 16px; display: inline-block;
+  margin-bottom: 28px;
+}
+.ban-char-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px; font-weight: 700; color: rgba(255, 100, 100, 0.8);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.ban-reason {
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em;
+  font-style: italic; margin-bottom: 20px;
+}
+.btn-ban-back {
+  background: none; border: 1px solid rgba(255,59,59,0.3); cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: rgba(255,59,59,0.6); letter-spacing: 0.2em;
+  text-transform: uppercase; padding: 9px 22px; transition: all 0.2s;
+}
+.btn-ban-back:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── STEP 5 : Setup PIN (première connexion) ── */
 #step-setup { display: none; animation: stepIn 0.4s ease; }
 .setup-header { margin-bottom: 28px; }
 .setup-badge {
@@ -366,7 +474,7 @@ body::after {
 .pin-feedback.success { color: var(--safe); }
 .pin-feedback.info    { color: var(--text-dim); }
 
-/* ── STEP 6 : PIN ENREGISTRÉ (succès) ── */
+/* ── STEP 6 : PIN enregistré (succès) ── */
 #step-pin-success { display: none; text-align: center; animation: stepIn 0.5s ease; }
 .success-diamond {
   width: 52px; height: 52px;
@@ -496,12 +604,33 @@ body::after {
     </div>
   </div>
 
-  <!-- STEP 4 : Erreur -->
+  <!-- STEP 4 : Erreur générique -->
   <div id="step-error">
     <div class="err-icon">✕</div>
     <div class="err-title" id="errTitle">Accès Refusé</div>
     <div class="err-msg" id="errMsg">Pseudo introuvable dans le système.</div>
     <button class="btn-retry" onclick="goBack()">← Réessayer</button>
+  </div>
+
+  <!-- STEP BAN : Écran de bannissement -->
+  <div id="step-ban">
+    <div class="ban-frame">
+      <div class="ban-diamond"><div class="ban-diamond-inner">✕</div></div>
+      <div class="ban-code" id="banCode">ACCÈS — RÉVOQUÉ</div>
+      <div class="ban-title">Accès Banni</div>
+      <div class="ban-subtitle" id="banSubtitle">Connexion impossible</div>
+      <div class="ban-separator"></div>
+      <div class="ban-char-name" id="banCharName"></div>
+      <div class="ban-reason" id="banReason"></div>
+      <div class="ban-detail" id="banDetail">
+        Votre accès à l'intranet du <strong>Site-15</strong> a été<br>
+        <strong>définitivement révoqué</strong> par l'Administration.<br><br>
+        Pour contester cette décision, contactez<br>un responsable de la Fondation.
+      </div>
+      <div class="ban-id" id="banId">ID: —</div>
+      <br>
+      <button class="btn-ban-back" onclick="goBack()">← Retour au terminal</button>
+    </div>
   </div>
 
   <!-- STEP 5 : Setup PIN (première connexion) -->
@@ -568,14 +697,14 @@ body::after {
 
 <div class="bottombar">
   <div class="bb-text">FONDATION SCP — CONFIDENTIEL</div>
-  <div class="bb-text">v4.2.1</div>
+  <div class="bb-text">v4.3.0</div>
 </div>
 
 <script type="module">
   import { initializeApp }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, query, where, getDocs, doc, updateDoc }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, query, collection, where, getDocs, getDoc, updateDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey:            "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
@@ -595,10 +724,10 @@ body::after {
       new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }, 1000);
 
-  // ── Données ──────────────────────────────────────
+  // ── Constantes ───────────────────────────────────
   const DEPT_LABELS = {
     scientific:     'Département Scientifique',
-    security:       'FIM / Sécurité',
+    security:       'Département de la Sécurité',
     medical:        'Corps Médical',
     administration: 'Administration',
     moderator:      'Modération',
@@ -611,8 +740,8 @@ body::after {
     moderator:      'mod.html',
   };
 
-  // ── Navigation entre steps ───────────────────────
-  const ALL_STEPS = ['input', 'loading', 'chars', 'pin', 'error', 'setup', 'pin-success'];
+  // ── Navigation ───────────────────────────────────
+  const ALL_STEPS = ['input', 'loading', 'chars', 'pin', 'error', 'ban', 'setup', 'pin-success'];
 
   function showStep(name) {
     ALL_STEPS.forEach(s => {
@@ -626,11 +755,13 @@ body::after {
       void el.offsetWidth;
       el.style.animation = '';
     }
-    // Mettre à jour la statusbar selon l'étape
     const sbStatus = document.getElementById('sbStatus');
     if (name === 'setup') {
       sbStatus.className = 'sb-warn';
       sbStatus.innerHTML = '<div class="sb-dot-warn"></div>INITIALISATION REQUISE';
+    } else if (name === 'ban') {
+      sbStatus.className = 'sb-danger';
+      sbStatus.innerHTML = '<div class="sb-dot-danger"></div>ACCÈS RÉVOQUÉ';
     } else {
       sbStatus.className = 'sb-live';
       sbStatus.innerHTML = '<div class="sb-dot"></div>TERMINAL ACTIF';
@@ -663,95 +794,187 @@ body::after {
   }
 
   // ── Connexion principale ─────────────────────────
-  async function handleLogin() {
-    const pseudo = document.getElementById('pseudoInput').value.trim();
-    if (!pseudo) {
-      const row = document.getElementById('inputRow');
-      row.classList.add('shake');
-      setTimeout(() => row.classList.remove('shake'), 400);
+  // Structure Firestore : players/{pseudo}
+  //   - robloxName, displayName, pin, banned (bool), characters (array)
+  //   - characters[i] : { id, name, displayName, role, rank, desc, pin, status }
+  //     status = "banned" → banni sur ce perso
+
+  let currentPseudo  = '';
+  let currentPlayer  = null; // données brutes du doc player
+
+async function handleLogin() {
+  const pseudo = document.getElementById('pseudoInput').value.trim();
+  if (!pseudo) {
+    const row = document.getElementById('inputRow');
+    row.classList.add('shake');
+    setTimeout(() => row.classList.remove('shake'), 400);
+    return;
+  }
+
+  showStep('loading');
+  await runLoadingLines([
+    'Connexion au serveur Site-15...',
+    `Identification de "${pseudo}"...`,
+    'Vérification des accréditations...',
+    'Chargement des personnages...',
+  ]);
+  await delay(300);
+
+  try {
+    const q    = query(collection(db, 'players'), where('robloxName', '==', pseudo));
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      showStep('error');
+      document.getElementById('errTitle').textContent = 'Agent Introuvable';
+      document.getElementById('errMsg').textContent =
+        `Aucun compte lié au pseudo "${pseudo}".\nContactez un modérateur.`;
       return;
     }
-    showStep('loading');
-    await runLoadingLines([
-      'Connexion au serveur Site-15...',
-      `Identification de "${pseudo}"...`,
-      'Vérification des accréditations...',
-      'Chargement des personnages...',
-    ]);
-    await delay(300);
-    try {
-      const q    = query(collection(db, 'players'), where('robloxName', '==', pseudo));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        showStep('error');
-        document.getElementById('errTitle').textContent = 'Agent Introuvable';
-        document.getElementById('errMsg').textContent =
-          `Aucun compte lié au pseudo "${pseudo}".\nContactez un modérateur.`;
-        return;
-      }
-      const chars = snap.docs
-        .map(d => ({ uid: d.id, ...d.data() }))
-        .filter(c => c.status !== 'banned');
-      if (!chars.length) {
-        showStep('error');
-        document.getElementById('errTitle').textContent = 'Accès Révoqué';
-        document.getElementById('errMsg').textContent =
-          'Votre accès a été suspendu.\nContactez un modérateur.';
-        return;
-      }
-      document.getElementById('charsGreeting').textContent = `Bonjour, ${pseudo}`;
-      buildList(chars);
-      showStep('chars');
-    } catch (err) {
-      console.error('[Site-15] Erreur Firebase :', err);
-      showStep('error');
-      document.getElementById('errTitle').textContent = 'Erreur Système';
-      document.getElementById('errMsg').textContent = err.message || 'Une erreur inattendue est survenue.';
+
+    const playerSnap = snap.docs[0];
+    const playerData = playerSnap.data();
+    currentDocId     = playerSnap.id; // ← ID aléatoire du document
+
+    // ── Vérification ban global du compte ───────
+    if (playerData.banned === true) {
+      showBanScreen({
+        scope: 'account',
+        pseudo,
+        reason: playerData.banReason || '',
+      });
+      return;
     }
+
+    // ── Récupération des personnages (tableau embarqué) ──
+    const rawChars = Array.isArray(playerData.characters) ? playerData.characters : [];
+
+    // Tous les personnages sont bannis ?
+    const allBanned = rawChars.length > 0 && rawChars.every(c => c.status === 'banned');
+    if (allBanned) {
+      showBanScreen({
+        scope: 'all',
+        pseudo,
+        reason: 'Tous vos accès ont été révoqués.',
+      });
+      return;
+    }
+
+    currentPseudo = pseudo;
+    currentPlayer = playerData;
+
+    document.getElementById('charsGreeting').textContent = `Bonjour, ${playerData.displayName || pseudo}`;
+    buildList(rawChars);
+    showStep('chars');
+
+  } catch (err) {
+    console.error('[Site-15] Erreur Firebase :', err);
+    showStep('error');
+    document.getElementById('errTitle').textContent = 'Erreur Système';
+    document.getElementById('errMsg').textContent = err.message || 'Une erreur inattendue est survenue.';
+  }
+}
+
+let currentDocId = '';
+
+  // ── Écran de bannissement ─────────────────────────
+  function showBanScreen({ scope, pseudo, charName, reason }) {
+    const ts = Date.now().toString(36).toUpperCase();
+
+    if (scope === 'char') {
+      document.getElementById('banCode').textContent     = 'PERSONNAGE — RÉVOQUÉ';
+      document.getElementById('banSubtitle').textContent = 'Accès au service impossible';
+      document.getElementById('banCharName').textContent = charName ? charName.toUpperCase() : '';
+      document.getElementById('banReason').textContent   = reason ? `Motif : ${reason}` : '';
+      document.getElementById('banDetail').innerHTML     =
+        `Votre personnage a été <strong>banni</strong> de l'intranet du <strong>Site-15</strong>.<br><br>
+         Vous ne pouvez plus accéder à ce service.<br>
+         Contactez un responsable pour plus d'informations.`;
+    } else {
+      document.getElementById('banCode').textContent     = 'COMPTE — RÉVOQUÉ';
+      document.getElementById('banSubtitle').textContent = 'Connexion définitivement bloquée';
+      document.getElementById('banCharName').textContent = pseudo ? pseudo.toUpperCase() : '';
+      document.getElementById('banReason').textContent   = reason ? `Motif : ${reason}` : '';
+      document.getElementById('banDetail').innerHTML     =
+        `Votre accès à l'intranet du <strong>Site-15</strong> a été<br>
+         <strong>définitivement révoqué</strong> par l'Administration.<br><br>
+         Pour contester cette décision, contactez<br>un responsable de la Fondation.`;
+    }
+
+    document.getElementById('banId').textContent = `REF : S15-BAN-${ts}`;
+    showStep('ban');
   }
 
   // ── Construction liste personnages ───────────────
   function buildList(chars) {
     const list = document.getElementById('charsList');
     list.innerHTML = '';
+
     chars.forEach((c, i) => {
-      const role = c.role || 'scientific';
-      const nhc  = c.nhc != null ? `NHC-${c.nhc}` : 'NHC-?';
-      const name = esc(c.displayName || c.character || 'Agent');
+      const isBanned = c.status === 'banned';
+      const role     = c.role || 'scientific';
+      const name     = esc(c.displayName || c.name || 'Agent');
+      const rank     = esc(c.rank || '');
+
       const el = document.createElement('div');
-      el.className = 'char-item';
+      el.className = 'char-item' + (isBanned ? ' char-banned' : '');
       el.style.animationDelay = (i * 0.07) + 's';
       el.innerHTML = `
-        <div class="char-dept-bar dept-${role}"></div>
-        <div class="char-nhc"><span class="nhc-text">${nhc}</span></div>
+        <div class="char-dept-bar dept-${isBanned ? 'moderator' : role}"></div>
+        <div class="char-nhc">
+          <span class="nhc-text">${isBanned ? 'BANNI' : role}</span>
+        </div>
         <div class="char-info">
           <div class="char-name">${name}</div>
-          <div class="char-dept-label">${DEPT_LABELS[role] || role}</div>
+          <div class="char-dept-label">${isBanned ? 'Accès révoqué' : (DEPT_LABELS[role] || role)}</div>
+          ${rank ? `<div class="char-rank-label">${rank}</div>` : ''}
         </div>
-        <span class="char-tag tag-${role}">${role}</span>
-        <span class="char-arrow">→</span>
+        ${isBanned
+          ? `<span class="char-banned-badge">BANNI</span>`
+          : `<span class="char-tag tag-${role}">${role}</span>`
+        }
+        <span class="char-arrow">${isBanned ? '✕' : '→'}</span>
       `;
-      el.addEventListener('click', () => selectChar(c));
+
+      el.addEventListener('click', () => {
+        if (isBanned) {
+          showBanScreen({
+            scope: 'char',
+            pseudo: currentPseudo,
+            charName: c.displayName || c.name || 'Agent',
+            reason: c.banReason || '',
+          });
+        } else {
+          selectChar(c);
+        }
+      });
+
       list.appendChild(el);
     });
   }
 
   // ── Sélection personnage ─────────────────────────
   let pendingChar = null;
-  let pinValue = '';
+  let pinValue    = '';
 
   function selectChar(c) {
     pendingChar = c;
-    pinValue = '';
-    // Si pas de PIN → setup direct
-    if (!c.pin) {
+    pinValue    = '';
+
+    // PIN du personnage en priorité, sinon PIN du compte
+    const effectivePin = c.pin || currentPlayer.pin || '';
+
+    if (!effectivePin) {
       initSetupPin(c);
       return;
     }
-    // Sinon → vérification PIN
+
+    // Stocker le PIN effectif sur l'objet pour verifyPin
+    pendingChar._effectivePin = effectivePin;
+
     updatePinDots();
     document.getElementById('pinCharName').textContent =
-      (c.displayName || c.character || 'Agent').toUpperCase();
+      (c.displayName || c.name || 'Agent').toUpperCase();
     document.getElementById('pinErr').textContent = '';
     showStep('pin');
   }
@@ -778,7 +1001,7 @@ body::after {
   };
 
   function verifyPin() {
-    const stored = String(pendingChar.pin || '');
+    const stored = String(pendingChar._effectivePin || '');
     if (pinValue === stored) {
       launchChar(pendingChar);
     } else {
@@ -887,9 +1110,22 @@ body::after {
     }
   }
 
+  // Sauvegarde le PIN dans le tableau characters du document player
   async function savePin() {
     try {
-      await updateDoc(doc(db, 'players', pendingChar.uid), { pin: setupChosen });
+      // On met à jour le tableau characters : trouver le bon perso par id et patcher son pin
+      const playerRef = doc(db, 'players', currentDocId); // plus currentPseudo
+      const playerSnap = await getDoc(playerRef);
+      const data       = playerSnap.data();
+      const chars      = Array.isArray(data.characters) ? [...data.characters] : [];
+
+      const idx = chars.findIndex(c => c.id === pendingChar.id);
+      if (idx !== -1) {
+        chars[idx] = { ...chars[idx], pin: setupChosen };
+      }
+
+      await updateDoc(playerRef, { characters: chars });
+
       const updated = { ...pendingChar, pin: setupChosen };
       sessionStorage.setItem('site15_profile', JSON.stringify(updated));
       pendingChar = updated;
@@ -900,19 +1136,8 @@ body::after {
       }, 100);
 
       setTimeout(() => {
-        // Sauvegarder en session avant la transition
-        const role = pendingChar.role || 'scientific';
-        const name = pendingChar.displayName || pendingChar.character || 'Agent';
-        sessionStorage.setItem('site15_uid',  pendingChar.uid);
-        sessionStorage.setItem('site15_role', role);
-        sessionStorage.setItem('site15_name', name);
-
-        document.getElementById('trName').textContent = name.toUpperCase();
-        document.getElementById('trDeptText').textContent = DEPT_LABELS[role] || role;
-        document.getElementById('trOverlay').classList.add('show');
-        setTimeout(() => document.getElementById('trFill').classList.add('go'), 80);
-        setTimeout(() => { window.location.href = REDIRECTS[role] || 'index.html'; }, 1300);
-      }, 2200);
+        launchChar(pendingChar);
+      }, 2300);
 
     } catch (err) {
       console.error('[Site-15] Erreur sauvegarde PIN :', err);
@@ -943,11 +1168,11 @@ body::after {
     showSetupFeedback('success', 'Code validé. Enregistrement...');
   }
 
-  // ── Launch (après PIN vérifié) ───────────────────
+  // ── Lancement (après PIN OK) ─────────────────────
   function launchChar(c) {
     const role = c.role || 'scientific';
-    const name = c.displayName || c.character || 'Agent';
-    sessionStorage.setItem('site15_uid',     c.uid);
+    const name = c.displayName || c.name || 'Agent';
+    sessionStorage.setItem('site15_uid',     c.id || '');
     sessionStorage.setItem('site15_role',    role);
     sessionStorage.setItem('site15_name',    name);
     sessionStorage.setItem('site15_profile', JSON.stringify(c));
