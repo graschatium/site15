@@ -1569,8 +1569,8 @@ async function initApp() {
       let found     = null;
       snap.forEach(d => {
         const u = d.data();
-        if (u.username?.toLowerCase() === profile.username?.toLowerCase()
-         || u.username?.toLowerCase() === profile.robloxName?.toLowerCase()) {
+        if (u.username?.toLowerCase() === profile.id?.toLowerCase()      // ← profile.id = pseudo Roblox
+         || u.username?.toLowerCase() === profile.name?.toLowerCase()) {
           found = { _id: d.id, ...u };
         }
       });

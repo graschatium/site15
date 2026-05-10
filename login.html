@@ -1176,6 +1176,8 @@ let currentDocId = '';
     sessionStorage.setItem('site15_role',    role);
     sessionStorage.setItem('site15_name',    name);
     sessionStorage.setItem('site15_profile', JSON.stringify(c));
+    sessionStorage.setItem('site15_authed',  '1');
+    console.log('launchChar id:', c.id); // doit afficher "moud5ljeplac"
     document.getElementById('trName').textContent     = name.toUpperCase();
     document.getElementById('trDeptText').textContent = DEPT_LABELS[role] || role;
     document.getElementById('trOverlay').classList.add('show');
