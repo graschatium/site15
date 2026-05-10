@@ -504,7 +504,7 @@ body::after {
   width: 90px; height: 90px;
   border: 1px solid rgba(255,40,40,0.5);
   transform: rotate(45deg);
-  margin: 0 auto 36px;
+  margin: 0 auto 20px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(255,20,20,0.08);
 }
@@ -536,12 +536,12 @@ body::after {
   color: rgba(255,80,80,0.55);
   text-transform: uppercase;
   letter-spacing: 0.28em;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 .ban-divider {
   width: 80px; height: 1px;
   background: rgba(255,40,40,0.3);
-  margin: 0 auto 36px;
+  margin: 0 auto 20px;
 }
 .ban-info-block {
   max-width: 360px; margin: 0 auto 14px;
@@ -562,7 +562,7 @@ body::after {
   display: inline-flex; align-items: center; gap: 8px;
   border: 1px solid rgba(255,40,40,0.35);
   background: rgba(255,20,20,0.08);
-  padding: 6px 20px; margin-bottom: 36px;
+  padding: 6px 20px; margin-bottom: 20px;
   font-family: 'Space Mono', monospace;
   font-size: 10px; color: rgba(255,100,100,0.85);
   letter-spacing: 0.2em; text-transform: uppercase;
@@ -571,13 +571,13 @@ body::after {
 .ban-detail-text {
   font-size: 10px; color: rgba(255,80,80,0.35);
   letter-spacing: 0.1em; line-height: 2;
-  margin-bottom: 36px; max-width: 340px; margin-left: auto; margin-right: auto;
+  margin-bottom: 20px; max-width: 340px; margin-left: auto; margin-right: auto;
 }
 .ban-detail-text strong { color: rgba(255,80,80,0.6); }
 .ban-id-tag {
   font-family: 'Space Mono', monospace;
   font-size: 9px; color: rgba(255,60,60,0.3);
-  letter-spacing: 0.2em; margin-bottom: 36px;
+  letter-spacing: 0.2em; margin-bottom: 20px;
 }
 .ban-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .btn-ban-back {
@@ -780,50 +780,6 @@ body::after {
     <button class="btn-retry" onclick="goBack()">← Réessayer</button>
   </div>
 
-  <!-- STEP BAN — PLEIN ÉCRAN -->
-  <div id="step-ban">
-    <div class="ban-fullscreen">
-      <div class="ban-corner tl"></div>
-      <div class="ban-corner tr"></div>
-      <div class="ban-corner bl"></div>
-      <div class="ban-corner br"></div>
-      <div class="ban-bar-top"></div>
-      <div class="ban-bar-bot"></div>
-
-      <div class="ban-ref" id="banCode">SITE-15 // ACCÈS RÉVOQUÉ</div>
-
-      <div class="ban-x-wrap">
-        <div class="ban-x-inner">✕</div>
-      </div>
-
-      <div class="ban-headline">Vous êtes<br>banni</div>
-      <div class="ban-sub-line" id="banSubtitle">Connexion impossible</div>
-
-      <div class="ban-divider"></div>
-
-      <div class="ban-info-block">
-        <div class="ban-target-name" id="banCharName"></div>
-        <div class="ban-reason-text" id="banReason"></div>
-        <div id="banDurationBox" class="ban-dur-pill" style="display:none;">
-          <span class="ban-dur-label">DURÉE</span>
-          <span id="banDurationText">—</span>
-        </div>
-      </div>
-
-      <div class="ban-detail-text" id="banDetail">
-        Votre accès à l'intranet du <strong>Site-15</strong> a été<br>
-        <strong>définitivement révoqué</strong> par l'Administration.<br>
-        Pour contester cette décision, utilisez le bouton ci-dessous.
-      </div>
-
-      <div class="ban-id-tag" id="banId">REF : —</div>
-
-      <div class="ban-btns">
-        <a class="btn-appeal" href="https://appeal.gg/VAw5DuZyHq/q0RCgufG" target="_blank">⚑ Contester</a>
-        <button class="btn-ban-back" onclick="goBack()">← Retour</button>
-      </div>
-    </div>
-  </div>
 
   <!-- STEP 5 : Setup PIN -->
   <div id="step-setup">
@@ -879,6 +835,50 @@ body::after {
   </div>
 
 </div>
+
+<div id="step-ban">
+    <div class="ban-fullscreen">
+      <div class="ban-corner tl"></div>
+      <div class="ban-corner tr"></div>
+      <div class="ban-corner bl"></div>
+      <div class="ban-corner br"></div>
+      <div class="ban-bar-top"></div>
+      <div class="ban-bar-bot"></div>
+
+      <div class="ban-ref" id="banCode">SITE-15 // ACCÈS RÉVOQUÉ</div>
+
+      <div class="ban-x-wrap">
+        <div class="ban-x-inner">✕</div>
+      </div>
+
+      <div class="ban-headline">Vous êtes<br>banni</div>
+      <div class="ban-sub-line" id="banSubtitle">Connexion impossible</div>
+
+      <div class="ban-divider"></div>
+
+      <div class="ban-info-block">
+        <div class="ban-target-name" id="banCharName"></div>
+        <div class="ban-reason-text" id="banReason"></div>
+        <div id="banDurationBox" class="ban-dur-pill" style="display:none;">
+          <span class="ban-dur-label">DURÉE</span>
+          <span id="banDurationText">—</span>
+        </div>
+      </div>
+
+      <div class="ban-detail-text" id="banDetail">
+        Votre accès à l'intranet du <strong>Site-15</strong> a été<br>
+        <strong>définitivement révoqué</strong> par l'Administration.<br>
+        Pour contester cette décision, utilisez le bouton ci-dessous.
+      </div>
+
+      <div class="ban-id-tag" id="banId">REF : —</div>
+
+      <div class="ban-btns">
+        <a class="btn-appeal" href="https://appeal.gg/VAw5DuZyHq/q0RCgufG" target="_blank">⚑ Contester</a>
+        <button class="btn-ban-back" onclick="goBack()">← Retour</button>
+      </div>
+    </div>
+  </div>
 
 <!-- TRANSITION -->
 <div class="tr-overlay" id="trOverlay">
