@@ -76,6 +76,140 @@ body::after {
 .sb-dot-danger { width: 4px; height: 4px; border-radius: 50%; background: var(--danger); animation: blink 0.6s ease-in-out infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
+/* BELL BUTTON */
+.bell-btn {
+  position: fixed; top: 6px; right: 60px;
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  z-index: 200; display: none;
+}
+.bell-btn svg { width: 15px; height: 15px; fill: var(--text-dim); transition: fill 0.2s; }
+.bell-btn:hover svg { fill: var(--warn); }
+.bell-btn .bell-badge {
+  position: absolute; top: 2px; right: 1px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--danger); border: 1px solid var(--bg);
+  font-size: 6px; display: flex; align-items: center; justify-content: center;
+  color: white; font-family: 'IBM Plex Mono', monospace;
+  animation: blink 1.5s ease-in-out infinite;
+}
+.bell-btn.has-unseen svg { fill: var(--warn); }
+@keyframes bellRing {
+  0%,100% { transform: rotate(0deg); }
+  10% { transform: rotate(-15deg); }
+  20% { transform: rotate(15deg); }
+  30% { transform: rotate(-10deg); }
+  40% { transform: rotate(10deg); }
+  50% { transform: rotate(-5deg); }
+  60% { transform: rotate(5deg); }
+  70% { transform: rotate(0deg); }
+}
+.bell-btn.ringing svg { animation: bellRing 0.8s ease; }
+
+/* SANCTIONS MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(6,8,10,0.88);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal-box {
+  width: 100%; max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  position: relative;
+  animation: stepIn 0.3s ease;
+  margin: 0 16px;
+  max-height: 80vh;
+  display: flex; flex-direction: column;
+}
+.modal-box::before {
+  content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--warn), transparent);
+  opacity: 0.5;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.modal-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; font-weight: 700; color: var(--white);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  display: flex; align-items: center; gap: 10px;
+}
+.modal-title-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--warn); animation: blink 1.2s infinite; }
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; color: var(--text-dim); transition: color 0.2s;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.modal-close:hover { color: var(--danger); }
+.modal-body { overflow-y: auto; padding: 12px 20px 20px; flex: 1; }
+.modal-empty {
+  text-align: center; padding: 30px 0;
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.15em;
+}
+
+/* SANCTION CARD */
+.sanction-card {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  margin-bottom: 8px;
+  padding: 14px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.sanction-card.unseen { border-left: 2px solid var(--warn); }
+.sanction-card.type-ban { border-left: 2px solid var(--danger); }
+.sanction-card.type-ban.unseen { border-left: 2px solid var(--danger); }
+.sanction-card.seen { opacity: 0.55; }
+.sc-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.sc-type {
+  font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase;
+  padding: 2px 8px; border: 1px solid;
+  font-family: 'Space Mono', monospace;
+}
+.sc-type.warn { color: var(--warn); border-color: rgba(255,179,0,0.35); }
+.sc-type.ban  { color: var(--danger); border-color: rgba(255,59,59,0.35); }
+.sc-type.kick { color: var(--purple); border-color: rgba(179,136,255,0.35); }
+.sc-date { font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; }
+.sc-reason { font-size: 10px; color: var(--text); letter-spacing: 0.08em; margin-bottom: 6px; line-height: 1.6; }
+.sc-reason strong { color: var(--white); }
+.sc-meta { font-size: 9px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 10px; }
+.sc-duration {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 9px; color: var(--danger); letter-spacing: 0.12em;
+  background: rgba(255,59,59,0.06); border: 1px solid rgba(255,59,59,0.2);
+  padding: 3px 10px; margin-bottom: 10px;
+}
+.sc-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.sc-btn {
+  background: none; border: 1px solid var(--border2); cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; color: var(--text-dim); letter-spacing: 0.15em;
+  text-transform: uppercase; padding: 5px 12px; transition: all 0.2s;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+}
+.sc-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sc-btn.appeal:hover { border-color: var(--warn); color: var(--warn); }
+.sc-btn.seen-btn:hover { border-color: var(--safe); color: var(--safe); }
+.sc-btn.danger-btn:hover { border-color: var(--danger); color: var(--danger); }
+.sc-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+.sc-seen-tag {
+  font-size: 8px; color: var(--safe); letter-spacing: 0.2em;
+  text-transform: uppercase; opacity: 0.6;
+  display: flex; align-items: center; gap: 5px;
+}
+
 /* WRAP */
 .wrap {
   position: relative; z-index: 10;
@@ -96,7 +230,7 @@ body::after {
   100% { transform: translateY(400px); }
 }
 
-/* ── STEP 1 : INPUT ── */
+/* ── STEP 1 ── */
 #step-input { animation: stepIn 0.5s ease both; }
 .logo-block { text-align: center; margin-bottom: 36px; }
 .logo-diamond {
@@ -167,7 +301,7 @@ body::after {
 .btn-go:hover { background: #33ddff; }
 .input-hint { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; margin-top: 11px; text-align: center; }
 
-/* ── STEP 2 : LOADING ── */
+/* ── STEP 2 ── */
 #step-loading { display: none; text-align: center; }
 .loading-ring {
   width: 56px; height: 56px;
@@ -186,7 +320,7 @@ body::after {
 .loading-line.done .ll-dot { background: var(--safe); }
 .loading-line.done { color: var(--text); }
 
-/* ── STEP 3 : PERSOS ── */
+/* ── STEP 3 ── */
 #step-chars { display: none; }
 .chars-header { margin-bottom: 18px; }
 .chars-greeting {
@@ -205,24 +339,10 @@ body::after {
 }
 .char-item:hover { border-color: rgba(0,212,255,0.3); transform: translateX(4px); }
 .char-item:hover .char-arrow { color: var(--accent); transform: translateX(3px); }
-
-/* Personnage banni dans la liste */
-.char-item.char-banned {
-  cursor: not-allowed;
-  opacity: 0.55;
-  border-color: rgba(255,59,59,0.2);
-}
-.char-item.char-banned:hover {
-  transform: none;
-  border-color: rgba(255,59,59,0.4);
-}
+.char-item.char-banned { cursor: not-allowed; opacity: 0.55; border-color: rgba(255,59,59,0.2); }
+.char-item.char-banned:hover { transform: none; border-color: rgba(255,59,59,0.4); }
 .char-item.char-banned:hover .char-arrow { color: var(--danger); transform: none; }
-.char-banned-badge {
-  font-size: 8px; letter-spacing: 0.18em; color: var(--danger);
-  text-transform: uppercase; padding: 2px 7px; border: 1px solid rgba(255,59,59,0.35);
-  margin-right: 10px; flex-shrink: 0;
-}
-
+.char-banned-badge { font-size: 8px; letter-spacing: 0.18em; color: var(--danger); text-transform: uppercase; padding: 2px 7px; border: 1px solid rgba(255,59,59,0.35); margin-right: 10px; flex-shrink: 0; }
 .char-dept-bar { width: 3px; align-self: stretch; flex-shrink: 0; opacity: 0.6; transition: opacity 0.2s; }
 .char-item:hover .char-dept-bar { opacity: 1; }
 .dept-scientific     { background: var(--accent); }
@@ -273,7 +393,7 @@ body::after {
 }
 .btn-back:hover { color: var(--text); }
 
-/* ── STEP 3.5 : PIN (vérification) ── */
+/* ── STEP 3.5 : PIN ── */
 #step-pin { display: none; text-align: center; animation: stepIn 0.4s ease both; }
 .pin-dot {
   width: 14px; height: 14px; border-radius: 50%;
@@ -295,201 +415,230 @@ body::after {
 .btn-num.btn-num-del  { color: var(--text-dim); }
 .btn-num.btn-num-del:hover { border-color: var(--danger); color: var(--danger); }
 
-/* ── STEP 4 : Erreur générique ── */
+/* ── STEP 4 : Erreur ── */
 #step-error { display: none; text-align: center; }
 .err-icon { font-size: 26px; margin-bottom: 14px; opacity: 0.5; }
-.err-title {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 20px; font-weight: 700; color: var(--danger);
-  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
-}
+.err-title { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: var(--danger); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
 .err-msg { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 22px; line-height: 1.7; white-space: pre-line; }
-.btn-retry {
-  background: none; border: 1px solid var(--border2); cursor: pointer;
-  font-family: 'Space Mono', monospace;
-  font-size: 10px; color: var(--text); letter-spacing: 0.2em;
-  text-transform: uppercase; padding: 9px 22px; transition: all 0.2s;
-}
+.btn-retry { background: none; border: 1px solid var(--border2); cursor: pointer; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text); letter-spacing: 0.2em; text-transform: uppercase; padding: 9px 22px; transition: all 0.2s; }
 .btn-retry:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ── STEP BAN : Écran de bannissement ── */
+/* ── STEP BAN — PLEIN ÉCRAN ── */
 #step-ban {
-  display: none; text-align: center;
-  animation: stepIn 0.5s ease both;
-}
-.ban-frame {
-  border: 1px solid rgba(255,59,59,0.25);
-  background: var(--surface);
-  padding: 36px 28px;
-  position: relative;
+  display: none;
+  position: fixed; inset: 0; z-index: 800;
+  background: #0a0000;
   overflow: hidden;
-  animation: banPulse 3s ease-in-out infinite;
 }
-.ban-frame::before {
-  content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--danger), transparent);
-  opacity: 0.6;
-}
-.ban-frame::after {
+/* grille rouge */
+#step-ban::before {
   content: '';
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255,59,59,0.5), transparent);
-  animation: scanline 3s linear infinite;
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,30,30,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,30,30,0.07) 1px, transparent 1px);
+  background-size: 52px 52px;
+  pointer-events: none;
 }
-.ban-diamond {
-  width: 56px; height: 56px;
-  border: 1px solid var(--danger);
+/* scanline rouge qui défile */
+#step-ban::after {
+  content: '';
+  position: absolute; left: 0; right: 0;
+  height: 3px;
+  background: rgba(255,40,40,0.35);
+  animation: banScan 2.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes banScan {
+  0%   { top: -3px; }
+  100% { top: 100%; }
+}
+@keyframes banIn {
+  from { opacity: 0; transform: scale(1.04); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes banFlicker {
+  0%,100% { opacity: 1; }
+  92%     { opacity: 1; }
+  93%     { opacity: 0.7; }
+  94%     { opacity: 1; }
+  97%     { opacity: 0.85; }
+  98%     { opacity: 1; }
+}
+@keyframes banGlow {
+  0%,100% { text-shadow: 0 0 40px rgba(255,30,30,0.5), 0 0 80px rgba(255,30,30,0.2); }
+  50%     { text-shadow: 0 0 60px rgba(255,30,30,0.8), 0 0 120px rgba(255,30,30,0.35); }
+}
+@keyframes banBarPulse {
+  0%,100% { opacity: 0.15; }
+  50%     { opacity: 0.4; }
+}
+.ban-fullscreen {
+  position: relative; z-index: 1;
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  animation: banIn 0.6s ease both, banFlicker 6s ease-in-out 1s infinite;
+  padding: 40px 24px;
+  text-align: center;
+}
+/* barres horizontales décoratives */
+.ban-bar-top, .ban-bar-bot {
+  position: absolute; left: 0; right: 0; height: 48px;
+  border-top: 1px solid rgba(255,40,40,0.18);
+  border-bottom: 1px solid rgba(255,40,40,0.18);
+  background: rgba(255,20,20,0.04);
+  animation: banBarPulse 3s ease-in-out infinite;
+}
+.ban-bar-top { top: 60px; }
+.ban-bar-bot { bottom: 60px; }
+/* coins */
+.ban-corner { position: absolute; width: 48px; height: 48px; border-color: rgba(255,40,40,0.4); border-style: solid; }
+.ban-corner.tl { top: 28px; left: 28px; border-width: 1px 0 0 1px; }
+.ban-corner.tr { top: 28px; right: 28px; border-width: 1px 1px 0 0; }
+.ban-corner.bl { bottom: 28px; left: 28px; border-width: 0 0 1px 1px; }
+.ban-corner.br { bottom: 28px; right: 28px; border-width: 0 1px 1px 0; }
+/* X central */
+.ban-x-wrap {
+  position: relative;
+  width: 90px; height: 90px;
+  border: 1px solid rgba(255,40,40,0.5);
   transform: rotate(45deg);
-  margin: 0 auto 24px;
+  margin: 0 auto 36px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,59,59,0.06);
+  background: rgba(255,20,20,0.08);
 }
-.ban-diamond-inner { transform: rotate(-45deg); font-size: 22px; }
-.ban-code {
-  font-size: 9px; letter-spacing: 0.35em; color: var(--danger);
-  text-transform: uppercase; margin-bottom: 16px; opacity: 0.7;
+.ban-x-inner {
+  transform: rotate(-45deg);
+  font-size: 38px; color: var(--danger);
+  animation: banGlow 3s ease-in-out infinite;
 }
-.ban-title {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 26px; font-weight: 700; color: var(--danger);
-  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 6px;
-}
-.ban-subtitle {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 14px; font-weight: 400; color: rgba(255,59,59,0.6);
-  text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 26px;
-}
-.ban-separator {
-  width: 60px; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,59,59,0.4), transparent);
-  margin: 0 auto 26px;
-}
-.ban-detail {
-  font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em;
-  line-height: 1.9; margin-bottom: 28px;
-}
-.ban-detail strong { color: rgba(255,59,59,0.7); }
-.ban-id {
+.ban-ref {
   font-family: 'Space Mono', monospace;
-  font-size: 9px; color: var(--text-dim); letter-spacing: 0.18em;
-  border: 1px solid var(--border2); padding: 8px 16px; display: inline-block;
-  margin-bottom: 28px;
+  font-size: 9px; letter-spacing: 0.4em; color: rgba(255,60,60,0.45);
+  text-transform: uppercase; margin-bottom: 24px;
 }
-.ban-char-name {
+.ban-headline {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 16px; font-weight: 700; color: rgba(255, 100, 100, 0.8);
+  font-size: clamp(42px, 10vw, 72px);
+  font-weight: 700;
+  color: var(--danger);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  margin-bottom: 10px;
+  animation: banGlow 3s ease-in-out infinite;
+}
+.ban-sub-line {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(14px, 3vw, 20px);
+  font-weight: 400;
+  color: rgba(255,80,80,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  margin-bottom: 40px;
+}
+.ban-divider {
+  width: 80px; height: 1px;
+  background: rgba(255,40,40,0.3);
+  margin: 0 auto 36px;
+}
+.ban-info-block {
+  max-width: 360px; margin: 0 auto 14px;
+}
+.ban-target-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: rgba(255,120,120,0.9);
   text-transform: uppercase; letter-spacing: 0.1em;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
-.ban-reason {
-  font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em;
-  font-style: italic; margin-bottom: 20px;
+.ban-reason-text {
+  font-size: 11px; color: rgba(255,80,80,0.45);
+  letter-spacing: 0.12em; font-style: italic;
+  margin-bottom: 6px; line-height: 1.7;
 }
-.btn-ban-back {
-  background: none; border: 1px solid rgba(255,59,59,0.3); cursor: pointer;
+.ban-dur-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid rgba(255,40,40,0.35);
+  background: rgba(255,20,20,0.08);
+  padding: 6px 20px; margin-bottom: 36px;
   font-family: 'Space Mono', monospace;
-  font-size: 9px; color: rgba(255,59,59,0.6); letter-spacing: 0.2em;
-  text-transform: uppercase; padding: 9px 22px; transition: all 0.2s;
+  font-size: 10px; color: rgba(255,100,100,0.85);
+  letter-spacing: 0.2em; text-transform: uppercase;
+}
+.ban-dur-label { color: rgba(255,80,80,0.4); font-size: 9px; }
+.ban-detail-text {
+  font-size: 10px; color: rgba(255,80,80,0.35);
+  letter-spacing: 0.1em; line-height: 2;
+  margin-bottom: 36px; max-width: 340px; margin-left: auto; margin-right: auto;
+}
+.ban-detail-text strong { color: rgba(255,80,80,0.6); }
+.ban-id-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: rgba(255,60,60,0.3);
+  letter-spacing: 0.2em; margin-bottom: 36px;
+}
+.ban-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn-ban-back {
+  background: none;
+  border: 1px solid rgba(255,59,59,0.25); cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: rgba(255,59,59,0.45); letter-spacing: 0.2em;
+  text-transform: uppercase; padding: 10px 24px; transition: all 0.2s;
 }
 .btn-ban-back:hover { border-color: var(--danger); color: var(--danger); }
+.btn-appeal {
+  background: rgba(255,179,0,0.06);
+  border: 1px solid rgba(255,179,0,0.35); cursor: pointer;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; color: rgba(255,179,0,0.75); letter-spacing: 0.2em;
+  text-transform: uppercase; padding: 10px 24px; transition: all 0.2s;
+  text-decoration: none; display: inline-block;
+}
+.btn-appeal:hover { border-color: var(--warn); color: var(--warn); }
 
-/* ── STEP 5 : Setup PIN (première connexion) ── */
+/* ── STEP 5 : Setup PIN ── */
 #step-setup { display: none; animation: stepIn 0.4s ease; }
 .setup-header { margin-bottom: 28px; }
-.setup-badge {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: 8px; letter-spacing: 0.3em; color: var(--warn);
-  text-transform: uppercase; margin-bottom: 14px;
-}
+.setup-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 8px; letter-spacing: 0.3em; color: var(--warn); text-transform: uppercase; margin-bottom: 14px; }
 .setup-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--warn); animation: blink 1.2s infinite; }
-.setup-title {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 22px; font-weight: 700; color: var(--white);
-  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;
-}
+.setup-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
 .setup-sub { font-size: 9px; color: var(--text-dim); letter-spacing: 0.25em; text-transform: uppercase; }
-.setup-card {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  padding: 28px;
-  position: relative;
-}
-.setup-card::before {
-  content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--warn), transparent);
-  opacity: 0.35;
-}
-.step-indicator {
-  display: flex; gap: 6px; align-items: center; margin-bottom: 24px;
-}
-.step-pip {
-  width: 24px; height: 3px;
-  background: var(--border2); transition: background 0.3s;
-}
+.setup-card { background: var(--surface); border: 1px solid var(--border2); padding: 28px; position: relative; }
+.setup-card::before { content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--warn), transparent); opacity: 0.35; }
+.step-indicator { display: flex; gap: 6px; align-items: center; margin-bottom: 24px; }
+.step-pip { width: 24px; height: 3px; background: var(--border2); transition: background 0.3s; }
 .step-pip.active { background: var(--warn); }
 .step-pip.done   { background: var(--safe); }
-.step-label {
-  font-size: 9px; color: var(--text-dim); letter-spacing: 0.2em;
-  text-transform: uppercase; margin-left: 4px;
-}
+.step-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.2em; text-transform: uppercase; margin-left: 4px; }
 .pin-zone { text-align: center; }
-.pin-instruction {
-  font-size: 10px; color: var(--text-dim); letter-spacing: 0.15em;
-  text-transform: uppercase; margin-bottom: 20px; line-height: 1.6;
-}
+.pin-instruction { font-size: 10px; color: var(--text-dim); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; line-height: 1.6; }
 .pin-instruction span { color: var(--warn); }
-.pin-dots {
-  display: flex; gap: 14px; justify-content: center; margin-bottom: 28px;
-}
-.setup-pin-dot {
-  width: 16px; height: 16px; border-radius: 50%;
-  border: 1px solid var(--border2); background: transparent;
-  transition: all 0.2s;
-}
+.pin-dots { display: flex; gap: 14px; justify-content: center; margin-bottom: 28px; }
+.setup-pin-dot { width: 16px; height: 16px; border-radius: 50%; border: 1px solid var(--border2); background: transparent; transition: all 0.2s; }
 .setup-pin-dot.filled  { background: var(--warn); border-color: var(--warn); }
 .setup-pin-dot.confirm { background: var(--accent); border-color: var(--accent); }
 .setup-pin-dot.success { background: var(--safe); border-color: var(--safe); }
 .setup-pin-dot.error   { background: var(--danger); border-color: var(--danger); }
-.numpad {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
-}
-.num-key {
-  background: var(--surface2); border: 1px solid var(--border);
-  color: var(--text); font-family: 'Space Mono', monospace;
-  font-size: 15px; padding: 14px 0; cursor: pointer;
-  transition: all 0.15s; letter-spacing: 0.05em;
-}
+.numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.num-key { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 15px; padding: 14px 0; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; }
 .num-key:hover { border-color: rgba(255,179,0,0.5); color: var(--white); }
 .num-key:active { transform: scale(0.96); }
 .num-key.wide { grid-column: span 2; }
 .num-key.del  { color: var(--text-dim); font-size: 13px; }
 .num-key.del:hover { border-color: var(--danger); color: var(--danger); }
 .num-key:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
-.pin-feedback {
-  font-size: 10px; letter-spacing: 0.12em; min-height: 18px;
-  margin-top: 16px; transition: all 0.2s;
-}
+.pin-feedback { font-size: 10px; letter-spacing: 0.12em; min-height: 18px; margin-top: 16px; transition: all 0.2s; }
 .pin-feedback.error   { color: var(--danger); }
 .pin-feedback.success { color: var(--safe); }
 .pin-feedback.info    { color: var(--text-dim); }
 
-/* ── STEP 6 : PIN enregistré (succès) ── */
+/* ── STEP 6 ── */
 #step-pin-success { display: none; text-align: center; animation: stepIn 0.5s ease; }
-.success-diamond {
-  width: 52px; height: 52px;
-  border: 1px solid var(--safe);
-  transform: rotate(45deg);
-  margin: 0 auto 20px;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,230,118,0.05);
-}
+.success-diamond { width: 52px; height: 52px; border: 1px solid var(--safe); transform: rotate(45deg); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; background: rgba(0,230,118,0.05); }
 .success-diamond span { transform: rotate(-45deg); font-size: 20px; }
-.success-title {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 22px; font-weight: 700; color: var(--safe);
-  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
-}
+.success-title { font-family: 'Rajdhani', sans-serif; font-size: 22px; font-weight: 700; color: var(--safe); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
 .success-msg { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; line-height: 1.8; margin-bottom: 24px; }
 .redirect-bar { width: 100%; height: 2px; background: var(--border2); overflow: hidden; margin-top: 8px; }
 .redirect-fill { height: 100%; width: 0%; background: var(--safe); transition: width 2s linear; }
@@ -502,17 +651,12 @@ body::after {
   opacity: 0; pointer-events: none; transition: opacity 0.3s;
 }
 .tr-overlay.show { opacity: 1; pointer-events: all; }
-.tr-name {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 28px; font-weight: 700; color: var(--white);
-  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;
-}
+.tr-name { font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
 .tr-dept-text { font-size: 10px; color: var(--text-dim); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 28px; }
 .tr-bar { width: 140px; height: 1px; background: var(--border2); overflow: hidden; }
 .tr-fill { height: 100%; width: 0%; background: var(--accent); transition: width 1s linear; }
 .tr-fill.go { width: 100%; }
 
-/* BOTTOM */
 .bottombar {
   position: fixed; bottom: 0; left: 0; right: 0; height: 30px;
   border-top: 1px solid var(--border); background: rgba(6,8,10,0.85);
@@ -535,6 +679,30 @@ body::after {
   <div class="sb-text">SITE-15 // SCP FOUNDATION</div>
   <div id="sbStatus" class="sb-live"><div class="sb-dot"></div>TERMINAL ACTIF</div>
   <div class="sb-text" id="clock">--:--:--</div>
+</div>
+
+<!-- CLOCHE -->
+<button class="bell-btn" id="bellBtn" title="Notifications sanctions" onclick="openSanctionsModal()">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+  </svg>
+  <span class="bell-badge" id="bellBadge" style="display:none;"></span>
+</button>
+
+<!-- MODAL SANCTIONS -->
+<div class="modal-overlay" id="sanctionsModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div class="modal-title-dot"></div>
+        Registre Sanctions
+      </div>
+      <button class="modal-close" onclick="closeSanctionsModal()">✕</button>
+    </div>
+    <div class="modal-body" id="sanctionsBody">
+      <div class="modal-empty">Chargement...</div>
+    </div>
+  </div>
 </div>
 
 <div class="wrap">
@@ -575,7 +743,7 @@ body::after {
     </div>
   </div>
 
-  <!-- STEP 3.5 : Saisie PIN (vérification) -->
+  <!-- STEP 3.5 : PIN vérification -->
   <div id="step-pin">
     <div class="chars-greeting" id="pinCharName" style="margin-bottom:4px;">—</div>
     <div class="chars-sub" style="margin-bottom:28px;">Entrez votre code PIN</div>
@@ -604,7 +772,7 @@ body::after {
     </div>
   </div>
 
-  <!-- STEP 4 : Erreur générique -->
+  <!-- STEP 4 : Erreur -->
   <div id="step-error">
     <div class="err-icon">✕</div>
     <div class="err-title" id="errTitle">Accès Refusé</div>
@@ -612,28 +780,52 @@ body::after {
     <button class="btn-retry" onclick="goBack()">← Réessayer</button>
   </div>
 
-  <!-- STEP BAN : Écran de bannissement -->
+  <!-- STEP BAN — PLEIN ÉCRAN -->
   <div id="step-ban">
-    <div class="ban-frame">
-      <div class="ban-diamond"><div class="ban-diamond-inner">✕</div></div>
-      <div class="ban-code" id="banCode">ACCÈS — RÉVOQUÉ</div>
-      <div class="ban-title">Accès Banni</div>
-      <div class="ban-subtitle" id="banSubtitle">Connexion impossible</div>
-      <div class="ban-separator"></div>
-      <div class="ban-char-name" id="banCharName"></div>
-      <div class="ban-reason" id="banReason"></div>
-      <div class="ban-detail" id="banDetail">
-        Votre accès à l'intranet du <strong>Site-15</strong> a été<br>
-        <strong>définitivement révoqué</strong> par l'Administration.<br><br>
-        Pour contester cette décision, contactez<br>un responsable de la Fondation.
+    <div class="ban-fullscreen">
+      <div class="ban-corner tl"></div>
+      <div class="ban-corner tr"></div>
+      <div class="ban-corner bl"></div>
+      <div class="ban-corner br"></div>
+      <div class="ban-bar-top"></div>
+      <div class="ban-bar-bot"></div>
+
+      <div class="ban-ref" id="banCode">SITE-15 // ACCÈS RÉVOQUÉ</div>
+
+      <div class="ban-x-wrap">
+        <div class="ban-x-inner">✕</div>
       </div>
-      <div class="ban-id" id="banId">ID: —</div>
-      <br>
-      <button class="btn-ban-back" onclick="goBack()">← Retour au terminal</button>
+
+      <div class="ban-headline">Vous êtes<br>banni</div>
+      <div class="ban-sub-line" id="banSubtitle">Connexion impossible</div>
+
+      <div class="ban-divider"></div>
+
+      <div class="ban-info-block">
+        <div class="ban-target-name" id="banCharName"></div>
+        <div class="ban-reason-text" id="banReason"></div>
+        <div id="banDurationBox" class="ban-dur-pill" style="display:none;">
+          <span class="ban-dur-label">DURÉE</span>
+          <span id="banDurationText">—</span>
+        </div>
+      </div>
+
+      <div class="ban-detail-text" id="banDetail">
+        Votre accès à l'intranet du <strong>Site-15</strong> a été<br>
+        <strong>définitivement révoqué</strong> par l'Administration.<br>
+        Pour contester cette décision, utilisez le bouton ci-dessous.
+      </div>
+
+      <div class="ban-id-tag" id="banId">REF : —</div>
+
+      <div class="ban-btns">
+        <a class="btn-appeal" href="https://appeal.gg/VAw5DuZyHq/q0RCgufG" target="_blank">⚑ Contester</a>
+        <button class="btn-ban-back" onclick="goBack()">← Retour</button>
+      </div>
     </div>
   </div>
 
-  <!-- STEP 5 : Setup PIN (première connexion) -->
+  <!-- STEP 5 : Setup PIN -->
   <div id="step-setup">
     <div class="setup-header">
       <div class="setup-badge"><div class="setup-badge-dot"></div>Première connexion détectée</div>
@@ -675,7 +867,7 @@ body::after {
     </div>
   </div>
 
-  <!-- STEP 6 : PIN enregistré avec succès -->
+  <!-- STEP 6 : PIN success -->
   <div id="step-pin-success">
     <div class="success-diamond"><span>✓</span></div>
     <div class="success-title">PIN Enregistré</div>
@@ -688,7 +880,7 @@ body::after {
 
 </div>
 
-<!-- TRANSITION OVERLAY -->
+<!-- TRANSITION -->
 <div class="tr-overlay" id="trOverlay">
   <div class="tr-name" id="trName">—</div>
   <div class="tr-dept-text" id="trDeptText">—</div>
@@ -697,65 +889,115 @@ body::after {
 
 <div class="bottombar">
   <div class="bb-text">FONDATION SCP — CONFIDENTIEL</div>
-  <div class="bb-text">v4.3.0</div>
+  <div class="bb-text">v4.4.0</div>
 </div>
 
 <script type="module">
-  import { initializeApp }
+import { initializeApp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, query, collection, where, getDocs, getDoc, updateDoc }
+import { getFirestore, doc, query, collection, where, getDocs, getDoc, updateDoc, orderBy }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey:            "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
-    authDomain:        "scp-site19.firebaseapp.com",
-    projectId:         "scp-site19",
-    storageBucket:     "scp-site19.firebasestorage.app",
-    messagingSenderId: "245750946774",
-    appId:             "1:245750946774:web:821944a85e207094b22277"
-  };
+const firebaseConfig = {
+  apiKey:            "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain:        "scp-site19.firebaseapp.com",
+  projectId:         "scp-site19",
+  storageBucket:     "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId:             "1:245750946774:web:821944a85e207094b22277"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
 
-  // ── Horloge ──────────────────────────────────────
-  setInterval(() => {
-    document.getElementById('clock').textContent =
-      new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  }, 1000);
+// ── Horloge ──
+setInterval(() => {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}, 1000);
 
-  // ── Constantes ───────────────────────────────────
-  const DEPT_LABELS = {
-    scientific:     'Département Scientifique',
-    security:       'Département de la Sécurité',
-    medical:        'Corps Médical',
-    administration: 'Administration',
-    moderator:      'Modération',
-  };
-  const REDIRECTS = {
-    scientific:     'scientific/index.html',
-    security:       'security/index.html',
-    medical:        'medical/index.html',
-    administration: 'administration/index.html',
-    moderator:      'mod.html',
-  };
+// ── Constantes ──
+const DEPT_LABELS = {
+  scientific:     'Département Scientifique',
+  security:       'Département de la Sécurité',
+  medical:        'Corps Médical',
+  administration: 'Administration',
+  moderator:      'Modération',
+};
+const REDIRECTS = {
+  scientific:     'scientific/index.html',
+  security:       'security/index.html',
+  medical:        'medical/index.html',
+  administration: 'administration/index.html',
+  moderator:      'mod.html',
+};
+const APPEAL_URL = 'https://appeal.gg/VAw5DuZyHq/q0RCgufG';
 
-  // ── Navigation ───────────────────────────────────
-  const ALL_STEPS = ['input', 'loading', 'chars', 'pin', 'error', 'ban', 'setup', 'pin-success'];
+// ── State ──
+let currentPseudo  = '';
+let currentPlayer  = null;
+let currentDocId   = '';
+let pendingChar    = null;
+let pinValue       = '';
+let playerSanctions = []; // sanctions récup pour ce joueur
 
-  function showStep(name) {
-    ALL_STEPS.forEach(s => {
-      const el = document.getElementById('step-' + s);
-      if (el) el.style.display = 'none';
-    });
-    const el = document.getElementById('step-' + name);
-    if (el) {
-      el.style.display = 'block';
-      el.style.animation = 'none';
-      void el.offsetWidth;
-      el.style.animation = '';
-    }
-    const sbStatus = document.getElementById('sbStatus');
+// ── Utilitaires ──
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function formatDate(val) {
+  if (!val) return '—';
+  let d;
+  if (val.toDate) d = val.toDate();
+  else if (typeof val === 'string') d = new Date(val);
+  else d = new Date(val);
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+// Formate la durée (ex: "7 jours", "permanent", "—")
+function formatDuration(duration) {
+  if (!duration || duration === '—' || duration === '') return null;
+  const lower = String(duration).toLowerCase();
+  if (lower === 'permanent' || lower === 'perm' || lower === 'définitif') return 'PERMANENT';
+  return String(duration).toUpperCase();
+}
+
+// ── Navigation ──
+const ALL_STEPS = ['input','loading','chars','pin','error','ban','setup','pin-success'];
+
+function showStep(name) {
+  ALL_STEPS.forEach(s => {
+    const el = document.getElementById('step-' + s);
+    if (el) el.style.display = 'none';
+  });
+  const el = document.getElementById('step-' + name);
+  if (el) {
+    el.style.display = 'block';
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+  }
+  // Cacher le .wrap quand ban (plein écran), le réafficher sinon
+  const wrap = document.querySelector('.wrap');
+  if (wrap) wrap.style.display = name === 'ban' ? 'none' : '';
+  // Cacher statusbar/bottombar sur ban
+  const sb = document.querySelector('.statusbar');
+  const bb = document.querySelector('.bottombar');
+  if (name === 'ban') {
+    if (sb) sb.style.display = 'none';
+    if (bb) bb.style.display = 'none';
+  } else {
+    if (sb) sb.style.display = '';
+    if (bb) bb.style.display = '';
+  }
+  const sbStatus = document.getElementById('sbStatus');
+  if (sbStatus) {
     if (name === 'setup') {
       sbStatus.className = 'sb-warn';
       sbStatus.innerHTML = '<div class="sb-dot-warn"></div>INITIALISATION REQUISE';
@@ -767,41 +1009,219 @@ import { getFirestore, doc, query, collection, where, getDocs, getDoc, updateDoc
       sbStatus.innerHTML = '<div class="sb-dot"></div>TERMINAL ACTIF';
     }
   }
+}
+window.showStep = showStep;
 
-  window.showStep = showStep;
+window.goBack = () => {
+  showStep('input');
+  document.getElementById('pseudoInput').value = '';
+  document.getElementById('pseudoInput').focus();
+  hideBell();
+};
 
-  window.goBack = () => {
-    showStep('input');
-    document.getElementById('pseudoInput').value = '';
-    document.getElementById('pseudoInput').focus();
-  };
-
-  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-  // ── Animation lignes chargement ──────────────────
-  async function runLoadingLines(lines) {
-    const wrap = document.getElementById('loadingLines');
-    wrap.innerHTML = '';
-    for (let i = 0; i < lines.length; i++) {
-      const el = document.createElement('div');
-      el.className = 'loading-line pending';
-      el.style.animationDelay = (i * 0.12) + 's';
-      el.innerHTML = `<span class="ll-dot"></span><span>${lines[i]}</span>`;
-      wrap.appendChild(el);
-      await delay(350);
-      el.classList.replace('pending', 'done');
-    }
+// ── Cloche ──
+function showBell(unseenCount) {
+  const btn = document.getElementById('bellBtn');
+  const badge = document.getElementById('bellBadge');
+  btn.style.display = 'flex';
+  if (unseenCount > 0) {
+    btn.classList.add('has-unseen');
+    badge.style.display = 'flex';
+    badge.textContent = unseenCount > 9 ? '9+' : unseenCount;
+    // Animation cloche
+    setTimeout(() => {
+      btn.classList.add('ringing');
+      setTimeout(() => btn.classList.remove('ringing'), 900);
+    }, 600);
+  } else {
+    btn.classList.remove('has-unseen');
+    badge.style.display = 'none';
   }
+}
+function hideBell() {
+  const btn = document.getElementById('bellBtn');
+  btn.style.display = 'none';
+  playerSanctions = [];
+}
+function updateBellBadge() {
+  const unseen = playerSanctions.filter(s => !s._seen).length;
+  const badge = document.getElementById('bellBadge');
+  const btn = document.getElementById('bellBtn');
+  if (unseen > 0) {
+    btn.classList.add('has-unseen');
+    badge.style.display = 'flex';
+    badge.textContent = unseen > 9 ? '9+' : unseen;
+  } else {
+    btn.classList.remove('has-unseen');
+    badge.style.display = 'none';
+  }
+}
 
-  // ── Connexion principale ─────────────────────────
-  // Structure Firestore : players/{pseudo}
-  //   - robloxName, displayName, pin, banned (bool), characters (array)
-  //   - characters[i] : { id, name, displayName, role, rank, desc, pin, status }
-  //     status = "banned" → banni sur ce perso
+// ── Sanctions Modal ──
+window.openSanctionsModal = () => {
+  renderSanctionsModal();
+  document.getElementById('sanctionsModal').classList.add('show');
+};
+window.closeSanctionsModal = () => {
+  document.getElementById('sanctionsModal').classList.remove('show');
+};
+// Fermer en cliquant l'overlay
+document.getElementById('sanctionsModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('sanctionsModal')) closeSanctionsModal();
+});
 
-  let currentPseudo  = '';
-  let currentPlayer  = null; // données brutes du doc player
+function typeLabel(type) {
+  const t = (type || '').toLowerCase();
+  if (t === 'ban') return '<span class="sc-type ban">BAN</span>';
+  if (t === 'kick') return '<span class="sc-type kick">KICK</span>';
+  return '<span class="sc-type warn">WARN</span>';
+}
 
+function renderSanctionsModal() {
+  const body = document.getElementById('sanctionsBody');
+  if (!playerSanctions.length) {
+    body.innerHTML = '<div class="modal-empty">Aucune sanction enregistrée.</div>';
+    return;
+  }
+  let html = '';
+  playerSanctions.forEach((s, i) => {
+    const isBan = (s.type || '').toLowerCase() === 'ban';
+    const seen = s._seen;
+    const dur = formatDuration(s.duration);
+    html += `
+      <div class="sanction-card ${seen ? 'seen' : 'unseen'} ${isBan ? 'type-ban' : ''}" id="sc-${i}">
+        <div class="sc-top">
+          ${typeLabel(s.type)}
+          <span class="sc-date">${formatDate(s.date || s.createdAt)}</span>
+        </div>
+        <div class="sc-reason"><strong>Motif :</strong> ${esc(s.reason || '—')}</div>
+        <div class="sc-meta">Modérateur : ${esc(s.mod || '—')}</div>
+        ${isBan && dur ? `<div class="sc-duration"><span>⏱</span><span>${dur}</span></div>` : ''}
+        <div class="sc-actions">
+          ${isBan ? `<a class="sc-btn appeal" href="${APPEAL_URL}" target="_blank">⚑ Contester</a>` : ''}
+          ${!seen ? `<button class="sc-btn seen-btn" onclick="markSeen(${i})">✓ Marquer vu</button>` : '<span class="sc-seen-tag">✓ VU</span>'}
+        </div>
+      </div>
+    `;
+  });
+  body.innerHTML = html;
+}
+
+window.markSeen = async function(idx) {
+  playerSanctions[idx]._seen = true;
+  // Mettre à jour Firestore : sanctions[idx].seenBy array ou champ seen
+  try {
+    const playerRef = doc(db, 'players', currentDocId);
+    const snap = await getDoc(playerRef);
+    // On cherche le doc sanction dans la sous-collection ou dans le tableau
+    // Le champ seenBy sur le doc sanction dans la collection "sanctions"
+    const sanctionId = playerSanctions[idx]._id;
+    if (sanctionId) {
+      const sRef = doc(db, 'sanctions', sanctionId);
+      const sSnap = await getDoc(sRef);
+      if (sSnap.exists()) {
+        const seenBy = sSnap.data().seenBy || [];
+        if (!seenBy.includes(currentPseudo)) {
+          await updateDoc(sRef, { seenBy: [...seenBy, currentPseudo] });
+        }
+      }
+    }
+  } catch(e) { console.warn('[Site-15] markSeen error:', e); }
+  updateBellBadge();
+  renderSanctionsModal();
+};
+
+// ── Chargement sanctions — retourne {sanctions, activeBan|null} ──
+async function loadSanctions(pseudo) {
+  try {
+    const q = query(
+      collection(db, 'sanctions'),
+      where('player', '==', pseudo)
+    );
+    const snap = await getDocs(q);
+    playerSanctions = snap.docs.map(d => {
+      const data = d.data();
+      const seenBy = data.seenBy || [];
+      return { ...data, _id: d.id, _seen: seenBy.includes(pseudo) };
+    });
+    playerSanctions.sort((a, b) => {
+      const da = a.createdAt?.toDate?.() || new Date(a.date || 0);
+      const db2 = b.createdAt?.toDate?.() || new Date(b.date || 0);
+      return db2 - da;
+    });
+    const activeBan = detectActiveBan(playerSanctions);
+    const unseen = playerSanctions.filter(s => !s._seen).length;
+    if (playerSanctions.length > 0) showBell(unseen);
+    return { sanctions: playerSanctions, activeBan };
+  } catch(e) {
+    console.warn('[Site-15] loadSanctions error:', e);
+    return { sanctions: [], activeBan: null };
+  }
+}
+
+// ── Détection ban actif dans les sanctions ──
+function detectActiveBan(sanctions) {
+  const now = Date.now();
+  for (const s of sanctions) {
+    if ((s.type || '').toLowerCase() !== 'ban') continue;
+    const dur = String(s.duration || '').toLowerCase().trim();
+    if (!dur || dur === '—' || dur === 'permanent' || dur === 'perm' || dur === 'définitif') return s;
+    const banDate = s.createdAt?.toDate?.() || (s.date ? new Date(s.date) : null);
+    if (!banDate) return s;
+    const durMs = parseDurationToMs(dur);
+    if (durMs === null) return s;
+    if (now < banDate.getTime() + durMs) return s;
+  }
+  return null;
+}
+
+// ── Parse "24h", "2j", "7 jours", "3 days" → ms ──
+function parseDurationToMs(dur) {
+  const s = dur.toLowerCase().trim();
+  const h = s.match(/^(\d+(?:\.\d+)?)\s*h(?:eure?s?)?$/);
+  const m = s.match(/^(\d+(?:\.\d+)?)\s*m(?:in(?:utes?)?)?$/);
+  const d = s.match(/^(\d+(?:\.\d+)?)\s*(?:j(?:ours?)?|d(?:ays?)?)$/);
+  const w = s.match(/^(\d+(?:\.\d+)?)\s*(?:s(?:em(?:aines?)?)?|w(?:eeks?)?)$/);
+  if (h) return parseFloat(h[1]) * 3600000;
+  if (m) return parseFloat(m[1]) * 60000;
+  if (d) return parseFloat(d[1]) * 86400000;
+  if (w) return parseFloat(w[1]) * 604800000;
+  return null;
+}
+
+// ── Temps restant d'un ban ──
+function formatTimeLeft(s) {
+  const dur = String(s.duration || '').toLowerCase().trim();
+  if (!dur || dur === '—' || dur === 'permanent' || dur === 'perm') return null;
+  const banDate = s.createdAt?.toDate?.() || (s.date ? new Date(s.date) : null);
+  if (!banDate) return null;
+  const durMs = parseDurationToMs(dur);
+  if (!durMs) return null;
+  const left = banDate.getTime() + durMs - Date.now();
+  if (left <= 0) return null;
+  const h = Math.floor(left / 3600000);
+  const mn = Math.floor((left % 3600000) / 60000);
+  if (h >= 24) { const dd = Math.floor(h/24); const rh = h%24; return rh > 0 ? `${dd}j ${rh}h restantes` : `${dd} jour${dd>1?'s':''} restant${dd>1?'s':''}`; }
+  if (h > 0) return `${h}h ${mn}min restantes`;
+  return `${mn} min restantes`;
+}
+
+// ── Loading lines ──
+async function runLoadingLines(lines) {
+  const wrap = document.getElementById('loadingLines');
+  wrap.innerHTML = '';
+  for (let i = 0; i < lines.length; i++) {
+    const el = document.createElement('div');
+    el.className = 'loading-line pending';
+    el.style.animationDelay = (i * 0.12) + 's';
+    el.innerHTML = `<span class="ll-dot"></span><span>${lines[i]}</span>`;
+    wrap.appendChild(el);
+    await delay(350);
+    el.classList.replace('pending', 'done');
+  }
+}
+
+// ── Login ──
 async function handleLogin() {
   const pseudo = document.getElementById('pseudoInput').value.trim();
   if (!pseudo) {
@@ -816,6 +1236,7 @@ async function handleLogin() {
     'Connexion au serveur Site-15...',
     `Identification de "${pseudo}"...`,
     'Vérification des accréditations...',
+    'Contrôle du registre sanctions...',
     'Chargement des personnages...',
   ]);
   await delay(300);
@@ -834,28 +1255,45 @@ async function handleLogin() {
 
     const playerSnap = snap.docs[0];
     const playerData = playerSnap.data();
-    currentDocId     = playerSnap.id; // ← ID aléatoire du document
+    currentDocId     = playerSnap.id;
 
-    // ── Vérification ban global du compte ───────
+    // Charger les sanctions ET vérifier ban actif avant d'afficher les persos
+    const { activeBan } = await loadSanctions(pseudo);
+
+    // Ban via registre sanctions (priorité max)
+    if (activeBan) {
+      const timeLeft = formatTimeLeft(activeBan);
+      const durDisplay = formatDuration(activeBan.duration) || 'PERMANENT';
+      const durFull = timeLeft ? `${durDisplay} (${timeLeft})` : durDisplay;
+      showBanScreen({
+        scope: 'account',
+        pseudo,
+        reason: activeBan.reason || '',
+        duration: durFull,
+        mod: activeBan.mod || '',
+      });
+      return;
+    }
+
+    // Ban global (champ banned sur le doc player)
     if (playerData.banned === true) {
       showBanScreen({
         scope: 'account',
         pseudo,
         reason: playerData.banReason || '',
+        duration: playerData.banDuration || '',
       });
       return;
     }
 
-    // ── Récupération des personnages (tableau embarqué) ──
     const rawChars = Array.isArray(playerData.characters) ? playerData.characters : [];
-
-    // Tous les personnages sont bannis ?
     const allBanned = rawChars.length > 0 && rawChars.every(c => c.status === 'banned');
     if (allBanned) {
       showBanScreen({
         scope: 'all',
         pseudo,
         reason: 'Tous vos accès ont été révoqués.',
+        duration: '',
       });
       return;
     }
@@ -875,330 +1313,304 @@ async function handleLogin() {
   }
 }
 
-let currentDocId = '';
+// ── Ban screen ──
+function showBanScreen({ scope, pseudo, charName, reason, duration, mod }) {
+  const ts = Date.now().toString(36).toUpperCase();
+  const dur = formatDuration(duration);
 
-  // ── Écran de bannissement ─────────────────────────
-  function showBanScreen({ scope, pseudo, charName, reason }) {
-    const ts = Date.now().toString(36).toUpperCase();
-
-    if (scope === 'char') {
-      document.getElementById('banCode').textContent     = 'PERSONNAGE — RÉVOQUÉ';
-      document.getElementById('banSubtitle').textContent = 'Accès au service impossible';
-      document.getElementById('banCharName').textContent = charName ? charName.toUpperCase() : '';
-      document.getElementById('banReason').textContent   = reason ? `Motif : ${reason}` : '';
-      document.getElementById('banDetail').innerHTML     =
-        `Votre personnage a été <strong>banni</strong> de l'intranet du <strong>Site-15</strong>.<br><br>
-         Vous ne pouvez plus accéder à ce service.<br>
-         Contactez un responsable pour plus d'informations.`;
-    } else {
-      document.getElementById('banCode').textContent     = 'COMPTE — RÉVOQUÉ';
-      document.getElementById('banSubtitle').textContent = 'Connexion définitivement bloquée';
-      document.getElementById('banCharName').textContent = pseudo ? pseudo.toUpperCase() : '';
-      document.getElementById('banReason').textContent   = reason ? `Motif : ${reason}` : '';
-      document.getElementById('banDetail').innerHTML     =
-        `Votre accès à l'intranet du <strong>Site-15</strong> a été<br>
-         <strong>définitivement révoqué</strong> par l'Administration.<br><br>
-         Pour contester cette décision, contactez<br>un responsable de la Fondation.`;
-    }
-
-    document.getElementById('banId').textContent = `REF : S15-BAN-${ts}`;
-    showStep('ban');
+  if (scope === 'char') {
+    document.getElementById('banCode').textContent     = 'PERSONNAGE — RÉVOQUÉ';
+    document.getElementById('banSubtitle').textContent = 'Accès au service impossible';
+    document.getElementById('banCharName').textContent = charName ? charName.toUpperCase() : '';
+    document.getElementById('banReason').textContent   = reason ? `Motif : ${reason}` : '';
+    document.getElementById('banDetail').innerHTML     =
+      `Votre personnage a été <strong>banni</strong> de l'intranet du <strong>Site-15</strong>.<br><br>
+       Vous ne pouvez plus accéder à ce service.<br>
+       Contactez un responsable pour plus d'informations.`;
+  } else {
+    document.getElementById('banCode').textContent     = 'COMPTE — RÉVOQUÉ';
+    document.getElementById('banSubtitle').textContent = 'Connexion définitivement bloquée';
+    document.getElementById('banCharName').textContent = pseudo ? pseudo.toUpperCase() : '';
+    document.getElementById('banReason').textContent   = reason ? `Motif : ${reason}` : '';
+    document.getElementById('banDetail').innerHTML     =
+      `Votre accès à l'intranet du <strong>Site-15</strong> a été<br>
+       <strong>révoqué</strong> par l'Administration.<br>
+       ${mod ? `Sanction émise par : <strong>${esc(mod)}</strong><br>` : ''}
+       Pour contester, utilisez le bouton ci-dessous.`;
   }
 
-  // ── Construction liste personnages ───────────────
-  function buildList(chars) {
-    const list = document.getElementById('charsList');
-    list.innerHTML = '';
+  // Durée du ban
+  const durBox = document.getElementById('banDurationBox');
+  if (dur) {
+    durBox.style.display = 'inline-flex';
+    document.getElementById('banDurationText').textContent = dur;
+  } else {
+    durBox.style.display = 'none';
+  }
 
-    chars.forEach((c, i) => {
-      const isBanned = c.status === 'banned';
-      const role     = c.role || 'scientific';
-      const name     = esc(c.displayName || c.name || 'Agent');
-      const rank     = esc(c.rank || '');
+  document.getElementById('banId').textContent = `REF : S15-BAN-${ts}`;
+  showStep('ban');
+}
 
-      const el = document.createElement('div');
-      el.className = 'char-item' + (isBanned ? ' char-banned' : '');
-      el.style.animationDelay = (i * 0.07) + 's';
-      el.innerHTML = `
-        <div class="char-dept-bar dept-${isBanned ? 'moderator' : role}"></div>
-        <div class="char-nhc">
-          <span class="nhc-text">${isBanned ? 'BANNI' : role}</span>
-        </div>
-        <div class="char-info">
-          <div class="char-name">${name}</div>
-          <div class="char-dept-label">${isBanned ? 'Accès révoqué' : (DEPT_LABELS[role] || role)}</div>
-          ${rank ? `<div class="char-rank-label">${rank}</div>` : ''}
-        </div>
-        ${isBanned
-          ? `<span class="char-banned-badge">BANNI</span>`
-          : `<span class="char-tag tag-${role}">${role}</span>`
-        }
-        <span class="char-arrow">${isBanned ? '✕' : '→'}</span>
-      `;
+// ── Liste personnages ──
+function buildList(chars) {
+  const list = document.getElementById('charsList');
+  list.innerHTML = '';
 
-      el.addEventListener('click', () => {
-        if (isBanned) {
-          showBanScreen({
-            scope: 'char',
-            pseudo: currentPseudo,
-            charName: c.displayName || c.name || 'Agent',
-            reason: c.banReason || '',
-          });
-        } else {
-          selectChar(c);
-        }
-      });
+  chars.forEach((c, i) => {
+    const isBanned = c.status === 'banned';
+    const role     = c.role || 'scientific';
+    const name     = esc(c.displayName || c.name || 'Agent');
+    const rank     = esc(c.rank || '');
 
-      list.appendChild(el);
+    const el = document.createElement('div');
+    el.className = 'char-item' + (isBanned ? ' char-banned' : '');
+    el.style.animationDelay = (i * 0.07) + 's';
+    el.innerHTML = `
+      <div class="char-dept-bar dept-${isBanned ? 'moderator' : role}"></div>
+      <div class="char-nhc">
+        <span class="nhc-text">${isBanned ? 'BANNI' : role}</span>
+      </div>
+      <div class="char-info">
+        <div class="char-name">${name}</div>
+        <div class="char-dept-label">${isBanned ? 'Accès révoqué' : (DEPT_LABELS[role] || role)}</div>
+        ${rank ? `<div class="char-rank-label">${rank}</div>` : ''}
+      </div>
+      ${isBanned
+        ? `<span class="char-banned-badge">BANNI</span>`
+        : `<span class="char-tag tag-${role}">${role}</span>`
+      }
+      <span class="char-arrow">${isBanned ? '✕' : '→'}</span>
+    `;
+
+    el.addEventListener('click', () => {
+      if (isBanned) {
+        showBanScreen({
+          scope: 'char',
+          pseudo: currentPseudo,
+          charName: c.displayName || c.name || 'Agent',
+          reason: c.banReason || '',
+          duration: c.banDuration || '',
+        });
+      } else {
+        selectChar(c);
+      }
     });
+
+    list.appendChild(el);
+  });
+}
+
+// ── Sélection personnage ──
+function selectChar(c) {
+  pendingChar = c;
+  pinValue    = '';
+  const effectivePin = c.pin || currentPlayer.pin || '';
+
+  if (!effectivePin) {
+    initSetupPin(c);
+    return;
   }
 
-  // ── Sélection personnage ─────────────────────────
-  let pendingChar = null;
-  let pinValue    = '';
+  pendingChar._effectivePin = effectivePin;
+  updatePinDots();
+  document.getElementById('pinCharName').textContent =
+    (c.displayName || c.name || 'Agent').toUpperCase();
+  document.getElementById('pinErr').textContent = '';
+  showStep('pin');
+}
 
-  function selectChar(c) {
-    pendingChar = c;
-    pinValue    = '';
+// ── PIN vérification ──
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('pd' + i);
+    d.className = 'pin-dot' + (i < pinValue.length ? ' filled' : '');
+  }
+}
+window.pinPress = function(k) {
+  if (pinValue.length >= 4) return;
+  pinValue += k;
+  updatePinDots();
+  if (pinValue.length === 4) setTimeout(verifyPin, 120);
+};
+window.pinDel = function() {
+  if (!pinValue.length) return;
+  pinValue = pinValue.slice(0, -1);
+  updatePinDots();
+};
+function verifyPin() {
+  const stored = String(pendingChar._effectivePin || '');
+  if (pinValue === stored) {
+    launchChar(pendingChar);
+  } else {
+    document.getElementById('pinErr').textContent = 'Code incorrect. Réessayez.';
+    for (let i = 0; i < 4; i++)
+      document.getElementById('pd' + i).className = 'pin-dot filled error';
+    setTimeout(() => {
+      pinValue = '';
+      updatePinDots();
+      document.getElementById('pinErr').textContent = '';
+    }, 700);
+  }
+}
 
-    // PIN du personnage en priorité, sinon PIN du compte
-    const effectivePin = c.pin || currentPlayer.pin || '';
+// ── Setup PIN ──
+let setupPinStep = 'choose';
+let setupChosen  = '';
+let setupCurrent = '';
 
-    if (!effectivePin) {
-      initSetupPin(c);
+function initSetupPin(c) {
+  setupPinStep = 'choose';
+  setupChosen  = '';
+  setupCurrent = '';
+  updateSetupDots();
+  clearSetupFeedback();
+  document.getElementById('pip1').className = 'step-pip active';
+  document.getElementById('pip2').className = 'step-pip';
+  document.getElementById('stepLabel').textContent = 'Choisir un code';
+  document.getElementById('pinInstruction').innerHTML =
+    'Choisissez un code PIN à <span>4 chiffres</span>.<br>Il vous sera demandé à chaque connexion.';
+  showStep('setup');
+}
+
+function updateSetupDots() {
+  const isConfirm = (setupPinStep === 'confirm');
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('spd' + i);
+    d.className = 'setup-pin-dot' + (i < setupCurrent.length
+      ? (isConfirm ? ' confirm' : ' filled')
+      : '');
+  }
+}
+window.setupPress = function(k) {
+  if (setupCurrent.length >= 4) return;
+  setupCurrent += k;
+  updateSetupDots();
+  if (setupCurrent.length === 4) setTimeout(onSetupComplete, 140);
+};
+window.setupDel = function() {
+  if (!setupCurrent.length) return;
+  setupCurrent = setupCurrent.slice(0, -1);
+  updateSetupDots();
+  clearSetupFeedback();
+};
+function clearSetupFeedback() {
+  const f = document.getElementById('pinFeedback');
+  f.className = 'pin-feedback info';
+  f.textContent = '';
+}
+function lockSetupPad(lock) {
+  document.querySelectorAll('#setupNumpad .num-key').forEach(b => { b.disabled = lock; });
+}
+function onSetupComplete() {
+  if (setupPinStep === 'choose') {
+    if (/^(\d)\1{3}$/.test(setupCurrent)) {
+      showSetupFeedback('error', 'Code trop simple. Essayez autre chose.');
+      shakeSetupAndReset();
       return;
     }
-
-    // Stocker le PIN effectif sur l'objet pour verifyPin
-    pendingChar._effectivePin = effectivePin;
-
-    updatePinDots();
-    document.getElementById('pinCharName').textContent =
-      (c.displayName || c.name || 'Agent').toUpperCase();
-    document.getElementById('pinErr').textContent = '';
-    showStep('pin');
-  }
-
-  // ── PIN vérification ─────────────────────────────
-  function updatePinDots() {
-    for (let i = 0; i < 4; i++) {
-      const d = document.getElementById('pd' + i);
-      d.className = 'pin-dot' + (i < pinValue.length ? ' filled' : '');
-    }
-  }
-
-  window.pinPress = function(k) {
-    if (pinValue.length >= 4) return;
-    pinValue += k;
-    updatePinDots();
-    if (pinValue.length === 4) setTimeout(verifyPin, 120);
-  };
-
-  window.pinDel = function() {
-    if (!pinValue.length) return;
-    pinValue = pinValue.slice(0, -1);
-    updatePinDots();
-  };
-
-  function verifyPin() {
-    const stored = String(pendingChar._effectivePin || '');
-    if (pinValue === stored) {
-      launchChar(pendingChar);
-    } else {
-      document.getElementById('pinErr').textContent = 'Code incorrect. Réessayez.';
-      for (let i = 0; i < 4; i++)
-        document.getElementById('pd' + i).className = 'pin-dot filled error';
+    setupChosen  = setupCurrent;
+    setupCurrent = '';
+    setupPinStep = 'confirm';
+    document.getElementById('pip1').className = 'step-pip done';
+    document.getElementById('pip2').className = 'step-pip active';
+    document.getElementById('stepLabel').textContent = 'Confirmer le code';
+    document.getElementById('pinInstruction').innerHTML =
+      'Saisissez à nouveau votre code<br>pour <span>confirmer</span>.';
+    updateSetupDots();
+    showSetupFeedback('info', 'Répétez votre code PIN.');
+  } else {
+    if (setupCurrent !== setupChosen) {
+      showSetupFeedback('error', 'Les codes ne correspondent pas.');
+      flashSetupError();
       setTimeout(() => {
-        pinValue = '';
-        updatePinDots();
-        document.getElementById('pinErr').textContent = '';
-      }, 700);
+        setupCurrent = '';
+        setupPinStep = 'choose';
+        setupChosen  = '';
+        document.getElementById('pip1').className = 'step-pip active';
+        document.getElementById('pip2').className = 'step-pip';
+        document.getElementById('stepLabel').textContent = 'Choisir un code';
+        document.getElementById('pinInstruction').innerHTML =
+          'Choisissez un code PIN à <span>4 chiffres</span>.<br>Il vous sera demandé à chaque connexion.';
+        updateSetupDots();
+        clearSetupFeedback();
+      }, 900);
+    } else {
+      lockSetupPad(true);
+      flashSetupSuccess();
+      setTimeout(savePin, 600);
     }
   }
+}
 
-  // ── Setup PIN (première connexion) ───────────────
-  let setupPinStep = 'choose';
-  let setupChosen  = '';
-  let setupCurrent = '';
+async function savePin() {
+  try {
+    const playerRef  = doc(db, 'players', currentDocId);
+    const playerSnap = await getDoc(playerRef);
+    const data       = playerSnap.data();
+    const chars      = Array.isArray(data.characters) ? [...data.characters] : [];
+    const idx        = chars.findIndex(c => c.id === pendingChar.id);
+    if (idx !== -1) chars[idx] = { ...chars[idx], pin: setupChosen };
+    await updateDoc(playerRef, { characters: chars });
 
-  function initSetupPin(c) {
+    const updated = { ...pendingChar, pin: setupChosen };
+    sessionStorage.setItem('site15_profile', JSON.stringify(updated));
+    pendingChar = updated;
+
+    showStep('pin-success');
+    setTimeout(() => { document.getElementById('redirectFill').style.width = '100%'; }, 100);
+    setTimeout(() => { launchChar(pendingChar); }, 2300);
+
+  } catch (err) {
+    console.error('[Site-15] Erreur sauvegarde PIN :', err);
+    lockSetupPad(false);
+    showSetupFeedback('error', 'Erreur réseau. Réessayez.');
+    setupCurrent = '';
     setupPinStep = 'choose';
     setupChosen  = '';
-    setupCurrent = '';
     updateSetupDots();
-    clearSetupFeedback();
-    document.getElementById('pip1').className = 'step-pip active';
-    document.getElementById('pip2').className = 'step-pip';
-    document.getElementById('stepLabel').textContent = 'Choisir un code';
-    document.getElementById('pinInstruction').innerHTML =
-      'Choisissez un code PIN à <span>4 chiffres</span>.<br>Il vous sera demandé à chaque connexion.';
-    showStep('setup');
   }
+}
 
-  function updateSetupDots() {
-    const isConfirm = (setupPinStep === 'confirm');
-    for (let i = 0; i < 4; i++) {
-      const d = document.getElementById('spd' + i);
-      d.className = 'setup-pin-dot' + (i < setupCurrent.length
-        ? (isConfirm ? ' confirm' : ' filled')
-        : '');
-    }
-  }
+function showSetupFeedback(type, msg) {
+  const f = document.getElementById('pinFeedback');
+  f.className = 'pin-feedback ' + type;
+  f.textContent = msg;
+}
+function shakeSetupAndReset() {
+  for (let i = 0; i < 4; i++) document.getElementById('spd' + i).className = 'setup-pin-dot error';
+  setTimeout(() => { setupCurrent = ''; updateSetupDots(); }, 600);
+}
+function flashSetupError() {
+  for (let i = 0; i < 4; i++) document.getElementById('spd' + i).className = 'setup-pin-dot error';
+}
+function flashSetupSuccess() {
+  for (let i = 0; i < 4; i++) document.getElementById('spd' + i).className = 'setup-pin-dot success';
+  document.getElementById('pip2').className = 'step-pip done';
+  showSetupFeedback('success', 'Code validé. Enregistrement...');
+}
 
-  window.setupPress = function(k) {
-    if (setupCurrent.length >= 4) return;
-    setupCurrent += k;
-    updateSetupDots();
-    if (setupCurrent.length === 4) setTimeout(onSetupComplete, 140);
-  };
+// ── Lancement ──
+function launchChar(c) {
+  const role = c.role || 'scientific';
+  const name = c.displayName || c.name || 'Agent';
+  localStorage.setItem('site15_uid',     c.id || '');
+  localStorage.setItem('site15_role',    role);
+  localStorage.setItem('site15_name',    name);
+  localStorage.setItem('site15_profile', JSON.stringify(c));
+  localStorage.setItem('site15_authed',  '1');
+  document.getElementById('trName').textContent     = name.toUpperCase();
+  document.getElementById('trDeptText').textContent = DEPT_LABELS[role] || role;
+  document.getElementById('trOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('trFill').classList.add('go'), 80);
+  setTimeout(() => { window.location.href = REDIRECTS[role] || 'index.html'; }, 1300);
+}
 
-  window.setupDel = function() {
-    if (!setupCurrent.length) return;
-    setupCurrent = setupCurrent.slice(0, -1);
-    updateSetupDots();
-    clearSetupFeedback();
-  };
-
-  function clearSetupFeedback() {
-    const f = document.getElementById('pinFeedback');
-    f.className = 'pin-feedback info';
-    f.textContent = '';
-  }
-
-  function lockSetupPad(lock) {
-    document.querySelectorAll('#setupNumpad .num-key').forEach(b => { b.disabled = lock; });
-  }
-
-  function onSetupComplete() {
-    if (setupPinStep === 'choose') {
-      if (/^(\d)\1{3}$/.test(setupCurrent)) {
-        showSetupFeedback('error', 'Code trop simple. Essayez autre chose.');
-        shakeSetupAndReset();
-        return;
-      }
-      setupChosen  = setupCurrent;
-      setupCurrent = '';
-      setupPinStep = 'confirm';
-      document.getElementById('pip1').className = 'step-pip done';
-      document.getElementById('pip2').className = 'step-pip active';
-      document.getElementById('stepLabel').textContent = 'Confirmer le code';
-      document.getElementById('pinInstruction').innerHTML =
-        'Saisissez à nouveau votre code<br>pour <span>confirmer</span>.';
-      updateSetupDots();
-      showSetupFeedback('info', 'Répétez votre code PIN.');
-    } else {
-      if (setupCurrent !== setupChosen) {
-        showSetupFeedback('error', 'Les codes ne correspondent pas.');
-        flashSetupError();
-        setTimeout(() => {
-          setupCurrent = '';
-          setupPinStep = 'choose';
-          setupChosen  = '';
-          document.getElementById('pip1').className = 'step-pip active';
-          document.getElementById('pip2').className = 'step-pip';
-          document.getElementById('stepLabel').textContent = 'Choisir un code';
-          document.getElementById('pinInstruction').innerHTML =
-            'Choisissez un code PIN à <span>4 chiffres</span>.<br>Il vous sera demandé à chaque connexion.';
-          updateSetupDots();
-          clearSetupFeedback();
-        }, 900);
-      } else {
-        lockSetupPad(true);
-        flashSetupSuccess();
-        setTimeout(savePin, 600);
-      }
-    }
-  }
-
-  // Sauvegarde le PIN dans le tableau characters du document player
-  async function savePin() {
-    try {
-      // On met à jour le tableau characters : trouver le bon perso par id et patcher son pin
-      const playerRef = doc(db, 'players', currentDocId); // plus currentPseudo
-      const playerSnap = await getDoc(playerRef);
-      const data       = playerSnap.data();
-      const chars      = Array.isArray(data.characters) ? [...data.characters] : [];
-
-      const idx = chars.findIndex(c => c.id === pendingChar.id);
-      if (idx !== -1) {
-        chars[idx] = { ...chars[idx], pin: setupChosen };
-      }
-
-      await updateDoc(playerRef, { characters: chars });
-
-      const updated = { ...pendingChar, pin: setupChosen };
-      sessionStorage.setItem('site15_profile', JSON.stringify(updated));
-      pendingChar = updated;
-
-      showStep('pin-success');
-      setTimeout(() => {
-        document.getElementById('redirectFill').style.width = '100%';
-      }, 100);
-
-      setTimeout(() => {
-        launchChar(pendingChar);
-      }, 2300);
-
-    } catch (err) {
-      console.error('[Site-15] Erreur sauvegarde PIN :', err);
-      lockSetupPad(false);
-      showSetupFeedback('error', 'Erreur réseau. Réessayez.');
-      setupCurrent = '';
-      setupPinStep = 'choose';
-      setupChosen  = '';
-      updateSetupDots();
-    }
-  }
-
-  function showSetupFeedback(type, msg) {
-    const f = document.getElementById('pinFeedback');
-    f.className = 'pin-feedback ' + type;
-    f.textContent = msg;
-  }
-  function shakeSetupAndReset() {
-    for (let i = 0; i < 4; i++) document.getElementById('spd' + i).className = 'setup-pin-dot error';
-    setTimeout(() => { setupCurrent = ''; updateSetupDots(); }, 600);
-  }
-  function flashSetupError() {
-    for (let i = 0; i < 4; i++) document.getElementById('spd' + i).className = 'setup-pin-dot error';
-  }
-  function flashSetupSuccess() {
-    for (let i = 0; i < 4; i++) document.getElementById('spd' + i).className = 'setup-pin-dot success';
-    document.getElementById('pip2').className = 'step-pip done';
-    showSetupFeedback('success', 'Code validé. Enregistrement...');
-  }
-
-  // ── Lancement (après PIN OK) ─────────────────────
-  function launchChar(c) {
-    const role = c.role || 'scientific';
-    const name = c.displayName || c.name || 'Agent';
-    localStorage.setItem('site15_uid',     c.id || '');
-    localStorage.setItem('site15_role',    role);
-    localStorage.setItem('site15_name',    name);
-    localStorage.setItem('site15_profile', JSON.stringify(c));
-    localStorage.setItem('site15_authed',  '1');
-    console.log('launchChar id:', c.id); // doit afficher "moud5ljeplac"
-    document.getElementById('trName').textContent     = name.toUpperCase();
-    document.getElementById('trDeptText').textContent = DEPT_LABELS[role] || role;
-    document.getElementById('trOverlay').classList.add('show');
-    setTimeout(() => document.getElementById('trFill').classList.add('go'), 80);
-    setTimeout(() => { window.location.href = REDIRECTS[role] || 'index.html'; }, 1300);
-  }
-
-  // ── Utilitaires ──────────────────────────────────
-  function esc(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  // ── Listeners ────────────────────────────────────
-  document.getElementById('btnGo').addEventListener('click', handleLogin);
-  document.getElementById('pseudoInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleLogin();
-  });
+// ── Listeners ──
+document.getElementById('btnGo').addEventListener('click', handleLogin);
+document.getElementById('pseudoInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
 </script>
 </body>
 </html>
