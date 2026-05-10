@@ -2072,7 +2072,7 @@ document.addEventListener('click', async e => {
   const dp = e.target.closest('[data-del-p]');
   if (dp) { if(!requireAuth('supprimer un protocole')) return; if(!confirm('Supprimer ce protocole ?')) return; await fbDelete('sec_protocols', dp.dataset.delP); SCPIntranet.addHistory('Protocole supprimé.'); return; }
 
-  // ÉVALUATIONS (nouveau système)
+  // ÉVALUATIONS
   const eDetBtn = e.target.closest('[data-eval-open]');
   if (eDetBtn) { openEvalDetail(eDetBtn.dataset.evalOpen); return; }
   const eSignBtn = e.target.closest('[data-eval-sign]');
@@ -2081,6 +2081,14 @@ document.addEventListener('click', async e => {
   if (eRejectBtn) { await evalReject(eRejectBtn.dataset.evalReject, parseInt(eRejectBtn.dataset.evalSigIdx)); return; }
   const eRevokeBtn = e.target.closest('[data-eval-revoke]');
   if (eRevokeBtn) { await evalRevoke(eRevokeBtn.dataset.evalRevoke, parseInt(eRevokeBtn.dataset.evalSigIdx)); return; }
+
+  // WIZARD ÉVAL — supprimer signataire
+  const ewRemBtn = e.target.closest('[data-ew-remove-sig]');
+  if (ewRemBtn) { ewRemoveSig(parseInt(ewRemBtn.dataset.ewRemoveSig)); return; }
+
+  // WIZARD ÉVAL — tabs dtab
+  const dt = e.target.closest('.eval-dtab');
+  if (dt && dt.dataset.evalDtab) { activateEvalDTab(dt.dataset.evalDtab); return; }
 
   // RAPPORTS
   const vb = e.target.closest('[data-view-r]');
@@ -2117,6 +2125,19 @@ document.addEventListener('click', async e => {
   if (e.target.classList.contains('modal-ov')) { SCPIntranet.closeModal(e.target.id); return; }
 });
 
+// Wizard éval — inputs signataires & sliders (hors click)
+document.addEventListener('input', e => {
+  const sigRole = e.target.closest('[data-sig-role]');
+  if (sigRole) { ewSigs[parseInt(sigRole.dataset.sigRole)].role = sigRole.value; return; }
+  const sigName = e.target.closest('[data-sig-name]');
+  if (sigName) { ewSigs[parseInt(sigName.dataset.sigName)].name = sigName.value; return; }
+  const scoreSlider = e.target.closest('[data-ew-score]');
+  if (scoreSlider) { ewUpdateScore(scoreSlider.dataset.ewScore, scoreSlider.value); return; }
+});
+document.addEventListener('change', e => {
+  const sigReq = e.target.closest('[data-sig-req]');
+  if (sigReq) { ewSigs[parseInt(sigReq.dataset.sigReq)].required = sigReq.checked; return; }
+});
 // ══════════════════════════════════════════
 // EFFECTIFS
 // ══════════════════════════════════════════
@@ -2338,13 +2359,15 @@ function evalGetMention(total){
   return MAP.find(m=>total>=m.min)||MAP[MAP.length-1];
 }
 function evalGetValidStatus(ev){
-  if(!ev.signataires||!ev.signataires.length) return 'pending';
-  const req=ev.signataires.filter(s=>s.required);
-  if(req.every(s=>s.status==='signed')) return 'complete';
-  if(ev.signataires.some(s=>s.status==='rejected')) return 'rejected';
-  if(ev.signataires.some(s=>s.status==='signed')) return 'partial';
+  if(!ev.signataires || !ev.signataires.length) return 'complete'; // ← était 'pending'
+  const req = ev.signataires.filter(s => s.required);
+  if(!req.length) return 'complete'; // ← ajout : aucun signataire requis = validé
+  if(ev.signataires.some(s => s.status === 'rejected')) return 'rejected';
+  if(req.every(s => s.status === 'signed')) return 'complete';
+  if(ev.signataires.some(s => s.status === 'signed')) return 'partial';
   return 'pending';
 }
+
 function evalValidBadge(status){
   return {pending:{text:'EN ATTENTE',cls:'eval-valid-badge--pending'},partial:{text:'PARTIEL',cls:'eval-valid-badge--partial'},complete:{text:'VALIDÉ ✓',cls:'eval-valid-badge--complete'},rejected:{text:'REFUSÉ',cls:'eval-valid-badge--rejected'}}[status]||{text:'—',cls:'eval-valid-badge--pending'};
 }
@@ -2358,9 +2381,10 @@ function renderEvals(){
   // Stats bar
   const cnt={promu:0,valide:0,avertissement:0,recale:0,pending:0};
   evaluations.forEach(e=>{
-    if(cnt[e.decision]!==undefined) cnt[e.decision]++;
-    if(evalGetValidStatus(e)!=='complete') cnt.pending++;
-  });
+  if(cnt[e.decision] !== undefined) cnt[e.decision]++;
+  const vs = evalGetValidStatus(e);
+  if(vs === 'pending' || vs === 'partial') cnt.pending++;
+});
   ['Promu','Valide','Avert','Recale','Pending','Total'].forEach(k=>{
     const id='evalStat'+k; const el2=document.getElementById(id);
     if(!el2) return;
@@ -2575,18 +2599,19 @@ function ewResetForm(){
   ewRenderSigList(); ewRenderCompSliders(); ewUpdateUI();
 }
 function ewRenderSigList(){
-  const el=document.getElementById('ewSigList'); if(!el) return;
-  el.innerHTML=ewSigs.map((s,i)=>`
+  const el = document.getElementById('ewSigList'); if(!el) return;
+  el.innerHTML = ewSigs.map((s,i) => `
     <div class="eval-sig-setup-card">
       <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);white-space:nowrap">NIV.${s.level}</span>
-      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Rôle" value="${esc(s.role)}" oninput="ewSigs[${i}].role=this.value"/>
-      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Nom du signataire" value="${esc(s.name)}" oninput="ewSigs[${i}].name=this.value"/>
+      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Rôle" value="${esc(s.role)}" data-sig-role="${i}"/>
+      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Nom du signataire" value="${esc(s.name)}" data-sig-name="${i}"/>
       <label style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap">
-        <input type="checkbox" ${s.required?'checked':''} onchange="ewSigs[${i}].required=this.checked"/> Requis
+        <input type="checkbox" ${s.required?'checked':''} data-sig-req="${i}"/> Requis
       </label>
-      ${ewSigs.length>1?`<button class="btn btn-xs btn-danger" onclick="ewRemoveSig(${i})">✕</button>`:''}
+      ${ewSigs.length>1?`<button class="btn btn-xs btn-danger" data-ew-remove-sig="${i}">✕</button>`:''}
     </div>`).join('');
 }
+
 function ewRemoveSig(i){ewSigs.splice(i,1);ewSigs.forEach((s,idx)=>s.level=idx+1);ewRenderSigList();}
 document.getElementById('ewAddSigBtn')?.addEventListener('click',()=>{
   ewSigs.push({level:ewSigs.length+1,role:'',name:'',required:false,status:'pending',signedAt:null});
