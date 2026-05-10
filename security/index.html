@@ -1559,6 +1559,31 @@ function saveSession(userObj) { localStorage.setItem(SESSION_KEY, JSON.stringify
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 async function initApp() {
+  // ── 1. Auto-login depuis la page de connexion (PIN validé) ──
+  const authed  = sessionStorage.getItem('site15_authed') === '1';
+  const raw     = sessionStorage.getItem('site15_profile');
+  if (authed && raw) {
+    try {
+      const profile = JSON.parse(raw);
+      const snap    = await getDocs(collection(db, 'users'));
+      let found     = null;
+      snap.forEach(d => {
+        const u = d.data();
+        if (u.username?.toLowerCase() === profile.username?.toLowerCase()
+         || u.username?.toLowerCase() === profile.robloxName?.toLowerCase()) {
+          found = { _id: d.id, ...u };
+        }
+      });
+      if (found) {
+        currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
+        saveSession({ username: found.username, password: found.password });
+        onAuthChange(found.displayName || found.username || found.name, currentRole);
+        return;
+      }
+    } catch(e) { console.warn('Auto-login session échoué:', e); }
+  }
+
+  // ── 2. Fallback : session localStorage classique ──
   const savedSession = loadSession();
   if (savedSession?.username && savedSession?.password) {
     try {
@@ -1573,8 +1598,11 @@ async function initApp() {
     } catch(e) { console.warn('Session restore failed:', e); }
     clearSession();
   }
+
   onAuthChange(null, null);
 }
+
+
 
 function onAuthChange(name, role) {
   applyPermissions(name, role);
@@ -1584,6 +1612,8 @@ function onAuthChange(name, role) {
   else { SCPIntranet.addHistory('Mode lecture seule — non authentifié'); showAuthLoginPanel(); }
   renderEvals(); renderRapports(); renderProtocols(); renderAppelHistorique(); renderEffectifs();
 }
+
+
 
 function applyPermissions(name, role) {
   const canWrite = !!name;
