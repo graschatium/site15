@@ -1172,11 +1172,11 @@ let currentDocId = '';
   function launchChar(c) {
     const role = c.role || 'scientific';
     const name = c.displayName || c.name || 'Agent';
-    sessionStorage.setItem('site15_uid',     c.id || '');
-    sessionStorage.setItem('site15_role',    role);
-    sessionStorage.setItem('site15_name',    name);
-    sessionStorage.setItem('site15_profile', JSON.stringify(c));
-    sessionStorage.setItem('site15_authed',  '1');
+    localStorage.setItem('site15_uid',     c.id || '');
+    localStorage.setItem('site15_role',    role);
+    localStorage.setItem('site15_name',    name);
+    localStorage.setItem('site15_profile', JSON.stringify(c));
+    localStorage.setItem('site15_authed',  '1');
     console.log('launchChar id:', c.id); // doit afficher "moud5ljeplac"
     document.getElementById('trName').textContent     = name.toUpperCase();
     document.getElementById('trDeptText').textContent = DEPT_LABELS[role] || role;
