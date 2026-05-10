@@ -1329,7 +1329,7 @@ function showBanScreen({ scope, pseudo, charName, reason, duration, mod }) {
        Contactez un responsable pour plus d'informations.`;
   } else {
     document.getElementById('banCode').textContent     = 'COMPTE — RÉVOQUÉ';
-    document.getElementById('banSubtitle').textContent = 'Connexion définitivement bloquée';
+    document.getElementById('banSubtitle').textContent = 'Connexion bloquée';
     document.getElementById('banCharName').textContent = pseudo ? pseudo.toUpperCase() : '';
     document.getElementById('banReason').textContent   = reason ? `Motif : ${reason}` : '';
     document.getElementById('banDetail').innerHTML     =
