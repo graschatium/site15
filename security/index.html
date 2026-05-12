@@ -1560,8 +1560,8 @@ function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 async function initApp() {
   // ── 1. Auto-login depuis la page de connexion (PIN validé) ──
-  const authed  = sessionStorage.getItem('site15_authed') === '1';
-  const raw     = sessionStorage.getItem('site15_profile');
+  const authed  = localStorage.getItem('site15_authed') === '1';
+  const raw     = localStorage.getItem('site15_profile');
   if (authed && raw) {
     try {
       const profile = JSON.parse(raw);
@@ -1569,7 +1569,7 @@ async function initApp() {
       let found     = null;
       snap.forEach(d => {
         const u = d.data();
-        if (u.username?.toLowerCase() === profile.id?.toLowerCase()      // ← profile.id = pseudo Roblox
+        if (u.username?.toLowerCase() === profile.id?.toLowerCase()
          || u.username?.toLowerCase() === profile.name?.toLowerCase()) {
           found = { _id: d.id, ...u };
         }
@@ -1601,8 +1601,6 @@ async function initApp() {
 
   onAuthChange(null, null);
 }
-
-
 
 function onAuthChange(name, role) {
   applyPermissions(name, role);
