@@ -1559,39 +1559,82 @@ function saveSession(userObj) { localStorage.setItem(SESSION_KEY, JSON.stringify
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 async function initApp() {
-  // ── 1. Auto-login depuis la page de connexion (PIN validé) ──
+  // ── 1. Auto-login depuis la page de connexion (session site15) ──
   const authed  = localStorage.getItem('site15_authed') === '1';
   const raw     = localStorage.getItem('site15_profile');
+
   if (authed && raw) {
     try {
       const profile = JSON.parse(raw);
-      const snap    = await getDocs(collection(db, 'users'));
-      let found     = null;
+
+      // Vérifier que c'est bien un personnage du département Sécurité
+      const role = profile.role || localStorage.getItem('site15_role') || '';
+      if (role !== 'security') {
+        // Mauvais département — on laisse passer en lecture seule
+        onAuthChange(null, null);
+        return;
+      }
+
+      // Chercher dans la collection Firestore 'users' par username ou displayName
+      const displayName = profile.displayName || profile.name || '';
+      const robloxName  = profile.robloxName  || profile.id   || '';
+
+      const snap = await getDocs(collection(db, 'users'));
+      let found = null;
       snap.forEach(d => {
         const u = d.data();
-        if (u.username?.toLowerCase() === profile.id?.toLowerCase()
-         || u.username?.toLowerCase() === profile.name?.toLowerCase()) {
+        const uname = (u.username || u.name || '').toLowerCase();
+        if (
+          (displayName && uname === displayName.toLowerCase()) ||
+          (robloxName  && uname === robloxName.toLowerCase())
+        ) {
           found = { _id: d.id, ...u };
         }
       });
+
       if (found) {
-        currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
+        // Trouvé dans la table users — connexion complète avec son rôle admin/modérateur
+        currentUser = found;
+        currentRole = found.role || 'moderateur';
+        isAuthenticated = true;
         saveSession({ username: found.username, password: found.password });
         onAuthChange(found.displayName || found.username || found.name, currentRole);
         return;
       }
-    } catch(e) { console.warn('Auto-login session échoué:', e); }
+
+      // Pas dans la collection 'users' mais session site15 valide → modérateur par défaut
+      currentUser = {
+        _id: profile.id || 'player-session',
+        username: robloxName || displayName,
+        displayName: displayName || robloxName,
+        role: 'moderateur',
+      };
+      currentRole = 'moderateur';
+      isAuthenticated = true;
+      saveSession({ username: currentUser.username, password: '__site15_session__' });
+      onAuthChange(currentUser.displayName, currentRole);
+      return;
+
+    } catch(e) {
+      console.warn('Auto-login session échoué:', e);
+    }
   }
 
-  // ── 2. Fallback : session localStorage classique ──
+  // ── 2. Fallback : session localStorage classique (username + mot de passe) ──
   const savedSession = loadSession();
-  if (savedSession?.username && savedSession?.password) {
+  if (savedSession?.username && savedSession?.password && savedSession.password !== '__site15_session__') {
     try {
       const snap = await getDocs(collection(db, 'users'));
       let found = null;
-      snap.forEach(d => { const u = d.data(); const id = u.username || u.name || ''; if (id.toLowerCase() === savedSession.username.toLowerCase()) found = { _id: d.id, ...u }; });
+      snap.forEach(d => {
+        const u = d.data();
+        const id = u.username || u.name || '';
+        if (id.toLowerCase() === savedSession.username.toLowerCase()) found = { _id: d.id, ...u };
+      });
       if (found && found.password === savedSession.password) {
-        currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
+        currentUser = found;
+        currentRole = found.role || 'moderateur';
+        isAuthenticated = true;
         onAuthChange(found.displayName || found.username || found.name, currentRole);
         return;
       }
