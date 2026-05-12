@@ -1642,9 +1642,20 @@ function onAuthChange(name, role) {
 
 
 function applyPermissions(name, role) {
-  const canWrite = !!name;
-  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !canWrite));
-  ['roProto','roEval','roRapport','roAppel'].forEach(id => document.getElementById(id)?.classList.toggle('visible', !canWrite));
+  const write = canWrite();
+  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !write));
+  ['roProto','roEval','roRapport','roAppel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!name) {
+      el.querySelector('span:last-child').innerHTML =
+        'Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier';
+    } else if (!write) {
+      el.querySelector('span:last-child').innerHTML =
+        'Grade insuffisant — Lieutenant minimum requis pour modifier';
+    }
+    el.classList.toggle('visible', !write);
+  });
 }
 
 function updateSidebarAuth(name, role) {
@@ -1675,6 +1686,51 @@ function updateSidebarAuth(name, role) {
     if (levelEl)  { levelEl.textContent = 'PUBLIC'; levelEl.style.color = 'var(--text-dim)'; }
     if (btn)      { btn.textContent = '🔑 Se connecter'; btn.className = 'auth-btn'; btn.style.width='100%'; btn.style.marginTop='10px'; btn.style.textAlign='center'; btn.onclick = toggleAuthFlyout; }
   }
+}
+
+const RANK_ORDER = [
+  'cadet', 'stagiaire', 'recrue',
+  'agent', 'agent de 2ème classe', 'agent de 2e classe', 'agent de 1ère classe', 'agent de 1ere classe', 'agent de 1er classe',
+  'caporal', 'caporal-chef',
+  'sergent', 'sergent-chef',
+  'lieutenant',
+  'capitaine',
+  'commandant',
+  'directeur', 'directeur de la sécurité',
+  'admin', 'administrateur',
+];
+
+function getRankLevel(rpRank) {
+  if (!rpRank) return -1;
+  const lower = rpRank.toLowerCase();
+  for (let i = RANK_ORDER.length - 1; i >= 0; i--) {
+    if (lower.includes(RANK_ORDER[i])) return i;
+  }
+  return -1;
+}
+
+function canWrite() {
+  if (!isAuthenticated) return false;
+  if (currentRole === 'admin') return true;
+  const rpRank = currentUser?.rpRank || '';
+  const level  = getRankLevel(rpRank);
+  const ltLevel = RANK_ORDER.indexOf('lieutenant');
+  return level >= ltLevel;
+}function applyPermissions(name, role) {
+  const write = canWrite();
+  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !write));
+  ['roProto','roEval','roRapport','roAppel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!name) {
+      el.querySelector('span:last-child').innerHTML =
+        'Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier';
+    } else if (!write) {
+      el.querySelector('span:last-child').innerHTML =
+        'Grade insuffisant — Lieutenant minimum requis pour modifier';
+    }
+    el.classList.toggle('visible', !write);
+  });
 }
 
 function updateAuthButton(name, role) {
@@ -1810,7 +1866,16 @@ function updateStats() {
 }
 
 function requireAuth(action) {
-  if (!isAuthenticated) { openAuthFlyout(); SCPIntranet.addHistory('⚠ Connexion requise pour: ' + action); return false; }
+  if (!isAuthenticated) {
+    openAuthFlyout();
+    SCPIntranet.addHistory('⚠ Connexion requise pour: ' + action);
+    return false;
+  }
+  if (!canWrite()) {
+    SCPIntranet.addHistory('⛔ Grade insuffisant pour: ' + action);
+    alert('⛔ Grade insuffisant — Lieutenant minimum requis pour effectuer cette action.');
+    return false;
+  }
   return true;
 }
 
