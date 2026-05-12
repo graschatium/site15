@@ -1559,81 +1559,66 @@ function saveSession(userObj) { localStorage.setItem(SESSION_KEY, JSON.stringify
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 async function initApp() {
-  // ── 1. Auto-login depuis la page de connexion (session site15) ──
-  const authed  = localStorage.getItem('site15_authed') === '1';
-  const raw     = localStorage.getItem('site15_profile');
+  const authed = localStorage.getItem('site15_authed') === '1';
+  const raw    = localStorage.getItem('site15_profile');
 
   if (authed && raw) {
     try {
-      const profile = JSON.parse(raw);
-
-      // Vérifier que c'est bien un personnage du département Sécurité
-      const role = profile.role || localStorage.getItem('site15_role') || '';
-      if (role !== 'security') {
-        // Mauvais département — on laisse passer en lecture seule
-        onAuthChange(null, null);
-        return;
-      }
-
-      // Chercher dans la collection Firestore 'users' par username ou displayName
+      const profile     = JSON.parse(raw);
+      const role        = profile.role || localStorage.getItem('site15_role') || '';
       const displayName = profile.displayName || profile.name || '';
-      const robloxName  = profile.robloxName  || profile.id   || '';
+      const robloxName  = profile.robloxName  || profile.id  || '';
 
-      const snap = await getDocs(collection(db, 'users'));
-      let found = null;
-      snap.forEach(d => {
-        const u = d.data();
-        const uname = (u.username || u.name || '').toLowerCase();
-        if (
-          (displayName && uname === displayName.toLowerCase()) ||
-          (robloxName  && uname === robloxName.toLowerCase())
-        ) {
-          found = { _id: d.id, ...u };
+      if (role === 'security') {
+        const snap = await getDocs(collection(db, 'users'));
+        let found = null;
+        snap.forEach(d => {
+          const u     = d.data();
+          const uname = (u.username || u.name || '').toLowerCase();
+          if (
+            (displayName && uname === displayName.toLowerCase()) ||
+            (robloxName  && uname === robloxName.toLowerCase())
+          ) found = { _id: d.id, ...u };
+        });
+
+        if (found) {
+          currentUser     = { ...found, rpRank: profile.rank || '' };
+          currentRole     = found.role || 'moderateur';
+          isAuthenticated = true;
+          saveSession({ username: found.username, password: found.password });
+          onAuthChange(found.displayName || found.username || found.name, currentRole);
+          return;
         }
-      });
 
-      if (found) {
-        // Trouvé dans la table users — connexion complète avec son rôle admin/modérateur
-        currentUser = found;
-        currentRole = found.role || 'moderateur';
+        currentUser = {
+          _id:         profile.id || 'player-session',
+          username:    robloxName || displayName,
+          displayName: displayName || robloxName,
+          role:        'moderateur',
+          rpRank:      profile.rank || '',
+        };
+        currentRole     = 'moderateur';
         isAuthenticated = true;
-        saveSession({ username: found.username, password: found.password });
-        onAuthChange(found.displayName || found.username || found.name, currentRole);
+        saveSession({ username: currentUser.username, password: '__site15_session__' });
+        onAuthChange(currentUser.displayName, currentRole);
         return;
       }
-
-      // Pas dans la collection 'users' mais session site15 valide → modérateur par défaut
-      currentUser = {
-        _id: profile.id || 'player-session',
-        username: robloxName || displayName,
-        displayName: displayName || robloxName,
-        role: 'moderateur',
-      };
-      currentRole = 'moderateur';
-      isAuthenticated = true;
-      saveSession({ username: currentUser.username, password: '__site15_session__' });
-      onAuthChange(currentUser.displayName, currentRole);
-      return;
-
-    } catch(e) {
-      console.warn('Auto-login session échoué:', e);
-    }
+    } catch(e) { console.warn('Auto-login session échoué:', e); }
   }
 
-  // ── 2. Fallback : session localStorage classique (username + mot de passe) ──
   const savedSession = loadSession();
   if (savedSession?.username && savedSession?.password && savedSession.password !== '__site15_session__') {
     try {
       const snap = await getDocs(collection(db, 'users'));
       let found = null;
       snap.forEach(d => {
-        const u = d.data();
+        const u  = d.data();
         const id = u.username || u.name || '';
         if (id.toLowerCase() === savedSession.username.toLowerCase()) found = { _id: d.id, ...u };
       });
       if (found && found.password === savedSession.password) {
-        currentUser = found;
-        currentRole = found.role || 'moderateur';
+        currentUser     = found;
+        currentRole     = found.role || 'moderateur';
         isAuthenticated = true;
         onAuthChange(found.displayName || found.username || found.name, currentRole);
         return;
@@ -1671,9 +1656,18 @@ function updateSidebarAuth(name, role) {
   if (name) {
     if (statusEl) { statusEl.textContent = 'CONNECTÉ'; statusEl.style.color = 'var(--safe)'; }
     if (nameEl)   nameEl.textContent = name;
-    if (roleEl)   { roleEl.textContent = role?.toUpperCase() || 'MODÉRATEUR'; roleEl.style.color = role === 'admin' ? 'var(--danger)' : 'var(--accent)'; }
-    if (levelEl)  { levelEl.textContent = role === 'admin' ? 'ADMIN COMPLET' : 'ÉCRITURE'; levelEl.style.color = 'var(--safe)'; }
-    if (btn)      { btn.textContent = '↩ Déconnexion'; btn.className = 'auth-btn connected'; btn.style.width='100%'; btn.style.marginTop='10px'; btn.style.textAlign='center'; btn.onclick = doAuthLogout; }
+    if (roleEl) {
+      const rpRank = currentUser?.rpRank || '';
+      if (rpRank) {
+        roleEl.textContent  = rpRank;
+        roleEl.style.color  = 'var(--dept-color)';
+      } else {
+        roleEl.textContent  = role?.toUpperCase() || 'MODÉRATEUR';
+        roleEl.style.color  = role === 'admin' ? 'var(--danger)' : 'var(--accent)';
+      }
+    }
+    if (levelEl) { levelEl.textContent = role === 'admin' ? 'ADMIN COMPLET' : 'ÉCRITURE'; levelEl.style.color = 'var(--safe)'; }
+    if (btn)     { btn.textContent = '↩ Déconnexion'; btn.className = 'auth-btn connected'; btn.style.width='100%'; btn.style.marginTop='10px'; btn.style.textAlign='center'; btn.onclick = doAuthLogout; }
   } else {
     if (statusEl) { statusEl.textContent = 'NON CONNECTÉ'; statusEl.style.color = 'var(--text-dim)'; }
     if (nameEl)   nameEl.textContent = '—';
@@ -1715,8 +1709,14 @@ function showAuthUserPanel(name, role) {
   document.getElementById('afUserPanel').style.display    = 'block';
   document.getElementById('afUserName').textContent = name;
   const roleEl = document.getElementById('afUserRole');
-  roleEl.textContent = role === 'admin' ? '🔐 Administrateur' : '🛡 Modérateur';
-  roleEl.className = 'auth-user-role ' + (role || 'moderateur');
+  const rpRank = currentUser?.rpRank || '';
+  if (rpRank) {
+    roleEl.textContent = rpRank;
+    roleEl.className   = 'auth-user-role moderateur';
+  } else {
+    roleEl.textContent = role === 'admin' ? '🔐 Administrateur' : '🛡 Modérateur';
+    roleEl.className   = 'auth-user-role ' + (role || 'moderateur');
+  }
 }
 
 window.doAuthLogin = async function() {
