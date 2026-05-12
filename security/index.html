@@ -1642,20 +1642,9 @@ function onAuthChange(name, role) {
 
 
 function applyPermissions(name, role) {
-  const write = canWrite();
-  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !write));
-  ['roProto','roEval','roRapport','roAppel'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (!name) {
-      el.querySelector('span:last-child').innerHTML =
-        'Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier';
-    } else if (!write) {
-      el.querySelector('span:last-child').innerHTML =
-        'Grade insuffisant — Lieutenant minimum requis pour modifier';
-    }
-    el.classList.toggle('visible', !write);
-  });
+  const canWrite = !!name;
+  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !canWrite));
+  ['roProto','roEval','roRapport','roAppel'].forEach(id => document.getElementById(id)?.classList.toggle('visible', !canWrite));
 }
 
 function updateSidebarAuth(name, role) {
@@ -1716,21 +1705,6 @@ function canWrite() {
   const level  = getRankLevel(rpRank);
   const ltLevel = RANK_ORDER.indexOf('lieutenant');
   return level >= ltLevel;
-}function applyPermissions(name, role) {
-  const write = canWrite();
-  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !write));
-  ['roProto','roEval','roRapport','roAppel'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (!name) {
-      el.querySelector('span:last-child').innerHTML =
-        'Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier';
-    } else if (!write) {
-      el.querySelector('span:last-child').innerHTML =
-        'Grade insuffisant — Lieutenant minimum requis pour modifier';
-    }
-    el.classList.toggle('visible', !write);
-  });
 }
 
 function updateAuthButton(name, role) {
@@ -1866,16 +1840,7 @@ function updateStats() {
 }
 
 function requireAuth(action) {
-  if (!isAuthenticated) {
-    openAuthFlyout();
-    SCPIntranet.addHistory('⚠ Connexion requise pour: ' + action);
-    return false;
-  }
-  if (!canWrite()) {
-    SCPIntranet.addHistory('⛔ Grade insuffisant pour: ' + action);
-    alert('⛔ Grade insuffisant — Lieutenant minimum requis pour effectuer cette action.');
-    return false;
-  }
+  if (!isAuthenticated) { openAuthFlyout(); SCPIntranet.addHistory('⚠ Connexion requise pour: ' + action); return false; }
   return true;
 }
 
