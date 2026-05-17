@@ -1677,36 +1677,6 @@ function updateSidebarAuth(name, role) {
   }
 }
 
-const RANK_ORDER = [
-  'cadet', 'stagiaire', 'recrue',
-  'agent', 'agent de 2ème classe', 'agent de 2e classe', 'agent de 1ère classe', 'agent de 1ere classe', 'agent de 1er classe',
-  'caporal', 'caporal-chef',
-  'sergent', 'sergent-chef',
-  'lieutenant',
-  'capitaine',
-  'commandant',
-  'directeur', 'directeur de la sécurité',
-  'admin', 'administrateur',
-];
-
-function getRankLevel(rpRank) {
-  if (!rpRank) return -1;
-  const lower = rpRank.toLowerCase();
-  for (let i = RANK_ORDER.length - 1; i >= 0; i--) {
-    if (lower.includes(RANK_ORDER[i])) return i;
-  }
-  return -1;
-}
-
-function canWrite() {
-  if (!isAuthenticated) return false;
-  if (currentRole === 'admin') return true;
-  const rpRank = currentUser?.rpRank || '';
-  const level  = getRankLevel(rpRank);
-  const ltLevel = RANK_ORDER.indexOf('lieutenant');
-  return level >= ltLevel;
-}
-
 function updateAuthButton(name, role) {
   const btn = document.getElementById('authBtn'); if (!btn) return;
   if (name) { btn.textContent = '✓ ' + name.split(' ')[0]; btn.className = 'auth-btn connected'; }
