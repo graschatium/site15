@@ -22,20 +22,6 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 ::-webkit-scrollbar-track{background:var(--surface)}
 ::-webkit-scrollbar-thumb{background:var(--border2)}
 
-/* TOPBAR */
-.topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300}
-.topbar-brand{display:flex;align-items:center;gap:12px}
-.topbar-back{font-size:10px;letter-spacing:.1em;color:var(--text-dim);padding:4px 8px;border:1px solid var(--border2);transition:all .2s;cursor:pointer}
-.topbar-back:hover{border-color:var(--dept-color);color:var(--dept-color)}
-.topbar-divider{width:1px;height:28px;background:var(--border2)}
-.topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.05em}
-.topbar-dept{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color)}
-.topbar-right{display:flex;align-items:center;gap:12px}
-.topbar-clearance{font-size:9px;letter-spacing:.18em;padding:3px 10px;border:1px solid var(--dept-color);color:var(--dept-color);text-transform:uppercase}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--dept-color);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.topbar-status{font-size:9px;letter-spacing:.15em;text-transform:uppercase;display:flex;align-items:center;gap:6px;color:var(--dept-color)}
-
 /* AUTH GATE */
 #authGate{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth-gate-box{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border2);border-top:3px solid var(--dept-color);padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 40px var(--dept-glow)}
@@ -56,6 +42,20 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .auth-gate-back{text-align:center;margin-top:14px;font-size:9px;color:var(--text-dim);cursor:pointer;letter-spacing:.1em}
 .auth-gate-back:hover{color:var(--dept-color)}
 
+/* TOPBAR */
+.topbar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:300}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-back{font-size:10px;letter-spacing:.1em;color:var(--text-dim);padding:4px 8px;border:1px solid var(--border2);transition:all .2s;cursor:pointer}
+.topbar-back:hover{border-color:var(--dept-color);color:var(--dept-color)}
+.topbar-divider{width:1px;height:28px;background:var(--border2)}
+.topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.05em}
+.topbar-dept{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-clearance{font-size:9px;letter-spacing:.18em;padding:3px 10px;border:1px solid var(--dept-color);color:var(--dept-color);text-transform:uppercase}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--dept-color);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.topbar-status{font-size:9px;letter-spacing:.15em;text-transform:uppercase;display:flex;align-items:center;gap:6px;color:var(--dept-color)}
+
 /* LAYOUT */
 .app-layout{display:flex;min-height:calc(100vh - 52px)}
 .main-content{flex:1;padding:24px;overflow-y:auto;max-width:1100px;margin:0 auto;width:100%}
@@ -75,8 +75,8 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .agent-hero-tag.status-inactif{border-color:var(--border2);color:var(--text-dim)}
 .agent-hero-tag.status-suspendu{border-color:rgba(255,51,85,.4);color:var(--danger);background:rgba(255,51,85,.06)}
 .agent-hero-tag.status-conge{border-color:rgba(255,170,0,.4);color:var(--warn);background:rgba(255,170,0,.06)}
-.agent-hero-meta{display:flex;gap:16px;font-size:9px;color:var(--text-dim);letter-spacing:.06em}
-.agent-hero-actions{display:flex;gap:8px;align-items:flex-start;flex-shrink:0}
+.agent-hero-meta{display:flex;gap:16px;font-size:9px;color:var(--text-dim);letter-spacing:.06em;flex-wrap:wrap}
+.agent-hero-actions{display:flex;gap:8px;align-items:flex-start;flex-shrink:0;flex-wrap:wrap}
 
 /* QUICK STATS */
 .quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
@@ -92,23 +92,82 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .sec-title::before{content:'';width:3px;height:18px;background:var(--dept-color)}
 .sec-count{font-size:9px;color:var(--text-dim);letter-spacing:.1em}
 
+/* PERMISSIONS LOCK */
+.perm-lock{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text-dim);background:rgba(0,230,118,.04);border:1px solid rgba(0,230,118,.15);padding:8px 14px;margin-bottom:12px;letter-spacing:.1em}
+
 /* EDIT PANEL */
 .edit-panel{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--warn);padding:18px;margin-bottom:20px;display:none}
 .edit-panel.open{display:block;animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 .edit-panel-title{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--warn);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .edit-panel-title::after{content:'';flex:1;height:1px;background:rgba(255,170,0,.15)}
+
+/* FORM PANEL */
+.form-panel{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--dept-color);padding:18px;margin-bottom:16px;display:none}
+.form-panel.open{display:block;animation:fadeIn .2s ease}
+.form-panel-title{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dept-color);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.form-panel-title span::after{content:''}
+
+/* STEPPER */
+.stepper{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border2);overflow:hidden}
+.step-btn{flex:1;padding:10px 14px;background:var(--surface2);border-right:1px solid var(--border2);cursor:pointer;transition:all .2s;text-align:center;border:none}
+.step-btn:last-child{border-right:none}
+.step-btn.active{background:rgba(0,230,118,.08);border-bottom:2px solid var(--dept-color)}
+.step-btn.done{background:rgba(0,217,126,.04)}
+.step-num{font-size:9px;color:var(--text-dim);letter-spacing:.15em;display:block;margin-bottom:2px}
+.step-lbl{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em}
+.step-btn.active .step-lbl{color:var(--dept-color)}
+.step-btn.done .step-num{color:var(--safe)}
+.step-btn.done .step-lbl{color:var(--safe)}
+.step-panel{display:none}
+.step-panel.active{display:block}
+
+/* FORM ELEMENTS */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
 .form-field{display:flex;flex-direction:column;gap:4px}
 .form-field.full{grid-column:1/-1}
 .form-field label{font-size:8px;text-transform:uppercase;letter-spacing:.15em;color:var(--text-dim)}
 .form-field input,.form-field select,.form-field textarea{background:var(--surface);border:1px solid var(--border2);color:var(--white);padding:7px 10px;outline:none;transition:border-color .2s}
-.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--warn)}
-.form-field input:disabled,.form-field select:disabled{opacity:.4;cursor:not-allowed}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--dept-color)}
+.form-field input:disabled{opacity:.4;cursor:not-allowed}
 .form-field textarea{resize:vertical}
-.edit-actions{display:flex;gap:8px;justify-content:flex-end}
-.field-locked{position:relative}
-.field-locked::after{content:'🔒 VERROUILLÉ';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:7px;letter-spacing:.1em;color:var(--text-dim);pointer-events:none}
+.form-section{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--dept-color);padding:14px;margin-bottom:14px}
+.form-section-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--dept-color);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.form-section-title::after{content:'';flex:1;height:1px;background:rgba(0,230,118,.15)}
+
+/* BIO SELECTOR */
+.bio-selector{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.bio-opt{padding:10px 6px;border:1px solid var(--border2);background:var(--surface);text-align:center;cursor:pointer;transition:all .2s}
+.bio-opt:hover{border-color:var(--dept-color)}
+.bio-opt.selected{border-color:var(--dept-color);background:rgba(0,230,118,.08)}
+.bio-opt[data-lvl="3"].selected{border-color:var(--warn);background:rgba(255,170,0,.08)}
+.bio-opt[data-lvl="4"].selected{border-color:var(--danger);background:rgba(255,51,85,.08)}
+.bio-lvl{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--dept-color)}
+.bio-opt[data-lvl="3"] .bio-lvl{color:var(--warn)}
+.bio-opt[data-lvl="4"] .bio-lvl{color:var(--danger)}
+.bio-lbl{font-size:8px;letter-spacing:.1em;color:var(--text-dim);text-transform:uppercase;display:block;margin-top:2px}
+
+/* PRESCRIPTIONS */
+.rx-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.rx-item{background:var(--surface);border:1px solid var(--border2);border-left:3px solid var(--accent2);padding:10px 12px;display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:start}
+.rx-item-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:4px;align-self:center;opacity:.6;transition:opacity .2s}
+.rx-item-del:hover{opacity:1}
+.rx-add-btn{border:1px dashed var(--border2);padding:8px;text-align:center;cursor:pointer;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);background:transparent;transition:all .2s;width:100%}
+.rx-add-btn:hover{border-color:var(--dept-color);color:var(--dept-color)}
+
+/* PREVIEW */
+.ordo-preview{background:var(--surface2);border:1px solid var(--border2);padding:16px;font-family:'Courier Prime',monospace;font-size:11px;line-height:1.9}
+.ordo-preview-hdr{text-align:center;border-bottom:1px solid var(--border2);padding-bottom:10px;margin-bottom:12px}
+.ordo-preview-hdr .title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.1em}
+.ordo-preview-hdr .sub{font-size:9px;color:var(--text-dim);letter-spacing:.15em}
+.ordo-preview-row{display:flex;gap:16px;margin-bottom:4px}
+.ordo-preview-lbl{color:var(--text-dim);min-width:100px;flex-shrink:0}
+.ordo-preview-val{color:var(--white)}
+.ordo-preview-rx{margin-top:10px;border-top:1px dashed var(--border2);padding-top:10px}
+.ordo-preview-rx-title{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dept-color);margin-bottom:8px}
+.rx-preview-line{display:flex;gap:10px;padding:4px 0;border-bottom:1px solid var(--border);align-items:baseline}
+.rx-num{color:var(--dept-color);min-width:20px}
+.step-nav{display:flex;justify-content:space-between;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
 
 /* BTN */
 .btn{padding:7px 14px;border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
@@ -121,26 +180,28 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .btn-warn{border-color:rgba(255,170,0,.4);color:var(--warn);background:rgba(255,170,0,.04)}
 .btn-warn:hover{background:rgba(255,170,0,.12)}
 .btn-danger{border-color:rgba(255,51,85,.4);color:var(--danger);background:rgba(255,51,85,.04)}
+.btn-danger:hover{background:rgba(255,51,85,.12)}
+.field-locked{position:relative}
+.field-locked::after{content:'🔒';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;pointer-events:none;opacity:.4}
 
 /* EVAL CARDS */
 .eval-list{display:flex;flex-direction:column;gap:8px}
 .eval-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border2);padding:14px 16px;transition:all .2s}
 .eval-card:hover{background:var(--surface2)}
 .eval-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.eval-card-name-row{display:flex;align-items:center;gap:10px}
 .eval-card-date{font-size:9px;color:var(--text-dim);letter-spacing:.08em}
 .eval-score{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;line-height:1}
 .eval-mention{font-size:8px;letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
 .eval-bars{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
 .eval-bar-row{display:flex;align-items:center;gap:8px;font-size:9px}
 .eval-bar-lbl{color:var(--text-dim);min-width:100px;flex-shrink:0}
-.eval-bar-track{flex:1;height:3px;background:var(--border2);position:relative}
+.eval-bar-track{flex:1;height:3px;background:var(--border2)}
 .eval-bar-fill{height:100%;background:var(--dept-color);transition:width .5s ease}
 .eval-bar-val{min-width:16px;text-align:right;color:var(--white)}
 .eval-decision{font-size:9px;letter-spacing:.1em;color:var(--text-dim)}
 .eval-comments{font-family:'Courier Prime',monospace;font-size:11px;color:var(--text);line-height:1.6;margin-top:8px;padding:8px 10px;background:var(--surface2);border-left:2px solid var(--border2)}
 
-/* ORDONNANCES / RAPPORTS CARDS */
+/* DOC CARDS */
 .doc-list{display:flex;flex-direction:column;gap:8px}
 .doc-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--border2);padding:12px 14px;transition:all .2s}
 .doc-card:hover{background:var(--surface2)}
@@ -159,7 +220,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .tag-info{border-color:rgba(122,176,255,.4);color:var(--accent2)}
 .doc-card-meta{font-size:9px;color:var(--text-dim);letter-spacing:.06em;margin-bottom:6px}
 .doc-card-body{font-family:'Courier Prime',monospace;font-size:11px;color:var(--text);line-height:1.5;margin-bottom:8px}
-.doc-card-actions{display:flex;gap:5px}
+.doc-card-actions{display:flex;gap:5px;flex-wrap:wrap}
 
 /* EMPTY */
 .empty-state{padding:30px;text-align:center}
@@ -170,6 +231,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-ov.open{display:flex}
 .modal-box{background:var(--surface);border:1px solid var(--border2);border-top:2px solid var(--dept-color);width:100%;max-width:640px;max-height:90vh;display:flex;flex-direction:column}
+.modal-box.wide{max-width:820px}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
 .modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);text-transform:uppercase}
 .modal-close{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;padding:4px 8px;transition:color .2s}
@@ -184,23 +246,21 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .meta-item label{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);display:block;margin-bottom:3px}
 .meta-item span{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white)}
 
+/* CONFIRM BOX */
+.confirm-box{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;display:none;align-items:center;justify-content:center;padding:20px}
+.confirm-box.open{display:flex}
+.confirm-inner{background:var(--surface);border:1px solid rgba(255,51,85,.4);border-top:2px solid var(--danger);padding:24px;max-width:380px;width:100%}
+.confirm-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--danger);text-transform:uppercase;margin-bottom:8px}
+.confirm-msg{font-size:10px;color:var(--text-dim);margin-bottom:18px;line-height:1.7}
+.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
+
 /* TOAST */
 .toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--dept-color);border-left:4px solid var(--dept-color);padding:10px 16px;font-size:10px;color:var(--dept-color);letter-spacing:.1em;z-index:9999;transform:translateX(120%);transition:transform .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 .toast.show{transform:translateX(0)}
 .toast.error{border-color:var(--danger);border-left-color:var(--danger);color:var(--danger)}
+.toast.warn{border-color:var(--warn);border-left-color:var(--warn);color:var(--warn)}
 
-/* TIMELINE */
-.timeline{position:relative;padding-left:20px}
-.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:1px;background:var(--border2)}
-.timeline-item{position:relative;margin-bottom:14px}
-.timeline-item::before{content:'';position:absolute;left:-17px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--dept-color);border:1px solid var(--bg)}
-.timeline-date{font-size:8px;color:var(--text-dim);letter-spacing:.1em;margin-bottom:3px}
-.timeline-content{background:var(--surface);border:1px solid var(--border);padding:10px 12px}
-.timeline-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--white);text-transform:uppercase;margin-bottom:3px}
-.timeline-sub{font-size:9px;color:var(--text-dim)}
-
-/* RESPONSIVE */
-@media(max-width:768px){.quick-stats{grid-template-columns:1fr 1fr}.agent-hero{flex-direction:column}.form-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.quick-stats{grid-template-columns:1fr 1fr}.agent-hero{flex-direction:column}.form-grid{grid-template-columns:1fr}.rx-item{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -238,7 +298,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
   </div>
   <div class="topbar-right">
     <div class="topbar-status"><div class="status-dot"></div><span id="topbarName">—</span></div>
-    <div class="topbar-clearance" id="topbarRole">NIVEAU 2</div>
+    <div class="topbar-clearance" id="topbarRole">NIV.2</div>
     <button class="btn btn-sm btn-danger" onclick="doLogout()" style="font-size:9px;padding:4px 10px">↩ Déconnexion</button>
   </div>
 </header>
@@ -256,7 +316,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
       <div class="agent-hero-meta" id="heroMeta"></div>
     </div>
     <div class="agent-hero-actions">
-      <button class="btn btn-sm btn-warn" id="btnEditProfile">✎ Modifier mon profil</button>
+      <button class="btn btn-sm btn-warn" id="btnEditProfile">✎ Mon profil</button>
     </div>
   </div>
 
@@ -264,22 +324,10 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
   <div class="edit-panel" id="editPanel">
     <div class="edit-panel-title">// Modifier mon profil</div>
     <div class="form-grid">
-      <div class="form-field field-locked">
-        <label>Nom Prénom RP</label>
-        <input type="text" id="epNom" disabled/>
-      </div>
-      <div class="form-field field-locked">
-        <label>Username Roblox</label>
-        <input type="text" id="epUsername" disabled/>
-      </div>
-      <div class="form-field field-locked">
-        <label>Grade / Rang</label>
-        <input type="text" id="epGrade" disabled/>
-      </div>
-      <div class="form-field field-locked">
-        <label>Spécialité</label>
-        <input type="text" id="epSpec" disabled/>
-      </div>
+      <div class="form-field field-locked"><label>Nom Prénom RP</label><input type="text" id="epNom" disabled/></div>
+      <div class="form-field field-locked"><label>Username Roblox</label><input type="text" id="epUsername" disabled/></div>
+      <div class="form-field field-locked"><label>Grade / Rang</label><input type="text" id="epGrade" disabled/></div>
+      <div class="form-field field-locked"><label>Spécialité</label><input type="text" id="epSpec" disabled/></div>
       <div class="form-field">
         <label>Statut <span style="color:var(--warn);font-size:7px">(MODIFIABLE)</span></label>
         <select id="epStatut">
@@ -288,19 +336,16 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
           <option value="conge">🟡 En congé</option>
         </select>
       </div>
-      <div class="form-field field-locked">
-        <label>Date de recrutement</label>
-        <input type="text" id="epDate" disabled/>
-      </div>
+      <div class="form-field field-locked"><label>Date de recrutement</label><input type="text" id="epDate" disabled/></div>
       <div class="form-field full">
         <label>Notes personnelles <span style="color:var(--warn);font-size:7px">(MODIFIABLE)</span></label>
-        <textarea id="epNotes" rows="3" placeholder="Informations complémentaires, disponibilités RP…"></textarea>
+        <textarea id="epNotes" rows="3" placeholder="Disponibilités RP, informations complémentaires…"></textarea>
       </div>
     </div>
     <div style="font-size:9px;color:var(--text-dim);margin-bottom:12px;padding:8px 10px;border:1px solid var(--border);background:var(--surface)">
-      ℹ Les champs verrouillés ne peuvent être modifiés que par un administrateur. Vous pouvez mettre à jour votre statut et vos notes personnelles.
+      ℹ Les champs verrouillés ne peuvent être modifiés que par un administrateur.
     </div>
-    <div class="edit-actions">
+    <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn btn-sm btn-ghost" id="cancelEditBtn">Annuler</button>
       <button class="btn btn-sm btn-warn" id="saveProfileBtn">💾 Sauvegarder</button>
     </div>
@@ -311,7 +356,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
     <div class="qs-box"><div class="qs-val" id="qsEvals">0</div><div class="qs-lbl">Évaluations reçues</div></div>
     <div class="qs-box"><div class="qs-val" id="qsOrdos">0</div><div class="qs-lbl">Ordonnances rédigées</div></div>
     <div class="qs-box"><div class="qs-val" id="qsRapports">0</div><div class="qs-lbl">Rapports rédigés</div></div>
-    <div class="qs-box" id="qsScoreBox"><div class="qs-val" id="qsScore" style="color:var(--dept-color)">—</div><div class="qs-lbl">Score moy. évals</div></div>
+    <div class="qs-box"><div class="qs-val" id="qsScore" style="color:var(--dept-color)">—</div><div class="qs-lbl">Score moy. évals</div></div>
   </div>
 
   <!-- EVALUATIONS -->
@@ -328,7 +373,130 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
   <div class="sec">
     <div class="sec-hdr">
       <div class="sec-title">Mes ordonnances <span class="sec-count" id="ordoSectionCount">0</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="ordoPermLock" style="font-size:9px;color:var(--text-dim);letter-spacing:.08em;display:none">🔒 Grade insuffisant</span>
+        <button class="btn btn-sm btn-dept" id="btnNewOrdo" style="display:none">+ Nouvelle ordonnance</button>
+      </div>
     </div>
+
+    <!-- FORM ORDONNANCE -->
+    <div class="form-panel" id="ordoFormPanel">
+      <div class="form-panel-title">
+        <span id="ordoFormTitle">// Nouvelle ordonnance</span>
+        <button class="btn btn-xs btn-ghost" id="ordoCancelBtn">✕ Annuler</button>
+      </div>
+
+      <!-- STEPPER -->
+      <div class="stepper" id="ordoStepper">
+        <button class="step-btn active" data-ostep="1"><span class="step-num">ÉTAPE 01</span><div class="step-lbl">Identification</div></button>
+        <button class="step-btn" data-ostep="2"><span class="step-num">ÉTAPE 02</span><div class="step-lbl">Prescriptions</div></button>
+        <button class="step-btn" data-ostep="3"><span class="step-num">ÉTAPE 03</span><div class="step-lbl">Procédure</div></button>
+        <button class="step-btn" data-ostep="4"><span class="step-num">ÉTAPE 04</span><div class="step-lbl">Aperçu</div></button>
+      </div>
+
+      <!-- STEP 1 -->
+      <div class="step-panel active" id="ostep-1">
+        <div class="form-section">
+          <div class="form-section-title">Informations générales</div>
+          <div class="form-grid">
+            <div class="form-field full"><label>Titre de l'ordonnance *</label><input id="oTitle" type="text" placeholder="Ex: Protocole Décontamination CODE GREEN — Chambre B4"/></div>
+            <div class="form-field"><label>Catégorie</label>
+              <select id="oCat">
+                <option value="urgence">🔴 Urgence</option>
+                <option value="quarantaine">🟡 Quarantaine</option>
+                <option value="contamination">☣ Contamination</option>
+                <option value="chirurgie">🔬 Chirurgie</option>
+                <option value="psychologie">🧠 Psychologie</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Statut</label>
+              <select id="oStatus">
+                <option value="Actif">Actif</option>
+                <option value="En attente">En attente</option>
+                <option value="Suspendu">Suspendu</option>
+                <option value="Archivé">Archivé</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Médecin prescripteur</label><input id="oDoctor" type="text" placeholder="Votre nom"/></div>
+            <div class="form-field"><label>Patient / Désignation</label><input id="oPatient" type="text" placeholder="Ex: M.NOWAK — MED-00423"/></div>
+            <div class="form-field"><label>Date d'émission</label><input id="oDate" type="date"/></div>
+            <div class="form-field"><label>Date d'expiration</label><input id="oExpire" type="text" placeholder="Ex: 7 jours / Jusqu'à guérison"/></div>
+          </div>
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">Niveau biohazard</div>
+          <div class="bio-selector" id="oBioSelector">
+            <div class="bio-opt selected" data-lvl="0" onclick="selectBio(0)"><div class="bio-lvl">0</div><span class="bio-lbl">Aucun</span></div>
+            <div class="bio-opt" data-lvl="1" onclick="selectBio(1)"><div class="bio-lvl">1</div><span class="bio-lbl">Faible</span></div>
+            <div class="bio-opt" data-lvl="2" onclick="selectBio(2)"><div class="bio-lvl">2</div><span class="bio-lbl">Modéré</span></div>
+            <div class="bio-opt" data-lvl="3" onclick="selectBio(3)"><div class="bio-lvl" style="color:var(--warn)">3</div><span class="bio-lbl">Élevé</span></div>
+            <div class="bio-opt" data-lvl="4" onclick="selectBio(4)"><div class="bio-lvl" style="color:var(--danger)">4</div><span class="bio-lbl">Critique</span></div>
+          </div>
+          <input type="hidden" id="oBio" value="0"/>
+        </div>
+        <div class="step-nav"><div></div><button class="btn btn-dept btn-sm" onclick="gotoOrdoStep(2)">Suivant → Prescriptions</button></div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-panel" id="ostep-2">
+        <div class="form-section">
+          <div class="form-section-title">Médicaments & traitements prescrits</div>
+          <div class="rx-list" id="oRxList"></div>
+          <button class="rx-add-btn" onclick="addRxLine()">+ Ajouter un médicament / traitement</button>
+        </div>
+        <div class="form-section">
+          <div class="form-section-title">Équipements de protection requis</div>
+          <div class="form-field"><label>EPI & précautions spéciales</label><textarea id="oEpi" rows="3" placeholder="Ex: Combinaison NIV.3, masque P3, double gantage…"></textarea></div>
+        </div>
+        <div class="step-nav">
+          <button class="btn btn-ghost btn-sm" onclick="gotoOrdoStep(1)">← Retour</button>
+          <button class="btn btn-dept btn-sm" onclick="gotoOrdoStep(3)">Suivant → Procédure</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-panel" id="ostep-3">
+        <div class="form-section">
+          <div class="form-section-title">Procédure médicale détaillée</div>
+          <div class="form-field" style="margin-bottom:10px"><label>Description & procédure *</label><textarea id="oContent" rows="8" placeholder="Décrivez la procédure médicale en détail…"></textarea></div>
+          <div class="form-field" style="margin-bottom:10px"><label>Contre-indications</label><textarea id="oContra" rows="3" placeholder="Ex: Ne pas administrer en cas d'exposition SCP-049 active…"></textarea></div>
+          <div class="form-field"><label>Notes complémentaires</label><textarea id="oNotes" rows="3" placeholder="Informations supplémentaires…"></textarea></div>
+        </div>
+        <div class="step-nav">
+          <button class="btn btn-ghost btn-sm" onclick="gotoOrdoStep(2)">← Retour</button>
+          <button class="btn btn-dept btn-sm" onclick="gotoOrdoStep(4)">Suivant → Aperçu</button>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-panel" id="ostep-4">
+        <div class="ordo-preview" id="ordoPreview">
+          <div class="ordo-preview-hdr">
+            <div class="title">SCP FOUNDATION — SITE-15</div>
+            <div class="sub">ORDONNANCE MÉDICALE — DÉPARTEMENT MÉDICAL</div>
+            <div style="font-size:9px;color:var(--text-dim);margin-top:4px;letter-spacing:.12em" id="oPrevId">—</div>
+          </div>
+          <div id="oPrevMeta"></div>
+          <div class="ordo-preview-rx">
+            <div class="ordo-preview-rx-title">// Prescriptions</div>
+            <div id="oPrevRx"></div>
+          </div>
+          <div style="margin-top:10px;border-top:1px dashed var(--border2);padding-top:10px">
+            <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--dept-color);margin-bottom:6px">// Procédure</div>
+            <div id="oPrevContent" style="font-size:11px;color:var(--text);line-height:1.7;white-space:pre-wrap"></div>
+          </div>
+          <div id="oPrevContra" style="display:none;margin-top:8px;padding:8px;background:rgba(255,51,85,.06);border:1px solid rgba(255,51,85,.2)">
+            <div style="font-size:8px;letter-spacing:.15em;color:var(--danger);margin-bottom:4px">⚠ CONTRE-INDICATIONS</div>
+            <div id="oPrevContraText" style="font-size:10px;color:var(--text)"></div>
+          </div>
+        </div>
+        <div class="step-nav">
+          <button class="btn btn-ghost btn-sm" onclick="gotoOrdoStep(3)">← Modifier</button>
+          <button class="btn btn-dept btn-sm" id="saveOrdoBtn">💾 Enregistrer l'ordonnance</button>
+        </div>
+      </div>
+    </div>
+
     <div id="ordoSection">
       <div class="empty-state"><div class="empty-icon">▢</div><div class="empty-text">Aucune ordonnance rédigée</div></div>
     </div>
@@ -338,7 +506,50 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
   <div class="sec">
     <div class="sec-hdr">
       <div class="sec-title">Mes rapports <span class="sec-count" id="rapportSectionCount">0</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="rapportPermLock" style="font-size:9px;color:var(--text-dim);letter-spacing:.08em;display:none">🔒 Grade insuffisant</span>
+        <button class="btn btn-sm btn-dept" id="btnNewRapport" style="display:none">+ Nouveau rapport</button>
+      </div>
     </div>
+
+    <!-- FORM RAPPORT -->
+    <div class="form-panel" id="rapportFormPanel">
+      <div class="form-panel-title">
+        <span id="rapportFormTitle">// Nouveau rapport médical</span>
+        <button class="btn btn-xs btn-ghost" id="rapportCancelBtn">✕ Annuler</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field full"><label>Titre *</label><input id="rTitle" type="text" placeholder="Ex: Rapport d'exposition SCP-049 — M.NOWAK"/></div>
+        <div class="form-field"><label>Type</label>
+          <select id="rType">
+            <option value="incident">⚠ Incident médical</option>
+            <option value="exposure">☣ Exposition anomalique</option>
+            <option value="quarantine">🔒 Quarantaine</option>
+            <option value="operation">🔬 Opératoire</option>
+            <option value="psychology">🧠 Psychologique</option>
+            <option value="death">💀 Décès</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Sévérité</label>
+          <select id="rSev">
+            <option value="low">FAIBLE</option>
+            <option value="moderate" selected>MODÉRÉE</option>
+            <option value="high">ÉLEVÉE</option>
+            <option value="critical">CRITIQUE</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Médecin responsable *</label><input id="rAuthor" type="text" placeholder="Votre nom"/></div>
+        <div class="form-field"><label>Patient concerné</label><input id="rPatient" type="text" placeholder="Ex: M.NOWAK — ID: MED-XXXXX"/></div>
+        <div class="form-field"><label>Date *</label><input id="rDate" type="date"/></div>
+        <div class="form-field full"><label>Description *</label><textarea id="rDesc" rows="5" placeholder="Détaillez les événements médicaux…"></textarea></div>
+        <div class="form-field full"><label>Pronostic & suivi</label><textarea id="rConc" rows="3" placeholder="Pronostic, traitement prescrit…"></textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-sm btn-ghost" id="rapportCancelBtn2">Annuler</button>
+        <button class="btn btn-sm btn-dept" id="saveRapportBtn">💾 Enregistrer</button>
+      </div>
+    </div>
+
     <div id="rapportSection">
       <div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport rédigé</div></div>
     </div>
@@ -347,7 +558,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 </div>
 </div>
 
-<!-- Modal rapport -->
+<!-- Modal rapport view -->
 <div class="modal-ov" id="modalRapport">
   <div class="modal-box">
     <div class="modal-hdr">
@@ -364,18 +575,65 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
       <div class="msec"><div class="msec-lbl">Description</div><div class="msec-content" id="mrDesc">—</div></div>
       <div class="msec"><div class="msec-lbl">Pronostic & suivi</div><div class="msec-content" id="mrConc">—</div></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-sm btn-ghost" onclick="closeModal('modalRapport')">Fermer</button></div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('modalRapport')">Fermer</button>
+      <button class="btn btn-sm btn-danger" id="mrDeleteBtn">✕ Supprimer</button>
+    </div>
   </div>
 </div>
 
-<!-- Toast -->
+<!-- Modal ordo view -->
+<div class="modal-ov wide" id="modalOrdo" style="max-width:820px;margin:auto">
+  <div class="modal-box wide">
+    <div class="modal-hdr">
+      <div><div style="font-size:9px;color:var(--dept-color);letter-spacing:.12em" id="moId">—</div><div class="modal-title" id="moTitle">—</div></div>
+      <button class="modal-close" onclick="closeModal('modalOrdo')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="meta-grid">
+        <div class="meta-item"><label>Catégorie</label><span id="moCat">—</span></div>
+        <div class="meta-item"><label>Statut</label><span id="moStatus">—</span></div>
+        <div class="meta-item"><label>Patient</label><span id="moPatient">—</span></div>
+        <div class="meta-item"><label>Date</label><span id="moDate">—</span></div>
+      </div>
+      <div id="moRxSection" style="display:none;margin-bottom:14px">
+        <div class="msec-lbl">Prescriptions</div>
+        <div id="moRxList" style="display:flex;flex-direction:column;gap:4px"></div>
+      </div>
+      <div class="msec"><div class="msec-lbl">Procédure</div><div class="msec-content" id="moContent" style="white-space:pre-wrap">—</div></div>
+      <div id="moContraSection" style="display:none">
+        <div class="msec-lbl">Contre-indications</div>
+        <div class="msec-content" id="moContra" style="color:var(--danger)">—</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('modalOrdo')">Fermer</button>
+      <button class="btn btn-sm btn-ghost" id="moCopyBtn">⧉ Copier</button>
+      <button class="btn btn-sm btn-danger" id="moDeleteBtn">✕ Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm box -->
+<div class="confirm-box" id="confirmBox">
+  <div class="confirm-inner">
+    <div class="confirm-title">⚠ Confirmer la suppression</div>
+    <div class="confirm-msg" id="confirmMsg">Cette action est irréversible.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-sm btn-ghost" onclick="closeConfirm()">Annuler</button>
+      <button class="btn btn-sm btn-danger" id="confirmOkBtn">✕ Supprimer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, collection, doc,
-  updateDoc, onSnapshot, query, orderBy, getDocs, where
+  addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
@@ -388,30 +646,73 @@ const app = initializeApp({
 });
 const db = getFirestore(app);
 
-// ─── UTILS ───────────────────────────────────────────────────────────────────
+// ─── UTILS ────────────────────────────────────────────────────────────────────
 function esc(s){ return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function fmtDate(d){ if(!d)return '—'; try{ return new Date(d).toLocaleDateString('fr-FR'); } catch{ return d; } }
+function today(){ return new Date().toISOString().split('T')[0]; }
 function getInitials(nom){ if(!nom)return '?'; const p=nom.trim().split(/\s+/); return p.length>=2?(p[0][0]+p[p.length-1][0]).toUpperCase():nom.substring(0,2).toUpperCase(); }
+
 function closeModal(id){ document.getElementById(id)?.classList.remove('open'); }
 function openModal(id){ document.getElementById(id)?.classList.add('open'); }
 
+let _confirmCb = null;
+window.closeConfirm = () => { document.getElementById('confirmBox').classList.remove('open'); _confirmCb=null; };
+function showConfirm(msg, cb){
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmBox').classList.add('open');
+  _confirmCb = cb;
+}
+document.getElementById('confirmOkBtn').addEventListener('click', ()=>{ if(_confirmCb) _confirmCb(); closeConfirm(); });
+
 function showToast(msg, type='ok'){
   const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast'+(type==='error'?' error':'');
+  t.textContent=msg; t.className='toast'+(type==='error'?' error':type==='warn'?' warn':'');
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ─── GRADES & PERMISSIONS ─────────────────────────────────────────────────────
+const MED_RANK_ORDER = [
+  'aide soignant','aide soignante',
+  'infirmier','infirmière',
+  'infirmier en chef','infirmière en chef',
+  'médecin résident','medecin resident',
+  'médecin jr','medecin jr',
+  'médecin traitant','medecin traitant',
+  'médecin en chef','medecin en chef',
+  'superviseur médical','superviseur medical',
+  'directeur adjoint médical','directeur adjoint medical',
+  'directeur médical','directeur medical',
+];
+
+function getMedRankLevel(rpRank){
+  if(!rpRank) return -1;
+  const lower = rpRank.toLowerCase();
+  for(let i=MED_RANK_ORDER.length-1;i>=0;i--){
+    if(lower.includes(MED_RANK_ORDER[i])) return i;
+  }
+  return -1;
+}
+
+// Infirmier+ peut écrire ordonnances et rapports
+function canWrite(){
+  if(!currentUser) return false;
+  if(currentUser.role==='admin') return true;
+  const rpRank = currentAgent?.grade || currentUser.rpRank || '';
+  const level  = getMedRankLevel(rpRank);
+  return level >= MED_RANK_ORDER.indexOf('infirmier');
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
 const SESSION_KEY='scp_med_session';
 let currentUser=null, currentAgent=null;
 
-function loadSession(){ try{ const r=localStorage.getItem(SESSION_KEY); return r?JSON.parse(r):null; } catch{ return null; } }
+function loadSession(){ try{ const r=localStorage.getItem(SESSION_KEY); return r?JSON.parse(r):null; }catch{ return null; } }
 function saveSession(u){ localStorage.setItem(SESSION_KEY, JSON.stringify(u)); }
 function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 
 async function findUser(username, password){
-  const snap = await getDocs(collection(db,'users'));
+  const snap=await getDocs(collection(db,'users'));
   let found=null;
   snap.forEach(d=>{ const u=d.data(); if((u.username||'').toLowerCase()===username.toLowerCase()) found={_id:d.id,...u}; });
   if(!found||found.password!==password) return null;
@@ -419,19 +720,47 @@ async function findUser(username, password){
 }
 
 async function findAgentByUsername(username){
-  const snap = await getDocs(collection(db,'user-rp'));
+  const snap=await getDocs(collection(db,'user-rp'));
   let found=null;
   snap.forEach(d=>{ const a=d.data(); if((a.username||'').toLowerCase()===username.toLowerCase()) found={_id:d.id,...a}; });
+  if(found) return found;
+  // Fallback nom RP via profil site15
+  const profile=JSON.parse(localStorage.getItem('site15_profile')||'{}');
+  const rpName=(profile.displayName||profile.name||'').toLowerCase();
+  if(!rpName) return null;
+  snap.forEach(d=>{ const a=d.data(); if(!found&&(a.nom||'').toLowerCase().includes(rpName)) found={_id:d.id,...a}; });
   return found;
 }
 
 async function initApp(){
-  const saved=loadSession();
-  if(saved?.username && saved?.password){
+  // 1. Session site15
+  const authed=localStorage.getItem('site15_authed')==='1';
+  const rawProfile=localStorage.getItem('site15_profile');
+  if(authed && rawProfile){
     try{
-      const user=await findUser(saved.username, saved.password);
+      const profile=JSON.parse(rawProfile);
+      const role=profile.role||localStorage.getItem('site15_role')||'';
+      const displayName=profile.displayName||profile.name||'';
+      const robloxName=profile.robloxName||profile.id||'';
+      if(role==='medical'){
+        const snap=await getDocs(collection(db,'users'));
+        let found=null;
+        snap.forEach(d=>{ const u=d.data(); const uname=(u.username||u.name||'').toLowerCase(); if((displayName&&uname===displayName.toLowerCase())||(robloxName&&uname===robloxName.toLowerCase())) found={_id:d.id,...u}; });
+        if(found){ found.rpRank=profile.rank||''; await onLoginSuccess(found); return; }
+        // Virtuel
+        const vUser={_id:'player-session',username:robloxName||displayName,displayName:displayName||robloxName,role:'moderateur',rpRank:profile.rank||'',password:'__site15_session__'};
+        saveSession({username:vUser.username,password:'__site15_session__'});
+        await onLoginSuccess(vUser); return;
+      }
+    }catch(e){ console.warn('Auto-login échoué:',e); }
+  }
+  // 2. Session classique
+  const saved=loadSession();
+  if(saved?.username && saved?.password && saved.password!=='__site15_session__'){
+    try{
+      const user=await findUser(saved.username,saved.password);
       if(user){ await onLoginSuccess(user); return; }
-    } catch(e){ console.warn('Session restore failed:', e); }
+    }catch(e){ console.warn('Session restore failed:',e); }
     clearSession();
   }
   showGate();
@@ -446,17 +775,16 @@ function hideGate(){
 
 async function onLoginSuccess(user){
   currentUser=user;
-  saveSession({username:user.username, password:user.password});
-  // Cherche le profil agent lié au compte
+  saveSession({username:user.username,password:user.password});
   currentAgent=await findAgentByUsername(user.username);
   hideGate();
   populateTopbar(user);
   if(currentAgent) populateHero(currentAgent);
   else showNoAgentWarning();
+  applyPermissions();
   loadData();
 }
 
-// Login depuis la gate
 async function doLogin(){
   const u=document.getElementById('gUsername').value.trim();
   const p=document.getElementById('gPassword').value;
@@ -469,36 +797,50 @@ async function doLogin(){
     const user=await findUser(u,p);
     if(!user){ document.getElementById('gateLoginPanel').style.display='block'; document.getElementById('gateLoadingPanel').style.display='none'; err.textContent='⚠ Identifiants incorrects.'; return; }
     await onLoginSuccess(user);
-  } catch(e){ document.getElementById('gateLoginPanel').style.display='block'; document.getElementById('gateLoadingPanel').style.display='none'; err.textContent='⚠ Erreur: '+e.message; }
+  }catch(e){ document.getElementById('gateLoginPanel').style.display='block'; document.getElementById('gateLoadingPanel').style.display='none'; err.textContent='⚠ Erreur: '+e.message; }
 }
 
-window.doLogout=function(){ clearSession(); currentUser=null; currentAgent=null; location.reload(); };
-window.goBack=function(){ window.history.length>1?window.history.back():window.location.href='index.html'; };
+window.doLogout=()=>{ clearSession(); currentUser=null; currentAgent=null; location.reload(); };
+window.goBack=()=>{ window.history.length>1?window.history.back():window.location.href='index.html'; };
 
-document.getElementById('gSubmitBtn')?.addEventListener('click', doLogin);
-document.getElementById('gPassword')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-document.getElementById('gUsername')?.addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('gPassword')?.focus(); });
+document.getElementById('gSubmitBtn')?.addEventListener('click',doLogin);
+document.getElementById('gPassword')?.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('gUsername')?.addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('gPassword')?.focus(); });
 
-// ─── TOPBAR ────────────────────────────────────────────────────────────────────
+// ─── PERMISSIONS ──────────────────────────────────────────────────────────────
+function applyPermissions(){
+  const write=canWrite();
+  // Ordonnances
+  const btnOrdo=document.getElementById('btnNewOrdo');
+  const lockOrdo=document.getElementById('ordoPermLock');
+  if(btnOrdo) btnOrdo.style.display=write?'inline-flex':'none';
+  if(lockOrdo) lockOrdo.style.display=write?'none':'inline';
+  // Rapports
+  const btnRap=document.getElementById('btnNewRapport');
+  const lockRap=document.getElementById('rapportPermLock');
+  if(btnRap) btnRap.style.display=write?'inline-flex':'none';
+  if(lockRap) lockRap.style.display=write?'none':'inline';
+}
+
+// ─── TOPBAR ───────────────────────────────────────────────────────────────────
 function populateTopbar(user){
+  const rpRank=currentAgent?.grade||user.rpRank||'';
   document.getElementById('topbarName').textContent=user.displayName||user.username||'—';
-  document.getElementById('topbarRole').textContent=user.role==='admin'?'ADMIN':'NIV.2';
+  document.getElementById('topbarRole').textContent=rpRank||(user.role==='admin'?'ADMIN':'NIV.2');
 }
 
-// ─── HERO ──────────────────────────────────────────────────────────────────────
+// ─── HERO ─────────────────────────────────────────────────────────────────────
 const STATUS_LABELS={actif:'ACTIF',inactif:'INACTIF',suspendu:'SUSPENDU',conge:'EN CONGÉ'};
 
 function populateHero(a){
   document.getElementById('heroAvatar').textContent=getInitials(a.nom);
   document.getElementById('heroName').textContent=a.nom||'—';
   document.getElementById('heroUsername').textContent='@'+(a.username||'—');
-
   const tagsEl=document.getElementById('heroTags');
-  let tagsHTML=`<span class="agent-hero-tag grade">${esc(a.grade||'Non défini')}</span>`;
-  if(a.specialite) tagsHTML+=`<span class="agent-hero-tag spec">⚕ ${esc(a.specialite)}</span>`;
-  tagsHTML+=`<span class="agent-hero-tag status-${a.statut||'inactif'}">${STATUS_LABELS[a.statut]||'—'}</span>`;
-  tagsEl.innerHTML=tagsHTML;
-
+  let html=`<span class="agent-hero-tag grade">${esc(a.grade||'Non défini')}</span>`;
+  if(a.specialite) html+=`<span class="agent-hero-tag spec">⚕ ${esc(a.specialite)}</span>`;
+  html+=`<span class="agent-hero-tag status-${a.statut||'inactif'}">${STATUS_LABELS[a.statut]||'—'}</span>`;
+  tagsEl.innerHTML=html;
   document.getElementById('heroMeta').innerHTML=`
     <span>Recruté le : ${fmtDate(a.dateRecrutement)}</span>
     <span>Département Médical</span>
@@ -512,13 +854,12 @@ function showNoAgentWarning(){
     <div style="text-align:center;padding:20px;width:100%">
       <div style="font-size:28px;margin-bottom:8px;opacity:.4">⚠</div>
       <div style="font-size:11px;color:var(--warn);letter-spacing:.1em;margin-bottom:4px">PROFIL AGENT INTROUVABLE</div>
-      <div style="font-size:9px;color:var(--text-dim)">Aucun profil n'est associé au compte <strong style="color:var(--white)">${esc(currentUser.username)}</strong> dans le roster médical.<br>Contactez un administrateur pour créer votre entrée dans le roster.</div>
-    </div>
-  `;
+      <div style="font-size:9px;color:var(--text-dim)">Aucun profil associé au compte <strong style="color:var(--white)">${esc(currentUser?.username||'')}</strong>.<br>Contactez un administrateur.</div>
+    </div>`;
   document.getElementById('btnEditProfile').style.display='none';
 }
 
-// ─── EDIT PANEL ────────────────────────────────────────────────────────────────
+// ─── EDIT PANEL ───────────────────────────────────────────────────────────────
 function setupEditPanel(a){
   document.getElementById('epNom').value=a.nom||'';
   document.getElementById('epUsername').value=a.username||'';
@@ -530,31 +871,42 @@ function setupEditPanel(a){
 }
 
 document.getElementById('btnEditProfile')?.addEventListener('click',()=>{
-  const panel=document.getElementById('editPanel');
-  panel.classList.toggle('open');
-  panel.scrollIntoView({behavior:'smooth',block:'start'});
+  const p=document.getElementById('editPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')) p.scrollIntoView({behavior:'smooth',block:'start'});
 });
-
 document.getElementById('cancelEditBtn')?.addEventListener('click',()=>{
   document.getElementById('editPanel').classList.remove('open');
-  if(currentAgent) setupEditPanel(currentAgent); // reset
+  if(currentAgent) setupEditPanel(currentAgent);
 });
-
-document.getElementById('saveProfileBtn')?.addEventListener('click', async()=>{
+document.getElementById('saveProfileBtn')?.addEventListener('click',async()=>{
   if(!currentAgent){ showToast('⚠ Aucun profil agent lié','error'); return; }
   const newStatut=document.getElementById('epStatut').value;
   const newNotes=document.getElementById('epNotes').value.trim();
   try{
-    await updateDoc(doc(db,'user-rp',currentAgent._id), { statut:newStatut, notes:newNotes });
-    currentAgent={ ...currentAgent, statut:newStatut, notes:newNotes };
+    await updateDoc(doc(db,'user-rp',currentAgent._id),{statut:newStatut,notes:newNotes});
+    currentAgent={...currentAgent,statut:newStatut,notes:newNotes};
     populateHero(currentAgent);
     document.getElementById('editPanel').classList.remove('open');
     showToast('✓ Profil mis à jour');
-  } catch(e){ showToast('⚠ Erreur: '+e.message,'error'); }
+  }catch(e){ showToast('⚠ Erreur: '+e.message,'error'); }
 });
 
-// ─── DATA LOADING ──────────────────────────────────────────────────────────────
+// ─── DATA ─────────────────────────────────────────────────────────────────────
 function normalize(s){ return (s||'').toLowerCase().trim(); }
+
+let _evCount=null,_orCount=null,_rpCount=null,_evScore=null;
+let _allOrdos=[],_allRapports=[];
+
+function updateStats(evals,ordos,rapports){
+  if(evals!==null){ _evCount=evals.length; _evScore=evals.length?Math.round(evals.reduce((s,e)=>s+(e.total||0),0)/evals.length):null; }
+  if(ordos!==null) _orCount=ordos.length;
+  if(rapports!==null) _rpCount=rapports.length;
+  if(_evCount!==null) document.getElementById('qsEvals').textContent=_evCount;
+  if(_orCount!==null) document.getElementById('qsOrdos').textContent=_orCount;
+  if(_rpCount!==null) document.getElementById('qsRapports').textContent=_rpCount;
+  if(_evScore!==null) document.getElementById('qsScore').textContent=_evScore+'/60';
+}
 
 function loadData(){
   const username=normalize(currentUser.username);
@@ -562,52 +914,32 @@ function loadData(){
   const rpName=normalize(currentAgent?.nom||'');
 
   function matchesUser(val){
-    const v=normalize(val);
-    if(!v) return false;
+    const v=normalize(val); if(!v) return false;
     return v.includes(username)||v.includes(rpName)||(displayName&&v.includes(displayName));
   }
 
   // Évaluations
-  const qEv=query(collection(db,'med_evals'),orderBy('createdAt','asc'));
-  onSnapshot(qEv, snap=>{
-    const all=snap.docs.map(d=>({_id:d.id,...d.data()}));
-    // Match sur username Roblox OU nom RP
-    const mine=all.filter(ev=>matchesUser(ev.username)||matchesUser(ev.name));
-    renderEvals(mine);
-    updateStats(mine, null, null);
+  onSnapshot(query(collection(db,'med_evals'),orderBy('createdAt','asc')), snap=>{
+    const mine=snap.docs.map(d=>({_id:d.id,...d.data()})).filter(ev=>matchesUser(ev.username)||matchesUser(ev.name));
+    renderEvals(mine); updateStats(mine,null,null);
   });
-
   // Ordonnances
-  const qOr=query(collection(db,'med_protocols'),orderBy('createdAt','asc'));
-  onSnapshot(qOr, snap=>{
+  onSnapshot(query(collection(db,'med_protocols'),orderBy('createdAt','asc')), snap=>{
     const all=snap.docs.map(d=>({_id:d.id,...d.data()}));
     const mine=all.filter(p=>matchesUser(p.doctor));
-    renderOrdos(mine);
-    updateStats(null, mine, null);
+    _allOrdos=all;
+    renderOrdos(mine); updateStats(null,mine,null);
   });
-
   // Rapports
-  const qRp=query(collection(db,'med_rapports'),orderBy('createdAt','asc'));
-  onSnapshot(qRp, snap=>{
+  onSnapshot(query(collection(db,'med_rapports'),orderBy('createdAt','asc')), snap=>{
     const all=snap.docs.map(d=>({_id:d.id,...d.data()}));
     const mine=all.filter(r=>matchesUser(r.author));
-    renderRapports(mine);
-    updateStats(null, null, mine);
+    _allRapports=all;
+    renderRapports(mine); updateStats(null,null,mine);
   });
 }
 
-let _evCount=null, _orCount=null, _rpCount=null, _evScore=null;
-function updateStats(evals, ordos, rapports){
-  if(evals!==null){ _evCount=evals.length; _evScore=evals.length?Math.round(evals.reduce((s,e)=>s+(e.total||0),0)/evals.length):null; }
-  if(ordos!==null) _orCount=ordos.length;
-  if(rapports!==null) _rpCount=rapports.length;
-  if(_evCount!==null) document.getElementById('qsEvals').textContent=_evCount;
-  if(_orCount!==null) document.getElementById('qsOrdos').textContent=_orCount;
-  if(_rpCount!==null) document.getElementById('qsRapports').textContent=_rpCount;
-  if(_evScore!==null){ document.getElementById('qsScore').textContent=_evScore+'/60'; }
-}
-
-// ─── RENDER EVALUATIONS ────────────────────────────────────────────────────────
+// ─── RENDER EVALUATIONS ───────────────────────────────────────────────────────
 const CRIT_LABELS={Disc:'Discipline',Proto:'Protocoles',React:'Réactivité',Comm:'Communication',Hier:'Hiérarchie',Comp:'Comportement'};
 const DEC_LABELS={promu:'✅ Promu',valide:'✔ Validé',avertissement:'⚠ Avertissement',recale:'❌ Recalé',expulse:'🚫 Expulsé'};
 
@@ -631,14 +963,11 @@ function renderEvals(list){
         <span class="eval-bar-lbl">${CRIT_LABELS[k]||k}</span>
         <div class="eval-bar-track"><div class="eval-bar-fill" style="width:${(v/10)*100}%;background:${v>=7?'var(--safe)':v>=5?'var(--dept-color)':'var(--warn)'}"></div></div>
         <span class="eval-bar-val">${v}/10</span>
-      </div>
-    `).join('');
+      </div>`).join('');
     return`<div class="eval-card" style="border-left-color:${m.color}">
       <div class="eval-card-hdr">
         <div>
-          <div class="eval-card-name-row">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--white)">${esc(ev.rank||'—')}</div>
-          </div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--white)">${esc(ev.rank||'—')}</div>
           <div class="eval-card-date">Évalué par : ${esc(ev.author||'—')} · ${ev.date||'—'}</div>
         </div>
         <div style="text-align:right">
@@ -653,7 +982,7 @@ function renderEvals(list){
   }).join('')+'</div>';
 }
 
-// ─── RENDER ORDONNANCES ────────────────────────────────────────────────────────
+// ─── RENDER ORDONNANCES ───────────────────────────────────────────────────────
 const CAT_COLORS={urgence:'tag-urgent',quarantaine:'tag-warn',contamination:'tag-urgent',chirurgie:'tag-safe',psychologie:'tag-accent'};
 
 function renderOrdos(list){
@@ -675,33 +1004,24 @@ function renderOrdos(list){
       <div class="doc-card-body">${esc((p.content||'').substring(0,150))}${(p.content||'').length>150?'…':''}</div>
       ${p.prescriptions?.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">${p.prescriptions.slice(0,4).map(rx=>`<span style="font-size:9px;padding:2px 8px;background:rgba(122,176,255,.08);border:1px solid rgba(122,176,255,.2);color:var(--accent2)">💊 ${esc(rx.med)}</span>`).join('')}${p.prescriptions.length>4?`<span style="font-size:9px;color:var(--text-dim)">+${p.prescriptions.length-4}</span>`:''}</div>`:''}
       <div class="doc-card-actions">
-        <button class="btn btn-xs btn-ghost" onclick="copyContent('${p._id}')">⧉ Copier</button>
+        <button class="btn btn-xs btn-dept" data-view-o="${p._id}">📄 Voir</button>
+        <button class="btn btn-xs btn-ghost" data-copy-o="${p._id}">⧉ Copier</button>
+        ${canWrite()?`<button class="btn btn-xs btn-danger" data-del-o="${p._id}">✕</button>`:''}
       </div>
-    </div>
-  `).join('')+'</div>';
-
-  // Store for copy
-  window._ordos=list;
+    </div>`).join('')+'</div>';
 }
 
-window.copyContent=async function(id){
-  const p=window._ordos?.find(x=>x._id===id);
-  if(p&&navigator.clipboard){ await navigator.clipboard.writeText(p.content); showToast('✓ Contenu copié dans le presse-papiers'); }
-};
-
-// ─── RENDER RAPPORTS ───────────────────────────────────────────────────────────
+// ─── RENDER RAPPORTS ──────────────────────────────────────────────────────────
 const SEV_MAP={low:{label:'FAIBLE',color:'var(--safe)'},moderate:{label:'MODÉRÉE',color:'var(--warn)'},high:{label:'ÉLEVÉE',color:'#e67e22'},critical:{label:'CRITIQUE',color:'var(--danger)'}};
 const TYPE_LABELS={incident:'⚠ Incident',exposure:'☣ Exposition',quarantine:'🔒 Quarantaine',operation:'🔬 Opératoire',psychology:'🧠 Psychologique',death:'💀 Décès'};
 
 function renderRapports(list){
   const el=document.getElementById('rapportSection');
   document.getElementById('rapportSectionCount').textContent=list.length;
-  window._rapports=list;
   if(!list.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucun rapport rédigé</div></div>'; return; }
-  const sevClass={low:'doc-card',moderate:'doc-card sev-moderate',high:'doc-card sev-high',critical:'doc-card sev-critical'};
   el.innerHTML='<div class="doc-list">'+[...list].reverse().map(r=>{
     const sev=SEV_MAP[r.severity]||SEV_MAP.low;
-    return`<div class="${sevClass[r.severity]||'doc-card'}">
+    return`<div class="doc-card sev-${r.severity}">
       <div class="doc-card-hdr">
         <div class="doc-card-title">${esc(r.title)}</div>
         <div class="doc-card-tags">
@@ -713,18 +1033,220 @@ function renderRapports(list){
       <div class="doc-card-body">${esc((r.description||'').substring(0,120))}${(r.description||'').length>120?'…':''}</div>
       <div class="doc-card-actions">
         <button class="btn btn-xs btn-dept" data-view-r="${r._id}">📄 Voir</button>
+        ${canWrite()?`<button class="btn btn-xs btn-danger" data-del-r="${r._id}">✕</button>`:''}
       </div>
     </div>`;
   }).join('')+'</div>';
 }
 
-// Event delegation pour rapports
-document.addEventListener('click', e=>{
-  const vr=e.target.closest('[data-view-r]');
-  if(vr){ const r=window._rapports?.find(x=>x._id===vr.dataset.viewR); if(r) viewRapport(r); }
+// ─── STEPPER ORDONNANCE ───────────────────────────────────────────────────────
+let ordoStep=1, rxLines=[], editingOrdoId=null;
+
+window.gotoOrdoStep=function(n){
+  ordoStep=n;
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ostep-'+n)?.classList.add('active');
+  document.querySelectorAll('#ordoStepper .step-btn').forEach(b=>{
+    const sn=parseInt(b.dataset.ostep);
+    b.classList.remove('active','done');
+    if(sn===n) b.classList.add('active');
+    else if(sn<n) b.classList.add('done');
+  });
+  if(n===4) buildPreview();
+};
+
+document.querySelectorAll('#ordoStepper .step-btn').forEach(b=>{
+  b.addEventListener('click',()=>gotoOrdoStep(parseInt(b.dataset.ostep)));
 });
 
+window.selectBio=function(lvl){
+  document.querySelectorAll('#oBioSelector .bio-opt').forEach(o=>o.classList.remove('selected'));
+  document.querySelector(`#oBioSelector .bio-opt[data-lvl="${lvl}"]`)?.classList.add('selected');
+  document.getElementById('oBio').value=lvl;
+};
+
+window.addRxLine=function(rx=null){
+  const id=Date.now()+Math.random();
+  rxLines.push({id,med:rx?.med||'',dose:rx?.dose||'',duree:rx?.duree||''});
+  renderRxLines();
+};
+
+function renderRxLines(){
+  const el=document.getElementById('oRxList'); if(!el) return;
+  if(!rxLines.length){ el.innerHTML='<div style="font-size:10px;color:var(--text-dim);text-align:center;padding:12px">Aucune prescription ajoutée</div>'; return; }
+  el.innerHTML=rxLines.map((rx,i)=>`
+    <div class="rx-item">
+      <div class="form-field"><label>Médicament ${i+1}</label><input type="text" value="${esc(rx.med)}" placeholder="Ex: Sérum, Morphine…" onchange="updateRx('${rx.id}','med',this.value)"/></div>
+      <div class="form-field"><label>Dose</label><input type="text" value="${esc(rx.dose)}" placeholder="Ex: 10mg" onchange="updateRx('${rx.id}','dose',this.value)"/></div>
+      <div class="form-field"><label>Fréquence</label><input type="text" value="${esc(rx.duree)}" placeholder="Ex: 3×/jour" onchange="updateRx('${rx.id}','duree',this.value)"/></div>
+      <button class="rx-item-del" onclick="removeRx('${rx.id}')" title="Supprimer">×</button>
+    </div>`).join('');
+}
+
+window.updateRx=function(id,field,val){ const rx=rxLines.find(r=>String(r.id)===String(id)); if(rx) rx[field]=val; };
+window.removeRx=function(id){ rxLines=rxLines.filter(r=>String(r.id)!==String(id)); renderRxLines(); };
+
+function buildPreview(){
+  const title=document.getElementById('oTitle')?.value||'Sans titre';
+  const doctor=document.getElementById('oDoctor')?.value||'—';
+  const patient=document.getElementById('oPatient')?.value||'—';
+  const date=document.getElementById('oDate')?.value||today();
+  const expire=document.getElementById('oExpire')?.value||'—';
+  const cat=document.getElementById('oCat')?.value||'—';
+  const bio=document.getElementById('oBio')?.value||'0';
+  const status=document.getElementById('oStatus')?.value||'Actif';
+  const content=document.getElementById('oContent')?.value||'';
+  const contra=document.getElementById('oContra')?.value||'';
+  const epi=document.getElementById('oEpi')?.value||'';
+  document.getElementById('oPrevId').textContent='ID: '+(editingOrdoId?editingOrdoId.slice(-8):'NOUVEAU');
+  document.getElementById('oPrevMeta').innerHTML=`
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">TITRE :</span><span class="ordo-preview-val">${esc(title)}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">CATÉGORIE :</span><span class="ordo-preview-val">${esc(cat).toUpperCase()} ${bio!=='0'?'— BIO-NIV.'+bio:''}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">MÉDECIN :</span><span class="ordo-preview-val">${esc(doctor)}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">PATIENT :</span><span class="ordo-preview-val">${esc(patient)}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">DATE :</span><span class="ordo-preview-val">${fmtDate(date)} — Expiration: ${esc(expire)}</span></div>
+    <div class="ordo-preview-row"><span class="ordo-preview-lbl">STATUT :</span><span class="ordo-preview-val">${esc(status)}</span></div>
+    ${epi?`<div class="ordo-preview-row"><span class="ordo-preview-lbl">EPI :</span><span class="ordo-preview-val">${esc(epi)}</span></div>`:''}
+  `;
+  const rxEl=document.getElementById('oPrevRx');
+  rxEl.innerHTML=rxLines.length?rxLines.map((rx,i)=>`<div class="rx-preview-line"><span class="rx-num">${i+1}.</span><span style="flex:2;color:var(--white)">${esc(rx.med)||'—'}</span><span style="flex:1;color:var(--accent2)">${esc(rx.dose)}</span><span style="flex:1;color:var(--text-dim)">${esc(rx.duree)}</span></div>`).join(''):'<div style="font-size:10px;color:var(--text-dim)">Aucune prescription</div>';
+  document.getElementById('oPrevContent').textContent=content||'—';
+  const contraEl=document.getElementById('oPrevContra');
+  if(contra){ contraEl.style.display='block'; document.getElementById('oPrevContraText').textContent=contra; }
+  else contraEl.style.display='none';
+}
+
+function resetOrdoForm(){
+  editingOrdoId=null; rxLines=[];
+  ['oTitle','oDoctor','oPatient','oExpire','oContent','oContra','oNotes','oEpi'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('oCat').value='urgence';
+  document.getElementById('oStatus').value='Actif';
+  document.getElementById('oDate').value=today();
+  document.getElementById('oBio').value='0';
+  document.querySelectorAll('#oBioSelector .bio-opt').forEach(o=>o.classList.remove('selected'));
+  document.querySelector('#oBioSelector .bio-opt[data-lvl="0"]')?.classList.add('selected');
+  renderRxLines();
+  gotoOrdoStep(1);
+}
+
+document.getElementById('btnNewOrdo')?.addEventListener('click',()=>{
+  if(!canWrite()){ showToast('⛔ Grade insuffisant','warn'); return; }
+  // Pré-remplir le nom du médecin
+  const docName=currentAgent?.nom||currentUser?.displayName||currentUser?.username||'';
+  resetOrdoForm();
+  document.getElementById('oDoctor').value=docName;
+  document.getElementById('ordoFormTitle').textContent='// Nouvelle ordonnance';
+  document.getElementById('ordoFormPanel').classList.add('open');
+  document.getElementById('ordoFormPanel').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+['ordoCancelBtn'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('click',()=>{
+    document.getElementById('ordoFormPanel').classList.remove('open');
+    editingOrdoId=null;
+  });
+});
+
+document.getElementById('saveOrdoBtn')?.addEventListener('click',async()=>{
+  if(!canWrite()){ showToast('⛔ Grade insuffisant','warn'); return; }
+  const title=document.getElementById('oTitle').value.trim();
+  const content=document.getElementById('oContent').value.trim();
+  if(!title||!content){ showToast('⚠ Titre et procédure requis','error'); return; }
+  const data={
+    title,category:document.getElementById('oCat').value,bio:document.getElementById('oBio').value,
+    status:document.getElementById('oStatus').value,doctor:document.getElementById('oDoctor').value.trim(),
+    patient:document.getElementById('oPatient').value.trim(),date:document.getElementById('oDate').value||today(),
+    expire:document.getElementById('oExpire').value.trim(),content,
+    contraindications:document.getElementById('oContra').value.trim(),
+    notes:document.getElementById('oNotes').value.trim(),
+    epi:document.getElementById('oEpi').value.trim(),
+    prescriptions:rxLines.map(({med,dose,duree})=>({med,dose,duree})),
+    dept:'Département Médical'
+  };
+  try{
+    if(editingOrdoId){ await updateDoc(doc(db,'med_protocols',editingOrdoId),data); showToast('✓ Ordonnance mise à jour'); }
+    else{ await addDoc(collection(db,'med_protocols'),{...data,createdAt:new Date().toISOString()}); showToast('✓ Ordonnance enregistrée'); }
+    document.getElementById('ordoFormPanel').classList.remove('open');
+    editingOrdoId=null;
+  }catch(e){ showToast('⚠ Erreur: '+e.message,'error'); }
+});
+
+// ─── RAPPORT FORM ─────────────────────────────────────────────────────────────
+let editingRapportId=null;
+
+function resetRapportForm(){
+  editingRapportId=null;
+  ['rTitle','rAuthor','rPatient','rDesc','rConc'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('rType').value='incident';
+  document.getElementById('rSev').value='moderate';
+  document.getElementById('rDate').value=today();
+}
+
+document.getElementById('btnNewRapport')?.addEventListener('click',()=>{
+  if(!canWrite()){ showToast('⛔ Grade insuffisant','warn'); return; }
+  const docName=currentAgent?.nom||currentUser?.displayName||currentUser?.username||'';
+  resetRapportForm();
+  document.getElementById('rAuthor').value=docName;
+  document.getElementById('rapportFormTitle').textContent='// Nouveau rapport médical';
+  document.getElementById('rapportFormPanel').classList.add('open');
+  document.getElementById('rapportFormPanel').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+['rapportCancelBtn','rapportCancelBtn2'].forEach(id=>{
+  document.getElementById(id)?.addEventListener('click',()=>{
+    document.getElementById('rapportFormPanel').classList.remove('open');
+    editingRapportId=null;
+  });
+});
+
+document.getElementById('saveRapportBtn')?.addEventListener('click',async()=>{
+  if(!canWrite()){ showToast('⛔ Grade insuffisant','warn'); return; }
+  const title=document.getElementById('rTitle').value.trim();
+  const author=document.getElementById('rAuthor').value.trim();
+  const desc=document.getElementById('rDesc').value.trim();
+  const date=document.getElementById('rDate').value;
+  if(!title||!author||!desc||!date){ showToast('⚠ Champs obligatoires manquants','error'); return; }
+  const data={
+    title,type:document.getElementById('rType').value,severity:document.getElementById('rSev').value,
+    author,patient:document.getElementById('rPatient').value.trim(),date,
+    description:desc,conclusion:document.getElementById('rConc').value.trim(),
+    dept:'Département Médical'
+  };
+  try{
+    if(editingRapportId){ await updateDoc(doc(db,'med_rapports',editingRapportId),data); showToast('✓ Rapport mis à jour'); }
+    else{ await addDoc(collection(db,'med_rapports'),{...data,createdAt:new Date().toISOString()}); showToast('✓ Rapport enregistré'); }
+    document.getElementById('rapportFormPanel').classList.remove('open');
+    editingRapportId=null;
+  }catch(e){ showToast('⚠ Erreur: '+e.message,'error'); }
+});
+
+// ─── VIEW MODALS ──────────────────────────────────────────────────────────────
+let currentViewOrdo=null, currentViewRapport=null;
+
+function viewOrdo(p){
+  if(!p) return; currentViewOrdo=p;
+  document.getElementById('moId').textContent=p._id?.slice(-8)||'—';
+  document.getElementById('moTitle').textContent=p.title||'—';
+  document.getElementById('moCat').textContent=(p.category||'—').toUpperCase()+(p.bio&&p.bio!=='0'?' — BIO-NIV.'+p.bio:'');
+  document.getElementById('moStatus').textContent=p.status||'—';
+  document.getElementById('moPatient').textContent=p.patient||'—';
+  document.getElementById('moDate').textContent=p.date||'—';
+  document.getElementById('moContent').textContent=p.content||'—';
+  const rxSec=document.getElementById('moRxSection');
+  const rxList=document.getElementById('moRxList');
+  if(p.prescriptions?.length){
+    rxSec.style.display='block';
+    rxList.innerHTML=p.prescriptions.map((rx,i)=>`<div style="display:flex;gap:10px;padding:5px 8px;border:1px solid var(--border);font-size:10px;background:var(--surface2)"><span style="color:var(--dept-color);min-width:16px">${i+1}.</span><span style="flex:2;color:var(--white)">${esc(rx.med)}</span><span style="flex:1;color:var(--accent2)">${esc(rx.dose)}</span><span style="flex:1;color:var(--text-dim)">${esc(rx.duree)}</span></div>`).join('');
+  }else{ rxSec.style.display='none'; }
+  const contraSec=document.getElementById('moContraSection');
+  if(p.contraindications){ contraSec.style.display='block'; document.getElementById('moContra').textContent=p.contraindications; }
+  else contraSec.style.display='none';
+  document.getElementById('moDeleteBtn').style.display=canWrite()?'inline-flex':'none';
+  openModal('modalOrdo');
+}
+
 function viewRapport(r){
+  if(!r) return; currentViewRapport=r;
   const sev=SEV_MAP[r.severity]||SEV_MAP.low;
   document.getElementById('mrType').textContent=TYPE_LABELS[r.type]||r.type;
   document.getElementById('mrTitle').textContent=r.title||'—';
@@ -735,14 +1257,54 @@ function viewRapport(r){
   document.getElementById('mrId').textContent=r._id?.slice(-8)||'—';
   document.getElementById('mrDesc').textContent=r.description||'—';
   document.getElementById('mrConc').textContent=r.conclusion||'—';
+  document.getElementById('mrDeleteBtn').style.display=canWrite()?'inline-flex':'none';
   openModal('modalRapport');
 }
 
-// Modal close
-document.addEventListener('click',e=>{
+// Delete handlers
+document.getElementById('moDeleteBtn')?.addEventListener('click',()=>{
+  if(!currentViewOrdo) return;
+  showConfirm(`Supprimer l'ordonnance "${currentViewOrdo.title}" ?`, async()=>{
+    try{ await deleteDoc(doc(db,'med_protocols',currentViewOrdo._id)); closeModal('modalOrdo'); showToast('✓ Ordonnance supprimée'); }
+    catch(e){ showToast('⚠ Erreur: '+e.message,'error'); }
+  });
+});
+
+document.getElementById('moCopyBtn')?.addEventListener('click',async()=>{
+  if(!currentViewOrdo) return;
+  if(navigator.clipboard){ await navigator.clipboard.writeText(currentViewOrdo.content); showToast('✓ Contenu copié'); }
+});
+
+document.getElementById('mrDeleteBtn')?.addEventListener('click',()=>{
+  if(!currentViewRapport) return;
+  showConfirm(`Supprimer le rapport "${currentViewRapport.title}" ?`, async()=>{
+    try{ await deleteDoc(doc(db,'med_rapports',currentViewRapport._id)); closeModal('modalRapport'); showToast('✓ Rapport supprimé'); }
+    catch(e){ showToast('⚠ Erreur: '+e.message,'error'); }
+  });
+});
+
+// ─── DISPATCHER GLOBAL ────────────────────────────────────────────────────────
+document.addEventListener('click',async e=>{
+  // Ordo voir
+  const vo=e.target.closest('[data-view-o]');
+  if(vo){ viewOrdo(_allOrdos.find(x=>x._id===vo.dataset.viewO)); return; }
+  // Ordo copier
+  const co=e.target.closest('[data-copy-o]');
+  if(co){ const p=_allOrdos.find(x=>x._id===co.dataset.copyO); if(p&&navigator.clipboard){ await navigator.clipboard.writeText(p.content); showToast('✓ Copié'); } return; }
+  // Ordo supprimer
+  const do2=e.target.closest('[data-del-o]');
+  if(do2){ const p=_allOrdos.find(x=>x._id===do2.dataset.delO); if(!p) return; showConfirm(`Supprimer "${p.title}" ?`,async()=>{ try{ await deleteDoc(doc(db,'med_protocols',p._id)); showToast('✓ Ordonnance supprimée'); }catch(er){ showToast('⚠ Erreur','error'); } }); return; }
+  // Rapport voir
+  const vr=e.target.closest('[data-view-r]');
+  if(vr){ viewRapport(_allRapports.find(x=>x._id===vr.dataset.viewR)); return; }
+  // Rapport supprimer
+  const dr=e.target.closest('[data-del-r]');
+  if(dr){ const r=_allRapports.find(x=>x._id===dr.dataset.delR); if(!r) return; showConfirm(`Supprimer "${r.title}" ?`,async()=>{ try{ await deleteDoc(doc(db,'med_rapports',r._id)); showToast('✓ Rapport supprimé'); }catch(er){ showToast('⚠ Erreur','error'); } }); return; }
+  // Modal close
   if(e.target.classList.contains('modal-ov')) e.target.classList.remove('open');
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.modal-ov.open').forEach(m=>m.classList.remove('open')); });
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ document.querySelectorAll('.modal-ov.open').forEach(m=>m.classList.remove('open')); closeConfirm(); } });
 
 // INIT
 initApp();
