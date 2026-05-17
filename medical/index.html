@@ -1006,6 +1006,45 @@ function fbListen(col, cb) {
 }
 function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+const MED_RANK_ORDER = [
+  'aide soignant', 'aide soignante',
+  'infirmier', 'infirmière',
+  'infirmier en chef', 'infirmière en chef',
+  'médecin résident', 'medecin resident',
+  'médecin jr', 'medecin jr',
+  'médecin traitant', 'medecin traitant',
+  'médecin en chef', 'medecin en chef',
+  'superviseur médical', 'superviseur medical',
+  'directeur adjoint médical', 'directeur adjoint medical',
+  'directeur médical', 'directeur medical',
+];
+
+function getMedRankLevel(rpRank) {
+  if (!rpRank) return -1;
+  const lower = rpRank.toLowerCase();
+  for (let i = MED_RANK_ORDER.length - 1; i >= 0; i--) {
+    if (lower.includes(MED_RANK_ORDER[i])) return i;
+  }
+  return -1;
+}
+
+function isRpAdmin() {
+  if (currentRole === 'admin') return true;
+  const rpRank = currentUser?.rpRank || '';
+  return getMedRankLevel(rpRank) >= MED_RANK_ORDER.indexOf('directeur médical');
+}
+
+function canWrite() {
+  if (!isAuthenticated) return false;
+  if (isRpAdmin()) return true;
+  const rpRank = currentUser?.rpRank || '';
+  const level  = getMedRankLevel(rpRank);
+  // Infirmier(e) et au-dessus peuvent écrire
+  const minLevel = MED_RANK_ORDER.indexOf('infirmier');
+  return level >= minLevel;
+}
+
+
 // ══ AUTH ══
 const SESSION_KEY = 'scp_med_session';
 let currentUser = null, currentRole = null, isAuthenticated = false;
@@ -1014,19 +1053,74 @@ function saveSession(u) { localStorage.setItem(SESSION_KEY, JSON.stringify(u)); 
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 async function initApp() {
-  const saved = loadSession();
-  if (saved?.username && saved?.password) {
+  const authed = localStorage.getItem('site15_authed') === '1';
+  const raw    = localStorage.getItem('site15_profile');
+
+  if (authed && raw) {
+    try {
+      const profile     = JSON.parse(raw);
+      const role        = profile.role || localStorage.getItem('site15_role') || '';
+      const displayName = profile.displayName || profile.name || '';
+      const robloxName  = profile.robloxName  || profile.id  || '';
+
+      if (role === 'medical') {
+        const snap = await getDocs(collection(db, 'users'));
+        let found = null;
+        snap.forEach(d => {
+          const u     = d.data();
+          const uname = (u.username || u.name || '').toLowerCase();
+          if (
+            (displayName && uname === displayName.toLowerCase()) ||
+            (robloxName  && uname === robloxName.toLowerCase())
+          ) found = { _id: d.id, ...u };
+        });
+
+        if (found) {
+          currentUser     = { ...found, rpRank: profile.rank || '' };
+          currentRole     = found.role || 'moderateur';
+          isAuthenticated = true;
+          saveSession({ username: found.username, password: found.password });
+          onAuthChange(found.displayName || found.username || found.name, currentRole);
+          return;
+        }
+
+        currentUser = {
+          _id:         profile.id || 'player-session',
+          username:    robloxName || displayName,
+          displayName: displayName || robloxName,
+          role:        'moderateur',
+          rpRank:      profile.rank || '',
+        };
+        currentRole     = 'moderateur';
+        isAuthenticated = true;
+        saveSession({ username: currentUser.username, password: '__site15_session__' });
+        onAuthChange(currentUser.displayName, currentRole);
+        return;
+      }
+    } catch(e) { console.warn('Auto-login session échoué:', e); }
+  }
+
+  const savedSession = loadSession();
+  if (savedSession?.username && savedSession?.password && savedSession.password !== '__site15_session__') {
     try {
       const snap = await getDocs(collection(db, 'users'));
       let found = null;
-      snap.forEach(d => { const u = d.data(); if ((u.username||'').toLowerCase() === saved.username.toLowerCase()) found = { _id: d.id, ...u }; });
-      if (found && found.password === saved.password) {
-        currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
-        onAuthChange(found.displayName || found.username || found.name, currentRole); return;
+      snap.forEach(d => {
+        const u  = d.data();
+        const id = u.username || u.name || '';
+        if (id.toLowerCase() === savedSession.username.toLowerCase()) found = { _id: d.id, ...u };
+      });
+      if (found && found.password === savedSession.password) {
+        currentUser     = found;
+        currentRole     = found.role || 'moderateur';
+        isAuthenticated = true;
+        onAuthChange(found.displayName || found.username || found.name, currentRole);
+        return;
       }
     } catch(e) { console.warn('Session restore failed:', e); }
     clearSession();
   }
+
   onAuthChange(null, null);
 }
 
@@ -1043,34 +1137,57 @@ if (btn) btn.style.display = name ? 'inline-flex' : 'none';
 }
 
 function applyPermissions(name, role) {
-  const canWrite = !!name;
-  const isAdmin = role === 'admin';
-  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !canWrite));
-  ['roProto','roFiche','roPatient','roEval','roRapport'].forEach(id => document.getElementById(id)?.classList.toggle('visible', !canWrite));
+  const write = canWrite();
+  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !write));
 
-  // Roster: seuls les admins peuvent modifier
+  ['roProto','roFiche','roPatient','roEval','roRapport'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (!name) {
+      el.querySelector('span:last-child').innerHTML =
+        'Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier';
+    } else if (!write) {
+      el.querySelector('span:last-child').innerHTML =
+  'Grade insuffisant — Infirmier(e) minimum requis pour modifier';
+
+    }
+    el.classList.toggle('visible', !write);
+  });
+
+  // Roster : admin seulement
+  const isAdmin = role === 'admin';
   const btnNewAgent = document.getElementById('btnNewAgent');
   if (btnNewAgent) btnNewAgent.style.display = isAdmin ? 'inline-flex' : 'none';
   const roRoster = document.getElementById('roRoster');
-  if (roRoster) roRoster.style.display = (!isAdmin && canWrite) ? 'flex' : (!canWrite ? 'flex' : 'none');
+  if (roRoster) roRoster.style.display = (!isAdmin && !!name) ? 'flex' : (!name ? 'flex' : 'none');
 }
 
 function updateSidebarAuth(name, role) {
-  const s=document.getElementById('sidebarAuthStatus'), n=document.getElementById('sidebarAuthName'),
-        r=document.getElementById('sidebarAuthRole'), l=document.getElementById('sidebarAuthLevel'),
-        b=document.getElementById('sidebarAuthBtn');
+  const s = document.getElementById('sidebarAuthStatus');
+  const n = document.getElementById('sidebarAuthName');
+  const r = document.getElementById('sidebarAuthRole');
+  const l = document.getElementById('sidebarAuthLevel');
+  const b = document.getElementById('sidebarAuthBtn');
   if (name) {
-    if(s){s.textContent='CONNECTÉ';s.style.color='var(--safe)'}
-    if(n)n.textContent=name;
-    if(r){r.textContent=role?.toUpperCase()||'MODÉRATEUR';r.style.color=role==='admin'?'var(--danger)':'var(--dept-color)'}
-    if(l){l.textContent=role==='admin'?'ADMIN COMPLET':'ÉCRITURE';l.style.color='var(--safe)'}
-    if(b){b.textContent='↩ Déconnexion';b.className='auth-btn connected';b.onclick=doAuthLogout}
+    if (s) { s.textContent = 'CONNECTÉ'; s.style.color = 'var(--safe)'; }
+    if (n) n.textContent = name;
+    if (r) {
+      const rpRank = currentUser?.rpRank || '';
+      if (rpRank) {
+        r.textContent = rpRank;
+        r.style.color = 'var(--dept-color)';
+      } else {
+        r.textContent = role?.toUpperCase() || 'MÉDECIN';
+        r.style.color = role === 'admin' ? 'var(--danger)' : 'var(--dept-color)';
+      }
+    }
+    if (l) { l.textContent = role === 'admin' ? 'ADMIN COMPLET' : 'ÉCRITURE'; l.style.color = 'var(--safe)'; }
+    if (b) { b.textContent = '↩ Déconnexion'; b.className = 'auth-btn connected'; b.style.width = '100%'; b.style.marginTop = '10px'; b.style.textAlign = 'center'; b.onclick = doAuthLogout; }
   } else {
-    if(s){s.textContent='NON CONNECTÉ';s.style.color='var(--text-dim)'}
-    if(n)n.textContent='—';
-    if(r){r.textContent='LECTURE';r.style.color='var(--text-dim)'}
-    if(l){l.textContent='PUBLIC';l.style.color='var(--text-dim)'}
-    if(b){b.textContent='🔑 Se connecter';b.className='auth-btn';b.onclick=toggleAuthFlyout}
+    if (s) { s.textContent = 'NON CONNECTÉ'; s.style.color = 'var(--text-dim)'; }
+    if (n) n.textContent = '—';
+    if (r) { r.textContent = 'LECTURE'; r.style.color = 'var(--text-dim)'; }
+    if (l) { l.textContent = 'PUBLIC'; l.style.color = 'var(--text-dim)'; }
+    if (b) { b.textContent = '🔑 Se connecter'; b.className = 'auth-btn'; b.style.width = '100%'; b.style.marginTop = '10px'; b.style.textAlign = 'center'; b.onclick = toggleAuthFlyout; }
   }
 }
 
@@ -1099,13 +1216,19 @@ function showAuthLoginPanel() {
   document.getElementById('afError').textContent='';
 }
 function showAuthUserPanel(name, role) {
-  document.getElementById('afLoginPanel').style.display='none';
-  document.getElementById('afLoadingPanel').style.display='none';
-  document.getElementById('afUserPanel').style.display='block';
-  document.getElementById('afUserName').textContent=name;
-  const roleEl=document.getElementById('afUserRole');
-  roleEl.textContent=role==='admin'?'🔐 Administrateur':'⚕️ Médecin';
-  roleEl.className='auth-user-role '+(role||'moderateur');
+  document.getElementById('afLoginPanel').style.display   = 'none';
+  document.getElementById('afLoadingPanel').style.display = 'none';
+  document.getElementById('afUserPanel').style.display    = 'block';
+  document.getElementById('afUserName').textContent = name;
+  const roleEl = document.getElementById('afUserRole');
+  const rpRank = currentUser?.rpRank || '';
+  if (rpRank) {
+    roleEl.textContent = rpRank;
+    roleEl.className   = 'auth-user-role moderateur';
+  } else {
+    roleEl.textContent = role === 'admin' ? '🔐 Administrateur' : '⚕️ Médecin';
+    roleEl.className   = 'auth-user-role ' + (role || 'moderateur');
+  }
 }
 
 window.doAuthLogin = async function() {
@@ -1137,9 +1260,19 @@ if (btn) btn.style.display = 'none';
 };
 
 function requireAuth(action) {
-  if(!isAuthenticated){openAuthFlyout();addHistory('⚠ Connexion requise pour: '+action);return false;}
+  if (!isAuthenticated) {
+    openAuthFlyout();
+    addHistory('⚠ Connexion requise pour: ' + action);
+    return false;
+  }
+  if (!canWrite()) {
+    addHistory('⛔ Grade insuffisant pour: ' + action);
+    alert('⛔ Grade insuffisant — Infirmier(e) minimum requis pour effectuer cette action.');
+    return false;
+  }
   return true;
-}
+} 
+
 function requireAdmin(action) {
   if(currentRole!=='admin'){alert('⚠ Action réservée aux administrateurs.');addHistory('⚠ Accès admin requis: '+action);return false;}
   return true;
