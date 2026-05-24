@@ -604,6 +604,13 @@
 .eval-wiz-info{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)}
 @media(max-width:600px){.eval-fgrid,.eval-recap-grid2{grid-template-columns:1fr}}
 
+/* ── Sélecteur compétences wizard ── */
+.ew-crit-chip{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border:1px solid var(--border2);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .18s;user-select:none;display:inline-flex;align-items:center;gap:5px}
+.ew-crit-chip:hover{border-color:var(--dept-color);color:var(--dept-color)}
+.ew-crit-chip.active{color:var(--white);border-color:transparent}
+.ew-crit-chip.active::before{content:'✓ '}
+.ew-crit-chip:not(.active)::before{content:'+ '}
+
 </style>
 </head>
 <body>
@@ -1203,7 +1210,7 @@
             <div style="text-align:right">
               <div style="font-family:'Barlow Condensed',sans-serif;font-size:46px;font-weight:900;line-height:1">
                 <span id="detailEvalScore" style="color:var(--safe)">—</span>
-                <span style="font-size:18px;font-weight:400;color:var(--text-dim)">/60</span>
+                <span style="font-size:18px;font-weight:400;color:var(--text-dim)">/${ev.scoreMax || 60}</span>
               </div>
               <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-top:4px" id="detailEvalMention">—</div>
             </div>
@@ -1291,6 +1298,14 @@
             </div>
             <div class="eval-form-field full"><label class="eval-flabel">Contexte de l'évaluation</label><textarea class="eval-ftextarea" id="ewContext" rows="2" placeholder="Fin de période d'essai, montée en grade, contrôle disciplinaire…"></textarea></div>
           </div>
+          <!-- Sélecteur de compétences -->
+          <div style="background:var(--surface2);border:1px solid var(--border);padding:14px;margin-bottom:12px">
+            <div class="eval-step-tag" style="margin-bottom:10px">// Compétences évaluées — sélectionner / retirer</div>
+            <div id="ewCritSelector" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:6px">
+              Score max : <span id="ewMaxScore" style="color:var(--dept-color)">60</span> pts — <span id="ewActiveCritCount" style="color:var(--dept-color)">6</span> compétence(s) sélectionnée(s)
+            </div>
+          </div>
           <!-- Signataires -->
           <div style="background:var(--surface2);border:1px solid var(--border);padding:14px">
             <div class="eval-step-tag" style="margin-bottom:10px">// Chaîne de validation — définir les signataires</div>
@@ -1311,7 +1326,10 @@
           <div class="eval-total-bar2">
             <div>
               <div style="font-family:'Share Tech Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-dim);margin-bottom:3px">Score global</div>
-              <div class="eval-total-score2" id="ewRecapScore" style="color:var(--safe)">—</div>
+              <div style="display:flex;align-items:baseline;gap:4px">
+                <div class="eval-total-score2" id="ewRecapScore" style="color:var(--safe)">—</div>
+                <div style="font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text-dim)" id="ewTotalMax">/60</div>
+              </div>
               <div class="eval-total-mention2" id="ewRecapMention">—</div>
             </div>
             <div style="display:flex;gap:14px;flex-wrap:wrap" id="ewRecapBreakdown"></div>
@@ -1780,7 +1798,7 @@ const LRC_CODES=[
 let protocols=[], evaluations=[], rapports=[], sanctions=[], secUsers=[], agents=[];
 let appelSessions=[], currentAppel=null, activeAppelFilter='all', noteTargetAgentId=null;
 let editingProtoId=null, editingEvalId=null, editingRapportId=null;
-let activeRapportFilter='all', activeEvalFilter='all', protoFilter='all';
+let activeRapportFilter='all', protoFilter='all';
 let currentRapport=null;
 
 // ── Dossiers state ──
@@ -2153,9 +2171,25 @@ document.addEventListener('click', async e => {
   const eRevokeBtn = e.target.closest('[data-eval-revoke]');
   if (eRevokeBtn) { await evalRevoke(eRevokeBtn.dataset.evalRevoke, parseInt(eRevokeBtn.dataset.evalSigIdx)); return; }
 
+  // WIZARD ÉVAL — toggle compétence
+  const ewCritBtn = e.target.closest('[data-ew-crit]');
+  if (ewCritBtn) {
+    const key = ewCritBtn.dataset.ewCrit;
+    if (ewActiveCrits.includes(key)) {
+      if (ewActiveCrits.length <= 1) { alert('Au moins une compétence doit rester sélectionnée.'); return; }
+      ewActiveCrits = ewActiveCrits.filter(k => k !== key);
+    } else {
+      ewActiveCrits.push(key);
+    }
+    ewRenderCritSelector();
+    return;
+  }
+  
   // WIZARD ÉVAL — supprimer signataire
   const ewRemBtn = e.target.closest('[data-ew-remove-sig]');
   if (ewRemBtn) { ewRemoveSig(parseInt(ewRemBtn.dataset.ewRemoveSig)); return; }
+
+  
 
   // WIZARD ÉVAL — tabs dtab
   const dt = e.target.closest('.eval-dtab');
@@ -2405,103 +2439,148 @@ document.getElementById('saveProtoBtn')?.addEventListener('click', async () => {
 });
 
 // ══════════════════════════════════════════
-// ══════════════════════════════════════════
-// ÉVALUATIONS — Nouveau système
+// ÉVALUATIONS — Système complet
 // ══════════════════════════════════════════
 const EVAL_CRIT_DEF = [
-  { key:'Disc',  label:'Discipline',           desc:'Respect des règles, ponctualité, comportement en service', color:'#4cc3ff' },
-  { key:'Proto', label:'Protocoles',            desc:'Maîtrise et application des procédures D.SE',             color:'#7ab0ff' },
-  { key:'React', label:'Réactivité',            desc:'Capacité à répondre rapidement aux incidents',            color:'#00d97e' },
-  { key:'Comm',  label:'Communication',         desc:'Clarté des rapports, coordination avec les unités',       color:'#e8c84a' },
-  { key:'Hier',  label:'Hiérarchie',            desc:'Attitude vis-à-vis de la chaîne de commandement',         color:'#ffaa00' },
-  { key:'Comp',  label:'Comportement',          desc:'Professionnalisme, esprit d\'équipe, initiative',          color:'#a855f7' },
+  { key:'Disc',  label:'Discipline',            desc:'Respect des règles, ponctualité, comportement en service', color:'#4cc3ff' },
+  { key:'Proto', label:'Protocoles',             desc:'Maîtrise et application des procédures D.SE',             color:'#7ab0ff' },
+  { key:'React', label:'Réactivité',             desc:'Capacité à répondre rapidement aux incidents',            color:'#00d97e' },
+  { key:'Comm',  label:'Communication',          desc:'Clarté des rapports, coordination avec les unités',       color:'#e8c84a' },
+  { key:'Hier',  label:'Hiérarchie',             desc:'Attitude vis-à-vis de la chaîne de commandement',         color:'#ffaa00' },
+  { key:'Comp',  label:'Comportement',           desc:'Professionnalisme, esprit d\'équipe, initiative',         color:'#a855f7' },
+  { key:'Init',  label:'Initiative',             desc:'Capacité à agir sans attendre les ordres, pro-activité',  color:'#f97316' },
+  { key:'Discr', label:'Discrétion',             desc:'Confidentialité, gestion des informations sensibles',     color:'#06b6d4' },
+  { key:'Resist',label:'Résistance',             desc:'Stabilité psychologique sous pression et en situation critique', color:'#84cc16' },
 ];
-const EVAL_DEC_LABELS = { promu:'✅ PROMU', valide:'✔ VALIDÉ', avertissement:'⚠ AVERTISSEMENT', recale:'❌ RECALÉ', expulse:'🚫 EXPULSÉ' };
-const EVAL_DEC_COLORS = { promu:'var(--promo)', valide:'var(--safe)', avertissement:'var(--warn)', recale:'var(--danger)', expulse:'#555' };
-let activeEvalSort = 'date-desc';
+
+// Compétences actives pour le wizard en cours (sous-ensemble de EVAL_CRIT_DEF)
+let ewActiveCrits = []; 
+const EVAL_DEC_LABELS = {
+  promu:'✅ PROMU', valide:'✔ VALIDÉ',
+  avertissement:'⚠ AVERTISSEMENT', recale:'❌ RECALÉ', expulse:'🚫 EXPULSÉ'
+};
+const EVAL_DEC_COLORS = {
+  promu:'var(--promo)', valide:'var(--safe)',
+  avertissement:'var(--warn)', recale:'var(--danger)', expulse:'#555'
+};
+
+let activeEvalFilter = 'all';
+let activeEvalSort   = 'date-desc';
 let currentEvalDetailId = null;
-let ewStep = 0;
-let ewSigs = [];
+let ewStep  = 0;
+let ewSigs  = [];
 let ewScores = {};
 
-function evalScoreColor(s){ return s>=8?'var(--safe)':s>=6?'#7ab0ff':s>=4?'var(--warn)':'var(--danger)'; }
-function evalGetMention(total){
-  const MAP=[{min:54,text:'EXCEPTIONNEL',color:'var(--safe)'},{min:48,text:'EXCELLENT',color:'var(--safe)'},{min:42,text:'TRÈS BON',color:'#7ab0ff'},{min:36,text:'SATISFAISANT',color:'var(--accent)'},{min:27,text:'INSUFFISANT',color:'var(--warn)'},{min:0,text:'RECALÉ',color:'var(--danger)'}];
-  return MAP.find(m=>total>=m.min)||MAP[MAP.length-1];
+function evalScoreColor(s) {
+  return s >= 8 ? 'var(--safe)' : s >= 6 ? '#7ab0ff' : s >= 4 ? 'var(--warn)' : 'var(--danger)';
 }
-function evalGetValidStatus(ev){
-  if(!ev.signataires || !ev.signataires.length) return 'complete'; // ← était 'pending'
+
+function evalGetMention(total, max=60) {
+  const p = total / max;
+  if (p >= 0.90) return { text:'EXCEPTIONNEL', color:'var(--safe)'   };
+  if (p >= 0.80) return { text:'EXCELLENT',    color:'var(--safe)'   };
+  if (p >= 0.70) return { text:'TRÈS BON',     color:'#7ab0ff'       };
+  if (p >= 0.60) return { text:'SATISFAISANT', color:'var(--accent)' };
+  if (p >= 0.45) return { text:'INSUFFISANT',  color:'var(--warn)'   };
+  return              { text:'RECALÉ',       color:'var(--danger)' };
+}
+
+function evalGetValidStatus(ev) {
+  if (!ev.signataires || !ev.signataires.length) return 'complete';
   const req = ev.signataires.filter(s => s.required);
-  if(!req.length) return 'complete'; // ← ajout : aucun signataire requis = validé
-  if(ev.signataires.some(s => s.status === 'rejected')) return 'rejected';
-  if(req.every(s => s.status === 'signed')) return 'complete';
-  if(ev.signataires.some(s => s.status === 'signed')) return 'partial';
+  if (!req.length) return 'complete';
+  if (ev.signataires.some(s => s.status === 'rejected')) return 'rejected';
+  if (req.every(s => s.status === 'signed')) return 'complete';
+  if (ev.signataires.some(s => s.status === 'signed')) return 'partial';
   return 'pending';
 }
 
-function evalValidBadge(status){
-  return {pending:{text:'EN ATTENTE',cls:'eval-valid-badge--pending'},partial:{text:'PARTIEL',cls:'eval-valid-badge--partial'},complete:{text:'VALIDÉ ✓',cls:'eval-valid-badge--complete'},rejected:{text:'REFUSÉ',cls:'eval-valid-badge--rejected'}}[status]||{text:'—',cls:'eval-valid-badge--pending'};
+function evalValidBadge(status) {
+  return {
+    pending:  { text:'EN ATTENTE',  cls:'eval-valid-badge--pending'  },
+    partial:  { text:'PARTIEL',     cls:'eval-valid-badge--partial'  },
+    complete: { text:'VALIDÉ ✓',    cls:'eval-valid-badge--complete' },
+    rejected: { text:'REFUSÉ',      cls:'eval-valid-badge--rejected' },
+  }[status] || { text:'—', cls:'eval-valid-badge--pending' };
 }
 
-function renderEvals(){
-  const el=document.getElementById('evalList'); if(!el) return;
-  const q=(document.getElementById('evalSearch')?.value||'').toLowerCase();
-  const sort=document.getElementById('evalSort')?.value||'date-desc';
-  SCPIntranet.updateStat('evalCount', evaluations.length+' évaluations enregistrées');
+// ── Expose globalement pour les onclick inline ──
+window.openEvalDetail = openEvalDetail;
+
+// ── RENDU GRILLE ──
+function renderEvals() {
+  const el = document.getElementById('evalList'); if (!el) return;
+  const q    = (document.getElementById('evalSearch')?.value || '').toLowerCase();
+  const sort = document.getElementById('evalSort')?.value || 'date-desc';
+  SCPIntranet.updateStat('evalCount', evaluations.length + ' évaluations enregistrées');
 
   // Stats bar
-  const cnt={promu:0,valide:0,avertissement:0,recale:0,pending:0};
-  evaluations.forEach(e=>{
-  if(cnt[e.decision] !== undefined) cnt[e.decision]++;
-  const vs = evalGetValidStatus(e);
-  if(vs === 'pending' || vs === 'partial') cnt.pending++;
-});
-  ['Promu','Valide','Avert','Recale','Pending','Total'].forEach(k=>{
-    const id='evalStat'+k; const el2=document.getElementById(id);
-    if(!el2) return;
-    if(k==='Total') el2.textContent=evaluations.length;
-    else if(k==='Avert') el2.textContent=cnt.avertissement||0;
-    else el2.textContent=cnt[k.toLowerCase()]||0;
+  const cnt = { promu:0, valide:0, avertissement:0, recale:0, pending:0 };
+  evaluations.forEach(ev => {
+    if (cnt[ev.decision] !== undefined) cnt[ev.decision]++;
+    const vs = evalGetValidStatus(ev);
+    if (vs === 'pending' || vs === 'partial') cnt.pending++;
   });
+  document.getElementById('evalStatPromu')?.let  && void 0; // guard
+  [['evalStatPromu','promu'],['evalStatValide','valide'],['evalStatAvert','avertissement'],
+   ['evalStatRecale','recale'],['evalStatPending','pending']].forEach(([id, key]) => {
+    const e2 = document.getElementById(id); if (e2) e2.textContent = cnt[key] || 0;
+  });
+  const tot = document.getElementById('evalStatTotal'); if (tot) tot.textContent = evaluations.length;
 
-  let list=[...evaluations];
-  if(activeEvalFilter==='pending') list=list.filter(e=>evalGetValidStatus(e)!=='complete');
-  else if(activeEvalFilter!=='all') list=list.filter(e=>e.decision===activeEvalFilter);
-  if(q) list=list.filter(e=>(e.name||'').toLowerCase().includes(q)||(e.author||'').toLowerCase().includes(q)||(e.username||'').toLowerCase().includes(q));
-  if(sort==='date-desc') list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  else if(sort==='date-asc') list.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  else if(sort==='score-desc') list.sort((a,b)=>(b.total||0)-(a.total||0));
-  else if(sort==='score-asc') list.sort((a,b)=>(a.total||0)-(b.total||0));
+  // Filtrage
+  let list = [...evaluations];
+  if (activeEvalFilter === 'pending') list = list.filter(ev => {
+    const vs = evalGetValidStatus(ev); return vs === 'pending' || vs === 'partial';
+  }); else if (activeEvalFilter !== 'all') list = list.filter(ev => ev.decision === activeEvalFilter);
 
-  if(!list.length){ el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation trouvée</div></div>'; return; }
+  if (q) list = list.filter(ev =>
+    (ev.name    || '').toLowerCase().includes(q) ||
+    (ev.author  || '').toLowerCase().includes(q) ||
+    (ev.username|| '').toLowerCase().includes(q)
+  );
 
-  el.innerHTML=list.map(ev=>{
-    const total=ev.total||0;
-    const m=evalGetMention(total);
-    const vs=evalGetValidStatus(ev);
-    const vb=evalValidBadge(vs);
-    const decColor=EVAL_DEC_COLORS[ev.decision]||'#888';
-    const scoresHtml=EVAL_CRIT_DEF.map(c=>{
-      const s=ev.scores?.[c.key]??5;
+  // Tri
+  if      (sort === 'date-desc')  list.sort((a, b) => (b.date  || '').localeCompare(a.date  || ''));
+  else if (sort === 'date-asc')   list.sort((a, b) => (a.date  || '').localeCompare(b.date  || ''));
+  else if (sort === 'score-desc') list.sort((a, b) => (b.total || 0) - (a.total || 0));
+  else if (sort === 'score-asc')  list.sort((a, b) => (a.total || 0) - (b.total || 0));
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation trouvée</div></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(ev => {
+    const total = ev.total || 0;
+    const m     = evalGetMention(total);
+    const vs    = evalGetValidStatus(ev);
+    const vb    = evalValidBadge(vs);
+    const decColor = EVAL_DEC_COLORS[ev.decision] || '#888';
+
+    const scoresHtml = EVAL_CRIT_DEF.map(c => {
+      const s = ev.scores?.[c.key] ?? 5;
       return `<div class="eval-score-row2">
         <span class="eval-score-lbl2">${c.label.split(' ')[0]}</span>
-        <div class="eval-score-bar-wrap2"><div class="eval-score-bar-fill2" style="width:${s*10}%;background:${c.color}55;outline:1px solid ${c.color}60"></div></div>
+        <div class="eval-score-bar-wrap2"><div class="eval-score-bar-fill2" style="width:${s * 10}%;background:${c.color}55;outline:1px solid ${c.color}60"></div></div>
         <span class="eval-score-val2" style="color:${evalScoreColor(s)}">${s}</span>
       </div>`;
     }).join('');
-    const sigsHtml=(ev.signataires||[]).map(s=>{
-      const dc=s.status==='signed'?'var(--safe)':s.status==='rejected'?'var(--danger)':'var(--border2)';
-      return `<span class="eval-sig-mini2 ${s.status}"><span class="eval-sig-dot2" style="background:${dc}"></span>${esc((s.role||'').split('/')[0].trim().substring(0,12))}</span>`;
+
+    const sigsHtml = (ev.signataires || []).map(s => {
+      const dc = s.status === 'signed' ? 'var(--safe)' : s.status === 'rejected' ? 'var(--danger)' : 'var(--border2)';
+      return `<span class="eval-sig-mini2 ${s.status}"><span class="eval-sig-dot2" style="background:${dc}"></span>${esc((s.role || '').split('/')[0].trim().substring(0, 12))}</span>`;
     }).join('');
-    return `<div class="eval-card-new eval-card-new--${ev.decision||'valide'}" data-eval-open="${ev._id}" onclick="openEvalDetail('${ev._id}')">
+
+    return `<div class="eval-card-new eval-card-new--${ev.decision || 'valide'}" data-eval-open="${ev._id}" onclick="openEvalDetail('${ev._id}')">
       <span class="eval-valid-badge ${vb.cls}">${vb.text}</span>
       <div class="eval-card-head">
-        <div class="eval-card-agent-name">${esc(ev.name||'—')}</div>
-        <div class="eval-card-rank-lbl">${esc(ev.rank||'—')}</div>
+        <div class="eval-card-agent-name">${esc(ev.name || '—')}</div>
+        <div class="eval-card-rank-lbl">${esc(ev.rank || '—')}</div>
         <div class="eval-card-dec-row">
-          <span class="eval-dec-badge eval-dec-badge--${ev.decision}" style="color:${decColor}">${EVAL_DEC_LABELS[ev.decision]||ev.decision}</span>
+          <span class="eval-dec-badge eval-dec-badge--${ev.decision}" style="color:${decColor}">${EVAL_DEC_LABELS[ev.decision] || ev.decision}</span>
         </div>
-        <div class="eval-card-meta-lbl">${ev.date||'—'} — Éval. ${esc(ev.author||'—')}</div>
+        <div class="eval-card-meta-lbl">${ev.date || '—'} — Éval. ${esc(ev.author || '—')}</div>
       </div>
       <div class="eval-card-scores-wrap">${scoresHtml}</div>
       <div class="eval-card-foot">
@@ -2511,276 +2590,491 @@ function renderEvals(){
         </div>
         <span class="eval-mention2" style="color:${m.color};border-color:${m.color}40">${m.text}</span>
       </div>
-      ${sigsHtml?`<div class="eval-card-sigs-row">${sigsHtml}</div>`:''}
+      ${sigsHtml ? `<div class="eval-card-sigs-row">${sigsHtml}</div>` : ''}
     </div>`;
   }).join('');
 }
 
-document.getElementById('evalFilters')?.addEventListener('click',e=>{
-  const pill=e.target.closest('.pill'); if(!pill||!pill.dataset.evalFilter) return;
-  document.querySelectorAll('#evalFilters .pill').forEach(p=>p.classList.remove('active'));
-  pill.classList.add('active'); activeEvalFilter=pill.dataset.evalFilter; renderEvals();
+document.getElementById('evalFilters')?.addEventListener('click', e => {
+  const pill = e.target.closest('.pill'); if (!pill || !pill.dataset.evalFilter) return;
+  document.querySelectorAll('#evalFilters .pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  activeEvalFilter = pill.dataset.evalFilter;
+  renderEvals();
 });
-document.getElementById('evalSearch')?.addEventListener('input',renderEvals);
-document.getElementById('evalSort')?.addEventListener('change',renderEvals);
+document.getElementById('evalSearch')?.addEventListener('input', renderEvals);
+document.getElementById('evalSort')?.addEventListener('change', e => { activeEvalSort = e.target.value; renderEvals(); });
 
 // ── MODAL DÉTAIL ──
-function openEvalDetail(id){
-  const ev=evaluations.find(e=>e._id===id); if(!ev) return;
-  currentEvalDetailId=id;
-  const total=ev.total||0; const m=evalGetMention(total);
-  document.getElementById('detailEvalTitle').textContent=ev.name||'—';
-  document.getElementById('detailEvalName').textContent=ev.name||'—';
-  document.getElementById('detailEvalRank').textContent=ev.rank||'—';
-  document.getElementById('detailEvalScore').textContent=total;
-  document.getElementById('detailEvalScore').style.color=m.color;
-  document.getElementById('detailEvalMention').textContent=m.text;
-  document.getElementById('detailEvalMention').style.color=m.color;
-  const db=document.getElementById('detailEvalDecBadge');
-  db.textContent=EVAL_DEC_LABELS[ev.decision]||ev.decision;
-  db.className='eval-dec-badge eval-dec-badge--'+(ev.decision||'valide');
-  document.getElementById('detailEvalMeta').textContent=`${ev.date||'—'} — Évaluateur: ${ev.author||'—'}${ev.username?' | @'+ev.username:''}`;
-  const cb=document.getElementById('detailEvalCommentsBox');
-  if(ev.comments){ cb.style.display='block'; document.getElementById('detailEvalComments').textContent=ev.comments; } else cb.style.display='none';
-  document.getElementById('detailEvalScoresBrief').innerHTML=EVAL_CRIT_DEF.map(c=>{
-    const s=ev.scores?.[c.key]??5;
-    return `<div class="eval-score-row2"><span class="eval-score-lbl2" style="min-width:110px">${c.label}</span><div class="eval-score-bar-wrap2"><div class="eval-score-bar-fill2" style="width:${s*10}%;background:${c.color}"></div></div><span class="eval-score-val2" style="color:${evalScoreColor(s)}">${s}<span style="font-size:9px;color:var(--text-dim)">/10</span></span></div>`;
+function openEvalDetail(id) {
+  const ev = evaluations.find(e => e._id === id); if (!ev) return;
+  currentEvalDetailId = id;
+  const total = ev.total || 0;
+  const m     = evalGetMention(total);
+
+  document.getElementById('detailEvalTitle').textContent = ev.name || '—';
+  document.getElementById('detailEvalName').textContent  = ev.name || '—';
+  document.getElementById('detailEvalRank').textContent  = ev.rank || '—';
+
+  const scoreEl = document.getElementById('detailEvalScore');
+  scoreEl.textContent  = total;
+  scoreEl.style.color  = m.color;
+  document.getElementById('detailEvalMention').textContent = m.text;
+  document.getElementById('detailEvalMention').style.color  = m.color;
+
+  const db = document.getElementById('detailEvalDecBadge');
+  db.textContent = EVAL_DEC_LABELS[ev.decision] || ev.decision;
+  db.className   = 'eval-dec-badge eval-dec-badge--' + (ev.decision || 'valide');
+
+  document.getElementById('detailEvalMeta').textContent =
+    `${ev.date || '—'} — Évaluateur : ${ev.author || '—'}${ev.username ? ' | @' + ev.username : ''}`;
+
+  const cb = document.getElementById('detailEvalCommentsBox');
+  if (ev.comments) {
+    cb.style.display = 'block';
+    document.getElementById('detailEvalComments').textContent = ev.comments;
+  } else {
+    cb.style.display = 'none';
+  }
+
+  // Scores résumé
+  document.getElementById('detailEvalScoresBrief').innerHTML = EVAL_CRIT_DEF.map(c => {
+    const s = ev.scores?.[c.key] ?? 5;
+    return `<div class="eval-score-row2">
+      <span class="eval-score-lbl2" style="min-width:110px">${c.label}</span>
+      <div class="eval-score-bar-wrap2"><div class="eval-score-bar-fill2" style="width:${s * 10}%;background:${c.color}"></div></div>
+      <span class="eval-score-val2" style="color:${evalScoreColor(s)}">${s}<span style="font-size:9px;color:var(--text-dim)">/10</span></span>
+    </div>`;
   }).join('');
-  document.getElementById('detailEvalCritGrid').innerHTML=EVAL_CRIT_DEF.map(c=>{
-    const s=ev.scores?.[c.key]??5;
-    return `<div class="eval-crit-card2"><div class="eval-crit-name2">${c.label}</div><div class="eval-crit-score2" style="color:${c.color}">${s}<span style="font-size:13px;font-weight:400;color:var(--text-dim)">/10</span></div><div class="eval-crit-bar2"><div style="height:100%;width:${s*10}%;background:${c.color}"></div></div><div class="eval-crit-desc2">${c.desc}</div></div>`;
+
+  // Grille compétences détaillée
+  document.getElementById('detailEvalCritGrid').innerHTML = EVAL_CRIT_DEF.map(c => {
+    const s = ev.scores?.[c.key] ?? 5;
+    return `<div class="eval-crit-card2">
+      <div class="eval-crit-name2">${c.label}</div>
+      <div class="eval-crit-score2" style="color:${c.color}">${s}<span style="font-size:13px;font-weight:400;color:var(--text-dim)">/10</span></div>
+      <div class="eval-crit-bar2"><div style="height:100%;width:${s * 10}%;background:${c.color}"></div></div>
+      <div class="eval-crit-desc2">${c.desc}</div>
+    </div>`;
   }).join('');
+
   renderEvalSigsPanel(ev);
   activateEvalDTab('resume');
   SCPIntranet.openModal('modalEvalDetail');
 }
-function renderEvalSigsPanel(ev){
-  const sigs=ev.signataires||[];
-  const req=sigs.filter(s=>s.required);
-  const signedReq=req.filter(s=>s.status==='signed').length;
-  const hasRejected=sigs.some(s=>s.status==='rejected');
-  document.getElementById('evalValDots').innerHTML=sigs.map(s=>`<div class="eval-val-dot ${s.status==='signed'?'done':s.status==='rejected'?'rejected':''}" title="${esc(s.role)}"></div>`).join('');
-  document.getElementById('evalValLabel').textContent=`${signedReq} / ${req.length} validation${req.length>1?'s':''} requise${req.length>1?'s':''}`;
-  const allDone=req.length>0&&req.every(s=>s.status==='signed');
-  const fb=document.getElementById('evalFinalizeBtn');
-  fb.className=allDone?'eval-finalize2 eval-finalize2--ready':'eval-finalize2 eval-finalize2--disabled';
-  fb.textContent=allDone?'✓ Finaliser':`En attente (${req.length-signedReq} sig.)`;
-  document.getElementById('evalSigsGrid').innerHTML=sigs.map((s,i)=>{
-    const sc=s.status==='signed'?'signed':s.status==='rejected'?'rejected':'pending';
-    const st=s.status==='signed'?'✓ SIGNÉ':s.status==='rejected'?'✕ REFUSÉ':'○ EN ATTENTE';
-    const canSign=isAuthenticated&&!s.status||s.status==='pending';
+
+function renderEvalSigsPanel(ev) {
+  const sigs = ev.signataires || [];
+  const req  = sigs.filter(s => s.required);
+  const signedReq = req.filter(s => s.status === 'signed').length;
+
+  // Dots de validation
+  document.getElementById('evalValDots').innerHTML = sigs.map(s =>
+    `<div class="eval-val-dot ${s.status === 'signed' ? 'done' : s.status === 'rejected' ? 'rejected' : ''}" title="${esc(s.role)}"></div>`
+  ).join('');
+
+  document.getElementById('evalValLabel').textContent =
+    `${signedReq} / ${req.length} validation${req.length > 1 ? 's' : ''} requise${req.length > 1 ? 's' : ''}`;
+
+  // Bouton finaliser
+  const allDone = req.length > 0 && req.every(s => s.status === 'signed');
+  const fb = document.getElementById('evalFinalizeBtn');
+  fb.className  = allDone ? 'eval-finalize2 eval-finalize2--ready' : 'eval-finalize2 eval-finalize2--disabled';
+  fb.textContent = allDone ? '✓ Finaliser' : `En attente (${req.length - signedReq} sig.)`;
+  fb.disabled   = !allDone;
+
+  // Cartes signataires
+  document.getElementById('evalSigsGrid').innerHTML = sigs.map((s, i) => {
+    const sc = s.status === 'signed' ? 'signed' : s.status === 'rejected' ? 'rejected' : 'pending';
+    const st = s.status === 'signed' ? '✓ SIGNÉ' : s.status === 'rejected' ? '✕ REFUSÉ' : '○ EN ATTENTE';
+    const canAct = isAuthenticated && (s.status === 'pending' || !s.status);
     return `<div class="eval-sig-card2 eval-sig-card2--${sc}">
-      <div class="eval-sig-role2">Niveau ${s.level||i+1}${s.required?' <span style="color:var(--danger)">*</span>':''}</div>
-      <div class="eval-sig-name2">${esc(s.role||'—')}</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text-dim);margin-top:2px">${esc(s.name||'—')}</div>
+      <div class="eval-sig-role2">Niveau ${s.level || i + 1}${s.required ? ' <span style="color:var(--danger)">*</span>' : ''}</div>
+      <div class="eval-sig-name2">${esc(s.role || '—')}</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--text-dim);margin-top:2px">${esc(s.name || '—')}</div>
       <div class="eval-sig-status2 ${sc}">${st}</div>
-      ${s.signedAt?`<div class="eval-sig-ts">${s.signedAt}</div>`:''}
-      ${canSign&&isAuthenticated?`<button class="eval-sig-action eval-sig-action--sign" data-eval-sign="${ev._id}" data-eval-sig-idx="${i}">✍ Signer</button><button class="eval-sig-action eval-sig-action--reject" data-eval-reject="${ev._id}" data-eval-sig-idx="${i}">✕ Refuser</button>`:''}
-      ${s.status==='signed'?`<div class="eval-sig-stamp2">OK</div>${isAuthenticated?`<button class="eval-sig-revoke" data-eval-revoke="${ev._id}" data-eval-sig-idx="${i}">↩ Révoquer</button>`:''}` :''}
+      ${s.signedAt ? `<div class="eval-sig-ts">${s.signedAt}</div>` : ''}
+      ${canAct ? `
+        <button class="eval-sig-action eval-sig-action--sign"   data-eval-sign="${ev._id}"   data-eval-sig-idx="${i}">✍ Signer</button>
+        <button class="eval-sig-action eval-sig-action--reject" data-eval-reject="${ev._id}" data-eval-sig-idx="${i}">✕ Refuser</button>` : ''}
+      ${s.status === 'signed' ? `
+        <div class="eval-sig-stamp2">OK</div>
+        ${isAuthenticated ? `<button class="eval-sig-revoke" data-eval-revoke="${ev._id}" data-eval-sig-idx="${i}">↩ Révoquer</button>` : ''}` : ''}
     </div>`;
   }).join('');
-  const rejs=sigs.find(s=>s.status==='rejected');
-  const rp=document.getElementById('evalRejectedPanel');
-  if(rejs){ rp.style.display='block'; document.getElementById('evalRejectedReason').textContent=`Refusé par: ${rejs.name||rejs.role} — ${rejs.signedAt||''}`; } else rp.style.display='none';
+
+  // Panneau refus
+  const rejs = sigs.find(s => s.status === 'rejected');
+  const rp   = document.getElementById('evalRejectedPanel');
+  if (rejs) {
+    rp.style.display = 'block';
+    document.getElementById('evalRejectedReason').textContent =
+      `Refusé par : ${rejs.name || rejs.role} — ${rejs.signedAt || ''}`;
+  } else {
+    rp.style.display = 'none';
+  }
 }
-function activateEvalDTab(tab){
-  document.querySelectorAll('.eval-dtab').forEach(t=>t.classList.toggle('active',t.dataset.evalDtab===tab));
-  document.querySelectorAll('.eval-dpanel').forEach(p=>p.classList.toggle('active',p.id==='evalDPanel-'+tab));
+
+function activateEvalDTab(tab) {
+  document.querySelectorAll('.eval-dtab').forEach(t => t.classList.toggle('active', t.dataset.evalDtab === tab));
+  document.querySelectorAll('.eval-dpanel').forEach(p => p.classList.toggle('active', p.id === 'evalDPanel-' + tab));
 }
-document.addEventListener('click',e=>{
-  const dt=e.target.closest('.eval-dtab'); if(dt&&dt.dataset.evalDtab){ activateEvalDTab(dt.dataset.evalDtab); return; }
+
+// Clic sur les onglets détail (re-déclaré proprement ici, dispatcher global s'en occupe)
+
+// ── Actions signer / refuser / révoquer ──
+async function evalSign(evalId, idx) {
+  if (!requireAuth('signer')) return;
+  const ev = evaluations.find(e => e._id === evalId); if (!ev) return;
+  if (!ev.signataires[idx]) return;
+  ev.signataires[idx].status   = 'signed';
+  ev.signataires[idx].signedAt = new Date().toLocaleString('fr-FR');
+  await fbUpdate('sec_evals', evalId, { signataires: ev.signataires });
+  renderEvalSigsPanel(ev); renderEvals();
+  SCPIntranet.addHistory('Signature apposée : ' + ev.name);
+}
+async function evalReject(evalId, idx) {
+  if (!requireAuth('refuser')) return;
+  const ev = evaluations.find(e => e._id === evalId); if (!ev) return;
+  if (!ev.signataires[idx]) return;
+  ev.signataires[idx].status   = 'rejected';
+  ev.signataires[idx].signedAt = new Date().toLocaleString('fr-FR');
+  await fbUpdate('sec_evals', evalId, { signataires: ev.signataires });
+  renderEvalSigsPanel(ev); renderEvals();
+  SCPIntranet.addHistory('Évaluation refusée : ' + ev.name);
+}
+async function evalRevoke(evalId, idx) {
+  if (!requireAuth('révoquer')) return;
+  if (!confirm('Révoquer cette signature ?')) return;
+  const ev = evaluations.find(e => e._id === evalId); if (!ev) return;
+  if (!ev.signataires[idx]) return;
+  ev.signataires[idx].status   = 'pending';
+  ev.signataires[idx].signedAt = null;
+  await fbUpdate('sec_evals', evalId, { signataires: ev.signataires });
+  renderEvalSigsPanel(ev); renderEvals();
+  SCPIntranet.addHistory('Signature révoquée : ' + ev.name);
+}
+
+document.getElementById('evalFinalizeBtn')?.addEventListener('click', async () => {
+  const ev = evaluations.find(e => e._id === currentEvalDetailId); if (!ev) return;
+  const req = (ev.signataires || []).filter(s => s.required);
+  if (!req.length || !req.every(s => s.status === 'signed')) return;
+  await fbUpdate('sec_evals', currentEvalDetailId, { finalized: true });
+  SCPIntranet.addHistory('Évaluation finalisée : ' + ev.name);
+  const fb = document.getElementById('evalFinalizeBtn');
+  fb.textContent = '✓ Finalisée'; fb.style.opacity = '0.6';
 });
 
-// Signer / refuser / révoquer
-async function evalSign(evalId,idx){
-  if(!requireAuth('signer')) return;
-  const ev=evaluations.find(e=>e._id===evalId); if(!ev) return;
-  if(!ev.signataires[idx]) return;
-  ev.signataires[idx].status='signed';
-  ev.signataires[idx].signedAt=new Date().toLocaleString('fr-FR');
-  await fbUpdate('sec_evals',evalId,{signataires:ev.signataires});
-  renderEvalSigsPanel(ev); renderEvals();
-  SCPIntranet.addHistory('Signature apposée sur éval: '+ev.name);
-}
-async function evalReject(evalId,idx){
-  if(!requireAuth('refuser')) return;
-  const ev=evaluations.find(e=>e._id===evalId); if(!ev) return;
-  if(!ev.signataires[idx]) return;
-  ev.signataires[idx].status='rejected';
-  ev.signataires[idx].signedAt=new Date().toLocaleString('fr-FR');
-  await fbUpdate('sec_evals',evalId,{signataires:ev.signataires});
-  renderEvalSigsPanel(ev); renderEvals();
-  SCPIntranet.addHistory('Évaluation refusée: '+ev.name);
-}
-async function evalRevoke(evalId,idx){
-  if(!requireAuth('révoquer')) return;
-  if(!confirm('Révoquer cette signature ?')) return;
-  const ev=evaluations.find(e=>e._id===evalId); if(!ev) return;
-  if(!ev.signataires[idx]) return;
-  ev.signataires[idx].status='pending';
-  ev.signataires[idx].signedAt=null;
-  await fbUpdate('sec_evals',evalId,{signataires:ev.signataires});
-  renderEvalSigsPanel(ev); renderEvals();
-}
-document.getElementById('evalFinalizeBtn')?.addEventListener('click',async()=>{
-  const ev=evaluations.find(e=>e._id===currentEvalDetailId); if(!ev) return;
-  if(!ev.signataires.filter(s=>s.required).every(s=>s.status==='signed')) return;
-  await fbUpdate('sec_evals',currentEvalDetailId,{finalized:true});
-  SCPIntranet.addHistory('Évaluation finalisée: '+ev.name);
-});
-document.getElementById('evalDetailDeleteBtn')?.addEventListener('click',async()=>{
-  if(!requireAuth('supprimer')) return;
-  if(!confirm('Supprimer cette évaluation ?')) return;
-  await fbDelete('sec_evals',currentEvalDetailId);
+document.getElementById('evalDetailDeleteBtn')?.addEventListener('click', async () => {
+  if (!requireAuth('supprimer')) return;
+  if (!confirm('Supprimer définitivement cette évaluation ?')) return;
+  await fbDelete('sec_evals', currentEvalDetailId);
   SCPIntranet.closeModal('modalEvalDetail');
   SCPIntranet.addHistory('Évaluation supprimée.');
 });
-document.getElementById('evalDetailExportBtn')?.addEventListener('click',()=>{
-  const ev=evaluations.find(e=>e._id===currentEvalDetailId); if(!ev) return;
-  const m=evalGetMention(ev.total||0);
-  const lines=['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','RAPPORT D\'ÉVALUATION — DÉPARTEMENT SÉCURITÉ','══════════════════════════════════════════',
-    `ID       : ${ev._id}`,`DATE     : ${ev.date||'—'}`,`AGENT    : ${ev.name||'—'}`,`USERNAME : ${ev.username?'@'+ev.username:'—'}`,`GRADE    : ${ev.rank||'—'}`,`ÉVAL.    : ${ev.author||'—'}`,
-    '══════════════════════════════════════════',`SCORE    : ${ev.total||0} / 60 — ${m.text}`,`DÉCISION : ${EVAL_DEC_LABELS[ev.decision]||ev.decision}`,'══════════════════════════════════════════','COMPÉTENCES',
-    ...EVAL_CRIT_DEF.map(c=>`  ${(c.label).padEnd(20)}: ${ev.scores?.[c.key]??5}/10`),
-    '','══════════════════════════════════════════','COMMENTAIRES',(ev.comments||'(aucun)'),
-    '','══════════════════════════════════════════','SIGNATURES',
-    ...(ev.signataires||[]).map(s=>`  Niv.${s.level||'?'} ${(s.role||'').padEnd(28)}: ${s.status==='signed'?'✓ SIGNÉ':s.status==='rejected'?'✕ REFUSÉ':'○ EN ATTENTE'} ${s.signedAt||''}`),
-    '',`[Généré le ${new Date().toLocaleString('fr-FR')}]`,'══════════════════════════════════════════'];
-  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`EVAL_${(ev.name||'agent').replace(/[^a-z0-9]/gi,'_')}_${ev.date||'nodate'}.txt`; a.click();
-  SCPIntranet.addHistory('Export évaluation: '+ev.name);
+
+document.getElementById('evalDetailExportBtn')?.addEventListener('click', () => {
+  const ev = evaluations.find(e => e._id === currentEvalDetailId); if (!ev) return;
+  const m  = evalGetMention(ev.total || 0);
+  const lines = [
+    '══════════════════════════════════════════',
+    'SCP FOUNDATION — SITE-15',
+    'RAPPORT D\'ÉVALUATION — DÉPARTEMENT SÉCURITÉ',
+    '══════════════════════════════════════════',
+    `ID       : ${ev._id}`,
+    `DATE     : ${ev.date || '—'}`,
+    `AGENT    : ${ev.name || '—'}`,
+    `USERNAME : ${ev.username ? '@' + ev.username : '—'}`,
+    `GRADE    : ${ev.rank || '—'}`,
+    `ÉVAL.    : ${ev.author || '—'}`,
+    '══════════════════════════════════════════',
+    `SCORE    : ${ev.total || 0} / 60 — ${m.text}`,
+    `DÉCISION : ${EVAL_DEC_LABELS[ev.decision] || ev.decision}`,
+    '══════════════════════════════════════════',
+    'COMPÉTENCES',
+    ...EVAL_CRIT_DEF.map(c => `  ${c.label.padEnd(22)}: ${ev.scores?.[c.key] ?? 5}/10`),
+    '',
+    '══════════════════════════════════════════',
+    'COMMENTAIRES',
+    ev.comments || '(aucun)',
+    '',
+    '══════════════════════════════════════════',
+    'SIGNATURES',
+    ...(ev.signataires || []).map(s =>
+      `  Niv.${s.level || '?'}  ${(s.role || '').padEnd(28)}: ${
+        s.status === 'signed' ? '✓ SIGNÉ' : s.status === 'rejected' ? '✕ REFUSÉ' : '○ EN ATTENTE'
+      } ${s.signedAt || ''}`
+    ),
+    '',
+    `[Généré le ${new Date().toLocaleString('fr-FR')}]`,
+    '══════════════════════════════════════════',
+  ];
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `EVAL_${(ev.name || 'agent').replace(/[^a-z0-9]/gi, '_')}_${ev.date || 'nodate'}.txt`;
+  a.click();
+  SCPIntranet.addHistory('Export évaluation : ' + ev.name);
 });
 
 // ── WIZARD NOUVELLE ÉVALUATION ──
-const EW_STEP_TITLES=['Informations de base','Notation par compétences','Récapitulatif','Validation & Signatures'];
-const EW_DEFAULT_SIGS=[
-  {level:1,role:'Évaluateur direct',name:'',required:true,status:'pending',signedAt:null},
-  {level:2,role:'Superviseur / Chef de section',name:'',required:true,status:'pending',signedAt:null},
-  {level:3,role:'Direction D.SE',name:'',required:false,status:'pending',signedAt:null},
+const EW_STEP_TITLES = [
+  'Informations de base',
+  'Notation par compétences',
+  'Récapitulatif',
+  'Validation & Signatures',
 ];
-function ewResetForm(){
-  ewStep=0;
-  ewSigs=EW_DEFAULT_SIGS.map(s=>({...s}));
-  EVAL_CRIT_DEF.forEach(c=>ewScores[c.key]=5);
-  const today=SCPIntranet.today();
-  ['ewName','ewUser','ewRank','ewAuthor','ewContext','ewComments'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  const ed=document.getElementById('ewDate'); if(ed) ed.value=today;
-  const edec=document.getElementById('ewDecision'); if(edec) edec.value='valide';
-  ewRenderSigList(); ewRenderCompSliders(); ewUpdateUI();
-}
-function ewRenderSigList(){
-  const el = document.getElementById('ewSigList'); if(!el) return;
-  el.innerHTML = ewSigs.map((s,i) => `
-    <div class="eval-sig-setup-card">
-      <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);white-space:nowrap">NIV.${s.level}</span>
-      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Rôle" value="${esc(s.role)}" data-sig-role="${i}"/>
-      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Nom du signataire" value="${esc(s.name)}" data-sig-name="${i}"/>
-      <label style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap">
-        <input type="checkbox" ${s.required?'checked':''} data-sig-req="${i}"/> Requis
-      </label>
-      ${ewSigs.length>1?`<button class="btn btn-xs btn-danger" data-ew-remove-sig="${i}">✕</button>`:''}
-    </div>`).join('');
+const EW_DEFAULT_SIGS = () => [
+  { level:1, role:'Évaluateur direct',         name:'', required:true,  status:'pending', signedAt:null },
+  { level:2, role:'Superviseur / Chef section', name:'', required:true,  status:'pending', signedAt:null },
+  { level:3, role:'Direction D.SE',             name:'', required:false, status:'pending', signedAt:null },
+];
+
+function ewInitScores() {
+  // Par défaut : les 6 compétences de base
+  ewActiveCrits = EVAL_CRIT_DEF.slice(0, 6).map(c => c.key);
+  EVAL_CRIT_DEF.forEach(c => { ewScores[c.key] = 5; });
 }
 
-function ewRemoveSig(i){ewSigs.splice(i,1);ewSigs.forEach((s,idx)=>s.level=idx+1);ewRenderSigList();}
-document.getElementById('ewAddSigBtn')?.addEventListener('click',()=>{
-  ewSigs.push({level:ewSigs.length+1,role:'',name:'',required:false,status:'pending',signedAt:null});
+function ewResetForm() {
+  ewStep  = 0;
+  ewSigs  = EW_DEFAULT_SIGS();
+  ewInitScores();
+  ['ewName','ewUser','ewRank','ewAuthor','ewContext','ewComments'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const today = SCPIntranet.today();
+  const ed = document.getElementById('ewDate');    if (ed) ed.value = today;
+  const edec = document.getElementById('ewDecision'); if (edec) edec.value = 'valide';
+  ewRenderCritSelector();
+  ewRenderSigList();
+  ewRenderCompSliders();
+  ewUpdateUI();
+}
+
+function ewRenderCritSelector() {
+  const el = document.getElementById('ewCritSelector'); if (!el) return;
+  el.innerHTML = EVAL_CRIT_DEF.map(c => {
+    const isActive = ewActiveCrits.includes(c.key);
+    return `<button class="ew-crit-chip ${isActive ? 'active' : ''}"
+      style="${isActive ? `background:${c.color}22;border-color:${c.color};color:${c.color}` : ''}"
+      data-ew-crit="${c.key}"
+      title="${c.desc}"
+    >${c.label}</button>`;
+  }).join('');
+  const max = document.getElementById('ewMaxScore');
+  const cnt = document.getElementById('ewActiveCritCount');
+  if (max) max.textContent = ewActiveCrits.length * 10;
+  if (cnt) cnt.textContent = ewActiveCrits.length;
+}
+function ewRemoveSig(i) {
+  ewSigs.splice(i, 1);
+  ewSigs.forEach((s, idx) => s.level = idx + 1);
+  ewRenderSigList();
+}
+
+document.getElementById('ewAddSigBtn')?.addEventListener('click', () => {
+  ewSigs.push({ level: ewSigs.length + 1, role:'', name:'', required:false, status:'pending', signedAt:null });
   ewRenderSigList();
 });
-function ewRenderCompSliders(){
-  const el=document.getElementById('ewCompList'); if(!el) return;
-  el.innerHTML=EVAL_CRIT_DEF.map(c=>`
+
+
+function ewRenderSigList() {
+  const el = document.getElementById('ewSigList'); if (!el) return;
+  el.innerHTML = ewSigs.map((s, i) => `
+    <div class="eval-sig-setup-card">
+      <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);white-space:nowrap">NIV.${s.level}</span>
+      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Rôle"              value="${esc(s.role)}" data-sig-role="${i}"/>
+      <input class="eval-finput" style="flex:2;min-width:110px" placeholder="Nom du signataire" value="${esc(s.name)}" data-sig-name="${i}"/>
+      <label style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--text-dim);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap">
+        <input type="checkbox" ${s.required ? 'checked' : ''} data-sig-req="${i}"/> Requis
+      </label>
+      ${ewSigs.length > 1
+        ? `<button class="btn btn-xs btn-danger" data-ew-remove-sig="${i}">✕</button>`
+        : ''}
+    </div>`).join('');
+} 
+
+function ewRenderCompSliders() {
+  const el = document.getElementById('ewCompList'); if (!el) return;
+  const active = EVAL_CRIT_DEF.filter(c => ewActiveCrits.includes(c.key));
+  if (!active.length) {
+    el.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);padding:20px;text-align:center;border:1px dashed var(--border)">Aucune compétence sélectionnée — retournez à l'étape 1.</div>`;
+    return;
+  }
+  el.innerHTML = active.map(c => `
     <div class="eval-comp-item">
       <div class="eval-comp-hdr">
-        <div class="eval-comp-name">${c.label}</div>
-        <div class="eval-comp-disp" id="ewDisp_${c.key}" style="color:${c.color}">${ewScores[c.key]||5}</div>
+        <div class="eval-comp-name" style="display:flex;align-items:center;gap:8px">
+          ${c.label}
+          <span style="font-family:'Share Tech Mono',monospace;font-size:8px;padding:1px 6px;border:1px solid ${c.color}40;color:${c.color};border-radius:2px">0–10</span>
+        </div>
+        <div class="eval-comp-disp" id="ewDisp_${c.key}" style="color:${c.color}">${ewScores[c.key]}</div>
       </div>
       <div class="eval-comp-desc">${c.desc}</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)">0</span>
-        <input type="range" class="eval-comp-slider" min="0" max="10" step="1" value="${ewScores[c.key]||5}" style="flex:1;accent-color:${c.color}" oninput="ewUpdateScore('${c.key}',this.value)"/>
+        <input type="range" class="eval-comp-slider" min="0" max="10" step="1"
+               value="${ewScores[c.key]}" style="flex:1;accent-color:${c.color}"
+               data-ew-score="${c.key}"/>
         <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text-dim)">10</span>
       </div>
     </div>`).join('');
 }
-function ewUpdateScore(key,val){
-  ewScores[key]=parseInt(val);
-  const el=document.getElementById('ewDisp_'+key);
-  if(el){el.textContent=val;el.style.color=evalScoreColor(parseInt(val));}
+
+function ewUpdateScore(key, val) {
+  ewScores[key] = parseInt(val);
+  const el = document.getElementById('ewDisp_' + key);
+  if (el) { el.textContent = val; el.style.color = evalScoreColor(parseInt(val)); }
 }
-function ewRenderRecap(){
-  const total=Object.values(ewScores).reduce((s,v)=>s+v,0);
-  const m=evalGetMention(total);
-  const sc=document.getElementById('ewRecapScore'); if(sc){sc.textContent=total;sc.style.color=m.color;}
-  const mn=document.getElementById('ewRecapMention'); if(mn){mn.textContent=m.text;mn.style.color=m.color;mn.style.borderColor=m.color+'40';}
-  const bd=document.getElementById('ewRecapBreakdown');
-  if(bd) bd.innerHTML=EVAL_CRIT_DEF.map(c=>`<div style="text-align:center"><div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:${c.color}">${ewScores[c.key]||0}</div><div style="font-family:'Share Tech Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">${c.label.split(' ')[0]}</div></div>`).join('');
-  const ig=document.getElementById('ewRecapInfoGrid');
-  if(ig) ig.innerHTML=[
-    {lbl:'Agent',val:document.getElementById('ewName')?.value||'—'},
-    {lbl:'Grade',val:document.getElementById('ewRank')?.value||'—'},
-    {lbl:'Évaluateur',val:document.getElementById('ewAuthor')?.value||'—'},
-    {lbl:'Date',val:document.getElementById('ewDate')?.value||'—'},
-    {lbl:'Décision',val:EVAL_DEC_LABELS[document.getElementById('ewDecision')?.value]||'—'},
-    {lbl:'Signataires',val:ewSigs.filter(s=>s.name).map(s=>s.name).join(', ')||'—'},
-  ].map(i=>`<div class="eval-recap-item2"><div class="eval-recap-lbl2">${i.lbl}</div><div class="eval-recap-val2">${esc(i.val)}</div></div>`).join('');
+
+function ewComputeTotal() {
+  return EVAL_CRIT_DEF
+    .filter(c => ewActiveCrits.includes(c.key))
+    .reduce((s, c) => s + (ewScores[c.key] || 0), 0);
 }
-function ewRenderSigPreview(){
-  const el=document.getElementById('ewSigPreviewGrid'); if(!el) return;
-  el.innerHTML=ewSigs.map(s=>`<div class="eval-sig-card2 eval-sig-card2--pending">
-    <div class="eval-sig-role2">Niveau ${s.level}${s.required?' <span style="color:var(--danger)">— Requis</span>':''}</div>
-    <div class="eval-sig-name2">${esc(s.role||'—')}</div>
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--dept-color);margin-top:2px">${esc(s.name||'Non défini')}</div>
-    <div class="eval-sig-status2 pending">○ EN ATTENTE DE SIGNATURE</div>
-  </div>`).join('');
+
+function ewGetMax() {
+  return ewActiveCrits.length * 10;
 }
-function ewUpdateUI(){
-  const wt=document.getElementById('evalWizTitle'); if(wt) wt.textContent=EW_STEP_TITLES[ewStep];
-  const si=document.getElementById('ewStepInfo'); if(si) si.textContent=`Étape ${ewStep+1} / 4`;
-  document.querySelectorAll('.eval-wiz-step').forEach((el,i)=>{el.classList.toggle('active',i===ewStep);el.classList.toggle('done',i<ewStep);});
-  document.querySelectorAll('.eval-step-panel2').forEach((p,i)=>p.classList.toggle('active',i===ewStep));
-  const bb=document.getElementById('ewBackBtn'); if(bb) bb.style.visibility=ewStep>0?'visible':'hidden';
-  const nb=document.getElementById('ewNextBtn');
-  if(nb){
-    if(ewStep===3){nb.textContent='💾 Enregistrer';nb.className='eval-wiz-btn eval-wiz-btn--save';}
-    else{nb.textContent='Suivant →';nb.className='eval-wiz-btn eval-wiz-btn--next';}
+
+function ewRenderRecap() {
+  const total = ewComputeTotal();
+  const m     = evalGetMention(total);
+
+  const sc = document.getElementById('ewRecapScore');
+  if (sc) { sc.textContent = total; sc.style.color = m.color; }
+  const mn = document.getElementById('ewRecapMention');
+  if (mn) { mn.textContent = m.text; mn.style.color = m.color; mn.style.borderColor = m.color + '40'; }
+
+  const bd = document.getElementById('ewRecapBreakdown');
+  if (bd) bd.innerHTML = EVAL_CRIT_DEF.map(c => `
+    <div style="text-align:center">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:${c.color}">${ewScores[c.key] || 0}</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">${c.label.split(' ')[0]}</div>
+    </div>`).join('');
+// Mettre à jour le /MAX dans la barre totale
+  const maxEl = document.querySelector('#ewRecapScore')?.parentElement?.querySelector('.eval-total-mention2');
+  const totalBarMaxEl = document.getElementById('ewTotalMax');
+  if (totalBarMaxEl) totalBarMaxEl.textContent = '/' + ewGetMax();
+
+  const ig = document.getElementById('ewRecapInfoGrid');
+  if (ig) ig.innerHTML = [
+    { lbl:'Agent',       val: document.getElementById('ewName')?.value     || '—' },
+    { lbl:'Grade',       val: document.getElementById('ewRank')?.value     || '—' },
+    { lbl:'Évaluateur',  val: document.getElementById('ewAuthor')?.value   || '—' },
+    { lbl:'Date',        val: document.getElementById('ewDate')?.value     || '—' },
+    { lbl:'Décision',    val: EVAL_DEC_LABELS[document.getElementById('ewDecision')?.value] || '—' },
+    { lbl:'Signataires', val: ewSigs.filter(s => s.name).map(s => s.name).join(', ') || '(non défini)' },
+  ].map(item => `
+    <div class="eval-recap-item2">
+      <div class="eval-recap-lbl2">${item.lbl}</div>
+      <div class="eval-recap-val2">${esc(item.val)}</div>
+    </div>`).join('');
+}
+
+function ewRenderSigPreview() {
+  const el = document.getElementById('ewSigPreviewGrid'); if (!el) return;
+  if (!ewSigs.length) {
+    el.innerHTML = `<div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);padding:12px;border:1px dashed var(--border)">
+      Aucun signataire défini — l'évaluation sera directement marquée comme validée.
+    </div>`;
+    return;
   }
-  if(ewStep===2) ewRenderRecap();
-  if(ewStep===3) ewRenderSigPreview();
+  el.innerHTML = ewSigs.map(s => `
+    <div class="eval-sig-card2 eval-sig-card2--pending">
+      <div class="eval-sig-role2">Niveau ${s.level}${s.required ? ' <span style="color:var(--danger)">— Requis</span>' : ''}</div>
+      <div class="eval-sig-name2">${esc(s.role || '—')}</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--dept-color);margin-top:2px">${esc(s.name || 'Non défini')}</div>
+      <div class="eval-sig-status2 pending">○ EN ATTENTE DE SIGNATURE</div>
+    </div>`).join('');
 }
-document.getElementById('ewNextBtn')?.addEventListener('click',async()=>{
-  if(!requireAuth('créer une évaluation')) return;
-  if(ewStep===0){
-    if(!document.getElementById('ewName')?.value.trim()||!document.getElementById('ewAuthor')?.value.trim()||!document.getElementById('ewDate')?.value){alert('Nom de l\'agent, évaluateur et date requis.');return;}
+
+function ewUpdateUI() {
+  const wt = document.getElementById('evalWizTitle');
+  if (wt) wt.textContent = EW_STEP_TITLES[ewStep];
+  const si = document.getElementById('ewStepInfo');
+  if (si) si.textContent = `Étape ${ewStep + 1} / 4`;
+
+  document.querySelectorAll('.eval-wiz-step').forEach((el, i) => {
+    el.classList.toggle('active', i === ewStep);
+    el.classList.toggle('done',   i < ewStep);
+  });
+  document.querySelectorAll('.eval-step-panel2').forEach((p, i) =>
+    p.classList.toggle('active', i === ewStep)
+  );
+
+  const bb = document.getElementById('ewBackBtn');
+  if (bb) bb.style.visibility = ewStep > 0 ? 'visible' : 'hidden';
+  const nb = document.getElementById('ewNextBtn');
+  if (nb) {
+    if (ewStep === 3) {
+      nb.textContent = '💾 Enregistrer';
+      nb.className   = 'eval-wiz-btn eval-wiz-btn--save';
+    } else {
+      nb.textContent = 'Suivant →';
+      nb.className   = 'eval-wiz-btn eval-wiz-btn--next';
+    }
   }
-  if(ewStep<3){ewStep++;ewUpdateUI();}
-  else await ewSaveEvaluation();
+
+  if (ewStep === 1) ewRenderCompSliders(); // re-render sliders à chaque accès pour sync
+  if (ewStep === 2) ewRenderRecap();
+  if (ewStep === 3) ewRenderSigPreview();
+}
+
+document.getElementById('ewNextBtn')?.addEventListener('click', async () => {
+  if (!requireAuth('créer une évaluation')) return;
+
+  // Validation étape 0
+  if (ewStep === 0) {
+    const name   = document.getElementById('ewName')?.value.trim();
+    const author = document.getElementById('ewAuthor')?.value.trim();
+    const date   = document.getElementById('ewDate')?.value;
+    if (!name || !author || !date) {
+      alert('Nom de l\'agent, évaluateur et date sont requis.');
+      return;
+    }
+  }
+
+  if (ewStep < 3) {
+    ewStep++;
+    ewUpdateUI();
+  } else {
+    await ewSaveEvaluation();
+  }
 });
-document.getElementById('ewBackBtn')?.addEventListener('click',()=>{if(ewStep>0){ewStep--;ewUpdateUI();}});
-async function ewSaveEvaluation(){
-  if(!requireAuth('sauvegarder une évaluation')) return;
-  const total=Object.values(ewScores).reduce((s,v)=>s+v,0);
-  const data={
-    name:document.getElementById('ewName').value.trim(),
-    username:document.getElementById('ewUser').value.trim(),
-    rank:document.getElementById('ewRank').value.trim(),
-    author:document.getElementById('ewAuthor').value.trim(),
-    date:document.getElementById('ewDate').value,
-    decision:document.getElementById('ewDecision').value,
-    context:document.getElementById('ewContext').value.trim(),
-    comments:document.getElementById('ewComments').value.trim(),
-    scores:{...ewScores},
+
+document.getElementById('ewBackBtn')?.addEventListener('click', () => {
+  if (ewStep > 0) { ewStep--; ewUpdateUI(); }
+});
+
+async function ewSaveEvaluation() {
+  if (!requireAuth('sauvegarder une évaluation')) return;
+  const total = ewComputeTotal();
+  const data = {
+    name:      document.getElementById('ewName').value.trim(),
+    username:  document.getElementById('ewUser').value.trim(),
+    rank:      document.getElementById('ewRank').value.trim(),
+    author:    document.getElementById('ewAuthor').value.trim(),
+    date:      document.getElementById('ewDate').value,
+    decision:  document.getElementById('ewDecision').value,
+    context:   document.getElementById('ewContext').value.trim(),
+    comments:  document.getElementById('ewComments').value.trim(),
+    scores:    { ...ewScores },
+    activeCrits: [...ewActiveCrits],
     total,
-    signataires:ewSigs.map(s=>({...s,status:'pending',signedAt:null})),
-    finalized:false,
+    scoreMax: ewGetMax(),
+    signataires: ewSigs.map(s => ({ ...s, status:'pending', signedAt:null })),
+    finalized: false,
   };
-  await fbAdd('sec_evals',data);
+  await fbAdd('sec_evals', data);
   SCPIntranet.closeModal('modalEvalForm');
-  SCPIntranet.addHistory('Évaluation enregistrée: '+data.name);
+  SCPIntranet.addHistory('Évaluation enregistrée : ' + data.name);
+  renderEvals();
 }
-document.getElementById('btnNewEval')?.addEventListener('click',()=>{
-  if(!requireAuth('créer une évaluation')) return;
+
+document.getElementById('btnNewEval')?.addEventListener('click', () => {
+  if (!requireAuth('créer une évaluation')) return;
   ewResetForm();
   SCPIntranet.openModal('modalEvalForm');
 });
