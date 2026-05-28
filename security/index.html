@@ -1209,7 +1209,7 @@
             </div>
             <div style="text-align:right">
               <div style="font-family:'Barlow Condensed',sans-serif;font-size:46px;font-weight:900;line-height:1">
-                <span id="detailEvalScore" style="color:var(--safe)">—</span>
+                <span id="detailEvalScoreMax" style="font-size:18px;font-weight:400;color:var(--text-dim)">/60</span>
                 <span style="font-size:18px;font-weight:400;color:var(--text-dim)">/${ev.scoreMax || 60}</span>
               </div>
               <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin-top:4px" id="detailEvalMention">—</div>
@@ -2514,19 +2514,24 @@ function renderEvals() {
   const sort = document.getElementById('evalSort')?.value || 'date-desc';
   SCPIntranet.updateStat('evalCount', evaluations.length + ' évaluations enregistrées');
 
-  // Stats bar
-  const cnt = { promu:0, valide:0, avertissement:0, recale:0, pending:0 };
+const cnt = { promu:0, valide:0, avertissement:0, recale:0, pending:0 };
   evaluations.forEach(ev => {
     if (cnt[ev.decision] !== undefined) cnt[ev.decision]++;
     const vs = evalGetValidStatus(ev);
     if (vs === 'pending' || vs === 'partial') cnt.pending++;
   });
-  document.getElementById('evalStatPromu')?.let  && void 0; // guard
-  [['evalStatPromu','promu'],['evalStatValide','valide'],['evalStatAvert','avertissement'],
-   ['evalStatRecale','recale'],['evalStatPending','pending']].forEach(([id, key]) => {
-    const e2 = document.getElementById(id); if (e2) e2.textContent = cnt[key] || 0;
+  [
+    ['evalStatPromu',  'promu'],
+    ['evalStatValide', 'valide'],
+    ['evalStatAvert',  'avertissement'],
+    ['evalStatRecale', 'recale'],
+    ['evalStatPending','pending'],
+  ].forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = cnt[key] || 0;
   });
-  const tot = document.getElementById('evalStatTotal'); if (tot) tot.textContent = evaluations.length;
+  const tot = document.getElementById('evalStatTotal');
+  if (tot) tot.textContent = evaluations.length;
 
   // Filtrage
   let list = [...evaluations];
@@ -2622,6 +2627,9 @@ function openEvalDetail(id) {
   document.getElementById('detailEvalMention').textContent = m.text;
   document.getElementById('detailEvalMention').style.color  = m.color;
 
+  const maxSpan = document.querySelector('#evalDPanel-resume .eval-total-max2');
+   if (maxSpan) maxSpan.textContent = '/' + (ev.scoreMax || 60);
+
   const db = document.getElementById('detailEvalDecBadge');
   db.textContent = EVAL_DEC_LABELS[ev.decision] || ev.decision;
   db.className   = 'eval-dec-badge eval-dec-badge--' + (ev.decision || 'valide');
@@ -2646,6 +2654,9 @@ function openEvalDetail(id) {
       <span class="eval-score-val2" style="color:${evalScoreColor(s)}">${s}<span style="font-size:9px;color:var(--text-dim)">/10</span></span>
     </div>`;
   }).join('');
+
+const scoreMaxEl = document.getElementById('detailEvalScoreMax');
+   if (scoreMaxEl) scoreMaxEl.textContent = '/' + (ev.scoreMax || 60);
 
   // Grille compétences détaillée
   document.getElementById('detailEvalCritGrid').innerHTML = EVAL_CRIT_DEF.map(c => {
@@ -2872,7 +2883,7 @@ function ewRemoveSig(i) {
   ewSigs.forEach((s, idx) => s.level = idx + 1);
   ewRenderSigList();
 }
-
+const cnt = { promu:0, valide:0, avertissement:0, recale:0, pending:0 };
 document.getElementById('ewAddSigBtn')?.addEventListener('click', () => {
   ewSigs.push({ level: ewSigs.length + 1, role:'', name:'', required:false, status:'pending', signedAt:null });
   ewRenderSigList();
@@ -2929,10 +2940,10 @@ function ewUpdateScore(key, val) {
 }
 
 function ewComputeTotal() {
-  return EVAL_CRIT_DEF
-    .filter(c => ewActiveCrits.includes(c.key))
-    .reduce((s, c) => s + (ewScores[c.key] || 0), 0);
-}
+     return EVAL_CRIT_DEF
+     .filter(c => ewActiveCrits.includes(c.key))
+       .reduce((s, c) => s + (ewScores[c.key] || 0), 0);
+          }
 
 function ewGetMax() {
   return ewActiveCrits.length * 10;
@@ -3060,7 +3071,11 @@ async function ewSaveEvaluation() {
     decision:  document.getElementById('ewDecision').value,
     context:   document.getElementById('ewContext').value.trim(),
     comments:  document.getElementById('ewComments').value.trim(),
-    scores:    { ...ewScores },
+    scores: Object.fromEntries(
+     EVAL_CRIT_DEF
+       .filter(c => ewActiveCrits.includes(c.key))
+       .map(c => [c.key, ewScores[c.key] || 0])
+          ),
     activeCrits: [...ewActiveCrits],
     total,
     scoreMax: ewGetMax(),
