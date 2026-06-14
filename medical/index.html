@@ -1125,6 +1125,7 @@ function applyPermissions(name, role) {
   const sideEspace = document.getElementById('sidebarEspaceBtn');
   if (sideEspace) sideEspace.style.display = name ? 'block' : 'none';
 }
+
 function updateSidebarAuth(name, role) {
   const s = document.getElementById('sidebarAuthStatus');
   const n = document.getElementById('sidebarAuthName');
@@ -1135,20 +1136,23 @@ function updateSidebarAuth(name, role) {
     if (s) { s.textContent = 'CONNECTÉ'; s.style.color = 'var(--safe)'; }
     if (n) n.textContent = name;
     if (r) {
-      r.textContent = role === 'admin' ? 'ADMINISTRATEUR' : 'MODÉRATEUR';
-      r.style.color = role === 'admin' ? 'var(--danger)' : 'var(--accent2)';
+      r.textContent = isDir() ? 'DIRECTEUR' : 'MÉDICAL';
+      r.style.color = isDir() ? 'var(--danger)' : 'var(--accent2)';
     }
-    if (l) { l.textContent = role === 'admin' ? 'ÉCRITURE COMPLÈTE' : 'LECTURE SEULE'; l.style.color = role === 'admin' ? 'var(--safe)' : 'var(--text-dim)'; }
+    if (l) {
+      l.textContent = isDir() ? 'ÉCRITURE + ROSTER' : 'ÉCRITURE';
+      l.style.color = isDir() ? 'var(--safe)' : 'var(--accent2)';
+    }
     if (b) { b.textContent = '↩ Déconnexion'; b.className = 'auth-btn connected'; b.style.width = '100%'; b.style.marginTop = '10px'; b.style.textAlign = 'center'; b.onclick = doAuthLogout; }
   } else {
     if (s) { s.textContent = 'NON CONNECTÉ'; s.style.color = 'var(--text-dim)'; }
     if (n) n.textContent = '—';
     if (r) { r.textContent = 'LECTURE'; r.style.color = 'var(--text-dim)'; }
-    if (l) {
-    l.textContent = dir ? 'ÉCRITURE COMPLÈTE + ROSTER' : write ? 'ÉCRITURE' : 'PUBLIC';
-    l.style.color = dir ? 'var(--safe)' : write ? 'var(--accent2)' : 'var(--text-dim)';} 
+    if (l) { l.textContent = 'PUBLIC'; l.style.color = 'var(--text-dim)'; }
+    if (b) { b.textContent = '🔑 Se connecter'; b.className = 'auth-btn'; b.style.width = '100%'; b.style.marginTop = '10px'; b.style.textAlign = 'center'; b.onclick = toggleAuthFlyout; }
   }
 }
+
 
 function updateAuthButton(name) {
   const btn = document.getElementById('authBtn'); if (!btn) return;
@@ -1447,7 +1451,7 @@ function renderProtocols() {
       ${p.prescriptions?.length?`<div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">${p.prescriptions.slice(0,3).map(rx=>`<span style="font-size:9px;padding:2px 8px;background:rgba(122,176,255,.08);border:1px solid rgba(122,176,255,.2);color:var(--accent2)">💊 ${esc(rx.med)}</span>`).join('')}${p.prescriptions.length>3?`<span style="font-size:9px;color:var(--text-dim)">+${p.prescriptions.length-3} autre(s)</span>`:''}</div>`:''}
       <div class="item-actions">
         <button class="btn btn-xs btn-ghost" data-copy-p="${p._id}">⧉ Copier</button>
-        ${isAdmin()?`<button class="btn btn-xs btn-dept" data-edit-p="${p._id}">✎ Modifier</button><button class="btn btn-xs btn-danger" data-del-p="${p._id}">✕</button>`:''}
+        ${canWrite()?`<button class="btn btn-xs btn-dept" data-edit-p="${p._id}">✎ Modifier</button><button class="btn btn-xs btn-danger" data-del-p="${p._id}">✕</button>`:''}
       </div>
     </div>
   `).join('');
@@ -1485,7 +1489,7 @@ function renderFiches() {
       </div>
       <div class="fiche-footer">
         <button class="btn btn-xs btn-dept" data-view-fi="${f._id}">📄 Voir</button>
-        ${isAdmin()?`<button class="btn btn-xs btn-warn" data-edit-fi="${f._id}">✎</button><button class="btn btn-xs btn-danger" data-del-fi="${f._id}">✕</button>`:''}
+        ${canWrite()?`<button class="btn btn-xs btn-warn" data-edit-fi="${f._id}">✎</button><button class="btn btn-xs btn-danger" data-del-fi="${f._id}">✕</button>`:''}
         <button class="btn btn-xs btn-ghost" data-exp-fi="${f._id}">⬇</button>
       </div>
     </div>
@@ -1565,7 +1569,7 @@ function viewFiche(f) {
   document.getElementById('fvNotes').textContent       = f.notes||'—';
   document.getElementById('fvNotesSection').style.display = f.notes ? 'block' : 'none';
   const editBtn = document.getElementById('fvEditBtn');
-  editBtn.style.display = isAdmin() ? '' : 'none';
+  editBtn.style.display = canWrite() ? '' : 'none';
   editBtn.onclick = () => { closeModal('modalFicheView'); openFicheForm(f); };
   openModal('modalFicheView');
 }
@@ -1593,7 +1597,7 @@ function renderPatients() {
       <div style="font-size:9px;color:var(--text-dim);margin-bottom:8px">Dr: ${esc(p.doctor||'—')} · ${p.date||'—'} · ${esc(p.room||'—')}</div>
       ${p.treatment?`<div style="font-family:'Courier Prime',monospace;font-size:10px;color:var(--dept-color);margin-bottom:8px">💊 ${esc(p.treatment.substring(0,80))}</div>`:''}
       <div style="display:flex;gap:5px">
-        ${isAdmin()?`<button class="btn btn-xs btn-dept" data-edit-pt="${p._id}">✎ Modifier</button><button class="btn btn-xs btn-danger" data-del-pt="${p._id}">✕</button>`:''}
+        ${canWrite()?`<button class="btn btn-xs btn-dept" data-edit-pt="${p._id}">✎ Modifier</button><button class="btn btn-xs btn-danger" data-del-pt="${p._id}">✕</button>`:''}
       </div>
     </div>
   `).join('');
@@ -1649,7 +1653,7 @@ function renderEvals() {
       <div class="card-meta"><span>${dec[ev.decision]||ev.decision}</span><span>${ev.date||'—'}</span><span>Éval: ${esc(ev.author||'—')}</span></div>
       ${ev.comments?`<div class="card-excerpt">${esc(ev.comments)}</div>`:''}
       <div class="card-acts">
-        ${isAdmin()?`<button class="btn btn-xs btn-dept" data-edit-ev="${ev._id}">✎</button><button class="btn btn-xs btn-danger" data-del-ev="${ev._id}">✕</button>`:''}
+        ${canWrite()?`<button class="btn btn-xs btn-dept" data-edit-ev="${ev._id}">✎</button><button class="btn btn-xs btn-danger" data-del-ev="${ev._id}">✕</button>`:''}
         <button class="btn btn-xs btn-ghost" data-exp-ev="${ev._id}">⬇ Export</button>
       </div>
     </div>`;
@@ -1716,7 +1720,7 @@ function renderRapports() {
       <div class="card-acts">
         <button class="btn btn-xs btn-dept" data-view-r="${r._id}">📄 Voir</button>
         <button class="btn btn-xs btn-ghost" data-exp-r="${r._id}">⬇</button>
-        ${isAdmin()?`<button class="btn btn-xs btn-danger" data-del-r="${r._id}">✕</button>`:''}
+        ${canWrite()?`<button class="btn btn-xs btn-danger" data-del-r="${r._id}">✕</button>`:''}
       </div>
     </div>`;
   }).join('');
