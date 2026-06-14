@@ -1026,8 +1026,8 @@ async function initApp() {
           ) found = { _id: d.id, ...u };
         });
 
-        if (found) {
-          currentUser     = { ...found, rpRank: profile.rank || '' };
+                if (found) {
+          currentUser     = { ...found, rank: found.rank || profile.rank || '', rpRank: profile.rank || '' };
           currentRole     = found.role || 'moderateur';
           isAuthenticated = true;
           saveSession({ username: found.username, password: found.password });
@@ -1040,6 +1040,7 @@ async function initApp() {
           username:    robloxName || displayName,
           displayName: displayName || robloxName,
           role:        'moderateur',
+          rank:        profile.rank || '',
           rpRank:      profile.rank || '',
         };
         currentRole     = 'moderateur';
