@@ -1062,7 +1062,7 @@ async function initApp() {
         if ((u.username || '').toLowerCase() === savedSession.username.toLowerCase()) found = { _id: d.id, ...u };
       });
       if (found && found.password === savedSession.password) {
-        currentUser     = found;
+        currentUser     = { ...found, rank: found.rank || '' };
         currentRole     = found.role || 'moderateur';
         isAuthenticated = true;
         onAuthChange(found.displayName || found.username || found.name, currentRole);
@@ -1203,7 +1203,7 @@ window.doAuthLogin = async function() {
     snap.forEach(d => { const u = d.data(); if ((u.username || '').toLowerCase() === username.toLowerCase()) found = { _id: d.id, ...u }; });
     if (!found) { showAuthLoginPanel(); errEl.textContent = '⚠ Nom d\'utilisateur introuvable.'; return; }
     if (found.password !== pass) { showAuthLoginPanel(); errEl.textContent = '⚠ Mot de passe incorrect.'; return; }
-    currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
+    currentUser = { ...found, rank: found.rank || '' }; currentRole = found.role || 'moderateur'; isAuthenticated = true;
     saveSession({ username: found.username, password: found.password });
     onAuthChange(found.displayName || found.username, currentRole);
   } catch(e) { showAuthLoginPanel(); errEl.textContent = '⚠ Erreur : ' + e.message; }
