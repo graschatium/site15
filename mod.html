@@ -394,6 +394,25 @@
     .roster-save-indicator.saving { color:var(--warn); }
     .roster-save-indicator.saved  { color:var(--safe); }
     .roster-save-indicator.error  { color:var(--danger); }
+
+    /* ── LOGS ── */
+    .log-stats-bar { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; margin-bottom:20px; }
+    .log-stat-box { background:var(--surface); border:1px solid var(--border); padding:14px 16px; text-align:center; position:relative; overflow:hidden; }
+    .log-stat-box::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--border2); }
+    .log-stat-val { font-family:'Rajdhani',sans-serif; font-size:32px; font-weight:700; color:var(--white); line-height:1; margin-bottom:4px; }
+    .log-stat-lbl { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.15em; text-transform:uppercase; }
+    .log-cat-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; border:1px solid; white-space:nowrap; }
+    .log-cat-badge.sanction  { color:var(--danger);   border-color:rgba(255,59,59,0.4);   background:rgba(255,59,59,0.07); }
+    .log-cat-badge.auth      { color:var(--accent);   border-color:rgba(0,212,255,0.4);   background:rgba(0,212,255,0.06); }
+    .log-cat-badge.roster    { color:#4cc3ff;          border-color:rgba(76,195,255,0.35); background:rgba(76,195,255,0.06); }
+    .log-cat-badge.player    { color:var(--safe);      border-color:rgba(0,230,118,0.4);   background:rgba(0,230,118,0.06); }
+    .log-cat-badge.server    { color:var(--warn);      border-color:rgba(255,152,0,0.4);   background:rgba(255,152,0,0.07); }
+    .log-cat-badge.broadcast { color:var(--thaumiel);  border-color:rgba(179,136,255,0.4); background:rgba(179,136,255,0.07); }
+    .log-cat-badge.admin     { color:#ff6b6b;           border-color:rgba(255,107,107,0.4); background:rgba(255,107,107,0.07); }
+    .log-cat-badge.system    { color:var(--text-dim);  border-color:var(--border2);        background:transparent; }
+    .log-detail-cell { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-dim); max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .log-detail-cell:hover { white-space:normal; word-break:break-word; color:var(--text); }
+    @media(max-width:700px) { .log-stats-bar { grid-template-columns:repeat(3,1fr); } }
   </style>
 </head>
 <body>
@@ -550,6 +569,7 @@
   <button class="nav-tab" data-view="stats"><span class="nav-tab-icon">📊</span> Statistiques</button>
   <button class="nav-tab" data-view="roster"><span class="nav-tab-icon">👥</span> Rosters</button>
   <button class="nav-tab" data-view="joueurs" id="joueursTab"><span class="nav-tab-icon">🎮</span> Joueurs</button>
+  <button class="nav-tab" data-view="logs" id="logsTab"><span class="nav-tab-icon">📜</span> Logs</button>
   <button class="nav-tab" data-view="admin" id="adminTab" style="display:none;"><span class="nav-tab-icon">🔐</span> Admin</button>
 </div>
 
@@ -863,6 +883,100 @@
         </div>
         <div class="widget-body" style="padding:0 14px;"><div id="usersList"><div class="loading-spinner">Chargement…</div></div></div>
       </div>
+
+      <!-- CONFIGURATION FIREBASE -->
+      <div class="admin-section" style="border-top-color:#f59e0b;border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.03);">
+        <div class="admin-section-title" style="color:#f59e0b;">🔥 Configuration Firebase</div>
+        <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--warn);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px;padding:8px 12px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.05);">
+          ⚠ Modificiation réservée aux administrateurs — Les changements nécessitent un rechargement de la page.
+        </div>
+        <div class="form-grid">
+          <div class="form-field"><label>API Key *</label><input type="text" id="fbApiKey" placeholder="AIzaSy…" autocomplete="off" /></div>
+          <div class="form-field"><label>Auth Domain *</label><input type="text" id="fbAuthDomain" placeholder="projet.firebaseapp.com" /></div>
+          <div class="form-field"><label>Project ID *</label><input type="text" id="fbProjectId" placeholder="projet-firebase-id" /></div>
+          <div class="form-field"><label>Storage Bucket</label><input type="text" id="fbStorageBucket" placeholder="projet.firebasestorage.app" /></div>
+          <div class="form-field"><label>Messaging Sender ID</label><input type="text" id="fbMessagingSenderId" placeholder="123456789" /></div>
+          <div class="form-field"><label>App ID</label><input type="text" id="fbAppId" placeholder="1:123…:web:abc…" /></div>
+        </div>
+        <div class="form-actions" style="margin-top:8px;">
+          <button class="btn btn-sm" onclick="saveFirebaseConfig()" style="background:rgba(245,158,11,0.1);border:1px solid #f59e0b;color:#f59e0b;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:10px 24px;cursor:pointer;transition:all 0.2s;">💾 Enregistrer la config</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadFirebaseConfig()">↻ Charger actuelle</button>
+          <button class="btn btn-danger btn-sm" onclick="resetFirebaseConfig()">✕ Réinitialiser</button>
+        </div>
+        <div id="fbConfigMsg" style="font-family:'Space Mono',monospace;font-size:10px;margin-top:10px;min-height:16px;"></div>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(245,158,11,0.2);">
+          <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--text-dim);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Config actuelle (lecture seule)</div>
+          <pre id="fbConfigPreview" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text);background:var(--bg);border:1px solid var(--border);padding:12px;overflow-x:auto;line-height:1.6;white-space:pre-wrap;word-break:break-all;"></pre>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- VUE : LOGS -->
+    <div class="view" id="view-logs">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-tag">// Registre d'activité — Firebase</div>
+          <div class="sec-title">LOGS <span>SYSTÈME</span></div>
+          <div class="sec-sub" id="logsLiveIndicator" style="color:var(--text-dim);">⬤ CONNEXION…</div>
+        </div>
+        <div class="sec-actions">
+          <button class="btn btn-ghost btn-sm" onclick="exportLogs()">⬇ Exporter</button>
+          <button class="btn btn-danger btn-sm" id="clearLogsBtn" style="display:none;" onclick="clearAllLogs()">🗑 Vider les logs</button>
+        </div>
+      </div>
+
+      <!-- STATS LOGS -->
+      <div class="log-stats-bar" id="logStatsBar">
+        <div class="log-stat-box"><div class="log-stat-val" id="logStatTotal">—</div><div class="log-stat-lbl">Total</div></div>
+        <div class="log-stat-box"><div class="log-stat-val" id="logStatToday" style="color:var(--safe)">—</div><div class="log-stat-lbl">Aujourd'hui</div></div>
+        <div class="log-stat-box"><div class="log-stat-val" id="logStatSanctions" style="color:var(--danger)">—</div><div class="log-stat-lbl">Sanctions</div></div>
+        <div class="log-stat-box"><div class="log-stat-val" id="logStatConnexions" style="color:var(--accent)">—</div><div class="log-stat-lbl">Connexions</div></div>
+        <div class="log-stat-box"><div class="log-stat-val" id="logStatModifs" style="color:var(--thaumiel)">—</div><div class="log-stat-lbl">Modifications</div></div>
+      </div>
+
+      <!-- FILTRES -->
+      <div class="filter-bar" style="margin-bottom:14px;">
+        <input type="text" id="logSearch" placeholder="🔍  Rechercher action, utilisateur, détail…" oninput="renderLogs()" style="flex:2;" />
+        <select id="logFilterCat" onchange="renderLogs()">
+          <option value="">Toutes catégories</option>
+          <option value="sanction">⚖ Sanctions</option>
+          <option value="auth">🔑 Connexions</option>
+          <option value="roster">👥 Rosters</option>
+          <option value="player">🎮 Joueurs</option>
+          <option value="server">🖥 Serveur</option>
+          <option value="broadcast">📡 Broadcast</option>
+          <option value="admin">🔐 Admin</option>
+          <option value="system">⚙ Système</option>
+        </select>
+        <select id="logFilterPeriod" onchange="renderLogs()">
+          <option value="">Toute période</option>
+          <option value="today">Aujourd'hui</option>
+          <option value="week">7 derniers jours</option>
+          <option value="month">30 derniers jours</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="clearLogFilters()">✕ Reset</button>
+      </div>
+
+      <!-- TABLE LOGS -->
+      <div style="overflow-x:auto;border:1px solid var(--border);">
+        <table class="sanction-table" id="logsTable">
+          <thead><tr>
+            <th>Horodatage</th>
+            <th>Catégorie</th>
+            <th>Utilisateur</th>
+            <th>Action</th>
+            <th>Détail</th>
+          </tr></thead>
+          <tbody id="logsTableBody">
+            <tr><td colspan="5"><div class="loading-spinner">CONNEXION À FIREBASE…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span id="logsPaginationInfo">—</span>
+        <div class="page-btns" id="logsPaginationBtns"></div>
+      </div>
     </div>
 
   </div><!-- /main-content -->
@@ -1162,6 +1276,7 @@ function showLogin() {
         startListen();
         startServerListen();
         startRosterListen();
+        startLogsListen();
         showApp(getDisplayName(found), currentRole);
         window.hideLoadingScreen();
         return;
@@ -1206,6 +1321,7 @@ window.doLogin = async function() {
     startListen();
     startServerListen();
     startRosterListen();
+    startLogsListen();
     showApp(getDisplayName(found), currentRole);
     window.hideLoadingScreen();
   } catch(e) {
@@ -1262,6 +1378,8 @@ window.doLogout = function() {
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   if (unsubServer) { unsubServer(); unsubServer = null; }
   if (unsubRoster) { unsubRoster(); unsubRoster = null; }
+  if (unsubLogs)   { unsubLogs();   unsubLogs   = null; }
+  window._logsTabReady = false;
   showLogin();
 };
 
@@ -2246,6 +2364,298 @@ async function copyAgentCommand(deptId, agentId) {
     addHistory('Morph copié : ' + agent.name);
   } catch { if (btn) btn.textContent = '✕ Erreur'; }
 }
+
+// ══════════════════════════════════════════════════════
+// ── FIREBASE CONFIG MANAGER ──
+// ══════════════════════════════════════════════════════
+const FB_CONFIG_KEY = 'scp_firebase_config';
+
+const DEFAULT_FB_CONFIG = {
+  apiKey:            "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain:        "scp-site19.firebaseapp.com",
+  projectId:         "scp-site19",
+  storageBucket:     "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId:             "1:245750946774:web:821944a85e207094b22277"
+};
+
+window.loadFirebaseConfig = function() {
+  const stored = (() => { try { return JSON.parse(localStorage.getItem(FB_CONFIG_KEY)); } catch { return null; } })();
+  const cfg = stored || DEFAULT_FB_CONFIG;
+  const g = id => document.getElementById(id);
+  if (g('fbApiKey'))            g('fbApiKey').value            = cfg.apiKey            || '';
+  if (g('fbAuthDomain'))        g('fbAuthDomain').value        = cfg.authDomain        || '';
+  if (g('fbProjectId'))         g('fbProjectId').value         = cfg.projectId         || '';
+  if (g('fbStorageBucket'))     g('fbStorageBucket').value     = cfg.storageBucket     || '';
+  if (g('fbMessagingSenderId')) g('fbMessagingSenderId').value = cfg.messagingSenderId || '';
+  if (g('fbAppId'))             g('fbAppId').value             = cfg.appId             || '';
+  const preview = document.getElementById('fbConfigPreview');
+  if (preview) preview.textContent = JSON.stringify(cfg, null, 2);
+};
+
+window.saveFirebaseConfig = function() {
+  if (currentRole !== 'admin') {
+    const msg = document.getElementById('fbConfigMsg');
+    if (msg) { msg.style.color = 'var(--danger)'; msg.textContent = '⚠ Accès refusé — Administrateur requis.'; }
+    return;
+  }
+  const g = id => document.getElementById(id)?.value.trim() || '';
+  const cfg = {
+    apiKey:            g('fbApiKey'),
+    authDomain:        g('fbAuthDomain'),
+    projectId:         g('fbProjectId'),
+    storageBucket:     g('fbStorageBucket'),
+    messagingSenderId: g('fbMessagingSenderId'),
+    appId:             g('fbAppId'),
+  };
+  if (!cfg.apiKey || !cfg.authDomain || !cfg.projectId) {
+    const msg = document.getElementById('fbConfigMsg');
+    if (msg) { msg.style.color = 'var(--danger)'; msg.textContent = '⚠ API Key, Auth Domain et Project ID sont obligatoires.'; }
+    return;
+  }
+  try {
+    localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(cfg));
+    const preview = document.getElementById('fbConfigPreview');
+    if (preview) preview.textContent = JSON.stringify(cfg, null, 2);
+    const msg = document.getElementById('fbConfigMsg');
+    if (msg) {
+      msg.style.color = 'var(--safe)';
+      msg.textContent = '✓ Configuration sauvegardée. Rechargez la page pour appliquer les changements.';
+    }
+    addHistory('Firebase config mise à jour');
+  } catch(e) {
+    const msg = document.getElementById('fbConfigMsg');
+    if (msg) { msg.style.color = 'var(--danger)'; msg.textContent = '⚠ Erreur : ' + e.message; }
+  }
+};
+
+window.resetFirebaseConfig = function() {
+  if (!confirm('Réinitialiser la configuration Firebase aux valeurs par défaut ?')) return;
+  localStorage.removeItem(FB_CONFIG_KEY);
+  window.loadFirebaseConfig();
+  const msg = document.getElementById('fbConfigMsg');
+  if (msg) { msg.style.color = 'var(--safe)'; msg.textContent = '✓ Configuration réinitialisée. Rechargez la page.'; }
+  addHistory('Firebase config réinitialisée');
+};
+
+// Charger la config dans le formulaire quand l'onglet Admin est ouvert
+document.querySelectorAll('.nav-tab[data-view="admin"]').forEach(btn => {
+  btn.addEventListener('click', () => setTimeout(window.loadFirebaseConfig, 50));
+});
+
+// ══════════════════════════════════════════════════════
+// ── SYSTÈME DE LOGS FIREBASE ──
+// ══════════════════════════════════════════════════════
+let logsData       = [];
+let logsPage       = 1;
+let unsubLogs      = null;
+const LOGS_PAGE_SIZE = 50;
+
+const LOG_CAT_LABELS = {
+  sanction:  '⚖ Sanction',
+  auth:      '🔑 Connexion',
+  roster:    '👥 Roster',
+  player:    '🎮 Joueur',
+  server:    '🖥 Serveur',
+  broadcast: '📡 Broadcast',
+  admin:     '🔐 Admin',
+  system:    '⚙ Système',
+};
+
+// Détecter automatiquement la catégorie selon le message
+function detectLogCategory(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('sanction') || m.includes('warn') || m.includes('kick') || m.includes('ban') || m.includes('mute') || m.includes('suppression') || m.includes('supprimé') || m.includes('export')) return 'sanction';
+  if (m.includes('connecté') || m.includes('déconnecté') || m.includes('logout') || m.includes('login') || m.includes('session')) return 'auth';
+  if (m.includes('roster') || m.includes('agent') || m.includes('morph') || m.includes('département')) return 'roster';
+  if (m.includes('joueur') || m.includes('personnage')) return 'player';
+  if (m.includes('serveur') || m.includes('statut') || m.includes('ouvert') || m.includes('fermé')) return 'server';
+  if (m.includes('broadcast') || m.includes('alerte') || m.includes('diffusé')) return 'broadcast';
+  if (m.includes('compte') || m.includes('firebase') || m.includes('config') || m.includes('admin') || m.includes('mot de passe')) return 'admin';
+  return 'system';
+}
+
+// Écriture d'un log dans Firebase — appelée depuis addHistory
+async function writeLogToFirebase(msg) {
+  try {
+    const cat = detectLogCategory(msg);
+    await addDoc(collection(db, 'logs'), {
+      message:   msg,
+      category:  cat,
+      user:      currentUser ? (currentUser.displayName || currentUser.username || '—') : '—',
+      userRole:  currentRole || '—',
+      timestamp: new Date().toISOString(),
+      date:      new Date().toISOString().split('T')[0],
+    });
+  } catch(e) { console.warn('Log write error:', e); }
+}
+
+// Override addHistory pour aussi écrire dans Firebase
+const _origAddHistory = window.addHistory;
+window.addHistory = function(msg) {
+  _origAddHistory(msg);
+  if (currentUser) writeLogToFirebase(msg);
+};
+
+// Listener temps réel
+function startLogsListen() {
+  if (unsubLogs) { unsubLogs(); unsubLogs = null; }
+  const q = query(collection(db, 'logs'), orderBy('timestamp', 'desc'));
+  unsubLogs = onSnapshot(q, snap => {
+    logsData = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+    logsPage = 1;
+    renderLogs();
+    renderLogStats();
+    const li = document.getElementById('logsLiveIndicator');
+    if (li) { li.textContent = '⬤ EN DIRECT — ' + logsData.length + ' entrées'; li.style.color = 'var(--safe)'; }
+  }, () => {
+    const li = document.getElementById('logsLiveIndicator');
+    if (li) { li.textContent = '⚠ Erreur Firebase'; li.style.color = 'var(--danger)'; }
+  });
+}
+
+function renderLogStats() {
+  const t = new Date().toISOString().split('T')[0];
+  const el = id => document.getElementById(id);
+  if (el('logStatTotal'))      el('logStatTotal').textContent      = logsData.length;
+  if (el('logStatToday'))      el('logStatToday').textContent      = logsData.filter(l => l.date === t).length;
+  if (el('logStatSanctions'))  el('logStatSanctions').textContent  = logsData.filter(l => l.category === 'sanction').length;
+  if (el('logStatConnexions')) el('logStatConnexions').textContent = logsData.filter(l => l.category === 'auth').length;
+  if (el('logStatModifs'))     el('logStatModifs').textContent     = logsData.filter(l => ['roster','player','admin','server'].includes(l.category)).length;
+}
+
+window.renderLogs = function() {
+  const search  = (document.getElementById('logSearch')?.value || '').toLowerCase();
+  const catF    = document.getElementById('logFilterCat')?.value   || '';
+  const period  = document.getElementById('logFilterPeriod')?.value || '';
+
+  const now = new Date();
+  let data = logsData.filter(l => {
+    if (catF && l.category !== catF) return false;
+    if (period) {
+      const d = new Date(l.timestamp);
+      if (period === 'today') {
+        if (l.date !== now.toISOString().split('T')[0]) return false;
+      } else if (period === 'week') {
+        if ((now - d) > 7 * 86400000) return false;
+      } else if (period === 'month') {
+        if ((now - d) > 30 * 86400000) return false;
+      }
+    }
+    if (search) {
+      const haystack = [l.message, l.user, l.category, l.date].join(' ').toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const total = data.length;
+  const totalPages = Math.max(1, Math.ceil(total / LOGS_PAGE_SIZE));
+  if (logsPage > totalPages) logsPage = totalPages;
+  const page = data.slice((logsPage - 1) * LOGS_PAGE_SIZE, logsPage * LOGS_PAGE_SIZE);
+
+  const tbody = document.getElementById('logsTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = page.length === 0
+    ? '<tr class="empty-row"><td colspan="5"><span>📜</span>Aucun log trouvé</td></tr>'
+    : page.map(l => {
+        const ts  = l.timestamp ? new Date(l.timestamp).toLocaleString('fr-FR') : '—';
+        const cat = l.category || 'system';
+        return `<tr>
+          <td class="td-date" style="white-space:nowrap;color:var(--text-dim);font-size:9px;">${esc(ts)}</td>
+          <td><span class="log-cat-badge ${cat}">${LOG_CAT_LABELS[cat] || cat}</span></td>
+          <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--white);">${esc(l.user||'—')}<br><span style="color:var(--text-dim);font-size:9px;">${esc(l.userRole||'')}</span></td>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);">${esc(l.message||'—')}</td>
+          <td class="log-detail-cell" title="${esc(l.detail||'')}">
+            ${l.detail ? esc(l.detail) : '<span style="opacity:0.3">—</span>'}
+          </td>
+        </tr>`;
+      }).join('');
+
+  // Pagination
+  const infoEl = document.getElementById('logsPaginationInfo');
+  const btnsEl = document.getElementById('logsPaginationBtns');
+  if (infoEl) infoEl.textContent = `${total} entrée${total > 1 ? 's' : ''} — page ${logsPage}/${totalPages}`;
+  if (btnsEl) {
+    let btns = `<button class="page-btn" onclick="logsGoPage(${logsPage-1})" ${logsPage<=1?'disabled':''}>‹</button>`;
+    for (let p = 1; p <= totalPages; p++) {
+      if (totalPages <= 7 || Math.abs(p - logsPage) <= 1 || p === 1 || p === totalPages)
+        btns += `<button class="page-btn ${p===logsPage?'active':''}" onclick="logsGoPage(${p})">${p}</button>`;
+      else if (Math.abs(p - logsPage) === 2) btns += `<span style="padding:0 4px;color:var(--text-dim)">…</span>`;
+    }
+    btns += `<button class="page-btn" onclick="logsGoPage(${logsPage+1})" ${logsPage>=totalPages?'disabled':''}>›</button>`;
+    btnsEl.innerHTML = btns;
+  }
+};
+
+window.logsGoPage = function(p) {
+  logsPage = Math.max(1, Math.min(p, Math.ceil(logsData.length / LOGS_PAGE_SIZE)));
+  renderLogs();
+};
+
+window.clearLogFilters = function() {
+  const el = id => document.getElementById(id);
+  if (el('logSearch'))       el('logSearch').value       = '';
+  if (el('logFilterCat'))    el('logFilterCat').value    = '';
+  if (el('logFilterPeriod')) el('logFilterPeriod').value = '';
+  logsPage = 1;
+  renderLogs();
+};
+
+window.exportLogs = function() {
+  const lines = [
+    '══════════════════════════════════',
+    'SCP FOUNDATION — SITE-15',
+    'EXPORT LOGS SYSTÈME',
+    `Généré le ${new Date().toLocaleString('fr-FR')}`,
+    `Total : ${logsData.length} entrées`,
+    '══════════════════════════════════', '',
+    'HORODATAGE | CATÉGORIE | UTILISATEUR | ACTION', '',
+  ];
+  logsData.forEach(l => {
+    const ts  = l.timestamp ? new Date(l.timestamp).toLocaleString('fr-FR') : '—';
+    lines.push(`${ts} | ${l.category||'?'} | ${l.user||'—'} | ${l.message||'—'}`);
+  });
+  const b = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = `site15_logs_${new Date().toISOString().split('T')[0]}.txt`;
+  a.click();
+  addHistory('Export logs généré');
+};
+
+window.clearAllLogs = async function() {
+  if (currentRole !== 'admin') return;
+  if (!confirm(`Supprimer définitivement les ${logsData.length} entrées de logs ? Cette action est irréversible.`)) return;
+  try {
+    const batch = logsData.map(l => deleteDoc(doc(db, 'logs', l._id)));
+    await Promise.all(batch);
+    addHistory('Logs système vidés par ' + (currentUser?.displayName || '—'));
+  } catch(e) { alert('Erreur : ' + e.message); }
+};
+
+// Démarrer le listener logs + montrer le bouton vider aux admins
+const _origStartListen = startListen;
+
+// Activer l'onglet Logs et démarrer le listener après connexion
+const _origShowApp = showApp;
+window._logsTabReady = false;
+
+// Hooker showApp pour démarrer les logs
+document.addEventListener('click', e => {
+  const tab = e.target.closest('.nav-tab[data-view="logs"]');
+  if (tab) {
+    if (!window._logsTabReady) {
+      window._logsTabReady = true;
+      if (!unsubLogs) startLogsListen();
+    }
+    if (currentRole === 'admin') {
+      const btn = document.getElementById('clearLogsBtn');
+      if (btn) btn.style.display = '';
+    }
+  }
+});
 
 window.filterRoster = function() {
   const q      = document.getElementById('rosterSearch')?.value.trim().toLowerCase() || '';
