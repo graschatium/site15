@@ -992,8 +992,9 @@ function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').repl
 
 // ══ PERMISSIONS ══
 // SEULS LES ADMINS PEUVENT ÉCRIRE
-function isAdmin() { return currentRole === 'admin'; }
-function canWrite() { return isAuthenticated && isAdmin(); }
+function isDir() { return currentUser?.rank === 'Directeur' || currentUser?.rank === 'Directeur Adjoint'; }
+function canWrite() { return isAuthenticated; }
+function canManageRoster() { return isAuthenticated && isDir(); }
 
 // ══ AUTH ══
 const SESSION_KEY = 'scp_med_session';
@@ -1084,53 +1085,46 @@ function onAuthChange(name, role) {
 
 function applyPermissions(name, role) {
   const write = canWrite();
-  const admin = isAdmin();
+  const dir   = isDir();
 
-  // Boutons action-admin : visibles seulement pour les admins
+  // Boutons action-admin visibles si connecté
   document.querySelectorAll('.action-admin').forEach(el => {
-    el.style.display = admin ? '' : 'none';
+    el.style.display = write ? '' : 'none';
   });
 
   // Bandeaux lecture seule
   const lockBanners = [
-    { id: 'roProto',    msgId: 'roProtoMsg' },
-    { id: 'roFiche',    msgId: 'roFicheMsg' },
-    { id: 'roPatient',  msgId: 'roPatientMsg' },
-    { id: 'roEval',     msgId: 'roEvalMsg' },
-    { id: 'roRapport',  msgId: 'roRapportMsg' },
+    { id: 'roProto',   msgId: 'roProtoMsg' },
+    { id: 'roFiche',   msgId: 'roFicheMsg' },
+    { id: 'roPatient', msgId: 'roPatientMsg' },
+    { id: 'roEval',    msgId: 'roEvalMsg' },
+    { id: 'roRapport', msgId: 'roRapportMsg' },
   ];
 
   lockBanners.forEach(({ id, msgId }) => {
     const el  = document.getElementById(id);
     const msg = document.getElementById(msgId);
     if (!el) return;
-
     if (!name) {
-      // Non connecté
       if (msg) msg.innerHTML = 'Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer ou modifier';
-      el.classList.add('visible');
-    } else if (!write) {
-      // Connecté mais pas admin
-      if (msg) msg.innerHTML = 'Accès restreint — Seuls les <strong style="color:var(--danger)">Administrateurs</strong> peuvent modifier le contenu';
       el.classList.add('visible');
     } else {
       el.classList.remove('visible');
     }
   });
 
-  // Roster
-  const roRoster = document.getElementById('roRoster');
+  // Roster : gestion réservée aux Directeurs
+  const roRoster    = document.getElementById('roRoster');
   const btnNewAgent = document.getElementById('btnNewAgent');
-  if (roRoster) roRoster.style.display = (!admin && !!name) ? 'flex' : (!name ? 'flex' : 'none');
-  if (btnNewAgent) btnNewAgent.style.display = admin ? '' : 'none';
+  if (roRoster)    roRoster.style.display    = (!name || !dir) ? 'flex' : 'none';
+  if (btnNewAgent) btnNewAgent.style.display = dir ? '' : 'none';
 
-  // Lien Mon Espace
+  // Mon Espace
   const monEspaceBtn = document.getElementById('monEspaceBtn');
   if (monEspaceBtn) monEspaceBtn.style.display = name ? 'inline-flex' : 'none';
   const sideEspace = document.getElementById('sidebarEspaceBtn');
   if (sideEspace) sideEspace.style.display = name ? 'block' : 'none';
 }
-
 function updateSidebarAuth(name, role) {
   const s = document.getElementById('sidebarAuthStatus');
   const n = document.getElementById('sidebarAuthName');
@@ -1150,8 +1144,9 @@ function updateSidebarAuth(name, role) {
     if (s) { s.textContent = 'NON CONNECTÉ'; s.style.color = 'var(--text-dim)'; }
     if (n) n.textContent = '—';
     if (r) { r.textContent = 'LECTURE'; r.style.color = 'var(--text-dim)'; }
-    if (l) { l.textContent = 'PUBLIC'; l.style.color = 'var(--text-dim)'; }
-    if (b) { b.textContent = '🔑 Se connecter'; b.className = 'auth-btn'; b.style.width = '100%'; b.style.marginTop = '10px'; b.style.textAlign = 'center'; b.onclick = toggleAuthFlyout; }
+    if (l) {
+    l.textContent = dir ? 'ÉCRITURE COMPLÈTE + ROSTER' : write ? 'ÉCRITURE' : 'PUBLIC';
+    l.style.color = dir ? 'var(--safe)' : write ? 'var(--accent2)' : 'var(--text-dim)';} 
   }
 }
 
@@ -1217,11 +1212,12 @@ window.doAuthLogout = function() {
 
 function requireAdmin(action) {
   if (!isAuthenticated) { openAuthFlyout(); addHistory('⚠ Connexion requise pour: ' + action); return false; }
-  if (!isAdmin()) {
-    alert('⛔ Action réservée aux administrateurs.');
-    addHistory('⛔ Accès admin requis: ' + action);
-    return false;
-  }
+  return true;
+}
+
+function requireDir(action) {
+  if (!isAuthenticated) { openAuthFlyout(); addHistory('⚠ Connexion requise pour: ' + action); return false; }
+  if (!isDir()) { alert('⛔ Action réservée aux Directeurs et Directeurs Adjoints.'); addHistory('⛔ Accès direction requis: ' + action); return false; }
   return true;
 }
 
@@ -1830,7 +1826,7 @@ function renderAgents() {
 function renderAgentCards(list) {
   const el = document.getElementById('agentList'); if (!el) return;
   if (!list.length) { el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><div class="empty-text">Aucun agent trouvé</div></div>'; return; }
-  const admin = isAdmin();
+  const admin = isDir();
   el.innerHTML = [...list].reverse().map(a => `
     <div class="agent-card status-${a.statut||'inactif'}">
       <div class="agent-card-header">
@@ -1857,7 +1853,7 @@ function renderAgentCards(list) {
 
 function renderAgentTable(list) {
   const tbody = document.getElementById('agentTableBody'); if (!tbody) return;
-  const admin = isAdmin();
+  const admin = isDir();
   if (!list.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;font-size:10px">Aucun agent trouvé</td></tr>'; return; }
   const statusColor = { actif:'var(--safe)', inactif:'var(--text-dim)', suspendu:'var(--danger)', conge:'var(--warn)' };
   tbody.innerHTML = [...list].reverse().map(a => `
@@ -1877,7 +1873,7 @@ function renderAgentTable(list) {
 }
 
 document.getElementById('btnNewAgent')?.addEventListener('click', () => {
-  if (!requireAdmin('ajouter un agent')) return;
+  if (!requireDir('ajouter un agent')) return;
   openAgentForm(null);
 });
 ['agentCancelBtn','agentCancelBtn2'].forEach(id => document.getElementById(id)?.addEventListener('click', () => { document.getElementById('agentFormPanel').style.display='none'; editingAgentId=null; }));
@@ -1897,7 +1893,7 @@ function openAgentForm(a=null) {
 }
 
 document.getElementById('agentSaveBtn')?.addEventListener('click', async () => {
-  if (!requireAdmin('sauvegarder un agent')) return;
+  if (!requireDir('sauvegarder un agent')) return;
   const nom      = document.getElementById('agNom').value.trim();
   const username = document.getElementById('agUsername').value.trim();
   if (!nom || !username) { alert('Nom RP et Username requis.'); return; }
@@ -1910,7 +1906,7 @@ document.getElementById('agentSaveBtn')?.addEventListener('click', async () => {
 
 function viewAgent(a) {
   if (!a) return; currentAgent = a;
-  const admin = isAdmin();
+  const admin = isDir();
   document.getElementById('avUsername').textContent = '@'+(a.username||'—');
   document.getElementById('avName').textContent     = a.nom||'—';
   const badge = document.getElementById('avStatusBadge');
@@ -1978,9 +1974,9 @@ document.addEventListener('click', async e => {
   const vag = e.target.closest('[data-view-ag]');
   if (vag) { viewAgent(agents.find(x=>x._id===vag.dataset.viewAg)); return; }
   const eag = e.target.closest('[data-edit-ag]');
-  if (eag) { if (!requireAdmin('modifier')) return; openAgentForm(agents.find(x=>x._id===eag.dataset.editAg)); return; }
-  const dag = e.target.closest('[data-del-ag]');
-  if (dag) { if (!requireAdmin('supprimer')) return; if (!confirm('Supprimer cet agent du roster ?')) return; await fbDelete('user-rp', dag.dataset.delAg); addHistory('Agent supprimé'); return; }
+if (eag) { if (!requireDir('modifier roster')) return; openAgentForm(agents.find(x=>x._id===eag.dataset.editAg)); return; }
+const dag = e.target.closest('[data-del-ag]');
+if (dag) { if (!requireDir('supprimer roster')) return; if (!confirm('Supprimer cet agent du roster ?')) return; await fbDelete('user-rp', dag.dataset.delAg); addHistory('Agent supprimé'); return; }
 });
 
 // INIT
