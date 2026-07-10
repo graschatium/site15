@@ -1446,6 +1446,7 @@ function showApp(name, role) {
   if (isAdmin) loadUsers();
   initTabs();
   refreshPlayers();
+  startLivePlayersListen(); 
   addHistory('Connecté : ' + name);
 }
 
@@ -1472,6 +1473,7 @@ function showLogin() {
         startServerListen();
         startRosterListen();
         startLogsListen();
+        startLivePlayersListen(); 
         showApp(getDisplayName(found), currentRole);
         window.hideLoadingScreen();
         return;
@@ -1757,12 +1759,17 @@ window.saveSanction = async function() {
   btn.disabled = true; btn.textContent = '…';
   try {
     const modName = currentUser?.displayName || currentUser?.username || '—';
-    await addDoc(collection(db, 'users'), {
-  username, password: await sha256Hex(pass),
-  displayName: displayName || username,
-  role, createdAt: new Date().toISOString(),
-  createdBy: currentUser?.username || '—'
-});
+    await addDoc(collection(db, 'sanctions'), {
+      player,
+      username: document.getElementById('fUsername').value.trim(),
+      type, reason,
+      details: document.getElementById('fDetails').value.trim(),
+      mod: modName,
+      modUid: currentUser?._id || '—',
+      duration: ['ban','mute'].includes(type) ? document.getElementById('fDuration').value : '—',
+      date: document.getElementById('fDate').value || today(),
+      createdAt: new Date().toISOString(),
+    });
     closeModal('modalNewSanction');
     addHistory('Sanction : ' + typeName(type) + ' → ' + player);
     ['fPlayer','fUsername','fReason','fDetails'].forEach(id => document.getElementById(id).value = '');
