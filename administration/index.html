@@ -6,6 +6,54 @@
 <title>INTRANET — Département Administratif // Site-15</title>
 <link rel="stylesheet" href="../shared.css"/>
 <style>
+:root { --dept-color: #e8c84a; --dept-glow: rgba(232,200,74,0.15); }
+.topbar-dept { color: var(--dept-color) !important; }
+.widget-hdr::before { background: var(--dept-color) !important; }
+.dept-badge { color: var(--dept-color); border-color: var(--dept-color); }
+
+/* ── AUTH ── */
+.auth-btn {
+  font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.15em;
+  text-transform:uppercase; padding:6px 14px; border:1px solid var(--border2);
+  background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.2s;
+}
+.auth-btn:hover { border-color:var(--dept-color); color:var(--dept-color); }
+.auth-btn.connected { border-color:var(--safe); color:var(--safe); background:rgba(0,230,118,0.06); }
+.auth-btn.connected:hover { background:rgba(0,230,118,0.12); }
+
+.auth-flyout {
+  position:fixed; top:52px; right:16px; width:300px; z-index:400;
+  background:var(--surface); border:1px solid var(--border2); border-top:2px solid var(--dept-color);
+  box-shadow:0 12px 40px rgba(0,0,0,0.7), 0 0 20px rgba(232,200,74,0.08);
+  display:none; padding:20px;
+}
+.auth-flyout.open { display:block; animation:flyout-in 0.18s ease; }
+@keyframes flyout-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.auth-flyout-title { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.25em; text-transform:uppercase; color:var(--dept-color); margin-bottom:14px; }
+.auth-flyout .af-field { margin-bottom:10px; }
+.auth-flyout .af-field label { font-family:'Share Tech Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.15em; color:var(--text-dim); display:block; margin-bottom:5px; }
+.auth-flyout .af-field input { width:100%; background:var(--surface2); border:1px solid var(--border2); color:var(--white); font-family:'Share Tech Mono',monospace; font-size:12px; padding:8px 10px; outline:none; transition:border-color 0.2s; }
+.auth-flyout .af-field input:focus { border-color:var(--dept-color); }
+.auth-flyout-err { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--danger); min-height:14px; margin-bottom:8px; }
+.auth-flyout-submit { width:100%; padding:9px; background:rgba(232,200,74,0.08); border:1px solid var(--dept-color); color:var(--dept-color); font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.auth-flyout-submit:hover { background:rgba(232,200,74,0.18); }
+.auth-flyout-loading { text-align:center; font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); padding:8px; letter-spacing:0.15em; animation:blink 1s step-end infinite; }
+@keyframes blink { 50%{opacity:0.3} }
+
+.auth-user-panel { text-align:center; padding:4px 0; }
+.auth-user-name { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; color:var(--white); text-transform:uppercase; margin-bottom:4px; }
+.auth-user-role { font-family:'Share Tech Mono',monospace; font-size:9px; letter-spacing:0.2em; padding:2px 10px; border:1px solid; text-transform:uppercase; display:inline-block; margin-bottom:14px; }
+.auth-user-role.admin { color:var(--danger); border-color:rgba(192,57,43,0.5); background:rgba(192,57,43,0.08); }
+.auth-user-role.moderateur { color:var(--accent); border-color:rgba(232,200,74,0.4); background:rgba(232,200,74,0.06); }
+.auth-logout-btn { width:100%; padding:8px; background:rgba(192,57,43,0.06); border:1px solid rgba(192,57,43,0.4); color:var(--danger); font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.auth-logout-btn:hover { background:rgba(192,57,43,0.14); }
+
+.ro-lock { display:none; align-items:center; gap:8px; font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); background:rgba(232,200,74,0.04); border:1px solid rgba(232,200,74,0.15); padding:8px 14px; margin-bottom:16px; letter-spacing:0.1em; }
+.ro-lock.visible { display:flex; }
+.ro-lock-icon { font-size:14px; }
+.ro-lock-link { color:var(--dept-color); cursor:pointer; text-decoration:underline; margin-left:4px; }
+.action-locked { opacity:0.35; pointer-events:none; cursor:not-allowed; }
+
 /* Requête cards */
 .req-list { display: flex; flex-direction: column; gap: 4px; }
 .req-card {
@@ -53,6 +101,43 @@
 .pers-status.actif    { color: var(--safe);     border-color: rgba(39,174,96,0.4); }
 .pers-status.inactif  { color: var(--text-dim); border-color: var(--border2); }
 .pers-status.suspendu { color: var(--danger);   border-color: rgba(192,57,43,0.5); }
+
+/* ── BJI — Bureau de la Justice Interne ── */
+.bji-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--border2); padding: 14px 18px; transition: all 0.2s; }
+.bji-card:hover { background: var(--surface2); border-color: var(--border2); }
+.bji-card.statut-ouvert    { border-left-color: rgba(230,126,34,0.6); }
+.bji-card.statut-ouvert:hover    { border-left-color: var(--warn); }
+.bji-card.statut-en-cours  { border-left-color: rgba(232,200,74,0.5); }
+.bji-card.statut-en-cours:hover  { border-left-color: var(--accent); }
+.bji-card.statut-clos      { border-left-color: rgba(39,174,96,0.4); }
+.bji-card.statut-clos:hover      { border-left-color: var(--safe); }
+.bji-card.statut-archive   { border-left-color: var(--border2); }
+
+.bji-head    { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 5px; }
+.bji-id      { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.15em; }
+.bji-title   { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.05em; }
+.bji-badges  { display: flex; gap: 4px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+.bji-badge   { font-family: 'Share Tech Mono', monospace; font-size: 9px; padding: 2px 8px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; }
+.bji-meta    { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 5px; }
+.bji-body    { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 8px; }
+.bji-counts  { display: flex; gap: 16px; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-dim); margin-bottom: 8px; letter-spacing: 0.05em; }
+.bji-counts b { color: var(--accent); font-weight: 700; }
+.bji-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.modal-box-lg { max-width: 760px; width: 92%; }
+
+.bji-subsec     { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+.bji-subsec-hdr { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--white); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.bji-subsec-hdr .pill-n { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--accent); border:1px solid var(--border2); padding:1px 7px; }
+.bji-item-list  { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.bji-item       { background: var(--surface2); border: 1px solid var(--border); padding: 10px 14px; }
+.bji-item-hdr   { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+.bji-item-title { font-family: 'Courier Prime', monospace; font-size: 12px; color: var(--white); font-weight: 700; }
+.bji-item-badge { font-family: 'Share Tech Mono', monospace; font-size: 9px; padding: 1px 7px; border: 1px solid; text-transform: uppercase; white-space: nowrap; }
+.bji-item-meta  { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--text-dim); margin-bottom: 4px; }
+.bji-item-desc  { font-family: 'Courier Prime', monospace; font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+.bji-add-form   { background: var(--surface); border: 1px dashed var(--border2); padding: 14px; }
+.bji-empty-mini { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-dim); padding: 8px 0; }
 </style>
 </head>
 <body>
@@ -69,9 +154,30 @@
   </div>
   <div class="topbar-right">
     <div class="topbar-status"><div class="status-dot"></div>OPÉRATIONNEL</div>
-    <div class="topbar-clearance">NIVEAU 3</div>
+    <div class="topbar-clearance dept-badge">NIVEAU 3</div>
+    <button class="auth-btn" id="authBtn" onclick="toggleAuthFlyout()">🔑 Connexion</button>
   </div>
 </header>
+
+<!-- ══ AUTH FLYOUT ══ -->
+<div class="auth-flyout" id="authFlyout">
+  <div id="afLoginPanel">
+    <div class="auth-flyout-title">// Authentification agent</div>
+    <div class="af-field"><label>Nom d'utilisateur</label><input type="text" id="afUsername" placeholder="Ex: M.NOWAK" autocomplete="username" spellcheck="false"/></div>
+    <div class="af-field"><label>Mot de passe</label><input type="password" id="afPassword" placeholder="••••••••" autocomplete="current-password"/></div>
+    <div class="auth-flyout-err" id="afError"></div>
+    <button class="auth-flyout-submit" onclick="doAuthLogin()">→ Accéder</button>
+  </div>
+  <div id="afLoadingPanel" style="display:none" class="auth-flyout-loading">AUTHENTIFICATION…</div>
+  <div id="afUserPanel" style="display:none">
+    <div class="auth-flyout-title">// Agent authentifié</div>
+    <div class="auth-user-panel">
+      <div class="auth-user-name" id="afUserName">—</div>
+      <div class="auth-user-role" id="afUserRole">—</div>
+    </div>
+    <button class="auth-logout-btn" onclick="doAuthLogout()">↩ Déconnexion</button>
+  </div>
+</div>
 
 <!-- ══ NAV ══ -->
 <nav class="dept-nav">
@@ -79,6 +185,7 @@
   <button class="nav-tab" data-view="directives"><span class="nav-tab-icon">📜</span> Directives</button>
   <button class="nav-tab" data-view="personnel"><span class="nav-tab-icon">👤</span> Personnel</button>
   <button class="nav-tab" data-view="evaluations"><span class="nav-tab-icon">✦</span> Évaluations</button>
+  <button class="nav-tab" data-view="bji"><span class="nav-tab-icon">⚖️</span> BJI</button>
   <button class="nav-tab" data-view="rapports"><span class="nav-tab-icon">📋</span> Rapports</button>
 </nav>
 
@@ -94,8 +201,12 @@
         <div class="sec-sub" id="reqCount">0 requêtes</div>
       </div>
       <div class="sec-actions">
-        <button class="btn btn-primary btn-sm" id="btnNewReq">+ Nouvelle requête</button>
+        <button class="btn btn-primary btn-sm action-write" id="btnNewReq">+ Nouvelle requête</button>
       </div>
+    </div>
+    <div class="ro-lock" id="roReq">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer, traiter ou modifier des requêtes</span>
     </div>
 
     <div class="form-panel" id="reqFormPanel" style="display:none">
@@ -164,8 +275,12 @@
         <div class="sec-sub" id="dirCount">0 directives</div>
       </div>
       <div class="sec-actions">
-        <button class="btn btn-primary btn-sm" id="btnNewDir">+ Nouvelle directive</button>
+        <button class="btn btn-primary btn-sm action-write" id="btnNewDir">+ Nouvelle directive</button>
       </div>
+    </div>
+    <div class="ro-lock" id="roDir">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour publier ou modifier des directives</span>
     </div>
 
     <div class="form-panel" id="dirFormPanel" style="display:none">
@@ -221,8 +336,12 @@
         <div class="sec-sub" id="persCount">0 agents</div>
       </div>
       <div class="sec-actions">
-        <button class="btn btn-primary btn-sm" id="btnNewPers">+ Ajouter un agent</button>
+        <button class="btn btn-primary btn-sm action-write" id="btnNewPers">+ Ajouter un agent</button>
       </div>
+    </div>
+    <div class="ro-lock" id="roPers">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour ajouter ou modifier des agents</span>
     </div>
 
     <div class="form-panel" id="persFormPanel" style="display:none">
@@ -293,8 +412,12 @@
         <div class="sec-sub" id="evalCount">0 évaluations</div>
       </div>
       <div class="sec-actions">
-        <button class="btn btn-primary btn-sm" id="btnNewEval">+ Nouvelle évaluation</button>
+        <button class="btn btn-primary btn-sm action-write" id="btnNewEval">+ Nouvelle évaluation</button>
       </div>
+    </div>
+    <div class="ro-lock" id="roEval">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour créer des évaluations</span>
     </div>
 
     <div class="form-panel" id="evalFormPanel" style="display:none">
@@ -363,6 +486,74 @@
     </div>
   </section>
 
+  <!-- ▸ BJI — BUREAU DE LA JUSTICE INTERNE -->
+  <section class="view" id="view-bji">
+    <div class="sec-hdr">
+      <div>
+        <div class="sec-tag">// Bureau de la Justice Interne</div>
+        <div class="sec-title">DOSSIERS <span>BJI</span></div>
+        <div class="sec-sub" id="bjiCount">0 dossiers</div>
+      </div>
+      <div class="sec-actions">
+        <button class="btn btn-primary btn-sm action-write" id="btnNewBji">+ Nouveau dossier</button>
+      </div>
+    </div>
+    <div class="ro-lock" id="roBji">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour ouvrir, modifier ou instruire un dossier BJI</span>
+    </div>
+
+    <div class="form-panel" id="bjiFormPanel" style="display:none">
+      <div class="form-title">
+        <span id="bjiFormTitle">Nouveau dossier</span>
+        <button class="btn btn-ghost btn-xs" id="bjiCancelBtn">✕ Annuler</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Sujet / Accusé *</label><input id="bjiSujet" type="text" placeholder="Ex: M.NOWAK"/></div>
+        <div class="form-field"><label>Username Roblox</label><input id="bjiUsername" type="text" placeholder="Ex: FlofloParis"/></div>
+        <div class="form-field"><label>Département du sujet</label>
+          <select id="bjiDept">
+            <option value="Sécurité">Sécurité</option>
+            <option value="Administration">Administration</option>
+            <option value="Scientifique">Scientifique</option>
+            <option value="Médical">Médical</option>
+            <option value="Staff">Staff</option>
+            <option value="Externe">Externe / Inconnu</option>
+          </select>
+        </div>
+        <div class="form-field"><label>Responsable BJI *</label><input id="bjiResponsable" type="text" placeholder="Votre nom"/></div>
+        <div class="form-field"><label>Date d'ouverture *</label><input id="bjiDate" type="date"/></div>
+        <div class="form-field"><label>Statut</label>
+          <select id="bjiStatut">
+            <option value="ouvert" selected>Ouvert</option>
+            <option value="en-cours">En cours</option>
+            <option value="clos">Clos</option>
+            <option value="archive">Archivé</option>
+          </select>
+        </div>
+        <div class="form-field full"><label>Résumé de l'affaire *</label><textarea id="bjiDesc" rows="4" placeholder="Contexte, événements déclencheurs, plaignant…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" id="bjiCancelBtn2">Annuler</button>
+        <button class="btn btn-primary btn-sm" id="bjiSaveBtn">💾 Ouvrir le dossier</button>
+      </div>
+    </div>
+
+    <div class="search-row">
+      <div class="search-wrap"><span class="search-icon">⌕</span><input class="search-input" id="bjiSearch" placeholder="Rechercher un dossier (sujet, username)…"/></div>
+    </div>
+    <div class="filter-row" id="bjiFilters">
+      <button class="pill active" data-bf="all">Tous <span class="pill-n" id="bc-all">0</span></button>
+      <button class="pill" data-bf="ouvert">Ouverts <span class="pill-n" id="bc-ouvert">0</span></button>
+      <button class="pill" data-bf="en-cours">En cours <span class="pill-n" id="bc-en-cours">0</span></button>
+      <button class="pill" data-bf="clos">Clos <span class="pill-n" id="bc-clos">0</span></button>
+      <button class="pill" data-bf="archive">Archivés <span class="pill-n" id="bc-archive">0</span></button>
+    </div>
+    <div class="req-list" id="bjiList">
+      <div class="empty-state"><div class="empty-icon">⚖️</div><div class="empty-text">Aucun dossier ouvert</div></div>
+    </div>
+  </section>
+
   <!-- ▸ RAPPORTS -->
   <section class="view" id="view-rapports">
     <div class="sec-hdr">
@@ -372,8 +563,12 @@
         <div class="sec-sub" id="rapCount">0 rapports</div>
       </div>
       <div class="sec-actions">
-        <button class="btn btn-primary btn-sm" id="btnNewRap">+ Nouveau rapport</button>
+        <button class="btn btn-primary btn-sm action-write" id="btnNewRap">+ Nouveau rapport</button>
       </div>
+    </div>
+    <div class="ro-lock" id="roRap">
+      <span class="ro-lock-icon">🔒</span>
+      <span>Lecture seule — <span class="ro-lock-link" onclick="openAuthFlyout()">Connectez-vous</span> pour rédiger des rapports</span>
     </div>
 
     <div class="form-panel" id="rapFormPanel" style="display:none">
@@ -438,6 +633,20 @@
       <div class="stat-box"><div class="stat-val" id="statPending">0</div><div class="stat-lbl">En attente</div></div>
       <div class="stat-box"><div class="stat-val" id="statPersonnel">0</div><div class="stat-lbl">Agents</div></div>
       <div class="stat-box"><div class="stat-val" id="statEval">0</div><div class="stat-lbl">Évals</div></div>
+      <div class="stat-box"><div class="stat-val" id="statBji">0</div><div class="stat-lbl">Dossiers BJI</div></div>
+    </div>
+  </div>
+
+  <div class="widget" id="sidebarAuthWidget">
+    <div class="widget-hdr"><span class="widget-title">Accès</span></div>
+    <div class="widget-body" style="padding:12px 14px">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);line-height:2.2">
+        <div>STATUT : <span id="sidebarAuthStatus" style="color:var(--text-dim)">NON CONNECTÉ</span></div>
+        <div>AGENT  : <span id="sidebarAuthName" style="color:var(--white)">—</span></div>
+        <div>RÔLE   : <span id="sidebarAuthRole" style="color:var(--text-dim)">LECTURE</span></div>
+        <div>ACCÈS  : <span id="sidebarAuthLevel" style="color:var(--text-dim)">PUBLIC</span></div>
+      </div>
+      <button class="auth-btn" style="width:100%;margin-top:10px;text-align:center" id="sidebarAuthBtn" onclick="toggleAuthFlyout()">🔑 Se connecter</button>
     </div>
   </div>
 
@@ -450,6 +659,7 @@
         <div><span class="t-out">▶ Conseil O5 : JOIGNABLE</span></div>
         <div id="termReqLine" class="t-dim">▶ En attente : 0</div>
         <div id="termPersLine" class="t-dim">▶ Agents : 0</div>
+        <div id="termBjiLine" class="t-dim">▶ Dossiers BJI ouverts : 0</div>
         <div><span class="t-prompt">ADM@SITE-15:~$ </span><span class="cursor"></span></div>
       </div>
     </div>
@@ -458,7 +668,7 @@
   <div class="widget">
     <div class="widget-hdr"><span class="widget-title">Journal</span></div>
     <div class="hlog" id="historyList">
-      <div class="hline"><span class="hts">[00:00]</span><span>Système initialisé.</span></div>
+      <div class="hline"><span class="hts">[--:--]</span><span>Intranet ADM initialisé.</span></div>
     </div>
   </div>
 </aside>
@@ -485,8 +695,8 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost btn-sm" data-close-modal="reqViewModal">Fermer</button>
-      <button class="btn btn-safe btn-sm" id="reqApprouverBtn">✔ Approuver</button>
-      <button class="btn btn-danger btn-sm" id="reqRefuserBtn">✕ Refuser</button>
+      <button class="btn btn-safe btn-sm action-write" id="reqApprouverBtn">✔ Approuver</button>
+      <button class="btn btn-danger btn-sm action-write" id="reqRefuserBtn">✕ Refuser</button>
     </div>
   </div>
 </div>
@@ -516,54 +726,462 @@
   </div>
 </div>
 
-<script src="../shared.js"></script>
-<script>
-const S = SCPIntranet;
-const STORE_REQ  = 'scp19_adm_requetes';
-const STORE_DIR  = 'scp19_adm_directives';
-const STORE_PERS = 'scp19_adm_personnel';
-const STORE_EVAL = 'scp19_adm_evals';
-const STORE_RAP  = 'scp19_adm_rapports';
+<!-- ══ MODAL — Dossier BJI ══ -->
+<div class="modal-ov" id="bjiViewModal">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-hdr">
+      <div><div class="card-id" id="bjiViewId">BJI-XXXXX</div><div class="card-type" id="bjiViewStatutLabel">—</div></div>
+      <button class="modal-close" data-close-modal="bjiViewModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="card-title" style="font-size:22px;margin-bottom:14px" id="bjiViewSujet">—</div>
+      <div class="meta-grid">
+        <div class="meta-item"><label>Username</label><span id="bjiViewUsername">—</span></div>
+        <div class="meta-item"><label>Département</label><span id="bjiViewDept">—</span></div>
+        <div class="meta-item"><label>Responsable BJI</label><span id="bjiViewResponsable">—</span></div>
+        <div class="meta-item"><label>Ouverture</label><span id="bjiViewDate">—</span></div>
+        <div class="meta-item"><label>Statut</label><span id="bjiViewStatut">—</span></div>
+      </div>
+      <div class="msec"><div class="msec-lbl">Résumé de l'affaire</div><div class="msec-content" id="bjiViewDesc">—</div></div>
 
-let requetes    = S.store.get(STORE_REQ,  []);
-let directives  = S.store.get(STORE_DIR,  []);
-let personnel   = S.store.get(STORE_PERS, []);
-let evaluations = S.store.get(STORE_EVAL, []);
-let rapports    = S.store.get(STORE_RAP,  []);
+      <div class="bji-subsec">
+        <div class="bji-subsec-hdr">⚠ Chefs d'accusation <span class="pill-n" id="bjiCrimeCount">0</span></div>
+        <div id="bjiCrimeList" class="bji-item-list"></div>
+        <div class="bji-add-form">
+          <div class="form-grid">
+            <div class="form-field"><label>Titre du chef d'accusation *</label><input id="bjiCrimeTitre" type="text" placeholder="Ex: Insubordination répétée"/></div>
+            <div class="form-field"><label>Gravité</label>
+              <select id="bjiCrimeGravite">
+                <option value="mineure">Mineure</option>
+                <option value="moderee" selected>Modérée</option>
+                <option value="grave">Grave</option>
+                <option value="majeure">Majeure</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Date</label><input id="bjiCrimeDate" type="date"/></div>
+            <div class="form-field full"><label>Description</label><textarea id="bjiCrimeDesc" rows="2" placeholder="Détails, contexte, preuves…"></textarea></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-primary btn-xs" id="bjiAddCrimeBtn">+ Ajouter le chef d'accusation</button></div>
+        </div>
+      </div>
 
-let editingReqId = null, editingDirId = null, editingPersId = null, editingRapId = null;
+      <div class="bji-subsec">
+        <div class="bji-subsec-hdr">🔨 Sanctions appliquées <span class="pill-n" id="bjiSanctionCount">0</span></div>
+        <div id="bjiSanctionList" class="bji-item-list"></div>
+        <div class="bji-add-form">
+          <div class="form-grid">
+            <div class="form-field"><label>Type de sanction</label>
+              <select id="bjiSanctionType">
+                <option value="avertissement">⚠ Avertissement</option>
+                <option value="amende">💰 Amende (crédits RP)</option>
+                <option value="retrogradation">⬇ Rétrogradation</option>
+                <option value="suspension">⏸ Suspension</option>
+                <option value="expulsion">🚫 Expulsion</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Durée</label><input id="bjiSanctionDuree" type="text" placeholder="Ex: 7 jours / Permanente"/></div>
+            <div class="form-field"><label>Agent BJI</label><input id="bjiSanctionAgent" type="text" placeholder="Votre nom"/></div>
+            <div class="form-field"><label>Date</label><input id="bjiSanctionDate" type="date"/></div>
+            <div class="form-field full"><label>Description</label><textarea id="bjiSanctionDesc" rows="2" placeholder="Justification de la sanction…"></textarea></div>
+          </div>
+          <div class="form-actions"><button class="btn btn-primary btn-xs" id="bjiAddSanctionBtn">+ Appliquer la sanction</button></div>
+        </div>
+      </div>
+
+      <div class="bji-subsec">
+        <div class="bji-subsec-hdr">📋 Finalisation &amp; Export</div>
+        <div class="bji-add-form">
+          <div class="form-grid">
+            <div class="form-field"><label>Signature (votre nom)</label><input id="bjiExportSignature" type="text" placeholder="Ex: M.NOWAK"/></div>
+            <div class="form-field"><label>Pour (supérieur / validé par)</label><input id="bjiExportPour" type="text" placeholder="Ex: Directeur ADM"/></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary btn-xs" id="bjiExportCopyBtn">⧉ Copier le dossier (format BJI)</button>
+            <button class="btn btn-ghost btn-xs" id="bjiExportDownloadBtn">⬇ Télécharger .txt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" data-close-modal="bjiViewModal">Fermer</button>
+      <button class="btn btn-safe btn-sm" data-bji-statut="en-cours">▶ En cours</button>
+      <button class="btn btn-primary btn-sm" data-bji-statut="clos">✔ Clôturer</button>
+      <button class="btn btn-ghost btn-sm" data-bji-statut="archive">🗄 Archiver</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ══════════════════════════════════════════
+// SHARED INLINE (même logique que l'intranet Sécurité)
+// ══════════════════════════════════════════
+const SCPIntranet = (() => {
+  function addHistory(msg, containerId='historyList') {
+    const c = document.getElementById(containerId); if (!c) return;
+    const now = new Date();
+    const ts = `[${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}]`;
+    const div = document.createElement('div'); div.className = 'hline';
+    div.innerHTML = `<span class="hts">${ts}</span><span>${msg}</span>`;
+    c.prepend(div);
+    while (c.children.length > 30) c.removeChild(c.lastChild);
+  }
+  function initTabs(navSelector='.nav-tab', viewPrefix='view-') {
+    const tabs = document.querySelectorAll(navSelector);
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+        const target = document.getElementById(viewPrefix + tab.dataset.view);
+        if (target) target.classList.add('active');
+        addHistory('Vue: ' + tab.textContent.trim());
+      });
+    });
+  }
+  async function copyText(text, btn, label='Copié !') {
+    try {
+      if (navigator.clipboard) await navigator.clipboard.writeText(text);
+      else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+      if (btn) {
+        const orig = btn.textContent; btn.textContent = '✓ ' + label; btn.style.color = 'var(--safe)'; btn.style.borderColor = 'var(--safe)';
+        setTimeout(() => { btn.textContent = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1500);
+      }
+      return true;
+    } catch { return false; }
+  }
+  function openModal(id) { document.getElementById(id)?.classList.add('open'); }
+  function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+  function initModalClose() {
+    document.addEventListener('click', e => {
+      if (e.target.dataset.closeModal) closeModal(e.target.dataset.closeModal);
+      if (e.target.classList.contains('modal-ov')) closeModal(e.target.id);
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-ov.open').forEach(m => m.classList.remove('open')); });
+  }
+  function today() { return new Date().toISOString().split('T')[0]; }
+  function fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('fr-FR'); } catch { return d; } }
+  function updateStat(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  const EVAL_CRITERIA = ['Disc','Proto','React','Comm','Hier','Comp'];
+  function getEvalMention(score, max=60) {
+    const p = score / max;
+    if (p >= 0.9) return { text:'EXCELLENT', color:'var(--safe)' };
+    if (p >= 0.75) return { text:'TRÈS BON', color:'var(--accent)' };
+    if (p >= 0.6) return { text:'SATISFAISANT', color:'var(--accent2)' };
+    if (p >= 0.45) return { text:'INSUFFISANT', color:'var(--warn)' };
+    return { text:'RECALÉ', color:'var(--danger)' };
+  }
+  function computeEvalTotal() { return EVAL_CRITERIA.reduce((s,k) => { const el = document.getElementById('score'+k); return s + (el ? parseInt(el.value) : 0); }, 0); }
+  function updateEvalUI() {
+    const total = computeEvalTotal();
+    const scoreEl = document.getElementById('evalTotalScore'); const mentionEl = document.getElementById('evalTotalMention');
+    if (scoreEl) scoreEl.textContent = total + ' / 60';
+    if (mentionEl) { const m = getEvalMention(total); mentionEl.textContent = '— ' + m.text; mentionEl.style.color = m.color; }
+  }
+  function initEvalSliders() {
+    EVAL_CRITERIA.forEach(k => {
+      const slider = document.getElementById('score'+k); const val = document.getElementById('val'+k);
+      if (!slider || !val) return;
+      slider.addEventListener('input', () => { val.textContent = slider.value; updateEvalUI(); });
+    });
+  }
+  return { addHistory, initTabs, copyText, openModal, closeModal, initModalClose, today, fmtDate, updateStat, EVAL_CRITERIA, getEvalMention, computeEvalTotal, updateEvalUI, initEvalSliders };
+})();
+
+// ══════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc,
+  addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain: "scp-site19.firebaseapp.com",
+  projectId: "scp-site19",
+  storageBucket: "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId: "1:245750946774:web:821944a85e207094b22277"
+});
+const db = getFirestore(app);
+
+function esc(s) { if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function fbAdd(col, data)        { return await addDoc(collection(db, col), { ...data, createdAt: new Date().toISOString() }); }
+async function fbUpdate(col, id, data) { await updateDoc(doc(db, col, id), data); }
+async function fbDelete(col, id)       { await deleteDoc(doc(db, col, id)); }
+function fbListen(col, cb) {
+  const q = query(collection(db, col), orderBy('createdAt', 'asc'));
+  return onSnapshot(q, snap => cb(snap.docs.map(d => ({ _id: d.id, ...d.data() }))));
+}
+function shortId(prefix, id) { return prefix + '-' + (id || '').slice(-6).toUpperCase(); }
+
+// ══════════════════════════════════════════
+// AUTH CUSTOM — même mécanisme que l'intranet Sécurité
+// ══════════════════════════════════════════
+const SESSION_KEY = 'scp_adm_session';
+// Clé de rôle utilisée par le profil site15 pour désigner ce département.
+// À ajuster si la convention du site principal diffère.
+const DEPT_ROLE_KEY = 'administration';
+
+let currentUser = null, currentRole = null, isAuthenticated = false;
+
+function loadSession() { try { const raw = localStorage.getItem(SESSION_KEY); if (!raw) return null; return JSON.parse(raw); } catch { return null; } }
+function saveSession(userObj) { localStorage.setItem(SESSION_KEY, JSON.stringify(userObj)); }
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+async function initApp() {
+  const authed = localStorage.getItem('site15_authed') === '1';
+  const raw    = localStorage.getItem('site15_profile');
+
+  if (authed && raw) {
+    try {
+      const profile     = JSON.parse(raw);
+      const role        = profile.role || localStorage.getItem('site15_role') || '';
+      const displayName = profile.displayName || profile.name || '';
+      const robloxName  = profile.robloxName  || profile.id  || '';
+
+      if (role === DEPT_ROLE_KEY) {
+        const snap = await getDocs(collection(db, 'users'));
+        let found = null;
+        snap.forEach(d => {
+          const u     = d.data();
+          const uname = (u.username || u.name || '').toLowerCase();
+          if (
+            (displayName && uname === displayName.toLowerCase()) ||
+            (robloxName  && uname === robloxName.toLowerCase())
+          ) found = { _id: d.id, ...u };
+        });
+
+        if (found) {
+          currentUser     = { ...found, rpRank: profile.rank || '' };
+          currentRole     = found.role || 'moderateur';
+          isAuthenticated = true;
+          saveSession({ username: found.username, password: found.password });
+          onAuthChange(found.displayName || found.username || found.name, currentRole);
+          return;
+        }
+
+        currentUser = {
+          _id:         profile.id || 'player-session',
+          username:    robloxName || displayName,
+          displayName: displayName || robloxName,
+          role:        'moderateur',
+          rpRank:      profile.rank || '',
+        };
+        currentRole     = 'moderateur';
+        isAuthenticated = true;
+        saveSession({ username: currentUser.username, password: '__site15_session__' });
+        onAuthChange(currentUser.displayName, currentRole);
+        return;
+      }
+    } catch(e) { console.warn('Auto-login session échoué:', e); }
+  }
+
+  const savedSession = loadSession();
+  if (savedSession?.username && savedSession?.password && savedSession.password !== '__site15_session__') {
+    try {
+      const snap = await getDocs(collection(db, 'users'));
+      let found = null;
+      snap.forEach(d => {
+        const u  = d.data();
+        const id = u.username || u.name || '';
+        if (id.toLowerCase() === savedSession.username.toLowerCase()) found = { _id: d.id, ...u };
+      });
+      if (found && found.password === savedSession.password) {
+        currentUser     = found;
+        currentRole     = found.role || 'moderateur';
+        isAuthenticated = true;
+        onAuthChange(found.displayName || found.username || found.name, currentRole);
+        return;
+      }
+    } catch(e) { console.warn('Session restore failed:', e); }
+    clearSession();
+  }
+
+  onAuthChange(null, null);
+}
+
+function onAuthChange(name, role) {
+  applyPermissions(name);
+  updateSidebarAuth(name, role);
+  updateAuthButton(name, role);
+  if (name) { SCPIntranet.addHistory('Connecté : ' + name); showAuthUserPanel(name, role); }
+  else { SCPIntranet.addHistory('Mode lecture seule — non authentifié'); showAuthLoginPanel(); }
+  renderRequetes(); renderDirectives(); renderPersonnel(); renderEvaluations(); renderBji(); renderRapports();
+}
+
+function applyPermissions(name) {
+  const canWrite = !!name;
+  document.querySelectorAll('.action-write').forEach(el => el.classList.toggle('action-locked', !canWrite));
+  ['roReq','roDir','roPers','roEval','roBji','roRap'].forEach(id => document.getElementById(id)?.classList.toggle('visible', !canWrite));
+}
+
+function updateSidebarAuth(name, role) {
+  const statusEl = document.getElementById('sidebarAuthStatus');
+  const nameEl   = document.getElementById('sidebarAuthName');
+  const roleEl   = document.getElementById('sidebarAuthRole');
+  const levelEl  = document.getElementById('sidebarAuthLevel');
+  const btn      = document.getElementById('sidebarAuthBtn');
+  if (name) {
+    if (statusEl) { statusEl.textContent = 'CONNECTÉ'; statusEl.style.color = 'var(--safe)'; }
+    if (nameEl)   nameEl.textContent = name;
+    if (roleEl) {
+      const rpRank = currentUser?.rpRank || '';
+      if (rpRank) { roleEl.textContent = rpRank; roleEl.style.color = 'var(--dept-color)'; }
+      else { roleEl.textContent = role?.toUpperCase() || 'MODÉRATEUR'; roleEl.style.color = role === 'admin' ? 'var(--danger)' : 'var(--accent)'; }
+    }
+    if (levelEl) { levelEl.textContent = role === 'admin' ? 'ADMIN COMPLET' : 'ÉCRITURE'; levelEl.style.color = 'var(--safe)'; }
+    if (btn)     { btn.textContent = '↩ Déconnexion'; btn.className = 'auth-btn connected'; btn.style.width='100%'; btn.style.marginTop='10px'; btn.style.textAlign='center'; btn.onclick = doAuthLogout; }
+  } else {
+    if (statusEl) { statusEl.textContent = 'NON CONNECTÉ'; statusEl.style.color = 'var(--text-dim)'; }
+    if (nameEl)   nameEl.textContent = '—';
+    if (roleEl)   { roleEl.textContent = 'LECTURE'; roleEl.style.color = 'var(--text-dim)'; }
+    if (levelEl)  { levelEl.textContent = 'PUBLIC'; levelEl.style.color = 'var(--text-dim)'; }
+    if (btn)      { btn.textContent = '🔑 Se connecter'; btn.className = 'auth-btn'; btn.style.width='100%'; btn.style.marginTop='10px'; btn.style.textAlign='center'; btn.onclick = toggleAuthFlyout; }
+  }
+}
+
+function updateAuthButton(name) {
+  const btn = document.getElementById('authBtn'); if (!btn) return;
+  if (name) { btn.textContent = '✓ ' + name.split(' ')[0]; btn.className = 'auth-btn connected'; }
+  else { btn.textContent = '🔑 Connexion'; btn.className = 'auth-btn'; }
+}
+
+let flyoutOpen = false;
+window.toggleAuthFlyout = function() { flyoutOpen = !flyoutOpen; document.getElementById('authFlyout').classList.toggle('open', flyoutOpen); };
+window.openAuthFlyout = function() { flyoutOpen = true; document.getElementById('authFlyout').classList.add('open'); document.getElementById('afUsername')?.focus(); };
+
+document.addEventListener('mousedown', e => {
+  if (!flyoutOpen) return;
+  const flyout = document.getElementById('authFlyout');
+  const btn = document.getElementById('authBtn');
+  const sideBtn = document.getElementById('sidebarAuthBtn');
+  if (!flyout?.contains(e.target) && !btn?.contains(e.target) && !sideBtn?.contains(e.target)) { flyoutOpen = false; flyout?.classList.remove('open'); }
+});
+document.getElementById('afPassword')?.addEventListener('keydown', e => { if (e.key === 'Enter') doAuthLogin(); });
+document.getElementById('afUsername')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('afPassword')?.focus(); });
+
+function showAuthLoginPanel() {
+  document.getElementById('afLoginPanel').style.display   = 'block';
+  document.getElementById('afLoadingPanel').style.display = 'none';
+  document.getElementById('afUserPanel').style.display    = 'none';
+  document.getElementById('afError').textContent = '';
+}
+function showAuthUserPanel(name, role) {
+  document.getElementById('afLoginPanel').style.display   = 'none';
+  document.getElementById('afLoadingPanel').style.display = 'none';
+  document.getElementById('afUserPanel').style.display    = 'block';
+  document.getElementById('afUserName').textContent = name;
+  const roleEl = document.getElementById('afUserRole');
+  const rpRank = currentUser?.rpRank || '';
+  if (rpRank) { roleEl.textContent = rpRank; roleEl.className = 'auth-user-role moderateur'; }
+  else { roleEl.textContent = role === 'admin' ? '🔐 Administrateur' : '🛡 Modérateur'; roleEl.className = 'auth-user-role ' + (role || 'moderateur'); }
+}
+
+window.doAuthLogin = async function() {
+  const username = document.getElementById('afUsername').value.trim();
+  const pass     = document.getElementById('afPassword').value;
+  const errEl    = document.getElementById('afError');
+  errEl.textContent = '';
+  if (!username || !pass) { errEl.textContent = "⚠ Nom d'utilisateur et mot de passe requis."; return; }
+  document.getElementById('afLoginPanel').style.display   = 'none';
+  document.getElementById('afLoadingPanel').style.display = 'block';
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    let found = null;
+    snap.forEach(d => { const u = d.data(); if (u.username?.toLowerCase() === username.toLowerCase()) found = { _id: d.id, ...u }; });
+    if (!found) { showAuthLoginPanel(); errEl.textContent = "⚠ Nom d'utilisateur introuvable."; return; }
+    if (found.password !== pass) { showAuthLoginPanel(); errEl.textContent = '⚠ Mot de passe incorrect.'; return; }
+    currentUser = found; currentRole = found.role || 'moderateur'; isAuthenticated = true;
+    saveSession({ username: found.username, password: found.password });
+    const displayName = found.displayName || found.username;
+    onAuthChange(displayName, currentRole);
+  } catch(e) { showAuthLoginPanel(); errEl.textContent = '⚠ Erreur : ' + e.message; }
+};
+
+window.doAuthLogout = function() {
+  currentUser = null; currentRole = null; isAuthenticated = false;
+  clearSession(); onAuthChange(null, null);
+  flyoutOpen = true; document.getElementById('authFlyout').classList.add('open');
+};
+
+function requireAuth(action) {
+  if (!isAuthenticated) { openAuthFlyout(); SCPIntranet.addHistory('⚠ Connexion requise pour: ' + action); return false; }
+  return true;
+}
+
+// ══════════════════════════════════════════
+// COLLECTIONS FIRESTORE
+// ══════════════════════════════════════════
+const COL_REQ  = 'adm_requetes';
+const COL_DIR  = 'adm_directives';
+const COL_PERS = 'adm_personnel';
+const COL_EVAL = 'adm_evals';
+const COL_BJI  = 'adm_bji';
+const COL_RAP  = 'adm_rapports';
+
+let requetes    = [];
+let directives  = [];
+let personnel   = [];
+let evaluations = [];
+let dossiers    = [];
+let rapports    = [];
+
+let editingReqId = null, editingDirId = null, editingPersId = null, editingRapId = null, editingBjiId = null;
 let activeReqCat = 'all', activeDirCat = 'all', activePersFil = 'all';
-let activeEvalFil = 'all', activeRapFil = 'all';
-let viewingReqId = null, viewingRapId = null;
+let activeEvalFil = 'all', activeRapFil = 'all', activeBjiFil = 'all';
+let viewingReqId = null, viewingRapId = null, viewingBjiId = null;
 
 const SEV_COLORS = { low:'var(--safe)', moderate:'var(--warn)', high:'#e67e22', critical:'var(--danger)' };
 const SEV_LABELS = { low:'FAIBLE', moderate:'MODÉRÉE', high:'ÉLEVÉE', critical:'CRITIQUE' };
 
-// Init
-S.initTabs('.nav-tab', 'view-');
-S.initModalClose();
-S.initEvalSliders();
-['evalDate','reqDate','dirDate','rapDate','persDateInteg'].forEach(id => {
-  document.getElementById(id).value = S.today();
-});
-renderAll();
-S.addHistory('Intranet ADM — Système opérationnel.');
+const BJI_STATUT_LABELS = { ouvert:'OUVERT', 'en-cours':'EN COURS', clos:'CLOS', archive:'ARCHIVÉ' };
+const BJI_STATUT_COLORS = { ouvert:'var(--warn)', 'en-cours':'var(--accent)', clos:'var(--safe)', archive:'var(--text-dim)' };
+const GRAVITE_LABELS = { mineure:'MINEURE', moderee:'MODÉRÉE', grave:'GRAVE', majeure:'MAJEURE' };
+const GRAVITE_COLORS = { mineure:'var(--safe)', moderee:'var(--warn)', grave:'#e67e22', majeure:'var(--danger)' };
+const SANCTION_LABELS = { avertissement:'⚠ Avertissement', amende:'💰 Amende', retrogradation:'⬇ Rétrogradation', suspension:'⏸ Suspension', expulsion:'🚫 Expulsion', autre:'Autre' };
 
-function renderAll() { renderRequetes(); renderDirectives(); renderPersonnel(); renderEvaluations(); renderRapports(); updateStats(); }
+fbListen(COL_REQ,  d => { requetes    = d; renderRequetes();   updateStats(); });
+fbListen(COL_DIR,  d => { directives  = d; renderDirectives(); });
+fbListen(COL_PERS, d => { personnel   = d; renderPersonnel();  updateStats(); });
+fbListen(COL_EVAL, d => { evaluations = d; renderEvaluations();updateStats(); });
+fbListen(COL_BJI,  d => { dossiers    = d; renderBji(); updateStats(); if (viewingBjiId) { renderBjiCrimes(); renderBjiSanctions(); } });
+fbListen(COL_RAP,  d => { rapports    = d; renderRapports(); });
+
+// Init date fields + sliders
+S_initDates();
+SCPIntranet.initTabs('.nav-tab', 'view-');
+SCPIntranet.initModalClose();
+SCPIntranet.initEvalSliders();
+SCPIntranet.addHistory('Intranet ADM — Système opérationnel.');
+initApp();
+
+function S_initDates() {
+  ['evalDate','reqDate','dirDate','rapDate','persDateInteg','bjiDate'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = SCPIntranet.today();
+  });
+}
 
 function updateStats() {
   const pending = requetes.filter(r => r.statut === 'en-attente').length;
-  S.updateStat('statReq', requetes.length);
-  S.updateStat('statPending', pending);
-  S.updateStat('statPersonnel', personnel.length);
-  S.updateStat('statEval', evaluations.length);
-  document.getElementById('termReqLine').textContent  = '▶ En attente : ' + pending;
-  document.getElementById('termPersLine').textContent = '▶ Agents : ' + personnel.length;
+  const bjiOuverts = dossiers.filter(d => d.statut === 'ouvert' || d.statut === 'en-cours').length;
+  SCPIntranet.updateStat('statReq', requetes.length);
+  SCPIntranet.updateStat('statPending', pending);
+  SCPIntranet.updateStat('statPersonnel', personnel.length);
+  SCPIntranet.updateStat('statEval', evaluations.length);
+  SCPIntranet.updateStat('statBji', dossiers.length);
+  const trl = document.getElementById('termReqLine'); if (trl) trl.textContent = '▶ En attente : ' + pending;
+  const tpl = document.getElementById('termPersLine'); if (tpl) tpl.textContent = '▶ Agents : ' + personnel.length;
+  const tbl = document.getElementById('termBjiLine');  if (tbl) tbl.textContent = '▶ Dossiers BJI ouverts : ' + bjiOuverts;
 }
 
 // ── REQUÊTES ──
 function renderRequetes() {
-  const el = document.getElementById('reqList');
+  const el = document.getElementById('reqList'); if (!el) return;
   const counts = { all: requetes.length, 'en-attente':0,'en-cours':0,'approuve':0,'refuse':0 };
   requetes.forEach(r => { if (counts[r.statut] !== undefined) counts[r.statut]++; });
   document.getElementById('reqCount').textContent = requetes.length + ' requête' + (requetes.length > 1 ? 's' : '');
@@ -571,31 +1189,31 @@ function renderRequetes() {
     const n = document.getElementById('rc-' + k); if (n) n.textContent = counts[k] || 0;
   });
   let list = activeReqCat === 'all' ? requetes : requetes.filter(r => r.statut === activeReqCat);
-  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📨</div><div class="empty-text">Aucune requête dans cette catégorie</div></div>'; updateStats(); return; }
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📨</div><div class="empty-text">Aucune requête dans cette catégorie</div></div>'; return; }
   el.innerHTML = [...list].reverse().map(r => `
     <div class="req-card prio-${r.prio}">
       <div class="req-head">
-        <div><div class="req-id">${r.id}</div><div class="req-title">${r.titre}</div></div>
-        <div class="req-badges"><span class="req-badge ${r.prio}">${r.prio}</span><span class="req-badge ${r.statut}">${r.statut.replace('-',' ')}</span></div>
+        <div><div class="req-id">${shortId('REQ', r._id)}</div><div class="req-title">${esc(r.titre)}</div></div>
+        <div class="req-badges"><span class="req-badge ${r.prio}">${r.prio}</span><span class="req-badge ${r.statut}">${(r.statut||'').replace('-',' ')}</span></div>
       </div>
-      <div class="req-meta">${r.auteur}${r.username?' (@'+r.username+')':''} — ${r.deptDemandeur} — ${S.fmtDate(r.date)} — ${r.type}</div>
-      <div class="req-body">${r.desc.substring(0,180)}${r.desc.length>180?'…':''}</div>
+      <div class="req-meta">${esc(r.auteur)}${r.username?' (@'+esc(r.username)+')':''} — ${esc(r.deptDemandeur)} — ${SCPIntranet.fmtDate(r.date)} — ${r.type}</div>
+      <div class="req-body">${esc(r.desc).substring(0,180)}${(r.desc||'').length>180?'…':''}</div>
       <div class="req-actions">
-        <button class="btn btn-ghost btn-xs" data-req-view="${r.id}">📄 Voir</button>
-        <button class="btn btn-safe btn-xs" data-req-approve="${r.id}">✔ Approuver</button>
-        <button class="btn btn-danger btn-xs" data-req-refuse="${r.id}">✕ Refuser</button>
-        <button class="btn btn-ghost btn-xs" data-req-edit="${r.id}">✎</button>
-        <button class="btn btn-ghost btn-xs" data-req-del="${r.id}">🗑</button>
+        <button class="btn btn-ghost btn-xs" data-req-view="${r._id}">📄 Voir</button>
+        <button class="btn btn-safe btn-xs action-write" data-req-approve="${r._id}">✔ Approuver</button>
+        <button class="btn btn-danger btn-xs action-write" data-req-refuse="${r._id}">✕ Refuser</button>
+        <button class="btn btn-ghost btn-xs action-write" data-req-edit="${r._id}">✎</button>
+        <button class="btn btn-ghost btn-xs action-write" data-req-del="${r._id}">🗑</button>
       </div>
     </div>`).join('');
-  updateStats();
+  applyPermissions(currentUser?.displayName || currentUser?.username || null);
 }
 
 function openReqForm(id=null) {
   editingReqId = id;
   if (id) {
-    const r = requetes.find(x=>x.id===id); if(!r) return;
-    document.getElementById('reqFormTitle').textContent = 'Modifier — '+r.id;
+    const r = requetes.find(x=>x._id===id); if(!r) return;
+    document.getElementById('reqFormTitle').textContent = 'Modifier — '+shortId('REQ', r._id);
     document.getElementById('reqTitre').value = r.titre; document.getElementById('reqType').value = r.type;
     document.getElementById('reqPrio').value = r.prio; document.getElementById('reqAuteur').value = r.auteur;
     document.getElementById('reqUsername').value = r.username||''; document.getElementById('reqDeptDemandeur').value = r.deptDemandeur;
@@ -604,45 +1222,45 @@ function openReqForm(id=null) {
   } else {
     document.getElementById('reqFormTitle').textContent = 'Nouvelle requête';
     ['reqTitre','reqAuteur','reqUsername','reqDesc','reqNotes'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('reqDate').value = S.today();
+    document.getElementById('reqDate').value = SCPIntranet.today();
   }
   const p = document.getElementById('reqFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function saveRequete() {
+async function saveRequete() {
+  if (!requireAuth('soumettre une requête')) return;
   const titre=document.getElementById('reqTitre').value.trim(), auteur=document.getElementById('reqAuteur').value.trim();
   const desc=document.getElementById('reqDesc').value.trim(), date=document.getElementById('reqDate').value;
   if(!titre||!auteur||!desc||!date){alert('Remplir les champs obligatoires.');return;}
   const data = { titre, auteur, desc, date, type:document.getElementById('reqType').value, prio:document.getElementById('reqPrio').value,
     username:document.getElementById('reqUsername').value.trim(), deptDemandeur:document.getElementById('reqDeptDemandeur').value,
     notes:document.getElementById('reqNotes').value.trim(), statut:'en-attente' };
-  if(editingReqId){ const i=requetes.findIndex(x=>x.id===editingReqId); if(i!==-1) requetes[i]={...requetes[i],...data}; }
-  else requetes.push({id:S.genId('REQ'),...data,createdAt:new Date().toISOString()});
-  S.store.set(STORE_REQ, requetes); renderRequetes();
+  if(editingReqId){ await fbUpdate(COL_REQ, editingReqId, data); } else { await fbAdd(COL_REQ, data); }
   document.getElementById('reqFormPanel').style.display='none'; editingReqId=null;
-  S.addHistory('Requête enregistrée : '+titre);
+  SCPIntranet.addHistory('Requête enregistrée : '+titre);
 }
 
-function setReqStatut(id, statut) {
-  const r=requetes.find(x=>x.id===id); if(!r) return;
-  r.statut=statut; S.store.set(STORE_REQ, requetes); renderRequetes();
-  S.addHistory('Requête '+statut+' : '+r.titre);
+async function setReqStatut(id, statut) {
+  if (!requireAuth('traiter une requête')) return;
+  const r=requetes.find(x=>x._id===id); if(!r) return;
+  await fbUpdate(COL_REQ, id, { statut });
+  SCPIntranet.addHistory('Requête '+statut+' : '+r.titre);
   document.getElementById('reqViewModal').classList.remove('open');
 }
 
 function viewRequete(id) {
-  const r=requetes.find(x=>x.id===id); if(!r) return; viewingReqId=id;
-  document.getElementById('reqViewId').textContent=r.id; document.getElementById('reqViewType').textContent=r.type;
+  const r=requetes.find(x=>x._id===id); if(!r) return; viewingReqId=id;
+  document.getElementById('reqViewId').textContent=shortId('REQ', r._id); document.getElementById('reqViewType').textContent=r.type;
   document.getElementById('reqViewTitre').textContent=r.titre; document.getElementById('reqViewAuteur').textContent=r.auteur+(r.username?' (@'+r.username+')':'');
   document.getElementById('reqViewDept').textContent=r.deptDemandeur; document.getElementById('reqViewPrio').textContent=r.prio;
-  document.getElementById('reqViewDate').textContent=S.fmtDate(r.date); document.getElementById('reqViewStatut').textContent=r.statut;
+  document.getElementById('reqViewDate').textContent=SCPIntranet.fmtDate(r.date); document.getElementById('reqViewStatut').textContent=r.statut;
   document.getElementById('reqViewDesc').textContent=r.desc; document.getElementById('reqViewNotes').textContent=r.notes||'—';
   document.getElementById('reqViewModal').classList.add('open');
 }
 
 // ── DIRECTIVES ──
 function renderDirectives() {
-  const el=document.getElementById('dirList');
+  const el=document.getElementById('dirList'); if (!el) return;
   const cats=['all','rh','securite','budget','o5','confinement'];
   const counts={all:directives.length}; cats.slice(1).forEach(c=>counts[c]=0);
   directives.forEach(d=>{ if(counts[d.cat]!==undefined) counts[d.cat]++; });
@@ -650,56 +1268,56 @@ function renderDirectives() {
   cats.forEach(c=>{ const n=document.getElementById('dc-'+c); if(n) n.textContent=counts[c]||0; });
   const q=(document.getElementById('dirSearch')?.value||'').toLowerCase();
   let list = activeDirCat==='all' ? directives : directives.filter(d=>d.cat===activeDirCat);
-  if(q) list=list.filter(d=>d.titre.toLowerCase().includes(q)||d.contenu.toLowerCase().includes(q));
+  if(q) list=list.filter(d=>(d.titre+d.contenu).toLowerCase().includes(q));
   if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📜</div><div class="empty-text">Aucune directive trouvée</div></div>';return;}
   const catL={rh:'RH',securite:'Sécurité',budget:'Budget',o5:'O5',confinement:'Confinement',general:'Général'};
   el.innerHTML=[...list].reverse().map(d=>`
     <div class="dir-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px">
-        <div><div class="dir-code">${d.id}</div><div class="dir-title">${d.titre}</div></div>
+        <div><div class="dir-code">${shortId('DIR', d._id)}</div><div class="dir-title">${esc(d.titre)}</div></div>
         <span class="tag tag-accent">${catL[d.cat]||d.cat}</span>
       </div>
-      <div class="dir-meta">${d.auteur} — ${S.fmtDate(d.date)}${d.dest?' — Dest: '+d.dest:''}</div>
-      <div class="dir-body">${d.contenu.substring(0,200)}${d.contenu.length>200?'…':''}</div>
+      <div class="dir-meta">${esc(d.auteur)} — ${SCPIntranet.fmtDate(d.date)}${d.dest?' — Dest: '+esc(d.dest):''}</div>
+      <div class="dir-body">${esc(d.contenu).substring(0,200)}${(d.contenu||'').length>200?'…':''}</div>
       <div class="item-actions">
-        <button class="btn btn-ghost btn-xs" data-dir-edit="${d.id}">✎ Modifier</button>
-        <button class="btn btn-ghost btn-xs" data-dir-copy="${d.id}">⧉ Copier</button>
-        <button class="btn btn-danger btn-xs" data-dir-del="${d.id}">🗑</button>
+        <button class="btn btn-ghost btn-xs action-write" data-dir-edit="${d._id}">✎ Modifier</button>
+        <button class="btn btn-ghost btn-xs" data-dir-copy="${d._id}">⧉ Copier</button>
+        <button class="btn btn-danger btn-xs action-write" data-dir-del="${d._id}">🗑</button>
       </div>
     </div>`).join('');
+  applyPermissions(currentUser?.displayName || currentUser?.username || null);
 }
 
 function openDirForm(id=null) {
   editingDirId=id;
   if(id){
-    const d=directives.find(x=>x.id===id); if(!d) return;
-    document.getElementById('dirFormTitle').textContent='Modifier — '+d.id;
+    const d=directives.find(x=>x._id===id); if(!d) return;
+    document.getElementById('dirFormTitle').textContent='Modifier — '+shortId('DIR', d._id);
     document.getElementById('dirTitre').value=d.titre; document.getElementById('dirCat').value=d.cat;
     document.getElementById('dirAuteur').value=d.auteur; document.getElementById('dirDate').value=d.date;
     document.getElementById('dirContenu').value=d.contenu; document.getElementById('dirDest').value=d.dest||'';
   } else {
     document.getElementById('dirFormTitle').textContent='Nouvelle directive';
     ['dirTitre','dirAuteur','dirContenu','dirDest'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('dirDate').value=S.today();
+    document.getElementById('dirDate').value=SCPIntranet.today();
   }
   const p=document.getElementById('dirFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function saveDirective() {
+async function saveDirective() {
+  if (!requireAuth('publier une directive')) return;
   const titre=document.getElementById('dirTitre').value.trim(), contenu=document.getElementById('dirContenu').value.trim();
   if(!titre||!contenu){alert('Titre et contenu obligatoires.');return;}
   const data={titre,contenu,cat:document.getElementById('dirCat').value,auteur:document.getElementById('dirAuteur').value.trim(),
     date:document.getElementById('dirDate').value,dest:document.getElementById('dirDest').value.trim()};
-  if(editingDirId){const i=directives.findIndex(x=>x.id===editingDirId);if(i!==-1)directives[i]={...directives[i],...data};}
-  else directives.push({id:S.genId('DIR'),...data,createdAt:new Date().toISOString()});
-  S.store.set(STORE_DIR,directives); renderDirectives();
+  if(editingDirId){ await fbUpdate(COL_DIR, editingDirId, data); } else { await fbAdd(COL_DIR, data); }
   document.getElementById('dirFormPanel').style.display='none'; editingDirId=null;
-  S.addHistory('Directive publiée : '+titre);
+  SCPIntranet.addHistory('Directive publiée : '+titre);
 }
 
 // ── PERSONNEL ──
 function renderPersonnel() {
-  const wrap=document.getElementById('persTableWrap');
+  const wrap=document.getElementById('persTableWrap'); if (!wrap) return;
   const q=(document.getElementById('persSearch')?.value||'').toLowerCase();
   const depts=['Sécurité','Administration','Scientifique','Médical','Staff'];
   const counts={all:personnel.length}; depts.forEach(d=>counts[d]=0);
@@ -712,31 +1330,31 @@ function renderPersonnel() {
   document.getElementById('pc-med').textContent=counts['Médical']||0;
   document.getElementById('pc-staff').textContent=counts['Staff']||0;
   let list=activePersFil==='all'?personnel:personnel.filter(p=>p.dept===activePersFil);
-  if(q) list=list.filter(p=>p.nom.toLowerCase().includes(q)||p.username.toLowerCase().includes(q));
-  if(!list.length){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">Aucun agent trouvé</div></div>';updateStats();return;}
+  if(q) list=list.filter(p=>(p.nom+p.username).toLowerCase().includes(q));
+  if(!list.length){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👤</div><div class="empty-text">Aucun agent trouvé</div></div>';return;}
   wrap.innerHTML=`<table class="pers-table"><thead><tr>
     <th>Nom</th><th>Username</th><th>Département</th><th>Grade</th><th>Accréd.</th><th>Intégration</th><th>Statut</th><th>Actions</th>
   </tr></thead><tbody>
   ${list.map(p=>`<tr>
-    <td style="color:var(--white);font-weight:600">${p.nom}</td>
-    <td>@${p.username}</td><td>${p.dept}</td>
-    <td style="font-size:11px">${p.grade}</td>
+    <td style="color:var(--white);font-weight:600">${esc(p.nom)}</td>
+    <td>@${esc(p.username)}</td><td>${p.dept}</td>
+    <td style="font-size:11px">${esc(p.grade)}</td>
     <td style="text-align:center">NIV.${p.accred}</td>
-    <td>${S.fmtDate(p.dateInteg)}</td>
+    <td>${SCPIntranet.fmtDate(p.dateInteg)}</td>
     <td><span class="pers-status ${p.statut}">${p.statut}</span></td>
     <td><div style="display:flex;gap:4px">
-      <button class="btn btn-ghost btn-xs" data-pers-edit="${p.id}">✎</button>
-      <button class="btn btn-danger btn-xs" data-pers-del="${p.id}">🗑</button>
+      <button class="btn btn-ghost btn-xs action-write" data-pers-edit="${p._id}">✎</button>
+      <button class="btn btn-danger btn-xs action-write" data-pers-del="${p._id}">🗑</button>
     </div></td>
   </tr>`).join('')}
   </tbody></table>`;
-  updateStats();
+  applyPermissions(currentUser?.displayName || currentUser?.username || null);
 }
 
 function openPersForm(id=null) {
   editingPersId=id;
   if(id){
-    const p=personnel.find(x=>x.id===id); if(!p) return;
+    const p=personnel.find(x=>x._id===id); if(!p) return;
     document.getElementById('persFormTitle').textContent='Modifier — '+p.nom;
     document.getElementById('persNom').value=p.nom; document.getElementById('persUsername').value=p.username;
     document.getElementById('persDept').value=p.dept; document.getElementById('persGrade').value=p.grade;
@@ -745,64 +1363,320 @@ function openPersForm(id=null) {
   } else {
     document.getElementById('persFormTitle').textContent='Ajouter un agent';
     ['persNom','persUsername','persGrade','persNotes'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('persDateInteg').value=S.today();
+    document.getElementById('persDateInteg').value=SCPIntranet.today();
   }
   const p=document.getElementById('persFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function savePersonnel() {
+async function savePersonnel() {
+  if (!requireAuth('ajouter un agent')) return;
   const nom=document.getElementById('persNom').value.trim(), username=document.getElementById('persUsername').value.trim();
   if(!nom||!username){alert('Nom et username obligatoires.');return;}
   const data={nom,username,dept:document.getElementById('persDept').value,grade:document.getElementById('persGrade').value.trim(),
     accred:document.getElementById('persAccred').value,statut:document.getElementById('persStatut').value,
     dateInteg:document.getElementById('persDateInteg').value,notes:document.getElementById('persNotes').value.trim()};
-  if(editingPersId){const i=personnel.findIndex(x=>x.id===editingPersId);if(i!==-1)personnel[i]={...personnel[i],...data};}
-  else personnel.push({id:S.genId('AGT'),...data,createdAt:new Date().toISOString()});
-  S.store.set(STORE_PERS,personnel); renderPersonnel();
+  if(editingPersId){ await fbUpdate(COL_PERS, editingPersId, data); } else { await fbAdd(COL_PERS, data); }
   document.getElementById('persFormPanel').style.display='none'; editingPersId=null;
-  S.addHistory('Agent enregistré : '+nom);
+  SCPIntranet.addHistory('Agent enregistré : '+nom);
 }
 
 // ── ÉVALUATIONS ──
 function renderEvaluations() {
-  const el=document.getElementById('evalList');
-  S.updateStat('statEval',evaluations.length);
+  const el=document.getElementById('evalList'); if (!el) return;
   document.getElementById('evalCount').textContent=evaluations.length+' évaluation'+(evaluations.length>1?'s':'');
   document.getElementById('ec-all').textContent=evaluations.length;
   let list=activeEvalFil==='all'?evaluations:evaluations.filter(e=>e.dept===activeEvalFil);
   if(!list.length){el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">✦</div><div class="empty-text">Aucune évaluation</div></div>';return;}
   const DEC={promu:'✅ Promu',valide:'✔ Validé',avertissement:'⚠ Avertissement',recale:'❌ Recalé',expulse:'🚫 Expulsé'};
   el.innerHTML=[...list].reverse().map(ev=>{
-    const m=S.getEvalMention(ev.total);
+    const m=SCPIntranet.getEvalMention(ev.total);
     return`<div class="card">
-      <div class="card-hdr"><div class="card-id">${ev.id}</div><div class="card-sev" style="color:${m.color};border-color:${m.color}">${ev.total}/60</div></div>
+      <div class="card-hdr"><div class="card-id">${shortId('EVAL', ev._id)}</div><div class="card-sev" style="color:${m.color};border-color:${m.color}">${ev.total}/60</div></div>
       <div class="card-type">${ev.dept}</div>
-      <div class="card-title">${ev.nom}</div>
-      <div class="card-meta"><span>@${ev.username}</span><span>${ev.grade}</span><span>Éval: ${ev.auteur}</span><span>${S.fmtDate(ev.date)}</span></div>
-      <div class="card-excerpt">${DEC[ev.decision]||ev.decision} — ${m.text}${ev.comments?'\n"'+ev.comments+'"':''}</div>
-      <div class="card-acts"><button class="btn btn-danger btn-xs" data-eval-del="${ev.id}">🗑 Supprimer</button></div>
+      <div class="card-title">${esc(ev.nom)}</div>
+      <div class="card-meta"><span>@${esc(ev.username)}</span><span>${esc(ev.grade)}</span><span>Éval: ${esc(ev.auteur)}</span><span>${SCPIntranet.fmtDate(ev.date)}</span></div>
+      <div class="card-excerpt">${DEC[ev.decision]||ev.decision} — ${m.text}${ev.comments?'\n"'+esc(ev.comments)+'"':''}</div>
+      <div class="card-acts"><button class="btn btn-danger btn-xs action-write" data-eval-del="${ev._id}">🗑 Supprimer</button></div>
     </div>`;
   }).join('');
+  applyPermissions(currentUser?.displayName || currentUser?.username || null);
 }
 
-function saveEval() {
+async function saveEval() {
+  if (!requireAuth('créer une évaluation')) return;
   const nom=document.getElementById('evalNom').value.trim(), auteur=document.getElementById('evalAuteur').value.trim();
   const date=document.getElementById('evalDate').value;
   if(!nom||!auteur||!date){alert('Champs obligatoires manquants.');return;}
-  const scores={}; S.EVAL_CRITERIA.forEach(k=>scores[k]=parseInt(document.getElementById('score'+k).value));
+  const scores={}; SCPIntranet.EVAL_CRITERIA.forEach(k=>scores[k]=parseInt(document.getElementById('score'+k).value));
   const total=Object.values(scores).reduce((a,b)=>a+b,0);
   const data={nom,auteur,date,scores,total,username:document.getElementById('evalUsername').value.trim(),
     dept:document.getElementById('evalDept').value,grade:document.getElementById('evalGrade').value.trim(),
     decision:document.getElementById('evalDecision').value,comments:document.getElementById('evalComments').value.trim()};
-  evaluations.push({id:S.genId('EVAL'),...data,createdAt:new Date().toISOString()});
-  S.store.set(STORE_EVAL,evaluations); renderEvaluations();
+  await fbAdd(COL_EVAL, data);
   document.getElementById('evalFormPanel').style.display='none';
-  S.addHistory('Évaluation enregistrée : '+nom);
+  SCPIntranet.addHistory('Évaluation enregistrée : '+nom);
+}
+
+// ── BJI — BUREAU DE LA JUSTICE INTERNE ──
+function renderBji() {
+  const el = document.getElementById('bjiList'); if (!el) return;
+  const counts = { all: dossiers.length, ouvert:0, 'en-cours':0, clos:0, archive:0 };
+  dossiers.forEach(d => { if (counts[d.statut] !== undefined) counts[d.statut]++; });
+  document.getElementById('bjiCount').textContent = dossiers.length + ' dossier' + (dossiers.length > 1 ? 's' : '');
+  ['all','ouvert','en-cours','clos','archive'].forEach(k => {
+    const n = document.getElementById('bc-' + k); if (n) n.textContent = counts[k] || 0;
+  });
+  const q = (document.getElementById('bjiSearch')?.value || '').toLowerCase();
+  let list = activeBjiFil === 'all' ? dossiers : dossiers.filter(d => d.statut === activeBjiFil);
+  if (q) list = list.filter(d => (d.sujet + (d.username||'')).toLowerCase().includes(q));
+  if (!list.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">⚖️</div><div class="empty-text">Aucun dossier dans cette catégorie</div></div>'; return; }
+  el.innerHTML = [...list].reverse().map(d => {
+    const sc = BJI_STATUT_COLORS[d.statut] || 'var(--text-dim)';
+    const nbCrimes = (d.crimes||[]).length, nbSanctions = (d.sanctions||[]).length;
+    return `
+    <div class="bji-card statut-${d.statut}">
+      <div class="bji-head">
+        <div><div class="bji-id">${shortId('BJI', d._id)}</div><div class="bji-title">${esc(d.sujet)}</div></div>
+        <div class="bji-badges">
+          <span class="bji-badge" style="color:${sc};border-color:${sc}">${BJI_STATUT_LABELS[d.statut]||d.statut}</span>
+          <span class="bji-badge" style="color:var(--accent);border-color:rgba(232,200,74,0.4)">${d.dept}</span>
+        </div>
+      </div>
+      <div class="bji-meta">${d.username?'@'+esc(d.username)+' — ':''}Responsable : ${esc(d.responsable)} — Ouvert le ${SCPIntranet.fmtDate(d.dateOuverture)}</div>
+      <div class="bji-body">${esc(d.description).substring(0,180)}${(d.description||'').length>180?'…':''}</div>
+      <div class="bji-counts"><span>⚠ Chefs d'accusation : <b>${nbCrimes}</b></span><span>🔨 Sanctions : <b>${nbSanctions}</b></span></div>
+      <div class="bji-actions">
+        <button class="btn btn-ghost btn-xs" data-bji-view="${d._id}">📂 Ouvrir le dossier</button>
+        <button class="btn btn-ghost btn-xs action-write" data-bji-edit="${d._id}">✎</button>
+        <button class="btn btn-danger btn-xs action-write" data-bji-del="${d._id}">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+  applyPermissions(currentUser?.displayName || currentUser?.username || null);
+}
+
+function openBjiForm(id=null) {
+  editingBjiId = id;
+  if (id) {
+    const d = dossiers.find(x=>x._id===id); if(!d) return;
+    document.getElementById('bjiFormTitle').textContent = 'Modifier — '+shortId('BJI', d._id);
+    document.getElementById('bjiSujet').value = d.sujet; document.getElementById('bjiUsername').value = d.username||'';
+    document.getElementById('bjiDept').value = d.dept; document.getElementById('bjiResponsable').value = d.responsable;
+    document.getElementById('bjiDate').value = d.dateOuverture; document.getElementById('bjiStatut').value = d.statut;
+    document.getElementById('bjiDesc').value = d.description;
+  } else {
+    document.getElementById('bjiFormTitle').textContent = 'Nouveau dossier';
+    ['bjiSujet','bjiUsername','bjiDesc'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('bjiResponsable').value='';
+    document.getElementById('bjiDate').value = SCPIntranet.today();
+    document.getElementById('bjiStatut').value = 'ouvert';
+  }
+  const p = document.getElementById('bjiFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function saveBji() {
+  if (!requireAuth('ouvrir un dossier BJI')) return;
+  const sujet=document.getElementById('bjiSujet').value.trim(), responsable=document.getElementById('bjiResponsable').value.trim();
+  const desc=document.getElementById('bjiDesc').value.trim(), date=document.getElementById('bjiDate').value;
+  if(!sujet||!responsable||!desc||!date){alert('Remplir les champs obligatoires.');return;}
+  const data = { sujet, responsable, description:desc, dateOuverture:date,
+    username:document.getElementById('bjiUsername').value.trim(), dept:document.getElementById('bjiDept').value,
+    statut:document.getElementById('bjiStatut').value };
+  if(editingBjiId){ await fbUpdate(COL_BJI, editingBjiId, data); }
+  else { await fbAdd(COL_BJI, { ...data, crimes:[], sanctions:[] }); }
+  document.getElementById('bjiFormPanel').style.display='none'; editingBjiId=null;
+  SCPIntranet.addHistory('Dossier BJI ouvert : '+sujet);
+}
+
+function viewBji(id) {
+  const d = dossiers.find(x=>x._id===id); if(!d) return; viewingBjiId=id;
+  document.getElementById('bjiViewId').textContent = shortId('BJI', d._id);
+  document.getElementById('bjiViewStatutLabel').textContent = BJI_STATUT_LABELS[d.statut]||d.statut;
+  document.getElementById('bjiViewSujet').textContent = d.sujet;
+  document.getElementById('bjiViewUsername').textContent = d.username ? '@'+d.username : '—';
+  document.getElementById('bjiViewDept').textContent = d.dept;
+  document.getElementById('bjiViewResponsable').textContent = d.responsable;
+  document.getElementById('bjiViewDate').textContent = SCPIntranet.fmtDate(d.dateOuverture);
+  document.getElementById('bjiViewStatut').textContent = BJI_STATUT_LABELS[d.statut]||d.statut;
+  document.getElementById('bjiViewDesc').textContent = d.description;
+  document.getElementById('bjiCrimeTitre').value=''; document.getElementById('bjiCrimeDesc').value='';
+  document.getElementById('bjiCrimeDate').value = SCPIntranet.today();
+  document.getElementById('bjiSanctionDuree').value=''; document.getElementById('bjiSanctionAgent').value='';
+  document.getElementById('bjiSanctionDesc').value=''; document.getElementById('bjiSanctionDate').value = SCPIntranet.today();
+  document.getElementById('bjiExportSignature').value = d.signature || d.responsable || (currentUser?.displayName || currentUser?.username || '');
+  document.getElementById('bjiExportPour').value = d.pour || '';
+  renderBjiCrimes(); renderBjiSanctions();
+  SCPIntranet.openModal('bjiViewModal');
+}
+
+function renderBjiCrimes() {
+  const d = dossiers.find(x=>x._id===viewingBjiId); if(!d) return;
+  const el = document.getElementById('bjiCrimeList'); if (!el) return;
+  const crimes = d.crimes || [];
+  document.getElementById('bjiCrimeCount').textContent = crimes.length;
+  if(!crimes.length){ el.innerHTML = "<div class=\"bji-empty-mini\">Aucun chef d'accusation enregistré.</div>"; return; }
+  el.innerHTML = [...crimes].reverse().map(c => {
+    const gc = GRAVITE_COLORS[c.gravite]||'var(--text-dim)';
+    return `<div class="bji-item">
+      <div class="bji-item-hdr">
+        <div class="bji-item-title">${esc(c.titre)}</div>
+        <span class="bji-item-badge" style="color:${gc};border-color:${gc}">${GRAVITE_LABELS[c.gravite]||c.gravite}</span>
+      </div>
+      <div class="bji-item-meta">${SCPIntranet.fmtDate(c.date)}</div>
+      ${c.description?`<div class="bji-item-desc">${esc(c.description)}</div>`:''}
+      <div class="item-actions" style="margin-top:6px"><button class="btn btn-danger btn-xs action-write" data-bji-crime-del="${c.id}">🗑 Retirer</button></div>
+    </div>`;
+  }).join('');
+  applyPermissions(currentUser?.displayName || currentUser?.username || null);
+}
+
+function renderBjiSanctions() {
+  const d = dossiers.find(x=>x._id===viewingBjiId); if(!d) return;
+  const el = document.getElementById('bjiSanctionList'); if (!el) return;
+  const sanctions = d.sanctions || [];
+  document.getElementById('bjiSanctionCount').textContent = sanctions.length;
+  if(!sanctions.length){ el.innerHTML = '<div class="bji-empty-mini">Aucune sanction appliquée.</div>'; return; }
+  el.innerHTML = [...sanctions].reverse().map(s => `
+    <div class="bji-item">
+      <div class="bji-item-hdr">
+        <div class="bji-item-title">${SANCTION_LABELS[s.type]||s.type}${s.duree?' — '+esc(s.duree):''}</div>
+        <span class="bji-item-badge" style="color:var(--danger);border-color:rgba(192,57,43,0.5)">SANCTION</span>
+      </div>
+      <div class="bji-item-meta">${SCPIntranet.fmtDate(s.date)}${s.agent?' — Agent BJI : '+esc(s.agent):''}</div>
+      ${s.description?`<div class="bji-item-desc">${esc(s.description)}</div>`:''}
+      <div class="item-actions" style="margin-top:6px"><button class="btn btn-danger btn-xs action-write" data-bji-sanction-del="${s.id}">🗑 Retirer</button></div>
+    </div>`).join('');
+  applyPermissions(currentUser?.displayName || currentUser?.username || null);
+}
+
+async function addBjiCrime() {
+  if (!requireAuth("ajouter un chef d'accusation")) return;
+  const d = dossiers.find(x=>x._id===viewingBjiId); if(!d) return;
+  const titre = document.getElementById('bjiCrimeTitre').value.trim();
+  const date = document.getElementById('bjiCrimeDate').value || SCPIntranet.today();
+  if(!titre){ alert("Le titre du chef d'accusation est obligatoire."); return; }
+  const crime = { id:'CH-'+Date.now().toString(36).toUpperCase(), titre, date, gravite:document.getElementById('bjiCrimeGravite').value,
+    description:document.getElementById('bjiCrimeDesc').value.trim() };
+  const newCrimes = [...(d.crimes||[]), crime];
+  await fbUpdate(COL_BJI, d._id, { crimes: newCrimes });
+  document.getElementById('bjiCrimeTitre').value=''; document.getElementById('bjiCrimeDesc').value='';
+  SCPIntranet.addHistory("Chef d'accusation ajouté au dossier "+shortId('BJI', d._id)+' : '+titre);
+}
+
+async function addBjiSanction() {
+  if (!requireAuth('appliquer une sanction')) return;
+  const d = dossiers.find(x=>x._id===viewingBjiId); if(!d) return;
+  const date = document.getElementById('bjiSanctionDate').value || SCPIntranet.today();
+  const type = document.getElementById('bjiSanctionType').value;
+  const sanction = { id:'SAN-'+Date.now().toString(36).toUpperCase(), type, date, duree:document.getElementById('bjiSanctionDuree').value.trim(),
+    agent:document.getElementById('bjiSanctionAgent').value.trim(), description:document.getElementById('bjiSanctionDesc').value.trim() };
+  const newSanctions = [...(d.sanctions||[]), sanction];
+  await fbUpdate(COL_BJI, d._id, { sanctions: newSanctions });
+  document.getElementById('bjiSanctionDuree').value=''; document.getElementById('bjiSanctionAgent').value=''; document.getElementById('bjiSanctionDesc').value='';
+  SCPIntranet.addHistory('Sanction appliquée — dossier '+shortId('BJI', d._id)+' : '+(SANCTION_LABELS[type]||type));
+}
+
+async function deleteBjiCrime(crimeId) {
+  if (!requireAuth("retirer un chef d'accusation")) return;
+  const d = dossiers.find(x=>x._id===viewingBjiId); if(!d) return;
+  const newCrimes = (d.crimes||[]).filter(c=>c.id!==crimeId);
+  await fbUpdate(COL_BJI, d._id, { crimes: newCrimes });
+}
+
+async function deleteBjiSanction(sanctionId) {
+  if (!requireAuth('retirer une sanction')) return;
+  const d = dossiers.find(x=>x._id===viewingBjiId); if(!d) return;
+  const newSanctions = (d.sanctions||[]).filter(s=>s.id!==sanctionId);
+  await fbUpdate(COL_BJI, d._id, { sanctions: newSanctions });
+}
+
+async function setBjiStatut(statut) {
+  if (!requireAuth('changer le statut du dossier')) return;
+  const d = dossiers.find(x=>x._id===viewingBjiId); if(!d) return;
+  await fbUpdate(COL_BJI, d._id, { statut });
+  document.getElementById('bjiViewStatutLabel').textContent = BJI_STATUT_LABELS[statut]||statut;
+  document.getElementById('bjiViewStatut').textContent = BJI_STATUT_LABELS[statut]||statut;
+  SCPIntranet.addHistory('Dossier BJI '+shortId('BJI', d._id)+' → '+(BJI_STATUT_LABELS[statut]||statut));
+}
+
+function bjiSpacer() { return '``                                             ``'; }
+
+function buildBjiExportText(d, signature, pour) {
+  const situationMap = {
+    ouvert:    "Dossier ouvert — en attente d'instruction",
+    'en-cours':'Affaire en cours d\'instruction',
+    clos:      'Dossier clôturé',
+    archive:   'Dossier archivé',
+  };
+  const membres = d.sujet + (d.username ? ' (@'+d.username+')' : '');
+
+  const crimes = d.crimes || [];
+  const crimesLines = crimes.length
+    ? crimes.map(c => `[${GRAVITE_LABELS[c.gravite]||c.gravite}] ${c.titre}${c.description ? ' — '+c.description : ''}`).join('\n')
+    : '(Aucun chef d\'accusation)';
+
+  const sanctions = d.sanctions || [];
+  const sanctionsLines = sanctions.length
+    ? sanctions.map(s => `${SANCTION_LABELS[s.type]||s.type}${s.duree ? ' ('+s.duree+')' : ''}${s.description ? ' — '+s.description : ''}`).join('\n')
+    : '(Aucune sanction)';
+
+  const sp = bjiSpacer();
+  return [
+    '# D O S S I E R     B J I',
+    sp,
+    '●  **INFORMATIONS GÉNÉRALES**',
+    `**Date** : ${SCPIntranet.fmtDate(d.dateOuverture)}`,
+    `**Département** : ${d.dept}`,
+    `**Responsable de Dossier** : ${d.responsable}`,
+    `**Status** : ${BJI_STATUT_LABELS[d.statut]||d.statut}`,
+    `**Situation** : ${situationMap[d.statut] || '—'}`,
+    sp,
+    '●  **PERSONNEL CONCERNÉ**',
+    '**Membres impliqués** : ',
+    membres,
+    sp,
+    "●  **Résumé de l'Affaire**",
+    `-# ${d.description}`,
+    sp,
+    '●  **Chefs d\'accusation et Sanctions**',
+    '**Chef d\'accusations** : ',
+    crimesLines,
+    '**Sanctions reçus** : ',
+    sanctionsLines,
+    sp,
+    `**__*Signature*__**: ${signature || '—'}`,
+    `**Pour**: ${pour || '—'}`,
+  ].join('\n');
+}
+
+async function getBjiExportText() {
+  const d = dossiers.find(x=>x._id===viewingBjiId); if(!d) return null;
+  const signature = document.getElementById('bjiExportSignature').value.trim();
+  const pour = document.getElementById('bjiExportPour').value.trim();
+  // Mémorise le signataire pour les prochaines ouvertures du dossier
+  if (signature !== (d.signature||'') || pour !== (d.pour||'')) {
+    try { await fbUpdate(COL_BJI, d._id, { signature, pour }); } catch {}
+  }
+  return { d, text: buildBjiExportText(d, signature, pour) };
+}
+
+async function copyBjiDossier() {
+  const res = await getBjiExportText(); if (!res) return;
+  SCPIntranet.copyText(res.text, document.getElementById('bjiExportCopyBtn'), 'Copié');
+  SCPIntranet.addHistory('Dossier BJI copié (format export) : '+shortId('BJI', res.d._id));
+}
+
+async function downloadBjiDossier() {
+  const res = await getBjiExportText(); if (!res) return;
+  const blob = new Blob([res.text], { type:'text/plain;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = shortId('BJI', res.d._id) + '_' + res.d.sujet.replace(/[^a-z0-9]/gi,'_') + '.txt'; a.click();
+  SCPIntranet.addHistory('Dossier BJI exporté (.txt) : '+shortId('BJI', res.d._id));
 }
 
 // ── RAPPORTS ──
 function renderRapports() {
-  const el=document.getElementById('rapList');
+  const el=document.getElementById('rapList'); if (!el) return;
   document.getElementById('rapCount').textContent=rapports.length+' rapport'+(rapports.length>1?'s':'');
   document.getElementById('rpc-all').textContent=rapports.length;
   let list=activeRapFil==='all'?rapports:rapports.filter(r=>r.type===activeRapFil);
@@ -810,56 +1684,66 @@ function renderRapports() {
   el.innerHTML=[...list].reverse().map(r=>{
     const color=SEV_COLORS[r.sev]||'var(--text-dim)', label=SEV_LABELS[r.sev]||r.sev;
     return`<div class="card">
-      <div class="card-hdr"><div class="card-id">${r.id}</div><div class="card-sev" style="color:${color};border-color:${color}">${label}</div></div>
-      <div class="card-type">${r.type}</div><div class="card-title">${r.titre}</div>
-      <div class="card-meta"><span>${r.auteur}${r.username?' (@'+r.username+')':''}</span><span>${S.fmtDate(r.date)}</span></div>
-      <div class="card-excerpt">${r.desc.substring(0,120)}${r.desc.length>120?'…':''}</div>
+      <div class="card-hdr"><div class="card-id">${shortId('RPT', r._id)}</div><div class="card-sev" style="color:${color};border-color:${color}">${label}</div></div>
+      <div class="card-type">${r.type}</div><div class="card-title">${esc(r.titre)}</div>
+      <div class="card-meta"><span>${esc(r.auteur)}${r.username?' (@'+esc(r.username)+')':''}</span><span>${SCPIntranet.fmtDate(r.date)}</span></div>
+      <div class="card-excerpt">${esc(r.desc).substring(0,120)}${(r.desc||'').length>120?'…':''}</div>
       <div class="card-acts">
-        <button class="btn btn-ghost btn-xs" data-rap-view="${r.id}">📄 Voir</button>
-        <button class="btn btn-primary btn-xs" data-rap-export="${r.id}">⬇</button>
-        <button class="btn btn-danger btn-xs" data-rap-del="${r.id}">🗑</button>
+        <button class="btn btn-ghost btn-xs" data-rap-view="${r._id}">📄 Voir</button>
+        <button class="btn btn-primary btn-xs" data-rap-export="${r._id}">⬇</button>
+        <button class="btn btn-danger btn-xs action-write" data-rap-del="${r._id}">🗑</button>
       </div>
     </div>`;
   }).join('');
+  applyPermissions(currentUser?.displayName || currentUser?.username || null);
 }
 
-function saveRapport() {
+async function saveRapport() {
+  if (!requireAuth('rédiger un rapport')) return;
   const titre=document.getElementById('rapTitre').value.trim(), auteur=document.getElementById('rapAuteur').value.trim();
   const desc=document.getElementById('rapDesc').value.trim(), date=document.getElementById('rapDate').value;
   if(!titre||!auteur||!desc||!date){alert('Champs obligatoires manquants.');return;}
   const data={titre,auteur,desc,date,type:document.getElementById('rapType').value,sev:document.getElementById('rapSev').value,
     username:document.getElementById('rapUsername').value.trim(),conclusion:document.getElementById('rapConclusion').value.trim(),
     temoins:document.getElementById('rapTemoins').value.split(',').map(t=>t.trim()).filter(Boolean),dept:'Département Administratif'};
-  if(editingRapId){const i=rapports.findIndex(x=>x.id===editingRapId);if(i!==-1)rapports[i]={...rapports[i],...data};}
-  else rapports.push({id:S.genId('RPT'),...data,createdAt:new Date().toISOString()});
-  S.store.set(STORE_RAP,rapports); renderRapports();
+  if(editingRapId){ await fbUpdate(COL_RAP, editingRapId, data); } else { await fbAdd(COL_RAP, data); }
   document.getElementById('rapFormPanel').style.display='none'; editingRapId=null;
-  S.addHistory('Rapport enregistré : '+titre);
+  SCPIntranet.addHistory('Rapport enregistré : '+titre);
 }
 
 function viewRapport(id) {
-  const r=rapports.find(x=>x.id===id); if(!r) return; viewingRapId=id;
-  document.getElementById('rapViewId').textContent=r.id; document.getElementById('rapViewType').textContent=r.type;
+  const r=rapports.find(x=>x._id===id); if(!r) return; viewingRapId=id;
+  document.getElementById('rapViewId').textContent=shortId('RPT', r._id); document.getElementById('rapViewType').textContent=r.type;
   document.getElementById('rapViewTitre').textContent=r.titre;
   document.getElementById('rapViewSev').textContent=SEV_LABELS[r.sev]||r.sev;
   document.getElementById('rapViewSev').style.color=SEV_COLORS[r.sev]||'';
   document.getElementById('rapViewAuteur').textContent=r.auteur+(r.username?' (@'+r.username+')':'');
-  document.getElementById('rapViewDate').textContent=S.fmtDate(r.date);
+  document.getElementById('rapViewDate').textContent=SCPIntranet.fmtDate(r.date);
   document.getElementById('rapViewTemoins').textContent=r.temoins?.join(', ')||'—';
   document.getElementById('rapViewDesc').textContent=r.desc;
   document.getElementById('rapViewConclusion').textContent=r.conclusion||'—';
-  document.getElementById('rapViewModal').classList.add('open');
+  SCPIntranet.openModal('rapViewModal');
 }
 
 function exportRapport(id) {
-  const r=rapports.find(x=>x.id===id); if(!r) return;
-  S.exportRapport({...r,severity:r.sev,witnesses:r.temoins,author:r.auteur,title:r.titre,description:r.desc});
+  const r=rapports.find(x=>x._id===id); if(!r) return;
+  const sev = SEV_LABELS[r.sev]||r.sev;
+  const lines = ['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','RAPPORT — DÉPARTEMENT ADMINISTRATIF','══════════════════════════════════════════',
+    `ID              : ${shortId('RPT', r._id)}`,`DATE            : ${r.date}`,`AUTEUR          : ${r.auteur}${r.username?' (@'+r.username+')':''}`,
+    `DÉPARTEMENT     : ${r.dept||'Département Administratif'}`,`SÉVÉRITÉ        : ${sev}`,'══════════════════════════════════════════',
+    `TITRE : ${r.titre}`,'══════════════════════════════════════════','','DESCRIPTION :',r.desc,'','CONCLUSION :',r.conclusion||'—','',
+    `TÉMOINS : ${r.temoins?.join(', ')||'—'}`,'══════════════════════════════════════════',`[Généré le ${new Date().toLocaleString('fr-FR')}]`];
+  const blob = new Blob([lines.join('\n')], { type:'text/plain;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = shortId('RPT', r._id) + '_' + r.titre.replace(/[^a-z0-9]/gi,'_') + '.txt'; a.click();
 }
 
-// ── EVENT DELEGATION ──
-document.addEventListener('click', e => {
+// ══════════════════════════════════════════
+// EVENT DELEGATION
+// ══════════════════════════════════════════
+document.addEventListener('click', async e => {
   // Requêtes
-  if(e.target.id==='btnNewReq'){ openReqForm(); return; }
+  if(e.target.id==='btnNewReq'){ if(!requireAuth('créer une requête')) return; openReqForm(); return; }
   if(e.target.id==='reqSaveBtn'){ saveRequete(); return; }
   if(e.target.id==='reqCancelBtn'||e.target.id==='reqCancelBtn2'){ document.getElementById('reqFormPanel').style.display='none'; editingReqId=null; return; }
   if(e.target.id==='reqApprouverBtn'){ if(viewingReqId) setReqStatut(viewingReqId,'approuve'); return; }
@@ -867,44 +1751,60 @@ document.addEventListener('click', e => {
   const rv=e.target.closest('[data-req-view]'); if(rv){ viewRequete(rv.dataset.reqView); return; }
   const ra=e.target.closest('[data-req-approve]'); if(ra){ setReqStatut(ra.dataset.reqApprove,'approuve'); return; }
   const rrf=e.target.closest('[data-req-refuse]'); if(rrf){ setReqStatut(rrf.dataset.reqRefuse,'refuse'); return; }
-  const re=e.target.closest('[data-req-edit]'); if(re){ openReqForm(re.dataset.reqEdit); return; }
-  const rd=e.target.closest('[data-req-del]'); if(rd){ if(!confirm('Supprimer ?')) return; requetes=requetes.filter(x=>x.id!==rd.dataset.reqDel); S.store.set(STORE_REQ,requetes); renderRequetes(); return; }
+  const re=e.target.closest('[data-req-edit]'); if(re){ if(!requireAuth('modifier une requête')) return; openReqForm(re.dataset.reqEdit); return; }
+  const rd=e.target.closest('[data-req-del]'); if(rd){ if(!requireAuth('supprimer une requête')) return; if(!confirm('Supprimer ?')) return; await fbDelete(COL_REQ, rd.dataset.reqDel); return; }
   // Directives
-  if(e.target.id==='btnNewDir'){ openDirForm(); return; }
+  if(e.target.id==='btnNewDir'){ if(!requireAuth('publier une directive')) return; openDirForm(); return; }
   if(e.target.id==='dirSaveBtn'){ saveDirective(); return; }
   if(e.target.id==='dirCancelBtn'||e.target.id==='dirCancelBtn2'){ document.getElementById('dirFormPanel').style.display='none'; editingDirId=null; return; }
-  const de=e.target.closest('[data-dir-edit]'); if(de){ openDirForm(de.dataset.dirEdit); return; }
-  const dc=e.target.closest('[data-dir-copy]'); if(dc){ const d=directives.find(x=>x.id===dc.dataset.dirCopy); if(d) S.copyText(d.contenu,dc,'Copié'); return; }
-  const dd=e.target.closest('[data-dir-del]'); if(dd){ if(!confirm('Supprimer ?')) return; directives=directives.filter(x=>x.id!==dd.dataset.dirDel); S.store.set(STORE_DIR,directives); renderDirectives(); return; }
+  const de=e.target.closest('[data-dir-edit]'); if(de){ if(!requireAuth('modifier une directive')) return; openDirForm(de.dataset.dirEdit); return; }
+  const dc=e.target.closest('[data-dir-copy]'); if(dc){ const d=directives.find(x=>x._id===dc.dataset.dirCopy); if(d) SCPIntranet.copyText(d.contenu,dc,'Copié'); return; }
+  const dd=e.target.closest('[data-dir-del]'); if(dd){ if(!requireAuth('supprimer une directive')) return; if(!confirm('Supprimer ?')) return; await fbDelete(COL_DIR, dd.dataset.dirDel); return; }
   // Personnel
-  if(e.target.id==='btnNewPers'){ openPersForm(); return; }
+  if(e.target.id==='btnNewPers'){ if(!requireAuth('ajouter un agent')) return; openPersForm(); return; }
   if(e.target.id==='persSaveBtn'){ savePersonnel(); return; }
   if(e.target.id==='persCancelBtn'||e.target.id==='persCancelBtn2'){ document.getElementById('persFormPanel').style.display='none'; editingPersId=null; return; }
-  const pee=e.target.closest('[data-pers-edit]'); if(pee){ openPersForm(pee.dataset.persEdit); return; }
-  const ped=e.target.closest('[data-pers-del]'); if(ped){ if(!confirm('Supprimer cet agent ?')) return; personnel=personnel.filter(x=>x.id!==ped.dataset.persDel); S.store.set(STORE_PERS,personnel); renderPersonnel(); return; }
+  const pee=e.target.closest('[data-pers-edit]'); if(pee){ if(!requireAuth('modifier un agent')) return; openPersForm(pee.dataset.persEdit); return; }
+  const ped=e.target.closest('[data-pers-del]'); if(ped){ if(!requireAuth('supprimer un agent')) return; if(!confirm('Supprimer cet agent ?')) return; await fbDelete(COL_PERS, ped.dataset.persDel); return; }
   // Évaluations
-  if(e.target.id==='btnNewEval'){ const p=document.getElementById('evalFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if(e.target.id==='btnNewEval'){ if(!requireAuth('créer une évaluation')) return; const p=document.getElementById('evalFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'}); return; }
   if(e.target.id==='evalSaveBtn'){ saveEval(); return; }
   if(e.target.id==='evalCancelBtn'||e.target.id==='evalCancelBtn2'){ document.getElementById('evalFormPanel').style.display='none'; return; }
-  const evd=e.target.closest('[data-eval-del]'); if(evd){ if(!confirm('Supprimer ?')) return; evaluations=evaluations.filter(x=>x.id!==evd.dataset.evalDel); S.store.set(STORE_EVAL,evaluations); renderEvaluations(); return; }
+  const evd=e.target.closest('[data-eval-del]'); if(evd){ if(!requireAuth('supprimer une évaluation')) return; if(!confirm('Supprimer ?')) return; await fbDelete(COL_EVAL, evd.dataset.evalDel); return; }
+  // BJI
+  if(e.target.id==='btnNewBji'){ if(!requireAuth('ouvrir un dossier BJI')) return; openBjiForm(); return; }
+  if(e.target.id==='bjiSaveBtn'){ saveBji(); return; }
+  if(e.target.id==='bjiCancelBtn'||e.target.id==='bjiCancelBtn2'){ document.getElementById('bjiFormPanel').style.display='none'; editingBjiId=null; return; }
+  if(e.target.id==='bjiAddCrimeBtn'){ addBjiCrime(); return; }
+  if(e.target.id==='bjiAddSanctionBtn'){ addBjiSanction(); return; }
+  if(e.target.id==='bjiExportCopyBtn'){ copyBjiDossier(); return; }
+  if(e.target.id==='bjiExportDownloadBtn'){ downloadBjiDossier(); return; }
+  const bv=e.target.closest('[data-bji-view]'); if(bv){ viewBji(bv.dataset.bjiView); return; }
+  const be=e.target.closest('[data-bji-edit]'); if(be){ if(!requireAuth('modifier un dossier BJI')) return; openBjiForm(be.dataset.bjiEdit); return; }
+  const bd=e.target.closest('[data-bji-del]'); if(bd){ if(!requireAuth('supprimer un dossier BJI')) return; if(!confirm('Supprimer ce dossier ?')) return; await fbDelete(COL_BJI, bd.dataset.bjiDel); return; }
+  const bst=e.target.closest('[data-bji-statut]'); if(bst){ setBjiStatut(bst.dataset.bjiStatut); return; }
+  const bcd=e.target.closest('[data-bji-crime-del]'); if(bcd){ if(!confirm("Retirer ce chef d'accusation ?")) return; deleteBjiCrime(bcd.dataset.bjiCrimeDel); return; }
+  const bsd=e.target.closest('[data-bji-sanction-del]'); if(bsd){ if(!confirm('Retirer cette sanction ?')) return; deleteBjiSanction(bsd.dataset.bjiSanctionDel); return; }
   // Rapports
-  if(e.target.id==='btnNewRap'){ const p=document.getElementById('rapFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+  if(e.target.id==='btnNewRap'){ if(!requireAuth('rédiger un rapport')) return; const p=document.getElementById('rapFormPanel'); p.style.display='block'; p.scrollIntoView({behavior:'smooth',block:'start'}); return; }
   if(e.target.id==='rapSaveBtn'){ saveRapport(); return; }
   if(e.target.id==='rapCancelBtn'||e.target.id==='rapCancelBtn2'){ document.getElementById('rapFormPanel').style.display='none'; editingRapId=null; return; }
   const rpv=e.target.closest('[data-rap-view]'); if(rpv){ viewRapport(rpv.dataset.rapView); return; }
   const rpe=e.target.closest('[data-rap-export]'); if(rpe){ exportRapport(rpe.dataset.rapExport); return; }
   if(e.target.id==='rapViewExportBtn'){ if(viewingRapId) exportRapport(viewingRapId); return; }
-  const rpd=e.target.closest('[data-rap-del]'); if(rpd){ if(!confirm('Supprimer ?')) return; rapports=rapports.filter(x=>x.id!==rpd.dataset.rapDel); S.store.set(STORE_RAP,rapports); renderRapports(); return; }
+  const rpd=e.target.closest('[data-rap-del]'); if(rpd){ if(!requireAuth('supprimer un rapport')) return; if(!confirm('Supprimer ?')) return; await fbDelete(COL_RAP, rpd.dataset.rapDel); return; }
 });
 
 // Filtres
-document.getElementById('reqFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#reqFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeReqCat=p.dataset.cat;renderRequetes(); });
-document.getElementById('dirFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#dirFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeDirCat=p.dataset.dcat;renderDirectives(); });
-document.getElementById('persFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#persFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activePersFil=p.dataset.pf;renderPersonnel(); });
-document.getElementById('evalFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#evalFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeEvalFil=p.dataset.ef;renderEvaluations(); });
-document.getElementById('rapFilters').addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#rapFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeRapFil=p.dataset.rf;renderRapports(); });
-document.getElementById('dirSearch').addEventListener('input',renderDirectives);
-document.getElementById('persSearch').addEventListener('input',renderPersonnel);
+document.getElementById('reqFilters')?.addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#reqFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeReqCat=p.dataset.cat;renderRequetes(); });
+document.getElementById('dirFilters')?.addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#dirFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeDirCat=p.dataset.dcat;renderDirectives(); });
+document.getElementById('persFilters')?.addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#persFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activePersFil=p.dataset.pf;renderPersonnel(); });
+document.getElementById('evalFilters')?.addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#evalFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeEvalFil=p.dataset.ef;renderEvaluations(); });
+document.getElementById('bjiFilters')?.addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#bjiFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeBjiFil=p.dataset.bf;renderBji(); });
+document.getElementById('rapFilters')?.addEventListener('click',e=>{ const p=e.target.closest('.pill');if(!p)return; document.querySelectorAll('#rapFilters .pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');activeRapFil=p.dataset.rf;renderRapports(); });
+document.getElementById('dirSearch')?.addEventListener('input',renderDirectives);
+document.getElementById('persSearch')?.addEventListener('input',renderPersonnel);
+document.getElementById('bjiSearch')?.addEventListener('input',renderBji);
 </script>
 </body>
 </html>
