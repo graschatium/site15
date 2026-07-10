@@ -110,33 +110,101 @@
     .topbar-right { display:flex; align-items:center; gap:12px; }
     .topbar-user { font-family:'Space Mono',monospace; font-size:11px; color:var(--white); letter-spacing:0.1em; }
 
-    /* ── DEPT NAV ── */
-    .dept-nav { display:flex; gap:2px; padding:0 28px; background:var(--surface); border-bottom:1px solid var(--border); overflow-x:auto; }
-    .nav-tab { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; padding:14px 20px; border:none; border-bottom:2px solid transparent; background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.2s; white-space:nowrap; }
-    .nav-tab:hover { color:var(--accent); }
-    .nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); background:rgba(0,212,255,0.04); }
-    .nav-tab-icon { margin-right:6px; font-size:11px; }
+        @media (max-width: 640px) {
+      .topbar { padding: 0 14px; gap: 8px; }
+      .topbar-dept { display: none; }
+      .topbar-divider { display: none; }
+      .topbar-title { font-size: 15px; }
+      .topbar-user { display: none; }
+    }
 
+    /* ── DEPT NAV ── */
+    .dept-nav {
+  display: flex; gap: 2px; padding: 0 28px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  overflow-x: auto; scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  }
+  .dept-nav::-webkit-scrollbar { height: 3px; }
+  .dept-nav::-webkit-scrollbar-thumb { background: var(--border2); }
+  .nav-tab {
+    font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; padding: 14px 20px; border: none; border-bottom: 2px solid transparent;
+    background: transparent; color: var(--text-dim); cursor: pointer; transition: all 0.2s;
+    white-space: nowrap; scroll-snap-align: start; flex-shrink: 0;
+  }
+  .nav-tab:hover { color: var(--accent); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(0,212,255,0.04); }
+  .nav-tab-icon { margin-right: 6px; font-size: 11px; }
+
+  @media (max-width: 640px) {
+    .dept-nav { padding: 0 12px; scroll-snap-type: x mandatory; }
+    .nav-tab { padding: 12px 14px; font-size: 9px; min-height: 44px; }
+  }
+  @media (max-width: 460px) {
+    .nav-tab-label { display: none; }
+    .nav-tab-icon { margin-right: 0; font-size: 15px; }
+    .nav-tab { padding: 12px 16px; }
+  }
+    /* ── LAYOUT ── */
     /* ── LAYOUT ── */
     .app-layout { display:grid; grid-template-columns:1fr 260px; gap:0; padding:24px 28px; max-width:1400px; margin:0 auto; }
-    @media (max-width:900px) { .app-layout { grid-template-columns:1fr; } }
     .main-content { min-width:0; padding-right:20px; }
-    @media (max-width:900px) { .main-content { padding-right:0; } }
     .sidebar { display:flex; flex-direction:column; gap:16px; }
     .view { display:none; }
     .view.active { display:block; }
 
-    /* ── WIDGETS ── */
-    .widget { background:var(--surface); border:1px solid var(--border); margin-bottom:16px; }
+    @media (max-width: 900px) {
+      .app-layout { grid-template-columns: 1fr; padding: 16px; }
+      .main-content { padding-right: 0; order: 2; }
+      .sidebar { display: contents; }
+      .sidebar .widget:nth-child(2) { order: 1; } /* widget "Résumé" remonte en premier */
+      .sidebar .widget:nth-child(1) { order: 3; } /* Journal d'actions */
+      .sidebar .widget:nth-child(3) { order: 4; } /* Connexion */
+    }
+
+    /* ── WIDGETS (avec accroches d'angle façon HUD) ── */
+    .widget {
+      background:var(--surface); border:1px solid var(--border); margin-bottom:16px;
+      position:relative;
+    }
+    .widget::before, .widget::after,
+    .admin-section::before, .admin-section::after,
+    .server-widget::before, .server-widget::after {
+      content:''; position:absolute; width:9px; height:9px; pointer-events:none; opacity:0.5;
+    }
+    .widget::before, .admin-section::before, .server-widget::before {
+      top:-1px; left:-1px; border-top:1px solid var(--accent); border-left:1px solid var(--accent);
+    }
+    .widget::after, .admin-section::after, .server-widget::after {
+      bottom:-1px; right:-1px; border-bottom:1px solid var(--accent); border-right:1px solid var(--accent);
+    }
+    .admin-section::before, .admin-section::after { border-color: var(--danger); }
     .widget-hdr { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
     .widget-title { font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent); }
     .widget-body { padding:14px 16px; }
 
+    .admin-section { background:var(--surface2); border:1px solid rgba(255,59,59,0.3); border-top:2px solid var(--danger); padding:20px; margin-bottom:20px; position:relative; }
+    .server-widget { background:var(--surface2); border:1px solid rgba(0,212,255,0.25); border-top:2px solid var(--accent); padding:20px; margin-bottom:20px; position:relative; }
+
     /* ── SECTION HEADERS ── */
     .sec-hdr { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
-    .sec-tag { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px; }
-    .sec-title { font-family:'Rajdhani',sans-serif; font-size:32px; font-weight:700; text-transform:uppercase; color:var(--white); letter-spacing:-0.01em; line-height:1; }
+    .sec-tag {
+      font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.3em; text-transform:uppercase;
+      color:var(--text-dim); margin-bottom:6px; padding-left:10px; position:relative;
+    }
+    .sec-tag::before {
+      content:''; position:absolute; left:0; top:1px; bottom:1px; width:2px; background:var(--accent);
+    }
+    .sec-title {
+      font-family:'Rajdhani',sans-serif; font-size:32px; font-weight:700; text-transform:uppercase;
+      color:var(--white); letter-spacing:-0.01em; line-height:1;
+      text-shadow: 0 0 24px rgba(0,212,255,0.15);
+    }
     .sec-title span { color:var(--accent); }
+    .sec-sub { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.15em; margin-top:6px; text-transform:uppercase; }
+    .sec-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
     .sec-sub { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.15em; margin-top:6px; text-transform:uppercase; }
     .sec-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
@@ -150,6 +218,9 @@
     .btn-ghost:hover { border-color:var(--border2); color:var(--text); }
     .btn-sm { padding:6px 14px; font-size:9px; }
     .btn-xs { padding:4px 10px; font-size:9px; }
+    .btn { transform: translateY(0); }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); filter: brightness(0.9); }
 
     /* ── FORMS ── */
     .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
@@ -181,12 +252,12 @@
     .msec-lbl { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.2em; text-transform:uppercase; margin-bottom:6px; }
     .msec-content { font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text); line-height:1.6; background:var(--surface2); border:1px solid var(--border); padding:12px; }
 
-    /* ── STAT SIDEBAR ── */
+   /* ── STAT SIDEBAR ── */
     .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
     .stat-box { background:var(--surface2); border:1px solid var(--border); padding:14px; text-align:center; }
     .stat-val { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--white); line-height:1; margin-bottom:4px; }
     .stat-lbl { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.15em; text-transform:uppercase; }
-    .hlog { padding:12px 14px; display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto; }
+    .hlog { padding:12px 14px; display:flex; flex-direction:column; gap:6px; max-height:240px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
     .hlog-item { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-dim); border-left:2px solid var(--border2); padding-left:8px; line-height:1.4; }
     .hlog-item span { color:var(--accent); font-size:9px; display:block; margin-bottom:2px; }
 
@@ -206,6 +277,20 @@
     .mod-stat-lbl { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--text-dim); }
     .mod-stat-icon { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:28px; opacity:0.07; }
 
+    @media (max-width: 640px) {
+      .stat-box { padding:16px 10px; }
+      .stat-val { font-size:24px; }
+      .stat-lbl { font-size:8px; }
+      .hlog { max-height:160px; }
+      .hlog-item { font-size:11px; }
+
+      .mod-stats-bar { grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:16px; }
+      .mod-stat { padding:14px 16px; }
+      .mod-stat-val { font-size:32px; }
+      .mod-stat-lbl { font-size:8px; }
+      .mod-stat-icon { font-size:22px; right:10px; }
+    }
+
     /* ── FILTER BAR ── */
     .filter-bar { display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
     .filter-bar input[type=text] { flex:1; min-width:180px; background:var(--surface); border:1px solid var(--border2); color:var(--white); font-family:'Space Mono',monospace; font-size:10px; padding:8px 12px; outline:none; }
@@ -219,8 +304,13 @@
     .sanction-table thead tr { background:var(--surface2); border-bottom:1px solid var(--border2); }
     .sanction-table thead th { padding:10px 14px; text-align:left; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--text-dim); font-weight:normal; }
     .sanction-table thead th:first-child { color:var(--accent); }
-    .sanction-table tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
-    .sanction-table tbody tr:hover { background:rgba(0,212,255,0.02); }
+    .sanction-table tbody tr {
+      border-bottom:1px solid var(--border); border-left:2px solid transparent;
+      transition: background 0.15s, border-left-color 0.15s;
+    }
+    .sanction-table tbody tr:hover {
+      background:rgba(0,212,255,0.03); border-left-color: var(--accent);
+    }
     .sanction-table td { padding:10px 14px; color:var(--text); vertical-align:middle; }
     .sanction-table td.td-id { font-size:9px; color:var(--accent2); letter-spacing:0.1em; }
     .sanction-table td.td-player { color:var(--white); font-weight:bold; }
@@ -413,6 +503,54 @@
     .log-detail-cell { font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-dim); max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .log-detail-cell:hover { white-space:normal; word-break:break-word; color:var(--text); }
     @media(max-width:700px) { .log-stats-bar { grid-template-columns:repeat(3,1fr); } }
+
+
+    /* ── MODÉRATION IN-GAME ── */
+.ingame-layout { display:grid; grid-template-columns:1fr 320px; gap:16px; }
+@media (max-width:900px) { .ingame-layout { grid-template-columns:1fr; } }
+.ingame-status { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--text-dim); margin-bottom:10px; }
+.live-player-row {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px 14px; background:var(--surface); border:1px solid var(--border); border-left:2px solid transparent;
+  margin-bottom:4px; cursor:pointer; transition:all 0.15s;
+}
+.live-player-row:hover { background:var(--surface2); }
+.live-player-row.selected { border-left-color:var(--accent); background:rgba(0,212,255,0.05); }
+.live-player-name { font-family:'Space Mono',monospace; font-size:12px; color:var(--white); }
+.live-player-team { font-family:'Space Mono',monospace; font-size:9px; color:var(--text-dim); letter-spacing:0.1em; margin-top:2px; }
+.ingame-action-panel {
+  background:var(--surface2); border:1px solid var(--border2); border-top:2px solid var(--accent);
+  padding:16px; position:sticky; top:70px; align-self:start;
+}
+.ingame-no-selection { text-align:center; padding:30px 16px; color:var(--text-dim); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; }
+.ingame-selected-name { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; color:var(--white); margin-bottom:2px; }
+.ingame-selected-team { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent); margin-bottom:16px; }
+.ingame-action-btns { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:12px; }
+.ingame-action-btn {
+  font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
+  padding:9px; border:1px solid var(--border2); background:transparent; color:var(--text-dim); cursor:pointer; transition:all 0.15s;
+}
+.ingame-action-btn.warn.active { border-color:var(--warn); color:var(--warn); background:rgba(255,152,0,0.08); }
+.ingame-action-btn.kick.active { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,0.08); }
+.ingame-action-btn.ban.active  { border-color:var(--danger); color:var(--danger); background:rgba(255,59,59,0.08); }
+.ingame-action-btn.blacklist.active { border-color:#ff6b6b; color:#ff6b6b; background:rgba(255,107,107,0.1); }
+.ingame-duration-row { display:none; margin-bottom:12px; }
+.ingame-duration-row.visible { display:block; }
+.ingame-empty-players { text-align:center; padding:40px; border:1px dashed var(--border); color:var(--text-dim); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; } 
+
+    @media (max-width: 640px) {
+  .btn, .page-btn, .roster-tab { min-height: 40px; }
+  .form-field input, .form-field select, .form-field textarea,
+  .filter-bar input, .filter-bar select { min-height: 40px; }
+  .sec-title { font-size: 24px; }
+  .modal-body { padding: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, .srv-dot.open, .login-loading, #loadLog div { animation: none !important; }
+  html { scroll-behavior: auto; }
+  * { transition-duration: 0.01ms !important; }
+}
   </style>
 </head>
 <body>
@@ -564,13 +702,14 @@
 </div>
 
 <div class="dept-nav">
-  <button class="nav-tab active" data-view="sanctions"><span class="nav-tab-icon">📋</span> Sanctions</button>
-  <button class="nav-tab" data-view="historique"><span class="nav-tab-icon">🔍</span> Historique joueur</button>
-  <button class="nav-tab" data-view="stats"><span class="nav-tab-icon">📊</span> Statistiques</button>
-  <button class="nav-tab" data-view="roster"><span class="nav-tab-icon">👥</span> Rosters</button>
-  <button class="nav-tab" data-view="joueurs" id="joueursTab"><span class="nav-tab-icon">🎮</span> Joueurs</button>
-  <button class="nav-tab" data-view="logs" id="logsTab"><span class="nav-tab-icon">📜</span> Logs</button>
-  <button class="nav-tab" data-view="admin" id="adminTab" style="display:none;"><span class="nav-tab-icon">🔐</span> Admin</button>
+  <button class="nav-tab active" data-view="sanctions"><span class="nav-tab-icon">📋</span><span class="nav-tab-label"> Sanctions</span></button>
+  <button class="nav-tab" data-view="historique"><span class="nav-tab-icon">🔍</span><span class="nav-tab-label"> Historique joueur</span></button>
+  <button class="nav-tab" data-view="ingame"><span class="nav-tab-icon">🎯</span><span class="nav-tab-label"> In-Game</span></button>
+  <button class="nav-tab" data-view="stats"><span class="nav-tab-icon">📊</span><span class="nav-tab-label"> Statistiques</span></button>
+  <button class="nav-tab" data-view="roster"><span class="nav-tab-icon">👥</span><span class="nav-tab-label"> Rosters</span></button>
+  <button class="nav-tab" data-view="joueurs" id="joueursTab"><span class="nav-tab-icon">🎮</span><span class="nav-tab-label"> Joueurs</span></button>
+  <button class="nav-tab" data-view="logs" id="logsTab"><span class="nav-tab-icon">📜</span><span class="nav-tab-label"> Logs</span></button>
+  <button class="nav-tab" data-view="admin" id="adminTab" style="display:none;"><span class="nav-tab-icon">🔐</span><span class="nav-tab-label"> Admin</span></button>
 </div>
 
 <div class="app-layout">
@@ -765,6 +904,52 @@
         <div class="no-player"><span class="np-icon">🎮</span>Chargement des joueurs…</div>
       </div>
     </div>
+
+<!-- VUE : MODÉRATION IN-GAME -->
+<div class="view" id="view-ingame">
+  <div class="sec-hdr">
+    <div>
+      <div class="sec-tag">// Serveur Roblox — Temps réel</div>
+      <div class="sec-title">MODÉRATION <span>IN-GAME</span></div>
+      <div class="sec-sub" id="ingameLiveIndicator" style="color:var(--text-dim);">⬤ CONNEXION…</div>
+    </div>
+  </div>
+  <div class="ingame-layout">
+    <div>
+      <div class="ingame-status" id="ingamePlayerCount">Chargement des joueurs…</div>
+      <div id="livePlayersList"></div>
+    </div>
+    <div class="ingame-action-panel">
+      <div class="ingame-no-selection" id="ingameNoSelection">◈ Sélectionnez un joueur dans la liste</div>
+      <div id="ingameActionForm" style="display:none;">
+        <div class="ingame-selected-name" id="ingameSelName">—</div>
+        <div class="ingame-selected-team" id="ingameSelTeam">—</div>
+        <div class="ingame-action-btns">
+          <button class="ingame-action-btn warn" data-action="warn">⚠ Warn</button>
+          <button class="ingame-action-btn kick" data-action="kick">👟 Kick</button>
+          <button class="ingame-action-btn ban" data-action="ban">🔨 Ban temp.</button>
+          <button class="ingame-action-btn blacklist" data-action="blacklist">⛔ Blacklist</button>
+        </div>
+        <div class="ingame-duration-row" id="ingameDurationRow">
+          <label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Durée</label>
+          <select id="ingameDuration" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:8px 10px;outline:none;">
+            <option value="1h">1 heure</option>
+            <option value="6h">6 heures</option>
+            <option value="24h">24 heures</option>
+            <option value="3j">3 jours</option>
+            <option value="7j">7 jours</option>
+          </select>
+        </div>
+        <div class="form-field" style="margin-bottom:12px;">
+          <label>Raison *</label>
+          <input type="text" id="ingameReason" placeholder="Motif de la sanction…" />
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="sendIngameAction()">✓ Appliquer la sanction</button>
+        <div id="ingameMsg" style="font-family:'Space Mono',monospace;font-size:10px;margin-top:8px;min-height:16px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- VUE : ADMIN -->
     <div class="view" id="view-admin">
@@ -1159,6 +1344,8 @@ function closeModal(id) { document.getElementById(id)?.classList.remove('open');
 window.openModal  = openModal;
 window.closeModal = closeModal;
 
+
+
 // ── Nav tabs (autonome) ──
 function initTabs() {
   document.querySelectorAll('.nav-tab[data-view]').forEach(btn => {
@@ -1168,6 +1355,7 @@ function initTabs() {
       btn.classList.add('active');
       const vEl = document.getElementById('view-' + btn.dataset.view);
       if (vEl) vEl.classList.add('active');
+      btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     });
   });
 }
@@ -1209,6 +1397,13 @@ const PAGE_SIZE = 10;
 function typeName(t){return{warn:'⚠ Warn',kick:'👟 Kick',ban:'🔨 Ban',mute:'🔇 Mute'}[t]||t;}
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escR(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function looksHashed(pwd) {
+  return typeof pwd === 'string' && /^[a-f0-9]{64}$/.test(pwd);
+}
 function escAttr(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function today(){return new Date().toISOString().split('T')[0];}
 function fmtDate(d){if(!d)return'—';try{return new Date(d+'T12:00:00').toLocaleDateString('fr-FR');}catch{return d;}}
@@ -1307,14 +1502,34 @@ window.doLogin = async function() {
       errEl.textContent = '⚠ Identifiant introuvable.';
       return;
     }
-    if (found.password !== pass) {
+    if (!found.password) {
       document.getElementById('loginForm').style.display = 'block';
       document.getElementById('loginLoading').style.display = 'none';
-      errEl.textContent = !found.password
-        ? '⚠ Ce compte n\'a pas de mot de passe défini. Demandez à un admin.'
-        : '⚠ Mot de passe incorrect.';
+      errEl.textContent = '⚠ Ce compte n\'a pas de mot de passe défini. Demandez à un admin.';
       return;
     }
+
+    let ok = false;
+    if (looksHashed(found.password)) {
+      // Compte déjà migré : on compare le hash du mot de passe saisi
+      ok = (await sha256Hex(pass)) === found.password;
+    } else {
+      // Ancien compte en clair : comparaison directe, puis migration silencieuse
+      ok = (found.password === pass);
+      if (ok) {
+        const newHash = await sha256Hex(pass);
+        await setDoc(doc(db, 'users', found._id), { password: newHash }, { merge: true });
+        found.password = newHash;
+      }
+    }
+
+    if (!ok) {
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('loginLoading').style.display = 'none';
+      errEl.textContent = '⚠ Mot de passe incorrect.';
+      return;
+    }
+
     currentUser = found;
     currentRole = found.role || 'moderateur';
     saveModSession({ username: getLoginKey(found), password: found.password });
@@ -1334,17 +1549,10 @@ window.doLogin = async function() {
 document.getElementById('loginPassword').addEventListener('keydown', e => { if(e.key==='Enter') window.doLogin(); });
 document.getElementById('loginUsername').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPassword').focus(); });
 
-// ── RÉCUPÉRATION ──
-const RECOVERY_SECRET = 'site19-admin-recovery';
-window.toggleRecovery = function() {
-  const form  = document.getElementById('loginForm');
-  const panel = document.getElementById('recoveryPanel');
-  const isShowing = panel.style.display !== 'none';
-  form.style.display  = isShowing ? 'block' : 'none';
-  panel.style.display = isShowing ? 'none'  : 'block';
-  document.getElementById('recoveryError').textContent = '';
-  if (!isShowing) document.getElementById('recoveryCode').focus();
-};
+
+// Remplace : const RECOVERY_SECRET = 'site19-admin-recovery';
+// Par le hash de ton secret (voir instructions en dessous du code)
+const RECOVERY_SECRET_HASH = 'd3b5afb4c917de0d736f7ede033faa330c46c999994cbec0867177f864ca3f96';
 
 window.doRecovery = async function() {
   const code   = document.getElementById('recoveryCode').value;
@@ -1352,14 +1560,14 @@ window.doRecovery = async function() {
   const newPwd = document.getElementById('recoveryNewPwd').value;
   const errEl  = document.getElementById('recoveryError');
   errEl.textContent = ''; errEl.style.color = 'var(--danger)';
-  if (code !== RECOVERY_SECRET) { errEl.textContent = '⚠ Code secret incorrect.'; return; }
+  if ((await sha256Hex(code)) !== RECOVERY_SECRET_HASH) { errEl.textContent = '⚠ Code secret incorrect.'; return; }
   if (!ident || !newPwd || newPwd.length < 2) { errEl.textContent = '⚠ Identifiant et nouveau mot de passe requis.'; return; }
   try {
     const snap = await getDocs(collection(db, 'users'));
     let found = null;
     snap.forEach(d => { const u = d.data(); if (!found && matchUser(u, ident)) found = { _id: d.id, ...u }; });
     if (!found) { errEl.textContent = '⚠ Compte introuvable.'; return; }
-    await setDoc(doc(db, 'users', found._id), { password: newPwd, username: found.username || found.name || ident }, { merge: true });
+    await setDoc(doc(db, 'users', found._id), { password: await sha256Hex(newPwd), username: found.username || found.name || ident }, { merge: true });
     errEl.style.color = 'var(--safe)';
     errEl.textContent = '✓ Mot de passe mis à jour pour ' + (found.displayName || found.username || found.name) + '. Connexion dans 2s…';
     document.getElementById('recoveryCode').value = '';
@@ -1549,17 +1757,12 @@ window.saveSanction = async function() {
   btn.disabled = true; btn.textContent = '…';
   try {
     const modName = currentUser?.displayName || currentUser?.username || '—';
-    await addDoc(collection(db, 'sanctions'), {
-      player,
-      username: document.getElementById('fUsername').value.trim(),
-      type, reason,
-      details: document.getElementById('fDetails').value.trim(),
-      mod: modName,
-      modUid: currentUser?._id || '—',
-      duration: ['ban','mute'].includes(type) ? document.getElementById('fDuration').value : '—',
-      date: document.getElementById('fDate').value || today(),
-      createdAt: new Date().toISOString(),
-    });
+    await addDoc(collection(db, 'users'), {
+  username, password: await sha256Hex(pass),
+  displayName: displayName || username,
+  role, createdAt: new Date().toISOString(),
+  createdBy: currentUser?.username || '—'
+});
     closeModal('modalNewSanction');
     addHistory('Sanction : ' + typeName(type) + ' → ' + player);
     ['fPlayer','fUsername','fReason','fDetails'].forEach(id => document.getElementById(id).value = '');
@@ -1677,7 +1880,7 @@ window.setUserPassword = async function(uid, name) {
   const newPwd = prompt('Définir le mot de passe pour ' + name + ' :');
   if (!newPwd || newPwd.trim().length < 2) return;
   try {
-    await setDoc(doc(db, 'users', uid), { password: newPwd.trim() }, { merge: true });
+    await setDoc(doc(db, 'users', uid), { password: await sha256Hex(newPwd.trim()) }, { merge: true });
     addHistory('Mot de passe défini pour : ' + name);
     loadUsers();
   } catch(e) { alert('Erreur : ' + e.message); }
@@ -2136,6 +2339,104 @@ function startRosterListen() {
   }, err => { console.error('Roster listen error:', err); });
 }
 
+// ══════════════════════════════════════════════════════
+// ── MODÉRATION IN-GAME ──
+// ══════════════════════════════════════════════════════
+let livePlayers = [];
+let selectedPlayer = null;
+let selectedAction = null;
+let unsubLivePlayers = null;
+
+function startLivePlayersListen() {
+  if (unsubLivePlayers) { unsubLivePlayers(); unsubLivePlayers = null; }
+  unsubLivePlayers = onSnapshot(doc(db, 'live_players', 'current'), snap => {
+    livePlayers = snap.exists() ? (snap.data().players || []) : [];
+    renderLivePlayers();
+    const li = document.getElementById('ingameLiveIndicator');
+    if (li) { li.textContent = '⬤ EN DIRECT — ' + livePlayers.length + ' joueur' + (livePlayers.length > 1 ? 's' : ''); li.style.color = 'var(--safe)'; }
+  }, () => {
+    const li = document.getElementById('ingameLiveIndicator');
+    if (li) { li.textContent = '⚠ Erreur Firebase'; li.style.color = 'var(--danger)'; }
+  });
+}
+
+function renderLivePlayers() {
+  const listEl  = document.getElementById('livePlayersList');
+  const countEl = document.getElementById('ingamePlayerCount');
+  if (!listEl) return;
+  if (countEl) countEl.textContent = livePlayers.length + ' joueur' + (livePlayers.length > 1 ? 's' : '') + ' connecté' + (livePlayers.length > 1 ? 's' : '');
+  if (!livePlayers.length) {
+    listEl.innerHTML = '<div class="ingame-empty-players">🎮 Aucun joueur connecté</div>';
+    return;
+  }
+  listEl.innerHTML = livePlayers.map(p => `
+    <div class="live-player-row ${selectedPlayer === p.username ? 'selected' : ''}" onclick="selectIngamePlayer('${escAttr(p.username)}','${escAttr(p.team||'')}')">
+      <div>
+        <div class="live-player-name">${esc(p.username)}</div>
+        <div class="live-player-team">${esc(p.team || '—')}</div>
+      </div>
+    </div>`).join('');
+}
+
+window.selectIngamePlayer = function(username, team) {
+  selectedPlayer = username;
+  selectedAction = null;
+  document.getElementById('ingameNoSelection').style.display = 'none';
+  document.getElementById('ingameActionForm').style.display = 'block';
+  document.getElementById('ingameSelName').textContent = username;
+  document.getElementById('ingameSelTeam').textContent = team || '—';
+  document.getElementById('ingameReason').value = '';
+  document.getElementById('ingameMsg').textContent = '';
+  document.querySelectorAll('.ingame-action-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('ingameDurationRow').classList.remove('visible');
+  renderLivePlayers();
+};
+
+document.querySelectorAll('.ingame-action-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.ingame-action-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedAction = btn.dataset.action;
+    document.getElementById('ingameDurationRow').classList.toggle('visible', selectedAction === 'ban');
+  });
+});
+
+window.sendIngameAction = async function() {
+  const msgEl = document.getElementById('ingameMsg');
+  msgEl.textContent = ''; msgEl.style.color = '';
+  if (!selectedPlayer)  { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Aucun joueur sélectionné.'; return; }
+  if (!selectedAction)  { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Choisissez un type d\'action.'; return; }
+  const reason = document.getElementById('ingameReason').value.trim();
+  if (!reason) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Raison obligatoire.'; return; }
+
+  const modName = currentUser?.displayName || currentUser?.username || '—';
+  const isBlacklist = selectedAction === 'blacklist';
+  const actionType   = isBlacklist ? 'ban' : selectedAction;
+  const duration     = actionType === 'ban' ? (isBlacklist ? 'permanent' : document.getElementById('ingameDuration').value) : '—';
+
+  try {
+    // 1. Action en attente pour le script Roblox
+    await addDoc(collection(db, 'pending_actions'), {
+      target: selectedPlayer, type: actionType, duration, reason,
+      requestedBy: modName, createdAt: new Date().toISOString(),
+    });
+    // 2. Sanction visible dans l'onglet Sanctions (traçabilité)
+    await addDoc(collection(db, 'sanctions'), {
+      player: selectedPlayer, username: '', type: actionType === 'ban' ? 'ban' : actionType,
+      reason, details: '', mod: modName, modUid: currentUser?._id || '—',
+      duration: actionType === 'ban' ? duration : '—',
+      date: today(), createdAt: new Date().toISOString(),
+    });
+    msgEl.style.color = 'var(--safe)';
+    msgEl.textContent = '✓ Action envoyée — exécution en jeu sous 7s.';
+    addHistory('Action in-game : ' + actionType.toUpperCase() + ' → ' + selectedPlayer);
+    document.getElementById('ingameReason').value = '';
+  } catch(e) {
+    msgEl.style.color = 'var(--danger)';
+    msgEl.textContent = '⚠ ' + e.message;
+  }
+};
+
 async function saveRosterToFirebase(showFeedback = true) {
   const ind = document.getElementById('rosterSaveIndicator');
   if (ind && showFeedback) { ind.textContent = '⟳ Sauvegarde…'; ind.className = 'roster-save-indicator saving'; }
@@ -2443,6 +2744,8 @@ document.querySelectorAll('.nav-tab[data-view="admin"]').forEach(btn => {
   btn.addEventListener('click', () => setTimeout(window.loadFirebaseConfig, 50));
 });
 
+
+
 // ══════════════════════════════════════════════════════
 // ── SYSTÈME DE LOGS FIREBASE ──
 // ══════════════════════════════════════════════════════
@@ -2640,7 +2943,6 @@ const _origStartListen = startListen;
 
 // Activer l'onglet Logs et démarrer le listener après connexion
 const _origShowApp = showApp;
-window._logsTabReady = false;
 
 // Hooker showApp pour démarrer les logs
 document.addEventListener('click', e => {
