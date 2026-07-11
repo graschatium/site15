@@ -704,11 +704,11 @@
 <div class="dept-nav">
   <button class="nav-tab active" data-view="sanctions"><span class="nav-tab-icon">📋</span><span class="nav-tab-label"> Sanctions</span></button>
   <button class="nav-tab" data-view="historique"><span class="nav-tab-icon">🔍</span><span class="nav-tab-label"> Historique joueur</span></button>
-  <button class="nav-tab" data-view="ingame"><span class="nav-tab-icon">🎯</span><span class="nav-tab-label"> In-Game</span></button>
-  <button class="nav-tab" data-view="stats"><span class="nav-tab-icon">📊</span><span class="nav-tab-label"> Statistiques</span></button>
+  <button class="nav-tab" data-view="ingame" id="ingameTab" style="display:none;"><span class="nav-tab-icon">🎯</span><span class="nav-tab-label"> In-Game</span></button>
+  <!-- <button class="nav-tab" data-view="stats"><span class="nav-tab-icon">📊</span><span class="nav-tab-label"> Statistiques</span></button> -->
   <button class="nav-tab" data-view="roster"><span class="nav-tab-icon">👥</span><span class="nav-tab-label"> Rosters</span></button>
   <button class="nav-tab" data-view="joueurs" id="joueursTab"><span class="nav-tab-icon">🎮</span><span class="nav-tab-label"> Joueurs</span></button>
-  <button class="nav-tab" data-view="logs" id="logsTab"><span class="nav-tab-icon">📜</span><span class="nav-tab-label"> Logs</span></button>
+  <!-- <button class="nav-tab" data-view="logs" id="logsTab"><span class="nav-tab-icon">📜</span><span class="nav-tab-label"> Logs</span></button> -->
   <button class="nav-tab" data-view="admin" id="adminTab" style="display:none;"><span class="nav-tab-icon">🔐</span><span class="nav-tab-label"> Admin</span></button>
 </div>
 
@@ -1350,6 +1350,9 @@ window.closeModal = closeModal;
 function initTabs() {
   document.querySelectorAll('.nav-tab[data-view]').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (btn.dataset.view === 'ingame' && !['admin','responsable','moderateur'].includes(currentRole)) {
+        return;
+      }
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       btn.classList.add('active');
@@ -1440,6 +1443,7 @@ function showApp(name, role) {
   const canManagePlayers = isAdmin || role === 'responsable' || role === 'moderateur';
   document.getElementById('adminTab').style.display = isAdmin ? '' : 'none';
   document.getElementById('joueursTab').style.display = canManagePlayers ? '' : 'none';
+  document.getElementById('ingameTab').style.display = canManagePlayers ? '' : 'none';
   document.getElementById('deleteBtn').style.display = isAdmin ? '' : 'none';
   const deptMgr = document.getElementById('rosterDeptManager');
   if (deptMgr) deptMgr.style.display = canEditRoster(role) ? '' : 'none';
