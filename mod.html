@@ -924,12 +924,14 @@
       <div id="ingameActionForm" style="display:none;">
         <div class="ingame-selected-name" id="ingameSelName">—</div>
         <div class="ingame-selected-team" id="ingameSelTeam">—</div>
-        <div class="ingame-action-btns">
+        <div class="ingame-action-btns" style="grid-template-columns:1fr 1fr;">
           <button class="ingame-action-btn warn" data-action="warn">⚠ Warn</button>
           <button class="ingame-action-btn kick" data-action="kick">👟 Kick</button>
           <button class="ingame-action-btn ban" data-action="ban">🔨 Ban temp.</button>
           <button class="ingame-action-btn blacklist" data-action="blacklist">⛔ Blacklist</button>
+          <button class="ingame-action-btn morph" data-action="morph" style="grid-column:1/-1;">🎭 Morph</button>
         </div>
+
         <div class="ingame-duration-row" id="ingameDurationRow">
           <label style="font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-dim);display:block;margin-bottom:5px;">Durée</label>
           <select id="ingameDuration" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:11px;padding:8px 10px;outline:none;">
@@ -940,11 +942,25 @@
             <option value="7j">7 jours</option>
           </select>
         </div>
-        <div class="form-field" style="margin-bottom:12px;">
+
+        <div class="ingame-duration-row" id="ingameMorphRow">
+          <div class="form-field" style="margin-bottom:10px;">
+            <label>Département</label>
+            <select id="ingameMorphDept" onchange="findMorphInDept()">
+              <option value="">— Choisir —</option>
+            </select>
+          </div>
+          <div id="ingameMorphMatchNote" style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:0.1em;margin-bottom:10px;min-height:14px;"></div>
+          <div class="form-field" style="margin-bottom:10px;">
+            <label>Commande (éditable, {player} déjà substitué)</label>
+            <textarea id="ingameMorphCommand" rows="3" placeholder="Choisis un département ci-dessus…" style="width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--white);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:8px 10px;outline:none;resize:vertical;box-sizing:border-box;"></textarea>
+          </div>
+        </div>
+        <div class="form-field" style="margin-bottom:12px;" id="ingameReasonField">
           <label>Raison *</label>
           <input type="text" id="ingameReason" placeholder="Motif de la sanction…" />
         </div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="sendIngameAction()">✓ Appliquer la sanction</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="sendIngameAction()">✓ Appliquer</button>
         <div id="ingameMsg" style="font-family:'Space Mono',monospace;font-size:10px;margin-top:8px;min-height:16px;"></div>
       </div>
     </div>
@@ -2421,6 +2437,17 @@ window.selectIngamePlayer = function(username, team) {
   document.getElementById('ingameMsg').textContent = '';
   document.querySelectorAll('.ingame-action-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('ingameDurationRow').classList.remove('visible');
+  document.getElementById('ingameMorphRow').classList.remove('visible');
+  document.getElementById('ingameReasonField').style.display = '';
+
+  // Reset complet du panneau morph pour éviter de garder l'ancien joueur/département affiché
+  const morphDeptSel = document.getElementById('ingameMorphDept');
+  if (morphDeptSel) morphDeptSel.value = '';
+  const morphNote = document.getElementById('ingameMorphMatchNote');
+  if (morphNote) morphNote.textContent = '';
+  const morphCmd = document.getElementById('ingameMorphCommand');
+  if (morphCmd) morphCmd.value = '';
+
   renderLivePlayers();
 };
 
@@ -2430,29 +2457,87 @@ document.querySelectorAll('.ingame-action-btn').forEach(btn => {
     btn.classList.add('active');
     selectedAction = btn.dataset.action;
     document.getElementById('ingameDurationRow').classList.toggle('visible', selectedAction === 'ban');
+    document.getElementById('ingameMorphRow').classList.toggle('visible', selectedAction === 'morph');
+    document.getElementById('ingameReasonField').style.display = selectedAction === 'morph' ? 'none' : '';
+    if (selectedAction === 'morph') populateMorphDepts();
   });
 });
+
+
+
+window.populateMorphDepts = function() {
+  const sel = document.getElementById('ingameMorphDept');
+  const depts = Object.values(rosterData);
+  sel.innerHTML = '<option value="">— Choisir —</option>' + depts.map(d => `<option value="${d.id}">${d.icon || ''} ${escR(d.name)}</option>`).join('');
+  sel.value = '';
+  document.getElementById('ingameMorphCommand').value = '';
+  document.getElementById('ingameMorphMatchNote').textContent = '';
+};
+
+window.findMorphInDept = function() {
+  const deptId  = document.getElementById('ingameMorphDept').value;
+  const noteEl  = document.getElementById('ingameMorphMatchNote');
+  const textEl  = document.getElementById('ingameMorphCommand');
+
+  if (!deptId) { noteEl.textContent = ''; textEl.value = ''; return; }
+
+  const dept = rosterData[deptId];
+  const uname = (selectedPlayer || '').toLowerCase();
+  const agent = (dept?.agents || []).find(a => (a.username || '').toLowerCase() === uname);
+
+  if (!agent) {
+    noteEl.style.color = 'var(--danger)';
+    noteEl.textContent = '✕ Aucun agent trouvé pour "' + selectedPlayer + '" dans ' + (dept?.name || deptId);
+    textEl.value = '';
+    return;
+  }
+
+  const escapedUsername = agent.username.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(escapedUsername, 'g');
+  textEl.value = agent.command.replace(re, selectedPlayer);
+
+  noteEl.style.color = 'var(--safe)';
+  noteEl.textContent = '✓ Trouvé : ' + agent.name + ' (' + agent.rank + ')';
+};
 
 window.sendIngameAction = async function() {
   const msgEl = document.getElementById('ingameMsg');
   msgEl.textContent = ''; msgEl.style.color = '';
   if (!selectedPlayer)  { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Aucun joueur sélectionné.'; return; }
   if (!selectedAction)  { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Choisissez un type d\'action.'; return; }
+
+  const modName = currentUser?.displayName || currentUser?.username || '—';
+
+  if (selectedAction === 'morph') {
+    const command = document.getElementById('ingameMorphCommand').value.trim();
+    if (!command) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Aucune commande à envoyer.'; return; }
+    try {
+      await addDoc(collection(db, 'pending_actions'), {
+        target: selectedPlayer, type: 'morph', command,
+        requestedBy: modName, createdAt: new Date().toISOString(),
+      });
+      msgEl.style.color = 'var(--safe)';
+      msgEl.textContent = '✓ Morph envoyé — exécution en jeu sous 7s.';
+      addHistory('Morph appliqué → ' + selectedPlayer + ' par ' + modName);
+    } catch(e) {
+      msgEl.style.color = 'var(--danger)';
+      msgEl.textContent = '⚠ ' + e.message;
+    }
+    return;
+  }
+
   const reason = document.getElementById('ingameReason').value.trim();
   if (!reason) { msgEl.style.color='var(--danger)'; msgEl.textContent='⚠ Raison obligatoire.'; return; }
 
-  const modName = currentUser?.displayName || currentUser?.username || '—';
   const isBlacklist = selectedAction === 'blacklist';
   const actionType   = isBlacklist ? 'ban' : selectedAction;
   const duration     = actionType === 'ban' ? (isBlacklist ? 'permanent' : document.getElementById('ingameDuration').value) : '—';
 
   try {
-    // 1. Action en attente pour le script Roblox
     await addDoc(collection(db, 'pending_actions'), {
       target: selectedPlayer, type: actionType, duration, reason,
       requestedBy: modName, createdAt: new Date().toISOString(),
     });
-    // 2. Sanction visible dans l'onglet Sanctions (traçabilité)
     await addDoc(collection(db, 'sanctions'), {
       player: selectedPlayer, username: '', type: actionType === 'ban' ? 'ban' : actionType,
       reason, details: '', mod: modName, modUid: currentUser?._id || '—',
