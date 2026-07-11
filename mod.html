@@ -1363,14 +1363,16 @@ function initTabs() {
 // ── History log ──
 function addHistory(msg) {
   const el = document.getElementById('historyList');
-  if (!el) return;
-  const now = new Date();
-  const ts = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
-  const div = document.createElement('div');
-  div.className = 'hlog-item';
-  div.innerHTML = `<span>${ts}</span>${esc(msg)}`;
-  el.insertBefore(div, el.firstChild);
-  if (el.children.length > 30) el.lastChild.remove();
+  if (el) {
+    const now = new Date();
+    const ts = [now.getHours(),now.getMinutes(),now.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+    const div = document.createElement('div');
+    div.className = 'hlog-item';
+    div.innerHTML = `<span>${ts}</span>${esc(msg)}`;
+    el.insertBefore(div, el.firstChild);
+    if (el.children.length > 30) el.lastChild.remove();
+  }
+  if (currentUser) writeLogToFirebase(msg);
 }
 window.addHistory = addHistory;
 
@@ -2819,12 +2821,6 @@ async function writeLogToFirebase(msg) {
   } catch(e) { console.warn('Log write error:', e); }
 }
 
-// Override addHistory pour aussi écrire dans Firebase
-const _origAddHistory = window.addHistory;
-window.addHistory = function(msg) {
-  _origAddHistory(msg);
-  if (currentUser) writeLogToFirebase(msg);
-};
 
 // Listener temps réel
 function startLogsListen() {
