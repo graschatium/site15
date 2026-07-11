@@ -1852,6 +1852,7 @@ window.loadUsers = async function() {
   try {
     const snap = await getDocs(collection(db, 'users'));
     if (snap.empty) { el.innerHTML = '<div style="padding:14px;color:var(--text-dim);font-family:monospace;font-size:11px;">Aucun utilisateur.</div>'; return; }
+    const ROLES = ['moderateur','responsable','junior','animateur','morpheur','admin'];
     el.innerHTML = snap.docs.map(d => {
       const u = d.data();
       const isMe = d.id === currentUser?._id;
@@ -1859,6 +1860,7 @@ window.loadUsers = async function() {
       const loginId = u.username || u.name || u.email || '—';
       const hasPwd = !!u.password;
       const roleStr = u.role || 'moderateur';
+      const roleOptions = ROLES.map(r => `<option value="${r}" ${r===roleStr?'selected':''}>${r}</option>`).join('');
       return `<div class="user-row">
         <div>
           <div class="user-email">${esc(displayName)}${isMe?' <span style="font-size:9px;color:var(--text-dim)">(vous)</span>':''}</div>
@@ -1866,12 +1868,29 @@ window.loadUsers = async function() {
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span class="role-badge ${roleStr}">${roleStr}</span>
+          <select id="roleSelect-${d.id}" style="background:var(--surface2);border:1px solid var(--border2);color:var(--white);font-family:'Space Mono',monospace;font-size:10px;padding:5px 8px;outline:none;" ${isMe?'disabled title="Vous ne pouvez pas modifier votre propre rôle"':''}>
+            ${roleOptions}
+          </select>
+          <button class="btn btn-ghost btn-xs" onclick="updateUserRole('${d.id}','${esc(displayName)}')" ${isMe?'disabled':''}>✓ Changer</button>
           ${!hasPwd ? `<button class="btn btn-ghost btn-xs" onclick="setUserPassword('${d.id}','${esc(displayName)}')">🔑 Définir mdp</button>` : ''}
           ${!isMe?`<button class="btn btn-danger btn-xs" onclick="deleteUser('${d.id}','${esc(displayName)}')">Supprimer</button>`:''}
         </div>
       </div>`;
     }).join('');
   } catch(e) { el.innerHTML = '<div style="padding:14px;color:var(--danger);font-family:monospace;font-size:11px;">Erreur : '+e.message+'</div>'; }
+};
+
+window.updateUserRole = async function(uid, name) {
+  if (currentRole !== 'admin') return;
+  const select = document.getElementById('roleSelect-' + uid);
+  if (!select) return;
+  const newRole = select.value;
+  if (!confirm('Changer le rôle de ' + name + ' en "' + newRole + '" ?')) return;
+  try {
+    await setDoc(doc(db, 'users', uid), { role: newRole }, { merge: true });
+    addHistory('Rôle modifié : ' + name + ' → ' + newRole);
+    loadUsers();
+  } catch(e) { alert('Erreur : ' + e.message); }
 };
 
 window.deleteUser = async function(uid, name) {
