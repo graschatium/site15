@@ -538,6 +538,26 @@
 .ingame-duration-row.visible { display:block; }
 .ingame-empty-players { text-align:center; padding:40px; border:1px dashed var(--border); color:var(--text-dim); font-family:'Space Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; } 
 
+.mod-request-toast {
+  display:flex; gap:12px; align-items:flex-start;
+  background:var(--surface2); border:1px solid var(--border2); border-left:3px solid var(--danger);
+  padding:12px 14px; box-shadow:0 4px 20px rgba(0,0,0,0.4);
+  animation: mrt-slide-in 0.25s ease;
+}
+.mod-request-toast.morph { border-left-color: var(--thaumiel); }
+.mod-request-toast.mrt-fade { opacity:0; transition:opacity 0.4s; }
+@keyframes mrt-slide-in { from{transform:translateX(30px);opacity:0} to{transform:translateX(0);opacity:1} }
+.mrt-icon { font-size:20px; flex-shrink:0; }
+.mrt-title { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:0.15em; text-transform:uppercase; color:var(--danger); margin-bottom:3px; }
+.mod-request-toast.morph .mrt-title { color:var(--thaumiel); }
+.mrt-player { font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:700; color:var(--white); }
+.mrt-reason { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text); margin-top:4px; }
+.mrt-dismiss { background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; flex-shrink:0; }
+.mrt-dismiss:hover { color:var(--danger); }
+.help-req-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); font-family:'Space Mono',monospace; font-size:10px; }
+.help-req-row:last-child { border-bottom:none; }
+
+
     @media (max-width: 640px) {
   .btn, .page-btn, .roster-tab { min-height: 40px; }
   .form-field input, .form-field select, .form-field textarea,
@@ -551,6 +571,8 @@
   html { scroll-behavior: auto; }
   * { transition-duration: 0.01ms !important; }
 }
+
+
   </style>
 </head>
 <body>
@@ -579,6 +601,8 @@
     <div id="loadLog" style="width:260px;border-left:1px solid #161c22;padding-left:12px;display:flex;flex-direction:column;gap:5px;min-height:80px;"></div>
   </div>
 </div>
+
+<div id="modRequestToasts" style="position:fixed; top:70px; right:20px; z-index:600; display:flex; flex-direction:column; gap:10px; max-width:340px;"></div>
 
 <style>
   @keyframes grid-drift { from{background-position:0 0} to{background-position:48px 48px} }
@@ -1189,6 +1213,15 @@
       <div class="hlog" id="historyList"></div>
     </div>
     <div class="widget">
+  <div class="widget-hdr">
+    <span class="widget-title">Demandes joueurs</span>
+    <span id="helpReqCount" style="font-family:'Space Mono',monospace;font-size:9px;color:var(--danger);"></span>
+  </div>
+  <div class="widget-body" id="helpReqList" style="padding:0 14px 14px;">
+    <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text-dim);text-align:center;padding:10px;">Aucune demande</div>
+  </div>
+</div>
+    <div class="widget">
       <div class="widget-hdr"><span class="widget-title">Résumé</span></div>
       <div class="stat-grid">
         <div class="stat-box"><div class="stat-val" id="sbTotal">—</div><div class="stat-lbl">Total</div></div>
@@ -1495,7 +1528,8 @@ function showLogin() {
         startServerListen();
         startRosterListen();
         startLogsListen();
-        startLivePlayersListen(); 
+        startLivePlayersListen();
+        startHelpRequestsListen(); 
         showApp(getDisplayName(found), currentRole);
         window.hideLoadingScreen();
         return;
@@ -2333,6 +2367,82 @@ document.addEventListener('keydown', e => {
 });
 
 // ══════════════════════════════════════════════════════
+// ── DEMANDES JOUEURS (!mod / !morph) ──
+// ══════════════════════════════════════════════════════
+let unsubHelpRequests = null;
+let seenRequestIds = new Set();
+let helpRequestsInitialized = false;
+
+function startHelpRequestsListen() {
+  if (unsubHelpRequests) { unsubHelpRequests(); unsubHelpRequests = null; }
+  helpRequestsInitialized = false;
+  const q = query(collection(db, 'help_requests'), orderBy('timestamp', 'desc'));
+  unsubHelpRequests = onSnapshot(q, snap => {
+    snap.docChanges().forEach(change => {
+      if (change.type === 'added') {
+        if (!seenRequestIds.has(change.doc.id)) {
+          seenRequestIds.add(change.doc.id);
+          if (helpRequestsInitialized) {
+            showModRequestToast(change.doc.id, change.doc.data());
+          }
+        }
+      }
+    });
+    renderHelpRequestsList(snap.docs);
+    helpRequestsInitialized = true;
+  });
+}
+
+function showModRequestToast(id, data) {
+  const container = document.getElementById('modRequestToasts');
+  if (!container) return;
+  const isMorph = data.type === 'morph';
+  const div = document.createElement('div');
+  div.className = 'mod-request-toast' + (isMorph ? ' morph' : '');
+  div.id = 'toast-' + id;
+  div.innerHTML = `
+    <div class="mrt-icon">${isMorph ? '🎭' : '🆘'}</div>
+    <div style="flex:1;">
+      <div class="mrt-title">${isMorph ? 'Demande de morph' : 'Demande de modération'}</div>
+      <div class="mrt-player">${esc(data.player)}</div>
+      ${data.reason ? `<div class="mrt-reason">${esc(data.reason)}</div>` : ''}
+    </div>
+    <button class="mrt-dismiss" onclick="dismissModRequest('${id}')">✕</button>`;
+  container.prepend(div);
+  setTimeout(() => {
+    div.classList.add('mrt-fade');
+    setTimeout(() => div.remove(), 400);
+  }, 12000);
+}
+
+function renderHelpRequestsList(docs) {
+  const listEl  = document.getElementById('helpReqList');
+  const countEl = document.getElementById('helpReqCount');
+  if (!listEl) return;
+  if (countEl) countEl.textContent = docs.length ? docs.length : '';
+  if (!docs.length) {
+    listEl.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--text-dim);text-align:center;padding:10px;">Aucune demande</div>';
+    return;
+  }
+  listEl.innerHTML = docs.map(d => {
+    const r = d.data();
+    const isMorph = r.type === 'morph';
+    return `<div class="help-req-row">
+      <div>
+        <span style="color:${isMorph ? 'var(--thaumiel)' : 'var(--danger)'};">${isMorph ? '🎭' : '🆘'} ${esc(r.player)}</span>
+        ${r.reason ? `<div style="color:var(--text-dim);font-size:9px;margin-top:2px;">${esc(r.reason)}</div>` : ''}
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="dismissModRequest('${d.id}')">✓</button>
+    </div>`;
+  }).join('');
+}
+
+window.dismissModRequest = async function(id) {
+  document.getElementById('toast-' + id)?.remove();
+  try { await deleteDoc(doc(db, 'help_requests', id)); } catch(e) {}
+};
+
+// ══════════════════════════════════════════════════════
 // ── ROSTERS — Firebase ──
 // ══════════════════════════════════════════════════════
 let rosterData  = {};
@@ -2342,15 +2452,6 @@ const ROSTER_SEED = {
   security: {
     id:'security', name:'Sécurité', icon:'🔒', color:'#00d4ff',
     agents:[
-      {id:'a1',name:'"ECHO"',username:'alcbasket',rank:'[D.SE-SF] Agent de 1ère Classe',date:'13/02/2026',command:`run team alcbasket Département de la Sécurité F & permntag alcbasket "ECHO" & permrtag alcbasket [D.SE-SF] Agent de 1ère Classe & permmorph alc reset & permhat alc Vest & permhat alc holster & permhat alc kneepads & permhat alc 11515337829,11515333598 & permhat alc 15081386107 & permhat alc helmet & permhat alc 15949578750 & permhat alc 4684658997 & permmorph alcbasket DSF Cadet & startergear alcbasket laser pistol & startergear alcbasket L4 & res alcbasket`},
-      {id:'a2',name:'N.HACK',username:'momo907526',rank:'[D.SE] Cadet',date:'04/03/2026',command:`run team momo907526 Sec & permntag momo907526 N.HACK & permrtag momo907526 [D.SE] Cadet & startergear momo907526 laser pistol & permmorph momo907526 SD`},
-      {id:'a3',name:'A.MAX',username:'mrgraschat',rank:'[D.SE-DIR.] Directeur',date:'13/02/2026',command:`run team mrgraschat Département de la Sécurité F & permntag mrgraschat A.MAX & permrtag mrgraschat [D.SE-DIR.] Directeur de la Sécurité & permmorph mrgraschat Commandant & startergear mrgraschat laser pistol & startergear mrgraschat o5 & permscale mrgraschat 1.2`},
-      {id:'a4',name:'M.FRANCOIS',username:'Matheo50534',rank:'[D.SE-DSI] Cadet',date:'13/02/2026',command:`run team Matheo50534 Internal D & permntag Matheo50534 M.FRANCOIS & permrtag Matheo50534 [D.SE-DSI] Cadet & startergear Matheo50534 laser pistol & permmorph Matheo50534 ISD`},
-      {id:'a5',name:'M.NOWAK',username:'FlofloParis',rank:'[D.SE] Cadet',date:'15/02/2026',command:`run team FlofloParis Security & permntag FlofloParis M.NOWAK & permrtag FlofloParis [D.SE] Cadet & startergear FlofloParis laser pistol & permmorph FlofloParis SD`},
-      {id:'a6',name:'D.LUNE',username:'Art_mat246',rank:'[D.SE] Cadet',date:'21/02/2026',command:`run team Art_mat246 Security & permntag Art_mat246 D.LUNE & permrtag Art_mat246 [D.SE] Cadet & startergear Art_mat246 laser pistol & permmorph Art_mat246 SD`},
-      {id:'a7',name:'E.TERNON',username:'sans_argent2',rank:'[D.SE-BSI] Caporal-Chef',date:'22/02/2026',command:`run team sans_argent2 Internal & permntag sans_argent2 E.TERNON & permrtag sans_argent2 [D.SE-BSI] Caporal & startergear sans_argent2 laser pistol & permmorph sans_argent2 ISD`},
-      {id:'a8',name:'J.DEGOBERT',username:'poloman2023',rank:'[D.SE-SC] Agent 2ème cl.',date:'24/02/2026',command:`run team poloman2023 Security & permntag poloman2023 J.DEGOBERT & permrtag poloman2023 [D.SE-SC] Agent de 2ème classe & startergear poloman2023 laser pistol & permmorph poloman2023 SD`},
-      {id:'a9',name:'N.BEDIN',username:'kileurZH_1',rank:'[D.SE] Agent de 2ème Classe',date:'03/03/2026',command:`run team kileurZH_1 Security & permntag kileurZH_1 N.BEDIN & permrtag kileurZH_1 [D.SE] Agent de 2ème Classe & permmorph kileurZH_1 SD & startergear kileurZH_1 laser pistol`},
       {id:'a10',name:'Y.CREPEAU',username:'yerzits3',rank:'[D.SE] Cadet',date:'04/03/2026',command:`run team yerzits3 Security & permntag yerzits3 Y.CREPEAU & permrtag yerzits3 [D.SE] Cadet & permmorph yerzits3 SD & startergear yerzits3 laser pistol`},
     ]
   },
