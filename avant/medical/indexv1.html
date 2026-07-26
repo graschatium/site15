@@ -417,7 +417,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
   <button class="nav-tab" data-view="patients">🏥 Patients</button>
   <button class="nav-tab" data-view="evaluations">✦ Évaluations</button>
   <button class="nav-tab" data-view="rapports">📋 Rapports</button>
-  <button class="nav-tab" data-view="roster">👥 Roster</button>
+  <button class="nav-tab" data-view="roster">👥 Équipe</button>
 </nav>
 
 <div class="app-layout">
@@ -965,6 +965,9 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 </div>
 
 <script type="module">
+
+
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, collection, doc,
@@ -993,13 +996,28 @@ function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').repl
 
 // ══ PERMISSIONS ══
 // SEULS LES ADMINS PEUVENT ÉCRIRE
-function isDir() { return currentUser?.rank === 'Directeur' || currentUser?.rank === 'Directeur Adjoint'; }
+function isDir() {
+  const rank = (currentUser?.rank || '').trim().toLowerCase();
+  if (rank === 'directeur' || rank === 'directeur adjoint') return true;
+
+  const uname = (currentUser?.username || '').trim().toLowerCase();
+  const agent = agents.find(a => (a.username || '').trim().toLowerCase() === uname);
+  if (agent && (agent.grade || '').toLowerCase().includes('directeur')) return true;
+
+  // fallback : un admin peut aussi gérer le roster
+  return currentRole === 'admin';
+}
 function canWrite() { return isAuthenticated && currentRole === 'admin'; }
 function canManageRoster() { return isAuthenticated && isDir(); }
+
+// AJOUT TEMPORAIRE POUR DEBUG — à retirer une fois le problème résolu
+
+
 
 // ══ AUTH ══
 const SESSION_KEY = 'scp_med_session';
 let currentUser = null, currentRole = null, isAuthenticated = false;
+window.debugAuth = () => ({ currentUser, currentRole, isAuthenticated, agents });
 function loadSession() { try { const r = localStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
 function saveSession(u) { localStorage.setItem(SESSION_KEY, JSON.stringify(u)); }
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
