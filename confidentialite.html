@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Politique de Confidentialité — SITE-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="/ressources/favicon-32x32.png" type="image/x-icon">
+<style>
+  :root{
+    --bg: #050409;
+    --panel: #0d0b16;
+    --panel-2: #12101f;
+    --terminal: #0a0812;
+    --border: #221d38;
+    --border-soft: #171328;
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139,92,246,0.12);
+    --violet-glow: rgba(139,92,246,0.4);
+    --text: #d9d4ea;
+    --text-muted: #8b82a8;
+    --text-dim: #4d4666;
+    --green: #7ee787;
+    --amber: #f0b429;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at 50% -10%, #140f26 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    line-height: 1.65;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---- Nav (identique au reste du site) ---- */
+  nav.topbar{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+  .brand .logo{
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color: var(--violet);
+    flex-shrink:0;
+  }
+  .brand .names{ line-height: 1.25; font-family:'JetBrains Mono', monospace; }
+  .brand .eyebrow{
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .brand .netname{
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #f4f2fc;
+    text-transform: uppercase;
+  }
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap: 30px;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .nav-links a{
+    color: var(--text-muted);
+    text-decoration:none;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+  }
+  .nav-links a:hover{ color: var(--text); }
+  .nav-links a.active{
+    color: var(--violet);
+    border-bottom-color: var(--violet);
+  }
+
+  /* ---- Hero ---- */
+  .hero{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 24px 24px;
+    text-align: center;
+  }
+  .pill{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: var(--violet);
+    background: var(--violet-soft);
+    border: 1px solid rgba(139,92,246,0.35);
+    padding: 5px 14px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  h1.title{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin: 0 0 10px;
+    color: #f4f2fc;
+    text-transform: uppercase;
+  }
+  .hero .sub{
+    color: var(--text-dim);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+  }
+
+  /* ---- Card ---- */
+  .card{
+    max-width: 900px;
+    margin: 10px auto 60px;
+    background: var(--terminal);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0;
+    box-shadow: 0 40px 90px -40px rgba(0,0,0,0.7);
+    overflow: hidden;
+  }
+  .doc-ref{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 14px 40px;
+    display:flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .doc-ref span:first-child::before{
+    content:"";
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius: 50%;
+    background: var(--violet);
+    box-shadow: 0 0 8px 1px var(--violet-glow);
+    margin-right: 8px;
+  }
+
+  .toc{
+    padding: 26px 40px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .toc-links{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 6px 4px;
+    font-size: 0.85rem;
+  }
+  .toc-links a{
+    color: var(--text-muted);
+    text-decoration:none;
+    padding: 3px 4px;
+  }
+  .toc-links a:hover{ color: var(--violet); }
+  .toc-links .sep{ color: var(--text-dim); }
+
+  section.article{
+    padding: 32px 40px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 24px;
+  }
+  section.article:last-of-type{ border-bottom: none; }
+
+  .num-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width: 26px;
+    height: 26px;
+    background: var(--violet);
+    color: #0c0a16;
+    font-family:'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 0.8rem;
+    border-radius: 3px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 18px var(--violet-glow);
+  }
+  h2{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #f4f2fc;
+    margin: 0 0 14px;
+  }
+  h3{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 1.3em 0 0.5em;
+  }
+  p, li{ color: var(--text); font-size: 0.96rem; }
+  p{ margin: 0 0 12px; }
+  ul{ padding-left: 20px; margin: 0 0 12px; }
+  li{ margin-bottom: 6px; }
+  strong{ color: #f4f2fc; }
+  a{ color: var(--violet); }
+
+  table{
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.88rem;
+  }
+  th, td{
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--violet);
+    background: var(--panel);
+  }
+  td{ color: var(--text-muted); }
+
+  .data-block{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--violet);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin: 14px 0;
+  }
+  .data-block .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--violet);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display:block;
+    margin-bottom: 8px;
+  }
+  .data-block ul{ margin-bottom: 0; }
+
+  /* ---- Footer (identique au reste du site) ---- */
+  footer{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 24px 60px;
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.03em;
+    font-family:'JetBrains Mono', monospace;
+  }
+  footer a{
+    color: var(--text-muted);
+    text-decoration:none;
+    margin-left: 20px;
+    text-transform: uppercase;
+  }
+  footer a:hover{ color: var(--violet); }
+
+  @media (max-width: 600px){
+    nav.topbar{ padding: 14px 18px; flex-wrap: wrap; gap: 12px; }
+    .nav-links{ gap: 16px; order: 3; width: 100%; }
+    .hero{ padding: 40px 18px 18px; }
+    h1.title{ font-size: 1.4rem; }
+    section.article{ padding: 24px 20px; }
+    .toc, .doc-ref{ padding-left: 20px; padding-right: 20px; }
+    table{ font-size: 0.8rem; }
+    th, td{ padding: 8px; }
+    footer{ padding: 18px 18px 40px; flex-direction: column; align-items: flex-start; }
+    footer a{ margin-left: 0; margin-right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="brand">
+    <div class="logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M12 4 L18 15 L6 15 Z" stroke="currentColor" stroke-width="1.4" fill="none"/>
+      </svg>
+    </div>
+    <div class="names">
+      <div class="eyebrow">SCiPNET</div>
+      <div class="netname">SITE-15 NETWORK</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Accueil</a>
+    <a href="cgu.html">CGU</a>
+    <a class="active" href="confidentialite.html">Confidentialité</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <span class="pill">Légal</span>
+  <h1 class="title">Politique de Confidentialité</h1>
+  <p class="sub">Version applicable à compter du 29 juillet 2026</p>
+</div>
+
+<div class="card">
+
+  <div class="doc-ref">
+    <span>Réf. SITE-15/CONF</span>
+    <span>Rév. 2026-07-29</span>
+  </div>
+
+  <div class="toc">
+    <div class="label">Sommaire</div>
+    <div class="toc-links">
+      <a href="#preambule">1. Préambule</a><span class="sep">·</span>
+      <a href="#responsable">2. Responsable du traitement</a><span class="sep">·</span>
+      <a href="#donnees">3. Données collectées</a><span class="sep">·</span>
+      <a href="#finalites">4. Finalités</a><span class="sep">·</span>
+      <a href="#base-legale">5. Base légale</a><span class="sep">·</span>
+      <a href="#destinataires">6. Destinataires &amp; sous-traitants</a><span class="sep">·</span>
+      <a href="#transferts">7. Transferts hors UE</a><span class="sep">·</span>
+      <a href="#conservation">8. Durée de conservation</a><span class="sep">·</span>
+      <a href="#securite">9. Sécurité</a><span class="sep">·</span>
+      <a href="#cookies">10. Cookies &amp; traceurs</a><span class="sep">·</span>
+      <a href="#droits">11. Vos droits</a><span class="sep">·</span>
+      <a href="#modification">12. Modification</a><span class="sep">·</span>
+      <a href="#contact">13. Contact</a>
+    </div>
+  </div>
+
+  <section class="article" id="preambule">
+    <span class="num-badge">1</span>
+    <h2>Préambule</h2>
+    <p>La présente Politique de Confidentialité décrit la manière dont la communauté SITE-15 (ci-après « le Projet ») collecte, utilise et protège les données à caractère personnel des utilisateurs dans le cadre de l'utilisation du site web, de l'intranet SCiPNET, du serveur Roblox et du serveur Discord officiel (ci-après « les Services »).</p>
+    <p>Elle complète les <a href="cgu.html">Conditions Générales d'Utilisation</a> et doit être lue conjointement avec celles-ci.</p>
+  </section>
+
+  <section class="article" id="responsable">
+    <span class="num-badge">2</span>
+    <h2>Responsable du traitement</h2>
+    <p>Le traitement des données décrit dans la présente politique est réalisé sous la responsabilité de l'équipe de coordination du Projet SITE-15, joignable via le serveur Discord officiel (voir section Contact). Le Projet n'étant pas une société commerciale, ce traitement est réalisé dans le cadre associatif et bénévole de l'animation de la communauté.</p>
+  </section>
+
+  <section class="article" id="donnees">
+    <span class="num-badge">3</span>
+    <h2>Données collectées</h2>
+    <p>Dans le cadre du fonctionnement des Services, les catégories de données suivantes peuvent être collectées :</p>
+    <div class="data-block">
+      <span class="tag">Identification</span>
+      <ul>
+        <li>Nom d'utilisateur et identifiant unique Discord ;</li>
+        <li>Nom d'utilisateur et identifiant unique Roblox ;</li>
+        <li>Rôle(s) et grade(s) attribués au sein de la communauté.</li>
+      </ul>
+    </div>
+    <div class="data-block">
+      <span class="tag">Roleplay &amp; modération</span>
+      <ul>
+        <li>Dossiers de personnage, évaluations et fiches de suivi ;</li>
+        <li>Rapports d'incidents et directives internes ;</li>
+        <li>Historique de modération (avertissements, sanctions, système BJI/BRH).</li>
+      </ul>
+    </div>
+    <div class="data-block">
+      <span class="tag">Journaux techniques</span>
+      <ul>
+        <li>Journaux d'action et webhooks de modération ;</li>
+        <li>Horodatages de connexion aux outils internes (intranet, panneau d'administration).</li>
+      </ul>
+    </div>
+    <p>Aucune donnée bancaire ou de paiement n'est collectée par le Projet.</p>
+  </section>
+
+  <section class="article" id="finalites">
+    <span class="num-badge">4</span>
+    <h2>Finalités du traitement</h2>
+    <p>Les données collectées sont utilisées exclusivement aux fins suivantes :</p>
+    <ul>
+      <li>authentification et gestion des accès aux différents Services ;</li>
+      <li>attribution et suivi des rôles, grades et fonctions au sein du roleplay ;</li>
+      <li>suivi de la modération et traçabilité des sanctions, dans un souci d'équité entre les membres ;</li>
+      <li>maintien de la sécurité et prévention des abus (exploits, comptes multiples, harcèlement).</li>
+    </ul>
+    <p>Les données ne sont en aucun cas utilisées à des fins commerciales, publicitaires ou de profilage.</p>
+  </section>
+
+  <section class="article" id="base-legale">
+    <span class="num-badge">5</span>
+    <h2>Base légale</h2>
+    <p>Le traitement des données repose sur les bases légales suivantes :</p>
+    <ul>
+      <li><strong>L'exécution des CGU</strong> acceptées par l'utilisateur lors de son inscription aux Services ;</li>
+      <li><strong>L'intérêt légitime</strong> du Projet à assurer la sécurité, la modération et le bon fonctionnement de la communauté ;</li>
+      <li><strong>Le consentement</strong>, lorsque l'utilisateur choisit volontairement de renseigner des informations complémentaires (ex. contenu d'un dossier de personnage).</li>
+    </ul>
+  </section>
+
+  <section class="article" id="destinataires">
+    <span class="num-badge">6</span>
+    <h2>Destinataires et sous-traitants</h2>
+    <p>Les données sont accessibles uniquement aux membres de l'équipe de coordination et de modération habilités, dans la limite de leurs fonctions respectives. Le Projet a recours aux prestataires tiers suivants pour l'hébergement et le fonctionnement technique des Services :</p>
+    <table>
+      <tr><th>Prestataire</th><th>Rôle</th></tr>
+      <tr><td>Firebase (Google)</td><td>Hébergement et stockage des données du roleplay, de l'intranet et des outils de modération</td></tr>
+      <tr><td>Discord Inc.</td><td>Authentification, communication et gestion des rôles communautaires</td></tr>
+      <tr><td>Roblox Corporation</td><td>Hébergement du serveur de jeu et des interactions en jeu</td></tr>
+    </table>
+    <p>Ces prestataires disposent de leurs propres politiques de confidentialité, que l'utilisateur est invité à consulter directement. Le Projet ne vend ni ne loue aucune donnée à des tiers.</p>
+  </section>
+
+  <section class="article" id="transferts">
+    <span class="num-badge">7</span>
+    <h2>Transferts hors Union Européenne</h2>
+    <p>Les prestataires mentionnés ci-dessus (Firebase, Discord, Roblox) peuvent héberger des données en dehors de l'Union Européenne, notamment aux États-Unis. Ces prestataires s'appuient sur des mécanismes de transfert encadrés par la réglementation applicable (clauses contractuelles types ou équivalent). Le Projet ne procède lui-même à aucun transfert additionnel de données vers des tiers non mentionnés dans la présente politique.</p>
+  </section>
+
+  <section class="article" id="conservation">
+    <span class="num-badge">8</span>
+    <h2>Durée de conservation</h2>
+    <p>Les données sont conservées pendant la durée de participation active de l'utilisateur aux Services. Les données liées à un historique de modération (sanctions, rapports BJI/BRH) peuvent être conservées au-delà de cette période, pour une durée raisonnable, à des fins de traçabilité et de prévention de la récidive. Un utilisateur peut demander la suppression anticipée de ses données dans les conditions décrites à la section « Vos droits ».</p>
+  </section>
+
+  <section class="article" id="securite">
+    <span class="num-badge">9</span>
+    <h2>Sécurité des données</h2>
+    <p>L'équipe du Projet met en œuvre des mesures raisonnables pour protéger les données contre les accès non autorisés, la perte ou l'altération, notamment via la restriction des accès aux outils internes selon le rôle de chaque membre de l'équipe. Toutefois, aucun système n'étant infaillible, le Projet ne peut garantir une sécurité absolue et invite les utilisateurs à signaler toute faille ou incident suspecté via la section Contact.</p>
+  </section>
+
+  <section class="article" id="cookies">
+    <span class="num-badge">10</span>
+    <h2>Cookies et traceurs</h2>
+    <p>Le site web et l'intranet SITE-15 n'utilisent pas de cookies publicitaires ou de traceurs à des fins de suivi commercial. Des éléments techniques strictement nécessaires au fonctionnement des outils (ex. maintien de session sur l'intranet) peuvent être utilisés ; ils ne sont pas partagés avec des tiers à des fins publicitaires.</p>
+  </section>
+
+  <section class="article" id="droits">
+    <span class="num-badge">11</span>
+    <h2>Vos droits</h2>
+    <p>Conformément à la réglementation applicable en matière de protection des données personnelles, tout utilisateur dispose des droits suivants sur les données le concernant :</p>
+    <ul>
+      <li><strong>Droit d'accès</strong> : obtenir la confirmation que ses données sont traitées et en obtenir une copie ;</li>
+      <li><strong>Droit de rectification</strong> : corriger des données inexactes ou incomplètes ;</li>
+      <li><strong>Droit à l'effacement</strong> : demander la suppression de ses données, sous réserve des obligations de conservation liées à la modération ;</li>
+      <li><strong>Droit d'opposition</strong> : s'opposer, pour motif légitime, à un traitement particulier.</li>
+    </ul>
+    <p>Ces droits peuvent être exercés en contactant l'équipe de coordination via le serveur Discord officiel (voir section Contact). Une réponse sera apportée dans un délai raisonnable.</p>
+  </section>
+
+  <section class="article" id="modification">
+    <span class="num-badge">12</span>
+    <h2>Modification de la politique</h2>
+    <p>La présente Politique de Confidentialité peut être modifiée à tout moment afin de refléter l'évolution des Services ou de la réglementation applicable. Toute modification substantielle fera l'objet d'une annonce sur le serveur Discord officiel. La poursuite de l'utilisation des Services après modification vaut acceptation de la nouvelle version.</p>
+  </section>
+
+  <section class="article" id="contact">
+    <span class="num-badge">13</span>
+    <h2>Contact</h2>
+    <p>Pour toute question relative à la présente politique ou à l'exercice de vos droits sur vos données personnelles, vous pouvez contacter l'équipe de coordination du Projet via le serveur Discord officiel de SITE-15.</p>
+  </section>
+
+</div>
+
+<footer>
+  <span>Copyright © 2026 SITE-15, tout droit réservé</span>
+  <span>
+    <a href="index.html">Accueil</a><a href="cgu.html">CGU</a>
+  </span>
+</footer>
+
+</body>
+</html>
