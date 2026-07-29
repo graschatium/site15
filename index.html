@@ -324,7 +324,7 @@
       <span class="caret" aria-hidden="true"></span>
     </form>
   </div>
-  <p class="tip">Astuce : tapez <span class="cmd">help</span> pour la liste des commandes, ou <span class="cmd">intranet</span> pour voir les départements connectés.</p>
+  <p class="tip">Astuce : tapez <span class="cmd">help</span> pour la liste des commandes, <span class="cmd">intranet</span> pour les départements, ou <span class="cmd">discord</span> pour rejoindre le serveur.</p>
 </div>
 
 <footer>
@@ -381,7 +381,11 @@
       line('Commandes disponibles :');
       line('&nbsp;&nbsp;<span class="cmd">help</span> — affiche cette liste');
       line('&nbsp;&nbsp;<span class="cmd">intranet</span> — liste les départements en ligne');
+      line('&nbsp;&nbsp;<span class="cmd">discord</span> — lien d\'invitation au serveur Discord');
       line('&nbsp;&nbsp;<span class="cmd">clear</span> — efface le terminal');
+    } else if(cmd === 'discord'){
+      line('Rejoignez le serveur Discord officiel de SITE-15 :');
+      line('&nbsp;&nbsp;<a href="https://discord.gg/site15" target="_blank" rel="noopener" class="accent">discord.gg/site15</a>');
     } else if(cmd === 'intranet'){
       line('Départements connectés à l\'intranet SITE-15 :');
       departements.forEach(d => line('&nbsp;&nbsp;<a href="/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
