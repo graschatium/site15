@@ -23,6 +23,7 @@
     --text-dim: #4d4666;
     --green: #7ee787;
     --amber: #f0b429;
+    --red: #e5555f;
   }
   *{ box-sizing: border-box; }
   html{ scroll-behavior: smooth; }
@@ -37,7 +38,7 @@
   }
   .mono{ font-family:'JetBrains Mono', monospace; }
 
-  /* ---- Nav (identique à l'accueil) ---- */
+  /* ---- Nav ---- */
   nav.topbar{
     display:flex;
     align-items:center;
@@ -45,90 +46,35 @@
     padding: 18px 40px;
     border-bottom: 1px solid var(--border);
   }
-  .brand{
-    display:flex;
-    align-items:center;
-    gap: 12px;
-  }
+  .brand{ display:flex; align-items:center; gap: 12px; }
   .brand .logo{
     width: 34px; height: 34px;
     border: 1px solid var(--border);
     border-radius: 50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color: var(--violet);
-    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--violet); flex-shrink:0;
   }
   .brand .names{ line-height: 1.25; font-family:'JetBrains Mono', monospace; }
-  .brand .eyebrow{
-    font-size: 0.62rem;
-    letter-spacing: 0.22em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-  }
-  .brand .netname{
-    font-size: 0.92rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    color: #f4f2fc;
-    text-transform: uppercase;
-  }
-  .nav-links{
-    display:flex;
-    align-items:center;
-    gap: 30px;
-    font-size: 0.78rem;
-    letter-spacing: 0.1em;
-    font-family:'JetBrains Mono', monospace;
-  }
-  .nav-links a{
-    color: var(--text-muted);
-    text-decoration:none;
-    text-transform: uppercase;
-    padding-bottom: 4px;
-    border-bottom: 2px solid transparent;
-  }
+  .brand .eyebrow{ font-size: 0.62rem; letter-spacing: 0.22em; color: var(--text-dim); text-transform: uppercase; }
+  .brand .netname{ font-size: 0.92rem; font-weight: 800; letter-spacing: 0.06em; color: #f4f2fc; text-transform: uppercase; }
+  .nav-links{ display:flex; align-items:center; gap: 30px; font-size: 0.78rem; letter-spacing: 0.1em; font-family:'JetBrains Mono', monospace; }
+  .nav-links a{ color: var(--text-muted); text-decoration:none; text-transform: uppercase; padding-bottom: 4px; border-bottom: 2px solid transparent; }
   .nav-links a:hover{ color: var(--text); }
-  .nav-links a.active{
-    color: var(--violet);
-    border-bottom-color: var(--violet);
-  }
+  .nav-links a.active{ color: var(--violet); border-bottom-color: var(--violet); }
 
   /* ---- Hero ---- */
-  .hero{
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 60px 24px 24px;
-    text-align: center;
-  }
+  .hero{ max-width: 900px; margin: 0 auto; padding: 60px 24px 24px; text-align: center; }
   .pill{
-    display:inline-block;
-    font-family:'JetBrains Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.16em;
-    color: var(--violet);
-    background: var(--violet-soft);
-    border: 1px solid rgba(139,92,246,0.35);
-    padding: 5px 14px;
-    border-radius: 2px;
-    margin-bottom: 20px;
-    text-transform: uppercase;
+    display:inline-block; font-family:'JetBrains Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.16em; color: var(--violet); background: var(--violet-soft);
+    border: 1px solid rgba(139,92,246,0.35); padding: 5px 14px; border-radius: 2px;
+    margin-bottom: 20px; text-transform: uppercase;
   }
   h1.title{
-    font-family:'JetBrains Mono', monospace;
-    font-size: 2rem;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    margin: 0 0 10px;
-    color: #f4f2fc;
-    text-transform: uppercase;
+    font-family:'JetBrains Mono', monospace; font-size: 2rem; font-weight: 800;
+    letter-spacing: 0.02em; margin: 0 0 10px; color: #f4f2fc; text-transform: uppercase;
   }
-  .hero .sub{
-    color: var(--text-dim);
-    font-family:'JetBrains Mono', monospace;
-    font-size: 0.82rem;
-  }
+  .hero .sub{ color: var(--text-dim); font-family:'JetBrains Mono', monospace; font-size: 0.82rem; }
 
   /* ---- Card ---- */
   .card{
@@ -222,14 +168,19 @@
   }
   h3{
     font-family:'JetBrains Mono', monospace;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: var(--text-muted);
-    margin: 1.3em 0 0.5em;
+    color: var(--violet);
+    margin: 1.6em 0 0.6em;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-soft);
   }
+  h3:first-of-type{ border-top: none; padding-top: 0; margin-top: 0.4em; }
   p, li{ color: var(--text); font-size: 0.96rem; }
   p{ margin: 0 0 12px; }
+  p.preamble{ color: var(--text-muted); font-style: italic; }
+  p.conclusion{ color: var(--text-muted); font-size: 0.9rem; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
   ul{ padding-left: 20px; margin: 0 0 12px; }
   li{ margin-bottom: 6px; }
   strong{ color: #f4f2fc; }
@@ -254,7 +205,52 @@
   }
   .data-block ul{ margin-bottom: 0; }
 
-  /* ---- Footer (identique à l'accueil) ---- */
+  .sanctions{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0;
+  }
+  .sanctions span{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: var(--panel);
+  }
+  .sanctions span:nth-child(1){ border-color: rgba(126,231,135,0.35); color: var(--green); }
+  .sanctions span:nth-child(2){ border-color: rgba(240,180,41,0.35); color: var(--amber); }
+  .sanctions span:nth-child(3){ border-color: rgba(240,180,41,0.35); color: var(--amber); }
+  .sanctions span:nth-child(4){ border-color: rgba(229,85,95,0.35); color: var(--red); }
+
+  .annexe-item{
+    border-bottom: 1px solid var(--border-soft);
+    padding: 10px 0;
+  }
+  .annexe-item:last-child{ border-bottom: none; }
+  .annexe-item .name{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--violet);
+    letter-spacing: 0.03em;
+    display:block;
+    margin-bottom: 3px;
+  }
+  .annexe-item .def{ color: var(--text-muted); font-size: 0.9rem; }
+
+  .note-tos{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 16px;
+  }
+  .note-tos a{ color: var(--violet); }
+
+  /* ---- Footer ---- */
   footer{
     max-width: 900px;
     margin: 0 auto;
@@ -269,12 +265,7 @@
     letter-spacing: 0.03em;
     font-family:'JetBrains Mono', monospace;
   }
-  footer a{
-    color: var(--text-muted);
-    text-decoration:none;
-    margin-left: 20px;
-    text-transform: uppercase;
-  }
+  footer a{ color: var(--text-muted); text-decoration:none; margin-left: 20px; text-transform: uppercase; }
   footer a:hover{ color: var(--violet); }
 
   @media (max-width: 600px){
@@ -308,6 +299,7 @@
     <a href="index.html">Accueil</a>
     <a class="active" href="cgu.html">CGU</a>
     <a href="confidentialite.html">Confidentialité</a>
+    <a href="statut.html">Statut</a>
   </div>
 </nav>
 
@@ -330,15 +322,16 @@
       <a href="#objet">1. Objet</a><span class="sep">·</span>
       <a href="#nature">2. Nature du projet</a><span class="sep">·</span>
       <a href="#acces">3. Accès</a><span class="sep">·</span>
-      <a href="#conduite">4. Règles de conduite</a><span class="sep">·</span>
-      <a href="#moderation">5. Modération</a><span class="sep">·</span>
-      <a href="#propriete">6. Propriété intellectuelle</a><span class="sep">·</span>
-      <a href="#donnees">7. Données personnelles</a><span class="sep">·</span>
-      <a href="#disponibilite">8. Disponibilité</a><span class="sep">·</span>
-      <a href="#responsabilite">9. Responsabilité</a><span class="sep">·</span>
-      <a href="#contact">10. Contact</a><span class="sep">·</span>
-      <a href="#modification">11. Modification</a><span class="sep">·</span>
-      <a href="#droit">12. Droit applicable</a>
+      <a href="#discord">4. Règlement Discord</a><span class="sep">·</span>
+      <a href="#roleplay">5. Règlement du serveur de jeu</a><span class="sep">·</span>
+      <a href="#moderation">6. Modération et sanctions</a><span class="sep">·</span>
+      <a href="#propriete">7. Propriété intellectuelle</a><span class="sep">·</span>
+      <a href="#donnees">8. Données personnelles</a><span class="sep">·</span>
+      <a href="#disponibilite">9. Disponibilité</a><span class="sep">·</span>
+      <a href="#responsabilite">10. Responsabilité</a><span class="sep">·</span>
+      <a href="#contact">11. Contact</a><span class="sep">·</span>
+      <a href="#modification">12. Modification</a><span class="sep">·</span>
+      <a href="#droit">13. Droit applicable</a>
     </div>
   </div>
 
@@ -347,11 +340,11 @@
     <h2>Objet</h2>
     <p>Les présentes Conditions Générales d'Utilisation (ci-après « CGU ») définissent les modalités d'accès et d'utilisation des services proposés par la communauté SITE-15, projet officiel réunissant :</p>
     <ul>
-      <li>le site web et l'intranet SITE-15 (panneau d'administration, intranet médical, statuspage, et tout autre outil associé) ;</li>
+      <li>le site web et l'intranet SITE-15 (panneau d'administration, intranet, statuspage, et tout autre outil associé) ;</li>
       <li>le serveur de jeu Roblox SITE-15 ;</li>
       <li>le serveur Discord officiel de la communauté.</li>
     </ul>
-    <p>Ces trois services sont désignés ensemble comme « les Services ». L'utilisation des Services implique l'acceptation pleine et entière des présentes CGU.</p>
+    <p>Ces trois services sont désignés ensemble comme « les Services ». L'utilisation des Services implique l'acceptation pleine et entière des présentes CGU, ainsi que des règlements spécifiques au serveur Discord et au serveur de jeu détaillés ci-après.</p>
   </section>
 
   <section class="article" id="nature">
@@ -371,76 +364,201 @@
     <p>Chaque utilisateur est responsable de la confidentialité de ses identifiants et des actions réalisées depuis son compte. Toute usurpation d'identité ou partage de compte est interdit.</p>
   </section>
 
-  <section class="article" id="conduite">
+  <section class="article" id="discord">
     <span class="num-badge">4</span>
-    <h2>Règles de conduite</h2>
-    <p>En rejoignant les Services, l'utilisateur s'engage à :</p>
+    <h2>Règlement Discord — Règles et Contrat de Jeu</h2>
+    <p class="preamble">Préambule : ce règlement vise à garantir un espace sûr, respectueux et bien organisé pour tous les membres. En restant sur le serveur Discord, tu acceptes d'en respecter les règles.</p>
+
+    <h3>4.1 Comportement général</h3>
     <ul>
-      <li>respecter les autres membres, sans propos discriminatoires, haineux, ou harcelants ;</li>
-      <li>ne pas perturber volontairement le roleplay ou les événements en cours (« griefing », métagaming abusif, etc.) ;</li>
-      <li>ne pas exploiter de failles techniques, scripts non autorisés (« exploits »), ou outils tiers pour obtenir un avantage ;</li>
-      <li>ne pas diffuser de contenu illégal, violent de manière gratuite, ou à caractère sexuel ;</li>
-      <li>respecter les décisions de l'équipe de modération et les consignes spécifiques à chaque événement.</li>
+      <li>Chaque membre doit adopter une attitude professionnelle, respectueuse et bienveillante.</li>
+      <li>Les insultes, moqueries, harcèlement, humiliations ou provocations répétées sont strictement interdites.</li>
+      <li>Toute forme de discrimination (racisme, sexisme, homophobie, transphobie, haine religieuse, stigmatisation liée au handicap) est prohibée.</li>
+      <li>Les conflits personnels doivent être réglés en privé ou avec un modérateur. Les drames publics ne sont pas tolérés.</li>
     </ul>
-    <p>Le non-respect de ces règles peut entraîner un avertissement, une exclusion temporaire, ou un bannissement définitif des Services, à la discrétion de l'équipe de modération.</p>
+
+    <h3>4.2 Contenu et messages</h3>
+    <ul>
+      <li>Il est strictement interdit de partager des contenus violents, gore ou explicites.</li>
+      <li>Toute pornographie ou contenu sexuel est interdit.</li>
+      <li>L'apologie de la violence, du crime ou de la haine est prohibée.</li>
+      <li>Les contenus illégaux (piratage, arnaques, doxxing, etc.) sont strictement interdits.</li>
+      <li>Le spam est interdit (répétitions excessives, copié-collé massif, abus d'emojis, messages perturbateurs).</li>
+      <li>Toute publicité est interdite sans autorisation préalable du staff.</li>
+    </ul>
+
+    <h3>4.3 Salons textuels et vocaux</h3>
+    <ul>
+      <li>Chaque message doit être posté dans le salon approprié.</li>
+      <li>Le hors-sujet répété sera sanctionné.</li>
+      <li>Les messages doivent rester clairs et lisibles.</li>
+      <li>Les messages écrits entièrement en majuscules ou volontairement confus sont à éviter.</li>
+      <li>Les cris et bruits parasites volontaires sont interdits.</li>
+      <li>La musique saturée ou dérangeante est interdite.</li>
+      <li>Les interruptions systématiques ne sont pas tolérées.</li>
+      <li>Il est interdit d'enregistrer des conversations sans l'accord des participants.</li>
+      <li>Les pseudos et avatars doivent être respectueux et appropriés.</li>
+    </ul>
+
+    <h3>4.4 Sécurité et confidentialité</h3>
+    <ul>
+      <li>Le partage d'informations privées (adresse, numéro, photos personnelles, etc.) sans consentement explicite est strictement interdit sous peine de sévères sanctions.</li>
+      <li>Toute tentative de doxxing, de chantage ou de menace entraînera un bannissement immédiat.</li>
+    </ul>
+
+    <p class="conclusion">Ce règlement garantit une communauté saine, structurée et agréable. En restant sur ce serveur, tu acceptes de le respecter et d'en assumer les conséquences en cas de manquement.</p>
+  </section>
+
+  <section class="article" id="roleplay">
+    <span class="num-badge">5</span>
+    <h2>Règlement du serveur de jeu — Roleplay</h2>
+    <p class="preamble">Préambule : ce règlement encadre le Roleplay SCP afin de garantir une expérience immersive, cohérente et respectueuse. En participant au RP, tu t'engages à respecter ces règles et à jouer sérieusement ton rôle.</p>
+
+    <h3>5.1 Comportement en roleplay</h3>
+    <ul>
+      <li>Tout joueur doit respecter les autres, en RP comme en HRP (hors roleplay).</li>
+      <li>Le troll, le harcèlement et le sabotage volontaire du RP sont strictement interdits, et punissables d'un bannissement définitif du serveur et de ses services annexes.</li>
+      <li>Les conflits doivent être réglés calmement, prioritairement en HRP avec un membre du staff si nécessaire.</li>
+      <li>Toute discrimination est formellement prohibée.</li>
+    </ul>
+
+    <h3>5.2 Règles de roleplay (RP)</h3>
+    <p>D'autres règles, accompagnées de leur définition, figurent dans l'<a href="#annexe1">Annexe 1</a>.</p>
+    <ul>
+      <li>Le Fear RP doit être respecté : ton personnage doit réagir de manière réaliste face au danger.</li>
+      <li>Le Metagaming est interdit (utiliser des informations HRP en RP).</li>
+      <li>Le Powergaming est interdit (forcer une action sans laisser de possibilité de réaction).</li>
+      <li>Le Free-Kill est interdit (tuer sans raison RP valable).</li>
+      <li>Le Mass RP doit rester cohérent et encadré par le staff si nécessaire.</li>
+      <li>Le Chicken-Run est strictement interdit.</li>
+      <li>Le Combat-Logging est interdit.</li>
+      <li>Le Cuff/Detain Abuse est interdit.</li>
+      <li>Le Revenge-Kill est interdit.</li>
+    </ul>
+
+    <h3>5.3 Rôles et structure SCP</h3>
+    <ul>
+      <li>Chaque joueur doit respecter le rôle qu'il incarne (Classe D, Scientifique, MTF, Garde, etc.).</li>
+      <li>Il est interdit de changer de comportement RP sans justification cohérente.</li>
+      <li>Les SCP doivent suivre leurs comportements établis (selon le lore et les règles du serveur).</li>
+      <li>Les membres du personnel doivent agir de manière professionnelle en RP.</li>
+    </ul>
+
+    <h3>5.4 Combat et situations à risque</h3>
+    <ul>
+      <li>Toute utilisation de la force doit être justifiée en RP.</li>
+      <li>Les raids, évasions et incursions doivent être crédibles et encadrés.</li>
+      <li>Il est interdit d'abuser des mécaniques du jeu pour obtenir un avantage déloyal.</li>
+      <li>Le retour immédiat sur une scène après une mort RP (revenge kill) est interdit.</li>
+    </ul>
+
+    <h3>5.5 Sécurité et informations</h3>
+    <ul>
+      <li>Il est interdit de partager des informations personnelles d'autres joueurs.</li>
+      <li>Toute menace, doxxing ou chantage entraînera un bannissement immédiat.</li>
+      <li>Les enregistrements vocaux sans consentement sont interdits.</li>
+      <li>Le respect de la vie privée est obligatoire.</li>
+      <li>Les décisions du staff doivent être respectées.</li>
+      <li>Toute contestation doit se faire en ticket ou en privé, calmement.</li>
+    </ul>
+
+    <h3>5.6 Sanctions possibles</h3>
+    <p>Selon la gravité du manquement :</p>
+    <div class="sanctions">
+      <span>Avertissement</span>
+      <span>Mute RP temporaire</span>
+      <span>Mute RP définitif</span>
+      <span>Kick</span>
+      <span>Bannissement temporaire</span>
+      <span>Bannissement définitif</span>
+    </div>
+
+    <h3 id="annexe1">5.7 Annexe 1 — Définitions</h3>
+    <p>Liste non exhaustive des raisons plausibles de sanction :</p>
+    <div class="data-block">
+      <div class="annexe-item">
+        <span class="name">No Pain</span>
+        <span class="def">Ton personnage doit ressentir et réagir à la douleur. Tu ne peux pas ignorer des blessures ou des situations dangereuses.</span>
+      </div>
+      <div class="annexe-item">
+        <span class="name">No Reset en situation RP</span>
+        <span class="def">Il est interdit de reset pour échapper à une scène RP, une arrestation, une capture ou une mort RP en cours.</span>
+      </div>
+      <div class="annexe-item">
+        <span class="name">Chicken Run interdit</span>
+        <span class="def">Fuir sans raison logique face à une menace claire et crédible (armes pointées, encerclement, etc.) est interdit.</span>
+      </div>
+      <div class="annexe-item">
+        <span class="name">No Combat Logging</span>
+        <span class="def">Quitter volontairement le jeu pour éviter une scène RP, un combat ou une sanction RP est strictement prohibé.</span>
+      </div>
+      <div class="annexe-item">
+        <span class="name">No Gear Abuse</span>
+        <span class="def">Il est interdit d'abuser des mécaniques, bugs ou objets du jeu pour obtenir un avantage RP.</span>
+      </div>
+      <div class="annexe-item">
+        <span class="name">No Fail RP</span>
+        <span class="def">Toute action irréaliste, incohérente ou contraire au bon sens dans une situation dangereuse est interdite.</span>
+      </div>
+      <div class="annexe-item">
+        <span class="name">No Revenge Kill</span>
+        <span class="def">Revenir immédiatement pour se venger après une mort RP est interdit.</span>
+      </div>
+      <div class="annexe-item">
+        <span class="name">No Random Arrest / No Random Kill</span>
+        <span class="def">Toute arrestation ou élimination doit être justifiée par une raison RP valable.</span>
+      </div>
+    </div>
+
+    <p class="conclusion">Ce règlement garantit une communauté saine, structurée et agréable. En restant sur ce serveur, tu acceptes de le respecter et d'en assumer les conséquences en cas de manquement.</p>
+    <p class="note-tos">Note : rappelle-toi de toujours suivre les <a href="https://en.help.roblox.com/hc/en-us/articles/115004647846" target="_blank" rel="noopener">Conditions Générales (ToS) de Roblox</a>.</p>
   </section>
 
   <section class="article" id="moderation">
-    <span class="num-badge">5</span>
+    <span class="num-badge">6</span>
     <h2>Modération et sanctions</h2>
-    <p>L'équipe de modération de SITE-15 dispose d'un pouvoir discrétionnaire pour faire appliquer les présentes CGU. Les sanctions peuvent être consignées dans les outils internes de suivi (notamment le système BJI/BRH et les rapports de modération) à des fins de traçabilité et d'équité entre les membres. Un utilisateur sanctionné peut demander des explications ou contester une décision auprès de la coordination du projet.</p>
+    <p>L'équipe de modération de SITE-15 dispose d'un pouvoir discrétionnaire pour faire appliquer les présentes CGU ainsi que les règlements Discord et Roleplay décrits ci-dessus. Les sanctions peuvent être consignées dans les outils internes de suivi (notamment le système BJI/BRH et les rapports de modération) à des fins de traçabilité et d'équité entre les membres. Un utilisateur sanctionné peut demander des explications ou contester une décision auprès de la coordination du projet.</p>
   </section>
 
   <section class="article" id="propriete">
-    <span class="num-badge">6</span>
+    <span class="num-badge">7</span>
     <h2>Propriété intellectuelle</h2>
     <p>L'ensemble des contenus présents sur les Services (scripts, textes de lore, dossiers de personnages, visuels, outils web et intranet) constitue des œuvres de l'esprit protégées à ce titre par l'article L.111-1 du Code de la propriété intellectuelle, qui confère à leur auteur un droit de propriété exclusif et opposable à tous. Ces contenus restent la propriété de leurs auteurs respectifs au sein de la communauté, sous réserve du respect des licences Creative Commons applicables à l'univers SCP Foundation.</p>
     <p>Toute reproduction, redistribution, modification ou exploitation commerciale des outils, scripts ou contenus du projet sans autorisation préalable est interdite, sous peine des sanctions prévues par la législation en vigueur.</p>
   </section>
 
   <section class="article" id="donnees">
-    <span class="num-badge">7</span>
+    <span class="num-badge">8</span>
     <h2>Données personnelles</h2>
-    <p>Dans le cadre du fonctionnement des Services, certaines données sont collectées et stockées via la plateforme Firebase (Google) :</p>
-    <div class="data-block">
-      <span class="tag">Données collectées</span>
-      <ul>
-        <li><strong>Identifiants Discord</strong> (nom d'utilisateur, identifiant unique) utilisés pour l'authentification et la gestion des rôles ;</li>
-        <li><strong>Données liées au roleplay</strong> : dossiers de personnages, évaluations, rapports d'incidents, directives, historique de modération (BJI/BRH) ;</li>
-        <li><strong>Journaux d'action</strong> à des fins de modération et de sécurité (ex. webhooks de modération, historique des sanctions).</li>
-      </ul>
-    </div>
-    <p>Ces données sont utilisées exclusivement dans le cadre du fonctionnement interne de la communauté (gestion des accès, suivi du roleplay, modération) et ne sont ni vendues ni transmises à des tiers à des fins commerciales.</p>
-    <p>Conformément à la réglementation applicable en matière de protection des données, tout utilisateur peut demander l'accès, la rectification ou la suppression des données le concernant en contactant l'équipe de coordination du projet (voir section Contact).</p>
-    <p>Les données sont conservées pour la durée de participation active de l'utilisateur à la communauté, sauf obligation de conservation liée à un historique de modération.</p>
+    <p>Dans le cadre du fonctionnement des Services, certaines données sont collectées et stockées via la plateforme Firebase (Google). Le détail des données collectées, des finalités et de vos droits est décrit dans notre <a href="confidentialite.html">Politique de Confidentialité</a>, qui fait partie intégrante des présentes CGU.</p>
   </section>
 
   <section class="article" id="disponibilite">
-    <span class="num-badge">8</span>
+    <span class="num-badge">9</span>
     <h2>Disponibilité des services</h2>
-    <p>Les Services sont fournis « en l'état », sans garantie de disponibilité continue. Des interruptions peuvent survenir pour maintenance, mise à jour, ou en raison de limitations propres aux plateformes tierces (Roblox, Discord, Firebase). L'équipe du projet ne saurait être tenue responsable des pertes de données ou d'accès résultant de ces interruptions.</p>
+    <p>Les Services sont fournis « en l'état », sans garantie de disponibilité continue. Des interruptions peuvent survenir pour maintenance, mise à jour, ou en raison de limitations propres aux plateformes tierces (Roblox, Discord, Firebase). L'équipe du projet ne saurait être tenue responsable des pertes de données ou d'accès résultant de ces interruptions. L'état des services est consultable sur la <a href="statut.html">page de statut</a>.</p>
   </section>
 
   <section class="article" id="responsabilite">
-    <span class="num-badge">9</span>
+    <span class="num-badge">10</span>
     <h2>Limitation de responsabilité</h2>
     <p>L'équipe organisatrice de SITE-15 ne pourra être tenue responsable des dommages directs ou indirects résultant de l'utilisation des Services, y compris ceux liés à des bugs, pertes de progression, ou comportements d'autres utilisateurs.</p>
   </section>
 
   <section class="article" id="contact">
-    <span class="num-badge">10</span>
+    <span class="num-badge">11</span>
     <h2>Contact</h2>
-    <p>Pour toute question relative aux présentes CGU, à la modération, ou à l'exercice de vos droits sur vos données, vous pouvez contacter l'équipe de coordination via le serveur Discord officiel de SITE-15.</p>
+    <p>Pour toute question relative aux présentes CGU, aux règlements Discord et Roleplay, à la modération, ou à l'exercice de vos droits sur vos données, vous pouvez contacter l'équipe de coordination via le serveur Discord officiel de SITE-15.</p>
   </section>
 
   <section class="article" id="modification">
-    <span class="num-badge">11</span>
+    <span class="num-badge">12</span>
     <h2>Modification des CGU</h2>
     <p>Les présentes CGU peuvent être modifiées à tout moment afin de refléter l'évolution des Services. Les utilisateurs seront informés de toute modification substantielle via une annonce sur le serveur Discord. La poursuite de l'utilisation des Services après modification vaut acceptation des nouvelles CGU.</p>
   </section>
 
   <section class="article" id="droit">
-    <span class="num-badge">12</span>
+    <span class="num-badge">13</span>
     <h2>Droit applicable</h2>
     <p>Les présentes CGU sont établies dans le cadre du projet officiel SITE-15. En cas de litige, une résolution amiable sera privilégiée en priorité au sein de l'équipe de coordination du projet.</p>
   </section>
