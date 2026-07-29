@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conditions Générales d'Utilisation — SITE-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #050409;
+    --panel: #121022;
+    --panel-2: #181530;
+    --border: #2a2545;
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139,92,246,0.14);
+    --violet-glow: rgba(139,92,246,0.35);
+    --text: #e7e3f7;
+    --text-muted: #9b93b8;
+    --text-dim: #635b82;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at 50% 0%, #150f28 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    line-height: 1.65;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---- Top nav ---- */
+  nav.topbar{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 22px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  nav.topbar a.back{
+    color: var(--text-muted);
+    text-decoration:none;
+    font-size: 0.9rem;
+  }
+  nav.topbar a.back:hover{ color: var(--text); }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .brand .badge{
+    background: var(--violet);
+    color: #0c0a16;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  /* ---- Hero ---- */
+  .hero{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 70px 24px 30px;
+    text-align: center;
+  }
+  .pill{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    color: var(--violet);
+    background: var(--violet-soft);
+    border: 1px solid rgba(139,92,246,0.35);
+    padding: 5px 14px;
+    border-radius: 2px;
+    margin-bottom: 22px;
+  }
+  h1.title{
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin: 0 0 12px;
+    color: #f4f2fc;
+    letter-spacing: -0.01em;
+  }
+  .hero .sub{
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+
+  /* ---- Card ---- */
+  .card{
+    max-width: 900px;
+    margin: 10px auto 90px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--violet);
+    border-radius: 4px;
+    padding: 8px 0 0;
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,0.6);
+  }
+  .doc-ref{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 14px 40px 0;
+    display:flex;
+    justify-content: space-between;
+  }
+  .doc-ref span:first-child::before{
+    content:"";
+    display:inline-block;
+    width:6px; height:6px;
+    background: var(--violet);
+    box-shadow: 0 0 8px 1px var(--violet-glow);
+    margin-right: 8px;
+  }
+
+  .toc{
+    padding: 28px 40px 26px;
+    border-bottom: 1px solid var(--border);
+  }
+  .toc .label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .toc-links{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 6px 4px;
+    font-size: 0.85rem;
+  }
+  .toc-links a{
+    color: var(--text-muted);
+    text-decoration:none;
+    padding: 3px 4px;
+  }
+  .toc-links a:hover{ color: var(--violet); }
+  .toc-links .sep{ color: var(--text-dim); }
+
+  section.article{
+    padding: 34px 40px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 24px;
+  }
+  section.article:last-of-type{ border-bottom: none; }
+
+  .num-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width: 26px;
+    height: 26px;
+    background: var(--violet);
+    color: #0c0a16;
+    font-family:'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 0.8rem;
+    border-radius: 3px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 18px var(--violet-glow);
+  }
+  h2{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #f4f2fc;
+    margin: 0 0 14px;
+  }
+  h3{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 1.3em 0 0.5em;
+  }
+  p, li{ color: var(--text); font-size: 0.98rem; }
+  p{ margin: 0 0 12px; }
+  ul{ padding-left: 20px; margin: 0 0 12px; }
+  li{ margin-bottom: 6px; }
+  strong{ color: #f4f2fc; }
+
+  .data-block{
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--violet);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin: 14px 0;
+  }
+  .data-block .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--violet);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display:block;
+    margin-bottom: 8px;
+  }
+  .data-block ul{ margin-bottom: 0; }
+
+  footer.card-footer{
+    padding: 22px 40px;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+  footer.card-footer .links a{
+    color: var(--text-muted);
+    text-decoration:none;
+    margin-left: 18px;
+  }
+  footer.card-footer .links a:hover{ color: var(--violet); }
+
+  @media (max-width: 600px){
+    nav.topbar{ padding: 16px 20px; }
+    .hero{ padding: 50px 18px 20px; }
+    h1.title{ font-size: 1.7rem; }
+    section.article{ padding: 26px 20px; }
+    .toc{ padding: 22px 20px; }
+    footer.card-footer{ padding: 18px 20px; flex-direction: column; align-items: flex-start; }
+    footer.card-footer .links a{ margin-left: 0; margin-right: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="back" href="#">← Retour à l'accueil</a>
+  <div class="brand"><span class="badge">SCP</span> SITE-15 | RP FR</div>
+</nav>
+
+<div class="hero">
+  <span class="pill">LÉGAL</span>
+  <h1 class="title">Conditions Générales d'Utilisation</h1>
+  <p class="sub">Version applicable à compter du 29 juillet 2026</p>
+</div>
+
+<div class="card">
+
+  <div class="doc-ref">
+    <span>Réf. SITE-15/CGU</span>
+    <span>Rév. 2026-07-29</span>
+  </div>
+
+  <div class="toc">
+    <div class="label">SOMMAIRE</div>
+    <div class="toc-links">
+      <a href="#objet">1. Objet</a><span class="sep">·</span>
+      <a href="#nature">2. Nature du projet</a><span class="sep">·</span>
+      <a href="#acces">3. Accès</a><span class="sep">·</span>
+      <a href="#conduite">4. Règles de conduite</a><span class="sep">·</span>
+      <a href="#moderation">5. Modération</a><span class="sep">·</span>
+      <a href="#propriete">6. Propriété intellectuelle</a><span class="sep">·</span>
+      <a href="#donnees">7. Données personnelles</a><span class="sep">·</span>
+      <a href="#disponibilite">8. Disponibilité</a><span class="sep">·</span>
+      <a href="#responsabilite">9. Responsabilité</a><span class="sep">·</span>
+      <a href="#contact">10. Contact</a><span class="sep">·</span>
+      <a href="#modification">11. Modification</a><span class="sep">·</span>
+      <a href="#droit">12. Droit applicable</a>
+    </div>
+  </div>
+
+  <section class="article" id="objet">
+    <span class="num-badge">1</span>
+    <h2>Objet</h2>
+    <p>Les présentes Conditions Générales d'Utilisation (ci-après « CGU ») définissent les modalités d'accès et d'utilisation des services proposés par la communauté SITE-15, projet officiel réunissant :</p>
+    <ul>
+      <li>le site web et l'intranet SITE-15 (panneau d'administration, intranet médical, statuspage, et tout autre outil associé) ;</li>
+      <li>le serveur de jeu Roblox SITE-15 ;</li>
+      <li>le serveur Discord officiel de la communauté.</li>
+    </ul>
+    <p>Ces trois services sont désignés ensemble comme « les Services ». L'utilisation des Services implique l'acceptation pleine et entière des présentes CGU.</p>
+  </section>
+
+  <section class="article" id="nature">
+    <span class="num-badge">2</span>
+    <h2>Nature du projet</h2>
+    <p>SITE-15 est un projet officiel de roleplay inspiré de l'univers créatif SCP Foundation, disponible sous licence Creative Commons (CC BY-SA 3.0). Le projet n'est affilié à aucune entité du SCP Wiki ni à Roblox Corporation, mais constitue un projet à part entière, géré par une équipe de coordination et de modération dédiée.</p>
+  </section>
+
+  <section class="article" id="acces">
+    <span class="num-badge">3</span>
+    <h2>Accès aux services</h2>
+    <h3>Compte Discord</h3>
+    <p>L'accès au serveur Roblox et à l'intranet nécessite la possession d'un compte Discord valide et le respect des règles propres à chaque salon. L'accès à certaines sections (intranet, panneau d'administration, dossiers médicaux) est restreint selon le rôle attribué (grade, fonction, statut Classe-D, etc.).</p>
+    <h3>Âge minimum</h3>
+    <p>L'utilisation des Services est soumise aux conditions d'âge minimum imposées par Discord et par Roblox. L'utilisateur déclare respecter ces conditions.</p>
+    <h3>Comptes et responsabilité</h3>
+    <p>Chaque utilisateur est responsable de la confidentialité de ses identifiants et des actions réalisées depuis son compte. Toute usurpation d'identité ou partage de compte est interdit.</p>
+  </section>
+
+  <section class="article" id="conduite">
+    <span class="num-badge">4</span>
+    <h2>Règles de conduite</h2>
+    <p>En rejoignant les Services, l'utilisateur s'engage à :</p>
+    <ul>
+      <li>respecter les autres membres, sans propos discriminatoires, haineux, ou harcelants ;</li>
+      <li>ne pas perturber volontairement le roleplay ou les événements en cours (« griefing », métagaming abusif, etc.) ;</li>
+      <li>ne pas exploiter de failles techniques, scripts non autorisés (« exploits »), ou outils tiers pour obtenir un avantage ;</li>
+      <li>ne pas diffuser de contenu illégal, violent de manière gratuite, ou à caractère sexuel ;</li>
+      <li>respecter les décisions de l'équipe de modération et les consignes spécifiques à chaque événement.</li>
+    </ul>
+    <p>Le non-respect de ces règles peut entraîner un avertissement, une exclusion temporaire, ou un bannissement définitif des Services, à la discrétion de l'équipe de modération.</p>
+  </section>
+
+  <section class="article" id="moderation">
+    <span class="num-badge">5</span>
+    <h2>Modération et sanctions</h2>
+    <p>L'équipe de modération de SITE-15 dispose d'un pouvoir discrétionnaire pour faire appliquer les présentes CGU. Les sanctions peuvent être consignées dans les outils internes de suivi (notamment le système BJI/BRH et les rapports de modération) à des fins de traçabilité et d'équité entre les membres. Un utilisateur sanctionné peut demander des explications ou contester une décision auprès de la coordination du projet.</p>
+  </section>
+
+  <section class="article" id="propriete">
+    <span class="num-badge">6</span>
+    <h2>Propriété intellectuelle</h2>
+    <p>L'ensemble des contenus présents sur les Services (scripts, textes de lore, dossiers de personnages, visuels, outils web et intranet) constitue des œuvres de l'esprit protégées à ce titre par l'article L.111-1 du Code de la propriété intellectuelle, qui confère à leur auteur un droit de propriété exclusif et opposable à tous. Ces contenus restent la propriété de leurs auteurs respectifs au sein de la communauté, sous réserve du respect des licences Creative Commons applicables à l'univers SCP Foundation.</p>
+    <p>Toute reproduction, redistribution, modification ou exploitation commerciale des outils, scripts ou contenus du projet sans autorisation préalable est interdite, sous peine des sanctions prévues par la législation en vigueur.</p>
+  </section>
+
+  <section class="article" id="donnees">
+    <span class="num-badge">7</span>
+    <h2>Données personnelles</h2>
+    <p>Dans le cadre du fonctionnement des Services, certaines données sont collectées et stockées via la plateforme Firebase (Google) :</p>
+    <div class="data-block">
+      <span class="tag">Données collectées</span>
+      <ul>
+        <li><strong>Identifiants Discord</strong> (nom d'utilisateur, identifiant unique) utilisés pour l'authentification et la gestion des rôles ;</li>
+        <li><strong>Données liées au roleplay</strong> : dossiers de personnages, évaluations, rapports d'incidents, directives, historique de modération (BJI/BRH) ;</li>
+        <li><strong>Journaux d'action</strong> à des fins de modération et de sécurité (ex. webhooks de modération, historique des sanctions).</li>
+      </ul>
+    </div>
+    <p>Ces données sont utilisées exclusivement dans le cadre du fonctionnement interne de la communauté (gestion des accès, suivi du roleplay, modération) et ne sont ni vendues ni transmises à des tiers à des fins commerciales.</p>
+    <p>Conformément à la réglementation applicable en matière de protection des données, tout utilisateur peut demander l'accès, la rectification ou la suppression des données le concernant en contactant l'équipe de coordination du projet (voir section Contact).</p>
+    <p>Les données sont conservées pour la durée de participation active de l'utilisateur à la communauté, sauf obligation de conservation liée à un historique de modération.</p>
+  </section>
+
+  <section class="article" id="disponibilite">
+    <span class="num-badge">8</span>
+    <h2>Disponibilité des services</h2>
+    <p>Les Services sont fournis « en l'état », sans garantie de disponibilité continue. Des interruptions peuvent survenir pour maintenance, mise à jour, ou en raison de limitations propres aux plateformes tierces (Roblox, Discord, Firebase). L'équipe du projet ne saurait être tenue responsable des pertes de données ou d'accès résultant de ces interruptions.</p>
+  </section>
+
+  <section class="article" id="responsabilite">
+    <span class="num-badge">9</span>
+    <h2>Limitation de responsabilité</h2>
+    <p>L'équipe organisatrice de SITE-15 ne pourra être tenue responsable des dommages directs ou indirects résultant de l'utilisation des Services, y compris ceux liés à des bugs, pertes de progression, ou comportements d'autres utilisateurs.</p>
+  </section>
+
+  <section class="article" id="contact">
+    <span class="num-badge">10</span>
+    <h2>Contact</h2>
+    <p>Pour toute question relative aux présentes CGU, à la modération, ou à l'exercice de vos droits sur vos données, vous pouvez contacter l'équipe de coordination via le serveur Discord officiel de SITE-15.</p>
+  </section>
+
+  <section class="article" id="modification">
+    <span class="num-badge">11</span>
+    <h2>Modification des CGU</h2>
+    <p>Les présentes CGU peuvent être modifiées à tout moment afin de refléter l'évolution des Services. Les utilisateurs seront informés de toute modification substantielle via une annonce sur le serveur Discord. La poursuite de l'utilisation des Services après modification vaut acceptation des nouvelles CGU.</p>
+  </section>
+
+  <section class="article" id="droit">
+    <span class="num-badge">12</span>
+    <h2>Droit applicable</h2>
+    <p>Les présentes CGU sont établies dans le cadre du projet officiel SITE-15. En cas de litige, une résolution amiable sera privilégiée en priorité au sein de l'équipe de coordination du projet.</p>
+  </section>
+
+  <footer class="card-footer">
+    <span>SITE-15 | © 2026 Tous droits réservés</span>
+    <span class="links"><a href="#">Accueil</a><a href="#">Politique de confidentialité</a></span>
+  </footer>
+
+</div>
+
+</body>
+</html>
