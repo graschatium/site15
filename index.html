@@ -388,7 +388,7 @@
       line('&nbsp;&nbsp;<a href="https://dsc.gg/site15" target="_blank" rel="noopener" class="accent">discord.gg/site15</a>');
     } else if(cmd === 'intranet'){
       line('Départements connectés à l\'intranet SITE-15 :');
-      departements.forEach(d => line('&nbsp;&nbsp;<a href="/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
+      departements.forEach(d => line('&nbsp;&nbsp;<a href="/site15/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
     } else if(cmd === 'clear'){
       output.innerHTML = '';
       return;
