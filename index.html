@@ -1,341 +1,410 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SITE-15 — Compte à rebours</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Rajdhani:wght@300;400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCiPNET — SITE-15 Network</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="/ressources/favicon-32x32.png" type="image/x-icon">
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #06080a;
-  --surface: #0a0d10;
-  --border: #161c22;
-  --border2: #1e2830;
-  --accent: #b388ff;
-  --danger: #ff3b3b;
-  --safe: #00e676;
-  --text: #8ba0b0;
-  --text-dim: #3d5060;
-  --white: #e8eef2;
-}
-html, body {
-  height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Rajdhani', sans-serif;
-  overflow: hidden;
-}
-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: crosshair;
-  position: relative;
-}
+  :root{
+    --bg: #050409;
+    --panel: #0d0b16;
+    --terminal: #0a0812;
+    --border: #221d38;
+    --border-soft: #171328;
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139,92,246,0.12);
+    --violet-glow: rgba(139,92,246,0.4);
+    --text: #d9d4ea;
+    --text-muted: #8b82a8;
+    --text-dim: #4d4666;
+    --green: #7ee787;
+    --amber: #f0b429;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at 50% -10%, #140f26 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.6;
+  }
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 3px,
-    rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
-}
+  /* ---- Nav ---- */
+  nav.topbar{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+  .brand .logo{
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color: var(--violet);
+    flex-shrink:0;
+  }
+  .brand .names{ line-height: 1.25; }
+  .brand .eyebrow{
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .brand .netname{
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #f4f2fc;
+    text-transform: uppercase;
+  }
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap: 30px;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+  }
+  .nav-links a{
+    color: var(--text-muted);
+    text-decoration:none;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+  }
+  .nav-links a:hover{ color: var(--text); }
+  .nav-links a.active{
+    color: var(--violet);
+    border-bottom-color: var(--violet);
+  }
+  .acc-chip{
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 3px;
+  }
+  .acc-chip b{ color: var(--green); }
 
-.hex-bg {
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104' viewBox='0 0 60 104'%3E%3Cpath d='M30 2 L58 18 L58 50 L30 66 L2 50 L2 18 Z' fill='none' stroke='rgba(179,136,255,0.025)' stroke-width='1'/%3E%3Cpath d='M30 38 L58 54 L58 86 L30 102 L2 86 L2 54 Z' fill='none' stroke='rgba(179,136,255,0.025)' stroke-width='1'/%3E%3Cpath d='M60 2 L88 18 L88 50 L60 66 L32 50 L32 18 Z' fill='none' stroke='rgba(179,136,255,0.025)' stroke-width='1'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.6;
-  animation: hexDrift 40s linear infinite;
-}
-@keyframes hexDrift { from { background-position: 0 0; } to { background-position: 60px 104px; } }
+  /* ---- Hero ---- */
+  .hero{
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 60px 24px 24px;
+  }
+  .pill{
+    display:inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: var(--violet);
+    background: var(--violet-soft);
+    border: 1px solid rgba(139,92,246,0.35);
+    padding: 5px 14px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .hero-row{
+    display:flex;
+    justify-content: space-between;
+    align-items:flex-end;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  h1.title{
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    margin: 0 0 8px;
+    color: #f4f2fc;
+    text-transform: uppercase;
+  }
+  .hero .sub{
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .session{
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    text-align: right;
+  }
 
-.cta-bg {
-  position: fixed; inset: 0;
-  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(179,136,255,0.05) 0%, transparent 70%);
-  pointer-events: none;
-}
+  /* ---- Terminal ---- */
+  .terminal-wrap{
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .terminal{
+    background: var(--terminal);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 40px 90px -40px rgba(0,0,0,0.7);
+  }
+  .terminal-bar{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .terminal-bar .label{
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .dots{ display:flex; gap: 7px; }
+  .dots span{
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    display:block;
+  }
+  .dots span:nth-child(1){ background:#e5555f; }
+  .dots span:nth-child(2){ background:#f0b429; }
+  .dots span:nth-child(3){ background:#3fce6b; }
 
-.frame { position: fixed; inset: 40px; border: 1px solid var(--border); pointer-events: none; }
-.corner { position: fixed; width: 18px; height: 18px; border-color: var(--accent); border-style: solid; opacity: 0.7; }
-.corner.tl { top: 40px; left: 40px; border-width: 2px 0 0 2px; }
-.corner.tr { top: 40px; right: 40px; border-width: 2px 2px 0 0; }
-.corner.bl { bottom: 40px; left: 40px; border-width: 0 0 2px 2px; }
-.corner.br { bottom: 40px; right: 40px; border-width: 0 2px 2px 0; }
+  .terminal-body{
+    padding: 26px 26px 20px;
+    min-height: 320px;
+    max-height: 420px;
+    overflow-y: auto;
+    font-size: 0.88rem;
+  }
+  .terminal-body::-webkit-scrollbar{ width: 8px; }
+  .terminal-body::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 4px; }
+  .terminal-body p{ margin: 0 0 10px; color: var(--text-muted); }
+  .terminal-body b{ color: var(--text); }
+  .terminal-body .accent{ color: var(--violet); }
+  .terminal-body .cmd{ color: var(--green); }
+  .terminal-body a{ color: var(--violet); text-decoration: none; }
+  .terminal-body a:hover{ text-decoration: underline; }
 
-.wrap {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 40px;
-}
+  .prompt-line{
+    border-top: 1px solid var(--border);
+    padding: 14px 26px;
+    font-size: 0.88rem;
+    color: #f4f2fc;
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    margin: 0;
+  }
+  .prompt-line .cmd-input{
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #f4f2fc;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    caret-color: var(--violet);
+  }
+  .prompt-line .cmd-input::placeholder{ color: var(--text-dim); }
+  .prompt-line .caret{
+    display:inline-block;
+    width: 8px; height: 16px;
+    background: var(--violet);
+    animation: blink 1.1s step-end infinite;
+    pointer-events: none;
+  }
+  @keyframes blink{ 50%{ opacity: 0; } }
 
-.tag {
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.4em;
-  color: var(--accent);
-  text-transform: uppercase;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-}
-.tag::before, .tag::after { content: ''; width: 40px; height: 1px; background: var(--accent); }
+  .tip{
+    max-width: 1020px;
+    margin: 14px auto 0;
+    padding: 0 26px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+  .tip .cmd{ color: var(--green); }
+  .tip a{ color: var(--violet); text-decoration:none; }
 
-.title {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: clamp(28px, 4vw, 44px);
-  font-weight: 700;
-  color: var(--white);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 48px;
-}
-.title .accent { color: var(--accent); }
-.expired-title { color: var(--danger) !important; }
+  /* ---- Footer ---- */
+  footer{
+    max-width: 1020px;
+    margin: 60px auto 0;
+    padding: 20px 24px 60px;
+    border-top: 1px solid var(--border);
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.03em;
+  }
+  footer a{
+    color: var(--text-muted);
+    text-decoration:none;
+    margin-left: 20px;
+    text-transform: uppercase;
+  }
+  footer a:hover{ color: var(--violet); }
 
-.counter {
-  display: flex;
-  gap: 2px;
-  justify-content: center;
-  margin-bottom: 36px;
-  flex-wrap: wrap;
-}
-.unit {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  min-width: 130px;
-  padding: 26px 20px;
-  position: relative;
-}
-.unit::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: var(--accent);
-}
-.unit .val {
-  font-family: 'Space Mono', monospace;
-  font-size: clamp(42px, 6vw, 68px);
-  font-weight: 700;
-  color: var(--white);
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-.unit .lbl {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.3em;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  margin-top: 12px;
-}
-@media (max-width: 700px) { .unit { min-width: 68px; padding: 16px 8px; } }
-
-.brief {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px;
-  color: var(--text-dim);
-  letter-spacing: 0.1em;
-  margin-bottom: 18px;
-}
-.brief .accent { color: var(--accent); }
-
-.status-live {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px; letter-spacing: 0.2em; color: var(--safe);
-  border: 1px solid rgba(0,230,118,0.3); padding: 6px 16px;
-  display: inline-flex; align-items: center; gap: 8px;
-}
-.alert-dot {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--safe);
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-/* SOCIAL BAR */
-.social-bar {
-  position: relative;
-  z-index: 2;
-  margin-top: 44px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  border: 1px solid var(--border2);
-  background: var(--surface);
-}
-.social-bar a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 26px;
-  text-decoration: none;
-  color: var(--text-dim);
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  border-right: 1px solid var(--border);
-  transition: all 0.2s ease;
-}
-.social-bar a:last-child { border-right: none; }
-.social-bar a:hover { color: var(--accent); background: rgba(179,136,255,0.04); }
-.social-bar svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
-
-@media (max-width: 700px) {
-  .social-bar { flex-wrap: wrap; }
-  .social-bar a { padding: 10px 16px; }
-}
-
-/* AUDIO CONTROL */
-#audioControl {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 20;
-  font-family: 'Space Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  color: var(--text-dim);
-  border: 1px solid var(--border2);
-  padding: 8px 14px;
-  cursor: pointer;
-  background: var(--surface);
-  text-transform: uppercase;
-  transition: all 0.2s;
-}
-#audioControl:hover { color: var(--accent); border-color: rgba(179,136,255,0.3); }
+  @media (max-width: 720px){
+    nav.topbar{ padding: 14px 18px; flex-wrap: wrap; gap: 12px; }
+    .nav-links{ gap: 16px; order: 3; width: 100%; }
+    .hero{ padding: 40px 18px 18px; }
+    h1.title{ font-size: 1.5rem; }
+    .hero-row{ align-items: flex-start; }
+    .session{ text-align: left; }
+    .terminal-wrap{ padding: 0 18px; }
+    footer{ padding: 18px 18px 40px; flex-direction: column; align-items: flex-start; }
+    footer a{ margin-left: 0; margin-right: 16px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="hex-bg"></div>
-<div class="cta-bg"></div>
-<div class="frame"></div>
-<div class="corner tl"></div>
-<div class="corner tr"></div>
-<div class="corner bl"></div>
-<div class="corner br"></div>
-
-<div class="wrap">
-  <div class="tag">Compte à rebours</div>
-  <h1 class="title" id="mainTitle">ÉVÉNEMENT <span class="accent">IMMINENT</span></h1>
-
-  <div class="counter">
-    <div class="unit"><div class="val" id="days">00</div><div class="lbl">Jours</div></div>
-    <div class="unit"><div class="val" id="hours">00</div><div class="lbl">Heures</div></div>
-    <div class="unit"><div class="val" id="minutes">00</div><div class="lbl">Minutes</div></div>
-    <div class="unit"><div class="val" id="seconds">00</div><div class="lbl">Secondes</div></div>
+<nav class="topbar">
+  <div class="brand">
+    <div class="logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M12 4 L18 15 L6 15 Z" stroke="currentColor" stroke-width="1.4" fill="none"/>
+      </svg>
+    </div>
+    <div class="names">
+      <div class="eyebrow">SCiPNET</div>
+      <div class="netname">SITE-15 NETWORK</div>
+    </div>
   </div>
+  <div class="nav-links">
+    <a class="active" href="#">Accueil</a>
+    <a href="cgu.html">CGU</a>
+  </div>
+</nav>
 
-  <p class="brief">Cible : <span class="accent">25 juillet 2026 — 20:00 (Paris)</span></p>
-  <div class="status-live"><div class="alert-dot"></div>DÉCOMPTE ACTIF</div>
-
-  <div class="social-bar">
-    <a href="https://discord.gg/VAw5DuZyHq" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M20.317 4.369A19.791 19.791 0 0 0 16.558 3c-.194.347-.42.815-.578 1.187a18.27 18.27 0 0 0-5.487 0A12.64 12.64 0 0 0 9.913 3a19.736 19.736 0 0 0-3.762 1.371C3.155 8.719 2.36 12.938 2.757 17.096a19.9 19.9 0 0 0 6.05 3.055c.487-.657.922-1.354 1.296-2.086a12.9 12.9 0 0 1-2.04-.973c.171-.123.339-.252.5-.384a14.28 14.28 0 0 0 12.062 0c.163.132.331.261.5.384-.646.383-1.328.71-2.042.974.375.732.81 1.428 1.296 2.085a19.83 19.83 0 0 0 6.053-3.055c.464-4.824-.782-9.005-3.115-12.727zM9.75 14.607c-1.16 0-2.11-1.07-2.11-2.383 0-1.312.933-2.383 2.11-2.383 1.187 0 2.129 1.08 2.11 2.383 0 1.312-.933 2.383-2.11 2.383zm5.5 0c-1.16 0-2.11-1.07-2.11-2.383 0-1.312.933-2.383 2.11-2.383 1.186 0 2.128 1.08 2.11 2.383 0 1.312-.924 2.383-2.11 2.383z"/></svg>
-      Discord
-    </a>
-    <a href="https://www.youtube.com/@scpf15" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186 31.4 31.4 0 0 0 0 12a31.4 31.4 0 0 0 .502 5.814 3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136A31.4 31.4 0 0 0 24 12a31.4 31.4 0 0 0-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-      YouTube
-    </a>
-    <a href="https://www.tiktok.com/@scpf15" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M16.6 5.82c-1.007-.977-1.607-2.29-1.607-3.82H12.02v13.86c0 1.66-1.35 3-3.01 3-1.66 0-3.01-1.34-3.01-3s1.35-3 3.01-3c.311 0 .611.048.891.137V9.14a6.05 6.05 0 0 0-.891-.065c-3.34 0-6.05 2.71-6.05 6.05s2.71 6.05 6.05 6.05 6.05-2.71 6.05-6.05V9.688a8.35 8.35 0 0 0 4.88 1.57V8.22a4.85 4.85 0 0 1-3.35-2.4z"/></svg>
-      TikTok
-    </a>
-    <a href="https://x.com/Site15FR" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      Twitter / X
-    </a>
+<div class="hero">
+  <span class="pill">Terminal</span>
+  <div class="hero-row">
+    <div>
+      <h1 class="title">Bienvenue, Agent.</h1>
+      <p class="sub">Accès aux informations SITE-15 — Fondation SCP</p>
+    </div>
+    <div class="session">Session : 291288-RHU2</div>
   </div>
 </div>
 
-<div id="audioControl">♪ Musique : chargement...</div>
+<div class="terminal-wrap">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="label">SCiPNET :: TERMINAL v2.6.4</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <div class="terminal-body" id="output">
+      <p><b>SCiPNET v2.6.4</b> — terminal sécurisé, accès journalisé.</p>
+      <p>Tapez <span class="cmd">help</span> pour la liste des commandes. Ex : <span class="cmd">intranet</span>.</p>
+      <p style="margin-top:22px;">Dernières annonces —</p>
+      <p>&nbsp;&nbsp;[21/07] Mise à jour des CGU du réseau — voir <a href="cgu.html">Conditions d'utilisation</a>.</p>
+    </div>
+    <form class="prompt-line" id="promptForm" autocomplete="off">
+      <span>scipnet@site15:~$</span>
+      <label for="cmdInput" class="sr-only" style="position:absolute;left:-9999px;">Commande</label>
+      <input id="cmdInput" name="cmdInput" class="cmd-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus />
+      <span class="caret" aria-hidden="true"></span>
+    </form>
+  </div>
+  <p class="tip">Astuce : tapez <span class="cmd">help</span> pour la liste des commandes, ou <span class="cmd">intranet</span> pour voir les départements connectés.</p>
+</div>
 
-<audio id="bgAudio" src="The Last Prophecy.mp3" loop preload="auto"></audio>
+<footer>
+  <span>Copyright © 2026 SITE-15, tout droit réservé</span>
+  <span>
+    <a href="#">Politique de confidentialité</a><a href="cgu.html">Conditions d'utilisation</a>
+  </span>
+</footer>
 
 <script>
-// Cible : 25 juillet 2026, 20h00 heure de Paris (CEST = UTC+2)
-const targetDate = new Date("2026-07-25T20:00:00+02:00").getTime();
+(function(){
+  const output = document.getElementById('output');
+  const form = document.getElementById('promptForm');
+  const input = document.getElementById('cmdInput');
+  const terminal = document.querySelector('.terminal');
 
-const daysEl = document.getElementById('days');
-const hoursEl = document.getElementById('hours');
-const minutesEl = document.getElementById('minutes');
-const secondsEl = document.getElementById('seconds');
-const mainTitle = document.getElementById('mainTitle');
+  const departements = [
+    { nom: 'Médical', slug: 'medical', statut: 'En ligne' },
+    { nom: 'Sécurité', slug: 'securite', statut: 'En ligne' },
+    { nom: 'Administratif', slug: 'administratif', statut: 'En ligne' },
+    { nom: 'Scientifique', slug: 'scientifique', statut: 'En ligne' }
+  ];
 
-function pad(n) { return String(n).padStart(2, '0'); }
-
-function tick() {
-  const now = Date.now();
-  const diff = targetDate - now;
-
-  if (diff <= 0) {
-    daysEl.textContent = '00';
-    hoursEl.textContent = '00';
-    minutesEl.textContent = '00';
-    secondsEl.textContent = '00';
-    mainTitle.innerHTML = 'ÉVÉNEMENT <span class="accent expired-title">EN COURS</span>';
-    return;
+  function esc(str){
+    const d = document.createElement('div');
+    d.innerText = str;
+    return d.innerHTML;
   }
 
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff % 86400000) / 3600000);
-  const minutes = Math.floor((diff % 3600000) / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
-
-  daysEl.textContent = pad(days);
-  hoursEl.textContent = pad(hours);
-  minutesEl.textContent = pad(minutes);
-  secondsEl.textContent = pad(seconds);
-}
-
-tick();
-setInterval(tick, 1000);
-
-// Audio : tentative de lecture automatique au chargement.
-// Les navigateurs bloquent souvent l'autoplay avec son -> fallback
-// sur le premier clic n'importe où sur la page si ça échoue.
-const audio = document.getElementById('bgAudio');
-const audioControl = document.getElementById('audioControl');
-
-function setPlayingLabel() { audioControl.textContent = '♪ Musique : lecture'; }
-function setPausedLabel() { audioControl.textContent = '♪ Musique : pause'; }
-function setBlockedLabel() { audioControl.textContent = '♪ Cliquer pour activer le son'; }
-
-function tryAutoplay() {
-  audio.play().then(setPlayingLabel).catch(setBlockedLabel);
-}
-window.addEventListener('load', tryAutoplay);
-
-function unlockOnce() {
-  if (audio.paused) {
-    audio.play().then(setPlayingLabel).catch(() => {});
+  function line(html){
+    const p = document.createElement('p');
+    p.innerHTML = html;
+    output.appendChild(p);
   }
-  document.removeEventListener('click', unlockOnce);
-}
-document.addEventListener('click', unlockOnce);
 
-audioControl.addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (audio.paused) {
-    audio.play().then(setPlayingLabel).catch(setBlockedLabel);
-  } else {
-    audio.pause();
-    setPausedLabel();
+  function echo(cmdText){
+    line('<span style="color:var(--text-dim)">scipnet@site15:~$</span> ' + esc(cmdText));
   }
-});
+
+  function scrollDown(){
+    terminal.scrollTop = terminal.scrollHeight;
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function run(raw){
+    const cmdText = raw.trim();
+    echo(cmdText);
+    if(!cmdText){ return; }
+    const parts = cmdText.split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+    const arg = parts.slice(1).join(' ').toLowerCase();
+
+    if(cmd === 'help'){
+      line('Commandes disponibles :');
+      line('&nbsp;&nbsp;<span class="cmd">help</span> — affiche cette liste');
+      line('&nbsp;&nbsp;<span class="cmd">intranet</span> — liste les départements en ligne');
+      line('&nbsp;&nbsp;<span class="cmd">clear</span> — efface le terminal');
+    } else if(cmd === 'intranet'){
+      line('Départements connectés à l\'intranet SITE-15 :');
+      departements.forEach(d => line('&nbsp;&nbsp;<a href="/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
+    } else if(cmd === 'clear'){
+      output.innerHTML = '';
+      return;
+    } else {
+      line('Commande inconnue : "' + esc(cmdText) + '". Tapez <span class="cmd">help</span>.');
+    }
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const val = input.value;
+    if(!val.trim()){ return; }
+    input.value = '';
+    run(val);
+    scrollDown();
+  });
+
+  terminal.addEventListener('click', function(){ input.focus(); });
+  input.focus();
+})();
 </script>
+
 </body>
 </html>
