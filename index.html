@@ -217,14 +217,6 @@
     caret-color: var(--violet);
   }
   .prompt-line .cmd-input::placeholder{ color: var(--text-dim); }
-  .prompt-line .caret{
-    display:inline-block;
-    width: 8px; height: 16px;
-    background: var(--violet);
-    animation: blink 1.1s step-end infinite;
-    pointer-events: none;
-  }
-  @keyframes blink{ 50%{ opacity: 0; } }
 
   .tip{
     max-width: 1020px;
@@ -291,6 +283,7 @@
     <a class="active" href="#">Accueil</a>
     <a href="cgu.html">CGU</a>
     <a href="confidentialite.html">Confidentialité</a>
+    <a href="statut.html">Statut</a>
   </div>
 </nav>
 
@@ -321,7 +314,6 @@
       <span>scipnet@site15:~$</span>
       <label for="cmdInput" class="sr-only" style="position:absolute;left:-9999px;">Commande</label>
       <input id="cmdInput" name="cmdInput" class="cmd-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus />
-      <span class="caret" aria-hidden="true"></span>
     </form>
   </div>
   <p class="tip">Astuce : tapez <span class="cmd">help</span> pour la liste des commandes, <span class="cmd">intranet</span> pour les départements, ou <span class="cmd">discord</span> pour rejoindre le serveur.</p>
@@ -382,13 +374,17 @@
       line('&nbsp;&nbsp;<span class="cmd">help</span> — affiche cette liste');
       line('&nbsp;&nbsp;<span class="cmd">intranet</span> — liste les départements en ligne');
       line('&nbsp;&nbsp;<span class="cmd">discord</span> — lien d\'invitation au serveur Discord');
+      line('&nbsp;&nbsp;<span class="cmd">statut</span> — état des systèmes SITE-15');
       line('&nbsp;&nbsp;<span class="cmd">clear</span> — efface le terminal');
     } else if(cmd === 'discord'){
       line('Rejoignez le serveur Discord officiel de SITE-15 :');
       line('&nbsp;&nbsp;<a href="https://dsc.gg/site15" target="_blank" rel="noopener" class="accent">discord.gg/site15</a>');
+    } else if(cmd === 'statut'){
+      line('Consultez l\'état en temps réel des systèmes SITE-15 :');
+      line('&nbsp;&nbsp;<a href="statut.html" class="accent">/statut</a>');
     } else if(cmd === 'intranet'){
       line('Départements connectés à l\'intranet SITE-15 :');
-      departements.forEach(d => line('&nbsp;&nbsp;<a href="/site15/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
+      departements.forEach(d => line('&nbsp;&nbsp;<a href="/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
     } else if(cmd === 'clear'){
       output.innerHTML = '';
       return;
