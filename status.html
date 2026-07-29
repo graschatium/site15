@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statut des Services — SITE-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="/ressources/favicon.ico" type="image/x-icon">
+<style>
+  :root{
+    --bg: #050409;
+    --panel: #0d0b16;
+    --panel-2: #12101f;
+    --terminal: #0a0812;
+    --border: #221d38;
+    --border-soft: #171328;
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139,92,246,0.12);
+    --violet-glow: rgba(139,92,246,0.4);
+    --text: #d9d4ea;
+    --text-muted: #8b82a8;
+    --text-dim: #4d4666;
+    --green: #7ee787;
+    --amber: #f0b429;
+    --red: #e5555f;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at 50% -10%, #140f26 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---- Nav ---- */
+  nav.topbar{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand{ display:flex; align-items:center; gap: 12px; }
+  .brand .logo{
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--violet); flex-shrink:0;
+  }
+  .brand .names{ line-height: 1.25; font-family:'JetBrains Mono', monospace; }
+  .brand .eyebrow{ font-size: 0.62rem; letter-spacing: 0.22em; color: var(--text-dim); text-transform: uppercase; }
+  .brand .netname{ font-size: 0.92rem; font-weight: 800; letter-spacing: 0.06em; color: #f4f2fc; text-transform: uppercase; }
+  .nav-links{ display:flex; align-items:center; gap: 30px; font-size: 0.78rem; letter-spacing: 0.1em; font-family:'JetBrains Mono', monospace; }
+  .nav-links a{ color: var(--text-muted); text-decoration:none; text-transform: uppercase; padding-bottom: 4px; border-bottom: 2px solid transparent; }
+  .nav-links a:hover{ color: var(--text); }
+  .nav-links a.active{ color: var(--violet); border-bottom-color: var(--violet); }
+
+  /* ---- Hero ---- */
+  .hero{ max-width: 960px; margin: 0 auto; padding: 60px 24px 24px; text-align: center; }
+  .pill{
+    display:inline-block; font-family:'JetBrains Mono', monospace; font-size: 0.68rem;
+    letter-spacing: 0.16em; color: var(--violet); background: var(--violet-soft);
+    border: 1px solid rgba(139,92,246,0.35); padding: 5px 14px; border-radius: 2px;
+    margin-bottom: 20px; text-transform: uppercase;
+  }
+  h1.title{
+    font-family:'JetBrains Mono', monospace; font-size: 2rem; font-weight: 800;
+    letter-spacing: 0.02em; margin: 0 0 10px; color: #f4f2fc; text-transform: uppercase;
+  }
+  .hero .sub{ color: var(--text-dim); font-family:'JetBrains Mono', monospace; font-size: 0.82rem; }
+
+  /* ---- Overall banner ---- */
+  .banner{
+    max-width: 960px;
+    margin: 10px auto 0;
+    padding: 18px 28px;
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 6px;
+  }
+  .banner .dot{
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 12px 2px rgba(126,231,135,0.5);
+    flex-shrink: 0;
+  }
+  .banner .msg{ font-family:'JetBrains Mono', monospace; font-size: 0.9rem; color: #f4f2fc; }
+  .banner .msg small{ display:block; font-size: 0.72rem; color: var(--text-dim); margin-top: 3px; letter-spacing: 0.04em; }
+
+  /* ---- Card ---- */
+  .card{
+    max-width: 960px;
+    margin: 28px auto 0;
+    background: var(--terminal);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 40px 90px -40px rgba(0,0,0,0.7);
+  }
+  .card-head{
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display:flex;
+    justify-content: space-between;
+  }
+
+  .service-row{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .service-row:last-child{ border-bottom: none; }
+  .service-info{ display:flex; align-items:center; gap: 12px; }
+  .service-info .icon{
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--violet);
+    flex-shrink: 0;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 800;
+    background: var(--panel);
+  }
+  .service-name{ font-weight: 700; color: #f4f2fc; font-size: 0.95rem; }
+  .service-desc{ color: var(--text-muted); font-size: 0.82rem; margin-top: 2px; }
+
+  .status-pill{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    display:flex;
+    align-items:center;
+    gap: 7px;
+  }
+  .status-pill .dot{ width: 7px; height: 7px; border-radius: 50%; }
+  .status-op{ color: var(--green); background: rgba(126,231,135,0.1); border: 1px solid rgba(126,231,135,0.3); }
+  .status-op .dot{ background: var(--green); box-shadow: 0 0 6px 1px rgba(126,231,135,0.5); }
+  .status-deg{ color: var(--amber); background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.3); }
+  .status-deg .dot{ background: var(--amber); box-shadow: 0 0 6px 1px rgba(240,180,41,0.5); }
+  .status-down{ color: var(--red); background: rgba(229,85,95,0.1); border: 1px solid rgba(229,85,95,0.3); }
+  .status-down .dot{ background: var(--red); box-shadow: 0 0 6px 1px rgba(229,85,95,0.5); }
+
+  /* ---- Incident history ---- */
+  .incidents{
+    max-width: 960px;
+    margin: 40px auto 0;
+    padding: 0 24px;
+  }
+  .incidents .section-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .incident{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+  }
+  .incident-head{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .incident-title{ font-weight: 700; color: #f4f2fc; font-size: 0.9rem; }
+  .incident-date{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+  .incident-body{ color: var(--text-muted); font-size: 0.85rem; margin-top: 8px; }
+  .resolved-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--green);
+    border: 1px solid rgba(126,231,135,0.3);
+    background: rgba(126,231,135,0.08);
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  /* ---- Footer ---- */
+  footer{
+    max-width: 960px;
+    margin: 50px auto 0;
+    padding: 20px 24px 60px;
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.03em;
+    font-family:'JetBrains Mono', monospace;
+  }
+  footer a{ color: var(--text-muted); text-decoration:none; margin-left: 20px; text-transform: uppercase; }
+  footer a:hover{ color: var(--violet); }
+
+  @media (max-width: 640px){
+    nav.topbar{ padding: 14px 18px; flex-wrap: wrap; gap: 12px; }
+    .nav-links{ gap: 16px; order: 3; width: 100%; }
+    .hero{ padding: 40px 18px 18px; }
+    h1.title{ font-size: 1.4rem; }
+    .banner, .card, .incidents{ margin-left: 18px; margin-right: 18px; width: auto; }
+    .service-row{ padding: 16px 20px; flex-wrap: wrap; }
+    footer{ padding: 18px 18px 40px; flex-direction: column; align-items: flex-start; }
+    footer a{ margin-left: 0; margin-right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="brand">
+    <div class="logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M12 4 L18 15 L6 15 Z" stroke="currentColor" stroke-width="1.4" fill="none"/>
+      </svg>
+    </div>
+    <div class="names">
+      <div class="eyebrow">SCiPNET</div>
+      <div class="netname">SITE-15 NETWORK</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Accueil</a>
+    <a href="cgu.html">CGU</a>
+    <a href="confidentialite.html">Confidentialité</a>
+    <a class="active" href="statut.html">Statut</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <span class="pill">Statut</span>
+  <h1 class="title">État des Services</h1>
+  <p class="sub">Dernière vérification : 29/07/2026 — 18:42</p>
+</div>
+
+<div class="banner">
+  <span class="dot"></span>
+  <div class="msg">
+    Tous les systèmes sont opérationnels
+    <small>Aucun incident en cours</small>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span>Systèmes</span>
+    <span>Statut actuel</span>
+  </div>
+
+  <div class="service-row">
+    <div class="service-info">
+      <div class="icon">RB</div>
+      <div>
+        <div class="service-name">Serveur Roblox</div>
+        <div class="service-desc">Session de roleplay en jeu</div>
+      </div>
+    </div>
+    <span class="status-pill status-op"><span class="dot"></span>Opérationnel</span>
+  </div>
+</div>
+
+<div class="incidents">
+  <div class="section-label">Historique des incidents</div>
+  <div id="incident-list"></div>
+</div>
+
+<script>
+  // Pour ajouter un incident : ajoute simplement un objet ici.
+  // resolved: true -> badge "Résolu" | false -> badge "En cours"
+  const incidents = [
+    {
+      title: "Maintenance — Serveur",
+      date: "24/07/2026",
+      body: "Mise à jour des CGU et redéploiement de l'intranet. Interruption du service pour préparer la nouvelle version.",
+      resolved: true
+    },
+    {
+      title: "Maintenance planifiée — Intranet",
+      date: "21/07/2026",
+      body: "Mise à jour des CGU et redéploiement de l'intranet. Interruption de courte durée, sans impact sur le serveur Roblox ni Discord.",
+      resolved: true
+    },
+    {
+      title: "Latence base de données",
+      date: "14/07/2026",
+      body: "Ralentissement temporaire de la synchronisation des dossiers de personnage lié à une limitation de quota Firebase. Résolu après ajustement de la configuration.",
+      resolved: true
+    }
+  ];
+
+  const list = document.getElementById('incident-list');
+  incidents.forEach(inc => {
+    const div = document.createElement('div');
+    div.className = 'incident';
+    const tag = inc.resolved
+      ? '<span class="resolved-tag">Résolu</span>'
+      : '<span class="resolved-tag" style="color:var(--amber);border-color:rgba(240,180,41,0.3);background:rgba(240,180,41,0.08);">En cours</span>';
+    div.innerHTML =
+      '<div class="incident-head">' +
+        '<span class="incident-title">' + inc.title + '</span>' +
+        '<span class="incident-date">' + inc.date + '</span>' +
+      '</div>' +
+      '<div class="incident-body">' + inc.body + '</div>' +
+      '<div style="margin-top:10px;">' + tag + '</div>';
+    list.appendChild(div);
+  });
+</script>
+
+<footer>
+  <span>Copyright © 2026 SITE-15, tout droit réservé</span>
+  <span>
+    <a href="index.html">Accueil</a><a href="confidentialite.html">Politique de confidentialité</a><a href="cgu.html">CGU</a>
+  </span>
+</footer>
+
+</body>
+</html>
