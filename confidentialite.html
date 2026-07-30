@@ -6,7 +6,7 @@
 <title>Politique de Confidentialité — SITE-15</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="icon" href="/ressources/favicon.ico" type="image/x-icon">
+<link rel="icon" href="https://graschatium.github.io/site15/ressources/favicon.ico" type="image/x-icon">
 <style>
   :root{
     --bg: #050409;
@@ -59,6 +59,13 @@
     justify-content:center;
     color: var(--violet);
     flex-shrink:0;
+    overflow: hidden;
+  }
+  .brand .logo img{
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    display: block;
   }
   .brand .names{ line-height: 1.25; font-family:'JetBrains Mono', monospace; }
   .brand .eyebrow{
@@ -318,10 +325,7 @@
 <nav class="topbar">
   <div class="brand">
     <div class="logo">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.4"/>
-        <path d="M12 4 L18 15 L6 15 Z" stroke="currentColor" stroke-width="1.4" fill="none"/>
-      </svg>
+      <img src="ressources/favicon.ico" alt="SITE-15" width="20" height="20">
     </div>
     <div class="names">
       <div class="eyebrow">SCiPNET</div>
@@ -332,6 +336,7 @@
     <a href="index.html">Accueil</a>
     <a href="cgu.html">CGU</a>
     <a class="active" href="confidentialite.html">Confidentialité</a>
+    <a href="statut.html">Statut</a>
   </div>
 </nav>
 
@@ -377,7 +382,7 @@
   <section class="article" id="responsable">
     <span class="num-badge">2</span>
     <h2>Responsable du traitement</h2>
-    <p>Le traitement des données décrit dans la présente politique est réalisé sous la responsabilité de l'équipe de coordination du Projet SITE-15, joignable via le serveur Discord officiel (voir section Contact). Le Projet n'étant pas une société commerciale, ce traitement est réalisé dans le cadre associatif et bénévole de l'animation de la communauté.</p>
+    <p>Le traitement des données décrit dans la présente politique est réalisé sous la responsabilité de l'équipe de coordination du Projet SITE-15, développé et animé par <strong>© Voidline Studios</strong>, joignable via le serveur Discord officiel (voir section Contact). Le Projet n'étant pas une société commerciale, ce traitement est réalisé dans le cadre associatif et bénévole de l'animation de la communauté.</p>
   </section>
 
   <section class="article" id="donnees">
@@ -499,7 +504,7 @@
 </div>
 
 <footer>
-  <span>Copyright © 2026 SITE-15, tout droit réservé</span>
+  <span>SITE-15 — Un projet © Voidline Studios 2026, tout droit réservé</span>
   <span>
     <a href="index.html">Accueil</a><a href="cgu.html">CGU</a>
   </span>
