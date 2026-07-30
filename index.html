@@ -384,7 +384,7 @@
       line('&nbsp;&nbsp;<a href="statut.html" class="accent">/statut</a>');
     } else if(cmd === 'intranet'){
       line('Départements connectés à l\'intranet SITE-15 :');
-      departements.forEach(d => line('&nbsp;&nbsp;<a href="/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
+      departements.forEach(d => line('&nbsp;&nbsp;<a href="/site15/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
     } else if(cmd === 'clear'){
       output.innerHTML = '';
       return;
