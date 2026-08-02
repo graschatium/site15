@@ -35,3 +35,6 @@ R : Un lien/bouton dédié après connexion
 
 Q : L'agent peut-il modifier ses propres infos ?
 R : Oui, certains champs (notes, statut)
+
+
+fais en sorte qu'on puisse déplacé les modaux et créer des comptes pour les nouveaux agents
