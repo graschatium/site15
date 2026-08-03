@@ -180,6 +180,13 @@ nav.topbar{
 .invite-code-display{ background:#100d1c; border:1px dashed var(--dept-color); padding:12px; text-align:center; margin-top:10px; }
 .invite-code-display .code{ font-size:20px; font-weight:800; letter-spacing:.2em; color:var(--dept-color); }
 .discord-avatar{ width:56px; height:56px; border-radius:50%; margin:0 auto 10px; display:block; border:2px solid var(--border2); }
+.file-avatar-row{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.file-avatar-row img{ width:64px; height:64px; border-radius:50%; border:2px solid var(--border2); object-fit:cover; flex-shrink:0; }
+.file-avatar-row .fa-meta{ font-size:.72rem; color:var(--text-dim); }
+.file-avatar-row .fa-meta b{ display:block; font-size:.95rem; color:var(--white); text-transform:uppercase; margin-bottom:2px; }
+.medal-list{ display:flex; flex-wrap:wrap; gap:8px; }
+.medal-badge{ display:flex; align-items:center; gap:6px; background:linear-gradient(135deg,rgba(240,180,41,.14),rgba(168,85,247,.12)); border:1px solid rgba(240,180,41,.45); color:var(--white); font-size:.74rem; padding:6px 12px; border-radius:20px; }
+.medal-badge .md-date{ color:var(--text-dim2); font-size:.64rem; }
 </style>
 </head>
 <body>
@@ -918,6 +925,11 @@ function classEval(ev){
   return m[ev.decision]||m.valide;
 }
 function classAgent(){ return {classe:'PERSONNEL',color:'var(--dept-color)',label:'BLEU',accr:1}; }
+function agentAvatarUrl(r){
+  if(r.avatarUrl) return r.avatarUrl;
+  const seed = (r.name||'?').charCodeAt(0) || 0;
+  return `https://cdn.discordapp.com/embed/avatars/${seed%5}.png`;
+}
 function classLRC(l){
   const m={ medium:{color:'var(--dept-color)'}, high:{color:'var(--warn)'}, critical:{color:'var(--danger)'} };
   return {classe:'PROTOCOLE', color:(m[l.priority]||m.high).color, label:l.priority.toUpperCase(), accr: l.priority==='critical'?4:l.priority==='high'?3:2};
@@ -950,6 +962,7 @@ function printHelp(){
   line('&nbsp;&nbsp;<span class="cmd">agent role &lt;n&gt; joueur|moderateur|admin</span> — change le rôle d\'un agent (admin)');
   line('&nbsp;&nbsp;<span class="cmd">agent accred &lt;n&gt; 0-4|auto</span> — force ou réinitialise l\'accréditation (admin)');
   line('&nbsp;&nbsp;<span class="cmd">agent rename &lt;n&gt; &lt;nouveau nom&gt;</span> — renomme un agent (admin)');
+  line('&nbsp;&nbsp;<span class="cmd">agent medaille &lt;n&gt; &lt;nom&gt;</span> — décerne une médaille (admin)');
   line('&nbsp;&nbsp;<span class="cmd">delete rapport &lt;n&gt; [confirm]</span> — supprime un rapport (admin, confirmation requise)');
   line('&nbsp;&nbsp;<span class="cmd">appel present|absent|retard &lt;nom&gt;</span> — pointer un agent');
   line('&nbsp;&nbsp;<span class="cmd">appel status</span> — état de la session en cours');
@@ -1212,7 +1225,17 @@ async function cmdAgent(argStr){
     if(ok) refreshAgentFileIfOpen(item.record._id);
     return;
   }
-  line('<span class="err">Usage : agent grade|role|accred|rename|grades ...</span>');
+  if(sub==='medaille'){
+    const nStr=parts[1];
+    const medalName=parts.slice(2).join(' ').trim();
+    if(!nStr||!medalName){ line('<span class="err">Usage : agent medaille &lt;n&gt; &lt;nom de la médaille&gt;</span>'); return; }
+    const item=resolveByKindIndex('agent', parseInt(nStr)); if(!item) return;
+    await fbAdd('sec_dossier_notes', {agentId:item.record._id, type:'medaille', date:today(), author:currentUser?.displayName||currentUser?.username||'—', content:medalName});
+    line('<span class="accent">🎖 Médaille décernée à '+esc(item.record.name)+' :</span> '+esc(medalName));
+    refreshAgentFileIfOpen(item.record._id);
+    return;
+  }
+  line('<span class="err">Usage : agent grade|role|accred|rename|medaille|grades ...</span>');
 }
 
 // ══════════════════════════════════════════
@@ -1389,20 +1412,29 @@ function buildFileBody(kind, r){
       <div class="file-sec"><div class="file-sec-lbl">Commentaires</div><div class="file-sec-content">${esc(r.comments||'—')}</div></div>`;
   }
   if(kind==='agent'){
-    const notes=dossierNotes.filter(n=>n.agentId===r._id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    const allNotes=dossierNotes.filter(n=>n.agentId===r._id).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    const medals=allNotes.filter(n=>n.type==='medaille');
+    const notes=allNotes.filter(n=>n.type!=='medaille');
     const typeLabels={observation:'🔵 Observation', avertissement:'🟡 Avertissement', sanction:'🔴 Sanction', felicitation:'🟢 Félicitation'};
     const notesHtml = notes.length ? notes.map(n=>`<div class="file-note-item t-${n.type}"><div class="file-note-meta">${typeLabels[n.type]||n.type} — ${n.date||''} — par ${esc(n.author||'—')}</div>${esc(n.content)}</div>`).join('') : '<div style="font-size:.78rem;color:var(--text-dim2)">Aucune note.</div>';
+    const medalsHtml = medals.length ? `<div class="medal-list">${medals.map(m=>`<div class="medal-badge">🎖 ${esc(m.content)} <span class="md-date">${m.date||''}</span></div>`).join('')}</div>` : '<div style="font-size:.78rem;color:var(--text-dim2)">Aucune médaille.</div>';
+    const avatarUrl = agentAvatarUrl(r);
+    const avatarRow = `
+      <div class="file-avatar-row">
+        <img src="${avatarUrl}" alt=""/>
+        <div class="fa-meta"><b>${esc(r.name||'—')}</b>${esc(r.rank||'—')}${r.username?' — @'+esc(r.username):''}</div>
+      </div>`;
     let adminForm='';
     let gradeForm='';
     if(currentRole==='admin'){
       adminForm = `
       <div class="admin-note-form">
-        <div class="admin-note-form-lbl">🔐 Ajouter une note (admin)</div>
+        <div class="admin-note-form-lbl">🔐 Ajouter une note / médaille (admin)</div>
         <div class="form-row2">
-          <select id="agNoteType"><option value="observation">Observation</option><option value="avertissement">Avertissement</option><option value="sanction">Sanction</option><option value="felicitation">Félicitation</option></select>
+          <select id="agNoteType"><option value="observation">Observation</option><option value="avertissement">Avertissement</option><option value="sanction">Sanction</option><option value="felicitation">Félicitation</option><option value="medaille">🎖 Médaille</option></select>
           <input type="date" id="agNoteDate" value="${today()}"/>
         </div>
-        <textarea id="agNoteContent" rows="2" placeholder="Contenu de la note…" style="width:100%;margin-top:8px;background:#100d1c;border:1px solid var(--border2);color:var(--white);font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px;"></textarea>
+        <textarea id="agNoteContent" rows="2" placeholder="Contenu de la note, ou nom de la médaille…" style="width:100%;margin-top:8px;background:#100d1c;border:1px solid var(--border2);color:var(--white);font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px;"></textarea>
         <button class="btn btn-primary" id="agNoteSaveBtn" style="margin-top:8px" data-agent-id="${r._id}">+ Ajouter</button>
       </div>`;
       const curCorps = r.corps || 'regulier';
@@ -1427,6 +1459,7 @@ function buildFileBody(kind, r){
       </div>`;
     }
     return `
+      ${avatarRow}
       <div class="file-meta-grid">
         <div class="file-meta-item"><div class="file-meta-lbl">Grade</div><div class="file-meta-val">${esc(r.rank||'—')}</div></div>
         <div class="file-meta-item"><div class="file-meta-lbl">Corps</div><div class="file-meta-val">${esc(corpsLabel(r.corps))}</div></div>
@@ -1435,7 +1468,8 @@ function buildFileBody(kind, r){
         <div class="file-meta-item"><div class="file-meta-lbl">Statut</div><div class="file-meta-val">${r.online?'EN LIGNE':'HORS LIGNE'}</div></div>
         <div class="file-meta-item"><div class="file-meta-lbl">Notes au dossier</div><div class="file-meta-val">${notes.length}</div></div>
       </div>
-      <div class="file-sec"><div class="file-sec-lbl">Notes internes</div><div class="file-notes-list">${notesHtml}</div>${adminForm}${gradeForm}</div>`;
+      <div class="file-sec"><div class="file-sec-lbl">🎖 Décorations &amp; médailles</div>${medalsHtml}</div>
+      <div class="file-sec"><div class="file-sec-lbl">Sanctions disciplinaires &amp; valorisations</div><div class="file-notes-list">${notesHtml}</div>${adminForm}${gradeForm}</div>`;
   }
   if(kind==='lrc'){
     return `
