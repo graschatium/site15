@@ -240,7 +240,7 @@ nav.topbar{
     </div>
     <div class="link-invite-box" id="afCharBox" style="display:none">
       <div class="af-field"><label>Nom du personnage</label><input type="text" id="afCharName" placeholder="Ex: A.MAX"/></div>
-      <div style="font-size:9px;color:var(--text-dim2);margin-bottom:8px">Ce nom remplacera votre pseudo Discord partout sur SCiPNET.</div>
+      <div style="font-size:9px;color:var(--text-dim2);margin-bottom:8px">Ce nom remplacera votre pseudo Discord partout sur SCiPNET. Votre profil devra être validé par le D.SE avant d'apparaître dans les effectifs.</div>
       <button class="auth-flyout-submit" onclick="confirmSelfRegister()">→ Lier mon personnage</button>
     </div>
     <div class="auth-flyout-err" id="afLinkError" style="margin-top:10px"></div>
@@ -756,12 +756,14 @@ window.confirmSelfRegister=async function(){
       accreditation: 0,
       selfRegistered: true
     });
-    await fbAdd('sec_agents', {name:charName, username:du.username, rank:'', accreditation:0, online:false, discordId:du.id, avatarUrl:discordAvatarUrl(du)});
+    // Le compte est créé et peut se connecter, mais n'apparaît PAS dans les effectifs
+    // (sec_agents) : c'est au D.SE (admin) de l'ajouter via "agent pending" + "agent enroll".
     currentUser={_id:doc_.id, discordId:du.id, displayName:charName, username:du.username, role:'joueur', accreditation:0};
     currentRole='joueur'; isAuthenticated=true; currentAccred=0;
     saveSession(du.id);
     onAuthChange(charName, 'joueur', discordAvatarUrl(du));
-    notifyDiscord('🆕 **Personnage lié via Discord** — '+charName+' (@'+du.username+') — '+new Date().toLocaleString('fr-FR'));
+    line('<span class="accent">✓ Compte créé :</span> vous êtes connecté, mais votre profil doit encore être validé par le D.SE pour apparaître dans les effectifs.');
+    notifyDiscord('🆕 **Nouveau personnage (en attente de validation)** — '+charName+' (@'+du.username+') — à ajouter aux effectifs via `agent pending` — '+new Date().toLocaleString('fr-FR'));
     pendingDiscordProfile=null;
   }catch(e){
     err.textContent='⚠ Erreur : '+e.message;
@@ -963,6 +965,8 @@ function printHelp(){
   line('&nbsp;&nbsp;<span class="cmd">agent accred &lt;n&gt; 0-4|auto</span> — force ou réinitialise l\'accréditation (admin)');
   line('&nbsp;&nbsp;<span class="cmd">agent rename &lt;n&gt; &lt;nouveau nom&gt;</span> — renomme un agent (admin)');
   line('&nbsp;&nbsp;<span class="cmd">agent medaille &lt;n&gt; &lt;nom&gt;</span> — décerne une médaille (admin)');
+  line('&nbsp;&nbsp;<span class="cmd">agent pending</span> — liste les comptes créés par les agents, pas encore aux effectifs (admin)');
+  line('&nbsp;&nbsp;<span class="cmd">agent enroll &lt;n&gt; &lt;regulier|eit&gt; &lt;code&gt;</span> — ajoute un compte en attente aux effectifs (admin)');
   line('&nbsp;&nbsp;<span class="cmd">delete rapport &lt;n&gt; [confirm]</span> — supprime un rapport (admin, confirmation requise)');
   line('&nbsp;&nbsp;<span class="cmd">appel present|absent|retard &lt;nom&gt;</span> — pointer un agent');
   line('&nbsp;&nbsp;<span class="cmd">appel status</span> — état de la session en cours');
@@ -1175,6 +1179,42 @@ async function cmdAgent(argStr){
 
   if(!requireAuth('modifier un agent')) return;
   if(!requireAdmin('modifier un agent')) return;
+
+  if(sub==='pending'){
+    const snap=await getDocs(collection(db,'users'));
+    const pending=[];
+    snap.forEach(d=>{
+      const u=d.data();
+      if(u.selfRegistered && u.discordId && !agents.some(a=>a.discordId===u.discordId)) pending.push({_id:d.id, ...u});
+    });
+    if(!pending.length){ line('Aucun compte en attente de validation.'); return; }
+    setLastList(pending.map(record=>({kind:'pendingUser', record})));
+    line('Comptes créés par les agents, en attente d\'ajout aux effectifs :');
+    pending.forEach((u,i)=> line(`&nbsp;&nbsp;<span class="accent">${i+1}.</span> <span class="white">${esc(u.displayName)}</span> — @${esc(u.discordUsername||u.username||'—')}`));
+    line('<span style="color:var(--text-dim2)">→ tapez <span class="cmd">agent enroll 1 regulier CDT</span> pour ajouter le n°1 aux effectifs (voir <span class="cmd">agent grades regulier</span>).</span>');
+    return;
+  }
+  if(sub==='enroll'){
+    const [nStr, corpsStr, codeStr]=parts.slice(1);
+    if(!nStr||!corpsStr||!codeStr){ line('<span class="err">Usage : agent enroll &lt;n&gt; &lt;regulier|eit&gt; &lt;code&gt; — n = index affiché par <span class="cmd">agent pending</span></span>'); return; }
+    const item=resolveFromLast(parseInt(nStr));
+    if(!item || item.kind!=='pendingUser'){ line('<span class="err">Tapez d\'abord <span class="cmd">agent pending</span> pour lister les comptes en attente.</span>'); return; }
+    const corps=corpsStr.toLowerCase(), code=codeStr.toUpperCase();
+    if(!HIERARCHY[corps]){ line('<span class="err">Corps invalide. Utilisez : regulier ou eit.</span>'); return; }
+    const grade=findGrade(corps, code);
+    if(!grade){ line('<span class="err">Grade invalide. Tapez <span class="cmd">agent grades '+corps+'</span> pour la liste.</span>'); return; }
+    const u=item.record;
+    await fbAdd('sec_agents', {name:u.displayName, username:u.discordUsername||u.username||'', rank:grade.label, rankCode:code, corps, accreditation:grade.accred, online:false, discordId:u.discordId||null, avatarUrl:u.avatarUrl||''});
+    await fbUpdate('users', u._id, {corps, rankCode:code, rank:grade.label, accreditation:grade.accred, accreditationOverride:null});
+    if(currentUser && currentUser._id===u._id){
+      currentUser={...currentUser, corps, rankCode:code, rank:grade.label, accreditation:grade.accred, accreditationOverride:null};
+      currentAccred=grade.accred;
+      onAuthChange(currentUser.displayName, currentRole, currentUser.avatarUrl);
+    }
+    line('<span class="accent">✓ '+esc(u.displayName)+' ajouté aux effectifs :</span> '+esc(grade.label)+' — accréditation '+grade.accred+'.');
+    notifyDiscord('✅ **Agent ajouté aux effectifs** — '+u.displayName+' — '+grade.label+' — validé par '+(currentUser?.displayName||currentUser?.username)+' — '+new Date().toLocaleString('fr-FR'));
+    return;
+  }
 
   if(sub==='grade'){
     const [nStr, corpsStr, codeStr]=parts.slice(1);
