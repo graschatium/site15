@@ -255,11 +255,6 @@ nav.topbar{
       <div class="auth-user-name" id="afUserName">—</div>
       <div class="auth-user-role" id="afUserRole">—</div>
       <div class="auth-widget-line" id="afUserGrade" style="margin-bottom:6px">—</div>
-      <div style="text-align:center;margin-bottom:10px"><a class="lnk" style="font-size:9px;letter-spacing:.1em;text-transform:uppercase" onclick="toggleCharNameEdit()">✏ Modifier le nom du personnage</a></div>
-      <div id="afCharEditBox" style="display:none;margin-bottom:10px">
-        <div class="af-field"><input type="text" id="afCharNameEdit" placeholder="Nom du personnage"/></div>
-        <button class="auth-flyout-submit" onclick="saveCharNameEdit()">→ Enregistrer</button>
-      </div>
     </div>
     <button class="auth-logout-btn" onclick="doAuthLogout()">↩ Déconnexion</button>
   </div>
@@ -777,33 +772,6 @@ window.doAuthLogout=function(){
   line('<span class="err">↩ Déconnecté.</span>');
   if(name) notifyDiscord('🔒 **Déconnexion agent** — '+name+' — '+new Date().toLocaleString('fr-FR'));
   flyoutOpen=true; document.getElementById('authFlyout').classList.add('open');
-};
-window.toggleCharNameEdit=function(){
-  const box=document.getElementById('afCharEditBox');
-  const show = box.style.display==='none';
-  box.style.display = show?'block':'none';
-  if(show){ document.getElementById('afCharNameEdit').value = currentUser?.displayName||''; document.getElementById('afCharNameEdit').focus(); }
-};
-window.saveCharNameEdit=async function(){
-  if(!requireAuth('modifier le nom du personnage')) return;
-  const newName=document.getElementById('afCharNameEdit').value.trim();
-  if(!newName) return;
-  try{
-    const oldName=currentUser.displayName;
-    await fbUpdate('users', currentUser._id, {displayName:newName});
-    // met à jour l'entrée effectifs correspondante (par discordId, sinon par ancien nom)
-    const agSnap=await getDocs(collection(db,'sec_agents'));
-    agSnap.forEach(async d=>{
-      const a=d.data();
-      if((currentUser.discordId && a.discordId===currentUser.discordId) || (!currentUser.discordId && a.name===oldName)){
-        await fbUpdate('sec_agents', d.id, {name:newName});
-      }
-    });
-    currentUser={...currentUser, displayName:newName};
-    document.getElementById('afCharEditBox').style.display='none';
-    onAuthChange(newName, currentRole, currentUser.avatarUrl);
-    line('<span class="accent">✓ Nom de personnage mis à jour :</span> '+esc(newName));
-  }catch(e){ line('<span class="err">⚠ Erreur : '+esc(e.message)+'</span>'); }
 };
 function computeAccred(u){
   if(!u) return 0;
