@@ -59,6 +59,12 @@ nav.topbar{
 .auth-user-role{ font-size:9px; letter-spacing:.2em; padding:2px 10px; border:1px solid; text-transform:uppercase; display:inline-block; margin-bottom:14px; }
 .auth-user-role.admin{ color:var(--danger); border-color:rgba(255,51,85,.5); background:rgba(255,51,85,.08); }
 .auth-user-role.moderateur{ color:var(--dept-color); border-color:rgba(76,195,255,.4); background:rgba(76,195,255,.06); }
+.auth-user-role.joueur{ color:var(--text-dim); border-color:var(--border2); background:rgba(139,130,168,.08); }
+.accred-badge{ font-size:9px; letter-spacing:.12em; padding:2px 8px; border:1px solid var(--border2); color:var(--text-dim); text-transform:uppercase; display:inline-block; }
+.grade-edit-form{ background:#0c0a16; border:1px dashed rgba(76,195,255,.35); padding:12px; margin-top:10px; }
+.grade-edit-form-lbl{ font-size:8px; text-transform:uppercase; letter-spacing:.16em; color:var(--dept-color); margin-bottom:8px; }
+.file-locked{ margin:14px 18px; padding:18px; background:#000; border:1px solid rgba(255,51,85,.4); text-align:center; }
+.file-locked b{ color:var(--danger); }
 .auth-logout-btn{ width:100%; padding:8px; background:rgba(255,51,85,.06); border:1px solid rgba(255,51,85,.4); color:var(--danger); font-size:10px; letter-spacing:.15em; text-transform:uppercase; cursor:pointer; }
 .auth-logout-btn:hover{ background:rgba(255,51,85,.14); }
 
@@ -236,6 +242,7 @@ nav.topbar{
       <img class="discord-avatar" id="afUserAvatar" src="" alt="" style="display:none"/>
       <div class="auth-user-name" id="afUserName">—</div>
       <div class="auth-user-role" id="afUserRole">—</div>
+      <div class="auth-widget-line" id="afUserGrade" style="margin-bottom:10px">—</div>
     </div>
     <button class="auth-logout-btn" onclick="doAuthLogout()">↩ Déconnexion</button>
   </div>
@@ -380,11 +387,13 @@ nav.topbar{
   <div class="modal-box">
     <div class="modal-hdr"><span style="font-size:.9rem;color:var(--white);text-transform:uppercase">Créer un profil agent</span><button class="modal-close" data-close="modalNewAgent">×</button></div>
     <div class="modal-body">
+      <div class="form-field"><label>Nom affiché *</label><input id="naDisplayName" placeholder="Ex: A.MAX"/></div>
       <div class="form-row2">
-        <div class="form-field"><label>Nom affiché *</label><input id="naDisplayName" placeholder="Ex: A.MAX"/></div>
-        <div class="form-field"><label>Grade</label><input id="naRank" placeholder="Ex: [D.SE] Cadet"/></div>
+        <div class="form-field"><label>Corps</label><select id="naCorps"></select></div>
+        <div class="form-field"><label>Grade</label><select id="naGrade"></select></div>
       </div>
-      <div class="form-field"><label>Rôle</label><select id="naRole"><option value="moderateur">🛡 Modérateur</option><option value="admin">🔐 Administrateur</option></select></div>
+      <div class="form-field"><label>Accréditation (automatique)</label><div class="accred-badge" id="naAccredPreview">—</div></div>
+      <div class="form-field"><label>Rôle</label><select id="naRole"><option value="joueur">👤 Joueur</option><option value="moderateur">🛡 Modérateur</option><option value="admin">🔐 Administrateur</option></select></div>
       <div class="auth-flyout-err" id="naError" style="min-height:14px"></div>
       <div id="naInviteResult" style="display:none" class="invite-code-display">
         <div style="font-size:9px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em">Code d'invitation à transmettre à l'agent</div>
@@ -520,7 +529,7 @@ const DISCORD_CLIENT_ID = '1482165706484092928';
 const DISCORD_REDIRECT_URI = 'https://graschatium.github.io/site15/';
 const SESSION_KEY = 'scp_sec_session_discord';
 const OAUTH_STATE_KEY = 'scp_sec_oauth_state';
-let currentUser=null, currentRole=null, isAuthenticated=false;
+let currentUser=null, currentRole=null, isAuthenticated=false, currentAccred=0;
 let pendingDiscordProfile=null; // profil Discord en attente de liaison
 
 function loadSession(){ try{ const raw=localStorage.getItem(SESSION_KEY); return raw?JSON.parse(raw):null; }catch{ return null; } }
@@ -581,7 +590,7 @@ async function handleOAuthRedirect(){
     const discordUser = await fetchDiscordUser(accessToken);
     const existing = await findUserByDiscordId(discordUser.id);
     if(existing){
-      currentUser=existing; currentRole=existing.role||'moderateur'; isAuthenticated=true;
+      currentUser=existing; currentRole=existing.role||'joueur'; isAuthenticated=true; currentAccred=computeAccred(existing);
       saveSession(discordUser.id);
       onAuthChange(existing.displayName||discordDisplayName(discordUser), currentRole, discordAvatarUrl(discordUser));
       notifyDiscord('🔓 **Connexion agent (Discord)** — '+(existing.displayName||discordUser.username)+' ('+currentRole+') — '+new Date().toLocaleString('fr-FR'));
@@ -606,7 +615,7 @@ async function initAuth(){
     try{
       const found = await findUserByDiscordId(saved.discordId);
       if(found){
-        currentUser=found; currentRole=found.role||'moderateur'; isAuthenticated=true;
+        currentUser=found; currentRole=found.role||'joueur'; isAuthenticated=true; currentAccred=computeAccred(found);
         onAuthChange(found.displayName||found.username||'Agent', currentRole, found.avatarUrl);
         notifyDiscord('🔓 **Connexion (session restaurée)** — '+(found.displayName||found.username)+' ('+currentRole+') — '+new Date().toLocaleString('fr-FR'));
         return;
@@ -619,7 +628,7 @@ async function initAuth(){
 
 function onAuthChange(name, role, avatarUrl){
   updateAuthButton(name);
-  if(name){ line('<span class="accent">✓ Connecté :</span> ' + esc(name) + ' (' + (role||'moderateur') + ')'); showAuthUserPanel(name, role, avatarUrl); }
+  if(name){ line('<span class="accent">✓ Connecté :</span> ' + esc(name) + ' (' + (role||'joueur') + ') — accréditation ' + currentAccred); showAuthUserPanel(name, role, avatarUrl); }
   else showAuthLoginPanel();
 }
 function updateAuthButton(name){
@@ -654,8 +663,10 @@ function showAuthUserPanel(name, role, avatarUrl){
   const av=document.getElementById('afUserAvatar');
   if(avatarUrl){ av.src=avatarUrl; av.style.display='block'; } else { av.style.display='none'; }
   const r=document.getElementById('afUserRole');
-  r.textContent = role==='admin' ? '🔐 Administrateur' : '🛡 Modérateur';
-  r.className='auth-user-role '+(role||'moderateur');
+  r.textContent = role==='admin' ? '🔐 Administrateur' : role==='moderateur' ? '🛡 Modérateur' : '👤 Joueur';
+  r.className='auth-user-role '+(role||'joueur');
+  const grade = currentUser?.rank ? currentUser.rank+' — ' : '';
+  document.getElementById('afUserGrade') && (document.getElementById('afUserGrade').textContent = grade+'Accréditation '+currentAccred);
 }
 function showLinkPanel(discordUser){
   hideAllAuthPanels();
@@ -695,7 +706,7 @@ window.confirmLinkInvite=async function(){
     // met aussi à jour l'entrée effectifs correspondante si elle existe
     const agSnap=await getDocs(collection(db,'sec_agents'));
     agSnap.forEach(async d=>{ const a=d.data(); if(a.linkedUserId===target._id || a.name===target.displayName){ /* rien d'obligatoire ici */ } });
-    currentUser={...target, discordId:du.id, avatarUrl:discordAvatarUrl(du)}; currentRole=target.role||'moderateur'; isAuthenticated=true;
+    currentUser={...target, discordId:du.id, avatarUrl:discordAvatarUrl(du)}; currentRole=target.role||'joueur'; isAuthenticated=true; currentAccred=computeAccred(currentUser);
     saveSession(du.id);
     onAuthChange(target.displayName||discordDisplayName(du), currentRole, discordAvatarUrl(du));
     notifyDiscord('🔗 **Compte Discord lié** — '+(target.displayName)+' ↔ '+discordDisplayName(du)+' (@'+du.username+') — '+new Date().toLocaleString('fr-FR'));
@@ -712,15 +723,16 @@ window.selfRegisterDiscord=async function(){
       discordUsername: du.username,
       avatarUrl: discordAvatarUrl(du),
       displayName: discordDisplayName(du),
-      role: 'moderateur',
+      role: 'joueur',
       rank: '',
+      accreditation: 0,
       selfRegistered: true
     });
-    await fbAdd('sec_agents', {name:discordDisplayName(du), username:du.username, rank:'', online:false, discordId:du.id, avatarUrl:discordAvatarUrl(du)});
-    currentUser={_id:doc_.id, discordId:du.id, displayName:discordDisplayName(du), role:'moderateur'};
-    currentRole='moderateur'; isAuthenticated=true;
+    await fbAdd('sec_agents', {name:discordDisplayName(du), username:du.username, rank:'', accreditation:0, online:false, discordId:du.id, avatarUrl:discordAvatarUrl(du)});
+    currentUser={_id:doc_.id, discordId:du.id, displayName:discordDisplayName(du), role:'joueur', accreditation:0};
+    currentRole='joueur'; isAuthenticated=true; currentAccred=0;
     saveSession(du.id);
-    onAuthChange(discordDisplayName(du), 'moderateur', discordAvatarUrl(du));
+    onAuthChange(discordDisplayName(du), 'joueur', discordAvatarUrl(du));
     notifyDiscord('🆕 **Profil auto-créé via Discord** — '+discordDisplayName(du)+' (@'+du.username+') — '+new Date().toLocaleString('fr-FR'));
     pendingDiscordProfile=null;
   }catch(e){
@@ -730,12 +742,18 @@ window.selfRegisterDiscord=async function(){
 
 window.doAuthLogout=function(){
   const name=currentUser?.displayName||currentUser?.username;
-  currentUser=null; currentRole=null; isAuthenticated=false; clearSession();
+  currentUser=null; currentRole=null; isAuthenticated=false; currentAccred=0; clearSession();
   onAuthChange(null,null);
   line('<span class="err">↩ Déconnecté.</span>');
   if(name) notifyDiscord('🔒 **Déconnexion agent** — '+name+' — '+new Date().toLocaleString('fr-FR'));
   flyoutOpen=true; document.getElementById('authFlyout').classList.add('open');
 };
+function computeAccred(u){
+  if(!u) return 0;
+  if(typeof u.accreditation === 'number') return u.accreditation;
+  if(u.corps && u.rankCode){ const g=findGrade(u.corps, u.rankCode); if(g) return g.accred; }
+  return 0;
+}
 function requireAuth(action){
   if(!isAuthenticated){ openAuthFlyout(); line('<span class="err">⚠ Connexion requise pour : '+esc(action)+'</span>'); return false; }
   return true;
@@ -771,6 +789,49 @@ const EVAL_CRIT=[
   {key:'Comp',label:'Comportement',color:'#a855f7'},
 ];
 const EVAL_DEC_LABELS={promu:'✅ Promu', valide:'✔ Validé', avertissement:'⚠ Avertissement', recale:'❌ Recalé', expulse:'🚫 Expulsion'};
+
+// ══════════════════════════════════════════
+// HIÉRARCHIE DES GRADES (Sécurité Régulière + EIT)
+// Chaque grade porte un niveau ET une accréditation associée.
+// L'accréditation d'un agent découle automatiquement de son grade.
+// ══════════════════════════════════════════
+const HIERARCHY={
+  regulier:{ label:'Sécurité Régulière', grades:[
+    {code:'D_DSE',   label:'[D. DSE] Directeur de la Sécurité',        niveau:4, accred:4},
+    {code:'D_ADJ',   label:'[D. ADJ. DSE] Directeur Adjoint',           niveau:4, accred:4},
+    {code:'CMD',     label:'[CMD] Commandant',                         niveau:4, accred:4},
+    {code:'CPT',     label:'[CPT] Capitaine',                          niveau:4, accred:4},
+    {code:'LTN',     label:'[LTN] Lieutenant',                         niveau:3, accred:4},
+    {code:'SLT',     label:'[SLT] Second-Lieutenant',                  niveau:3, accred:3},
+    {code:'SGM',     label:'[SGM] Sergent-Major',                      niveau:3, accred:3},
+    {code:'SGC',     label:'[SGC] Sergent-Chef',                       niveau:3, accred:2},
+    {code:'SGT',     label:'[SGT] Sergent',                            niveau:3, accred:2},
+    {code:'CC1',     label:"[CC1] Caporal-Chef de 1ère Classe",        niveau:2, accred:2},
+    {code:'CPC',     label:'[CPC] Caporal-Chef',                       niveau:2, accred:1},
+    {code:'CPL',     label:'[CPL] Caporal',                            niveau:2, accred:1},
+    {code:'A1C',     label:"[A1C] Agent de 1ère Classe",               niveau:1, accred:1},
+    {code:'A2C',     label:'[A2C] Agent de 2nd Classe',                niveau:1, accred:1},
+    {code:'CDT',     label:'[CDT] Cadet',                              niveau:1, accred:1},
+  ]},
+  eit:{ label:"Équipe d'Intervention Tactique", grades:[
+    {code:'EIT_SGM', label:'[SGM] Sergent-Major',                      niveau:4, accred:4},
+    {code:'EIT_SGC', label:'[SGC] Sergent-Chef',                       niveau:4, accred:4},
+    {code:'EIT_SGT', label:'[SGT] Sergent',                            niveau:4, accred:4},
+    {code:'EIT_CC1', label:"[CC1] Caporal-Chef de 1ère Classe",        niveau:4, accred:3},
+    {code:'EIT_CPC', label:'[CPC] Caporal-Chef',                       niveau:3, accred:3},
+    {code:'EIT_CPL', label:'[CPL] Caporal',                            niveau:3, accred:3},
+    {code:'EIT_A1C', label:"[A1C] Agent de 1ère Classe",               niveau:3, accred:2},
+  ]}
+};
+function corpsLabel(c){ return HIERARCHY[c]?.label || c || '—'; }
+function findGrade(corps, code){ return (HIERARCHY[corps]?.grades||[]).find(g=>g.code===code) || null; }
+function populateCorpsSelect(sel){
+  sel.innerHTML = Object.keys(HIERARCHY).map(c=>`<option value="${c}">${esc(HIERARCHY[c].label)}</option>`).join('');
+}
+function populateGradeSelect(sel, corps){
+  const grades = HIERARCHY[corps]?.grades || [];
+  sel.innerHTML = grades.map(g=>`<option value="${g.code}">${esc(g.label)} — Niveau ${g.niveau}</option>`).join('');
+}
 
 let protocols=[], rapports=[], evaluations=[], agents=[], appelSessions=[], dossierNotes=[];
 let currentAppel=null;
@@ -849,11 +910,15 @@ function cmdList(kind){
   if(kind==='proto'||kind==='protocoles'||kind==='protocole'){
     printListGeneric('proto', protocols, p=>`[${p.category}] <span class="white">${esc(p.title)}</span> — ${p.status||'—'}`, 'Aucun protocole enregistré.');
   } else if(kind==='rapports'||kind==='rapport'){
-    printListGeneric('rapport', rapports, r=>`[${r.severity}] <span class="white">${esc(r.title)}</span> — ${r.date||'—'} — ${esc(r.author||'—')}`, 'Aucun rapport enregistré.');
+    printListGeneric('rapport', rapports, r=>{
+      const req=classRapport(r).accr;
+      const locked = currentAccred<req ? ' <span class="err">⛔ accréd. '+req+' requise</span>' : ' <span style="color:var(--text-dim2)">(accréd. '+req+')</span>';
+      return `[${r.severity}] <span class="white">${esc(r.title)}</span> — ${r.date||'—'} — ${esc(r.author||'—')}`+locked;
+    }, 'Aucun rapport enregistré.');
   } else if(kind==='evaluations'||kind==='eval'||kind==='evals'){
     printListGeneric('eval', evaluations, e=>`<span class="white">${esc(e.name)}</span> — ${e.total||0}/60 — ${EVAL_DEC_LABELS[e.decision]||e.decision} — ${e.date||'—'}`, 'Aucune évaluation enregistrée.');
   } else if(kind==='effectifs'||kind==='agents'||kind==='agent'){
-    printListGeneric('agent', agents, a=>`<span class="white">${esc(a.name)}</span> — ${esc(a.rank||'—')} — ${a.online?'<span style="color:var(--safe)">EN LIGNE</span>':'<span style="color:var(--text-dim2)">HORS LIGNE</span>'}`, 'Aucun agent enregistré.');
+    printListGeneric('agent', agents, a=>`<span class="white">${esc(a.name)}</span> — ${esc(a.rank||'—')}${a.corps?' ('+esc(corpsLabel(a.corps))+')':''} — accréd. ${typeof a.accreditation==='number'?a.accreditation:'—'} — ${a.online?'<span style="color:var(--safe)">EN LIGNE</span>':'<span style="color:var(--text-dim2)">HORS LIGNE</span>'}`, 'Aucun agent enregistré.');
   } else if(kind==='lrc'){
     printListGeneric('lrc', LRC_CODES, l=>`<span class="white">CODE: ${l.code}</span> — priorité ${l.priority}`, 'Aucun code LRC.');
   } else if(kind==='appel'||kind==='appels'){
@@ -976,7 +1041,7 @@ function run(raw){
 
   if(cmd==='help') printHelp();
   else if(cmd==='clear'){ output.innerHTML=''; return; }
-  else if(cmd==='whoami'){ line(isAuthenticated ? ('Connecté en tant que <span class="white">'+esc(currentUser.displayName||currentUser.username)+'</span> ('+currentRole+').') : 'Non connecté — accès lecture seule.'); }
+  else if(cmd==='whoami'){ line(isAuthenticated ? ('Connecté en tant que <span class="white">'+esc(currentUser.displayName||currentUser.username)+'</span> ('+currentRole+') — '+esc(currentUser.rank||'sans grade')+' — accréditation <span class="white">'+currentAccred+'</span>.') : 'Non connecté — accès lecture seule (accréditation 0).'); }
   else if(cmd==='list') cmdList(arg.trim().toLowerCase());
   else if(cmd==='read') cmdRead(arg);
   else if(cmd==='search') cmdSearch(arg);
@@ -1023,8 +1088,40 @@ function openFile(kind, record){
   document.getElementById('fMenaceLabel').style.color=cls.color;
   document.getElementById('fTitle').textContent=title;
 
+  // Les rapports sont soumis à un contrôle d'accréditation : le niveau requis
+  // (déterminé par la sévérité du rapport) doit être couvert par l'accréditation
+  // de l'agent connecté, elle-même dérivée automatiquement de son grade.
+  if(kind==='rapport' && currentAccred < cls.accr){
+    line('<span class="err">⛔ Accès refusé — RAPPORT-'+(record._id?.slice(-6).toUpperCase()||'???')+' requiert une accréditation de niveau '+cls.accr+' (niveau actuel : '+currentAccred+').</span>');
+    document.getElementById('fBody').innerHTML = `
+      <div class="file-locked">
+        <div style="font-size:.8rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">⛔ Accès refusé</div>
+        <div><b>Accréditation de niveau ${cls.accr} requise</b></div>
+        <div style="font-size:.72rem;color:var(--text-dim2);margin-top:8px">Votre accréditation actuelle : ${currentAccred}${!isAuthenticated?' (non connecté)':''}. Contactez votre hiérarchie si l\'accès est nécessaire à votre fonction.</div>
+      </div>`;
+    openModal('modalFile');
+    return;
+  }
+
   document.getElementById('fBody').innerHTML = buildFileBody(kind, record);
+  if(kind==='agent' && currentRole==='admin') initAgentGradeForm(record);
   openModal('modalFile');
+}
+
+function initAgentGradeForm(record){
+  const corpsSel=document.getElementById('agCorps'), gradeSel=document.getElementById('agGrade');
+  if(!corpsSel||!gradeSel) return;
+  populateCorpsSelect(corpsSel);
+  corpsSel.value = record.corps || 'regulier';
+  populateGradeSelect(gradeSel, corpsSel.value);
+  if(record.rankCode) gradeSel.value = record.rankCode;
+  const updatePreview=()=>{
+    const g=findGrade(corpsSel.value, gradeSel.value);
+    document.getElementById('agAccredPreview').textContent = g ? ('NIVEAU '+g.accred) : '—';
+  };
+  updatePreview();
+  corpsSel.addEventListener('change', ()=>{ populateGradeSelect(gradeSel, corpsSel.value); updatePreview(); });
+  gradeSel.addEventListener('change', updatePreview);
 }
 
 function buildFileBody(kind, r){
@@ -1072,6 +1169,7 @@ function buildFileBody(kind, r){
     const typeLabels={observation:'🔵 Observation', avertissement:'🟡 Avertissement', sanction:'🔴 Sanction', felicitation:'🟢 Félicitation'};
     const notesHtml = notes.length ? notes.map(n=>`<div class="file-note-item t-${n.type}"><div class="file-note-meta">${typeLabels[n.type]||n.type} — ${n.date||''} — par ${esc(n.author||'—')}</div>${esc(n.content)}</div>`).join('') : '<div style="font-size:.78rem;color:var(--text-dim2)">Aucune note.</div>';
     let adminForm='';
+    let gradeForm='';
     if(currentRole==='admin'){
       adminForm = `
       <div class="admin-note-form">
@@ -1083,15 +1181,28 @@ function buildFileBody(kind, r){
         <textarea id="agNoteContent" rows="2" placeholder="Contenu de la note…" style="width:100%;margin-top:8px;background:#100d1c;border:1px solid var(--border2);color:var(--white);font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px;"></textarea>
         <button class="btn btn-primary" id="agNoteSaveBtn" style="margin-top:8px" data-agent-id="${r._id}">+ Ajouter</button>
       </div>`;
+      const curCorps = r.corps || 'regulier';
+      gradeForm = `
+      <div class="grade-edit-form">
+        <div class="grade-edit-form-lbl">🎖 Modifier le grade (admin) — l'accréditation est recalculée automatiquement</div>
+        <div class="form-row2">
+          <select id="agCorps" data-agent-id="${r._id}"></select>
+          <select id="agGrade" data-agent-id="${r._id}"></select>
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:var(--text-dim)">Accréditation résultante : <span class="accred-badge" id="agAccredPreview">—</span></div>
+        <button class="btn btn-primary" id="agGradeSaveBtn" style="margin-top:8px" data-agent-id="${r._id}">💾 Mettre à jour le grade</button>
+      </div>`;
     }
     return `
       <div class="file-meta-grid">
         <div class="file-meta-item"><div class="file-meta-lbl">Grade</div><div class="file-meta-val">${esc(r.rank||'—')}</div></div>
+        <div class="file-meta-item"><div class="file-meta-lbl">Corps</div><div class="file-meta-val">${esc(corpsLabel(r.corps))}</div></div>
+        <div class="file-meta-item"><div class="file-meta-lbl">Accréditation</div><div class="file-meta-val">${typeof r.accreditation==='number'?r.accreditation:'—'}</div></div>
         <div class="file-meta-item"><div class="file-meta-lbl">Username</div><div class="file-meta-val">${r.username?'@'+esc(r.username):'—'}</div></div>
         <div class="file-meta-item"><div class="file-meta-lbl">Statut</div><div class="file-meta-val">${r.online?'EN LIGNE':'HORS LIGNE'}</div></div>
         <div class="file-meta-item"><div class="file-meta-lbl">Notes au dossier</div><div class="file-meta-val">${notes.length}</div></div>
       </div>
-      <div class="file-sec"><div class="file-sec-lbl">Notes internes</div><div class="file-notes-list">${notesHtml}</div>${adminForm}</div>`;
+      <div class="file-sec"><div class="file-sec-lbl">Notes internes</div><div class="file-notes-list">${notesHtml}</div>${adminForm}${gradeForm}</div>`;
   }
   if(kind==='lrc'){
     return `
@@ -1129,11 +1240,46 @@ document.addEventListener('click', async e=>{
     const agent=agents.find(a=>a._id===agentId);
     if(agent) setTimeout(()=>openFile('agent', agent), 250);
   }
+  const gb=e.target.closest('#agGradeSaveBtn');
+  if(gb){
+    if(!requireAdmin('modifier un grade')) return;
+    const agentId=gb.dataset.agentId;
+    const corps=document.getElementById('agCorps').value;
+    const rankCode=document.getElementById('agGrade').value;
+    const grade=findGrade(corps, rankCode);
+    if(!grade) return;
+    const agent=agents.find(a=>a._id===agentId);
+    if(!agent) return;
+    await fbUpdate('sec_agents', agentId, {corps, rankCode, rank:grade.label, accreditation:grade.accred});
+    // synchronise le profil "users" lié (par discordId si disponible, sinon par nom affiché)
+    try{
+      const snap=await getDocs(collection(db,'users'));
+      let target=null;
+      snap.forEach(d=>{
+        const u=d.data();
+        if((agent.discordId && u.discordId===agent.discordId) || (!agent.discordId && u.displayName===agent.name)) target={_id:d.id,...u};
+      });
+      if(target){
+        await fbUpdate('users', target._id, {corps, rankCode, rank:grade.label, accreditation:grade.accred});
+        if(currentUser && currentUser._id===target._id){
+          currentUser={...currentUser, corps, rankCode, rank:grade.label, accreditation:grade.accred};
+          currentAccred=grade.accred;
+          showAuthUserPanel(currentUser.displayName||currentUser.username, currentRole, currentUser.avatarUrl);
+        }
+      }
+    }catch(err){ console.warn('Synchronisation du profil utilisateur échouée', err); }
+    line('<span class="accent">✓ Grade mis à jour :</span> '+esc(agent.name)+' → '+esc(grade.label)+' (accréditation '+grade.accred+')');
+    setTimeout(()=>openFile('agent', {...agent, corps, rankCode, rank:grade.label, accreditation:grade.accred}), 200);
+  }
 });
 
 document.getElementById('fExportBtn').addEventListener('click', ()=>{
   if(!currentFileItem) return;
   const {kind, record}=currentFileItem;
+  if(kind==='rapport' && currentAccred < classRapport(record).accr){
+    line('<span class="err">⛔ Export refusé — accréditation insuffisante pour ce rapport.</span>');
+    return;
+  }
   const lines=['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','FICHE — DÉPARTEMENT SÉCURITÉ','══════════════════════════════════════════'];
   if(kind==='proto'){ lines.push(`TITRE: ${record.title}`,`CATÉGORIE: ${record.category}`,`STATUT: ${record.status||'—'}`,'', record.content); }
   else if(kind==='rapport'){ lines.push(`TITRE: ${record.title}`,`TYPE: ${record.type}`,`SÉVÉRITÉ: ${record.severity}`,`AUTEUR: ${record.author}`,`DATE: ${record.date}`,'','DESCRIPTION:',record.description,'','CONCLUSION:',record.conclusion||'—'); }
@@ -1227,29 +1373,47 @@ function genInviteCode(){
   let c=''; for(let i=0;i<6;i++) c+=chars[Math.floor(Math.random()*chars.length)];
   return c;
 }
+function updateNaAccredPreview(){
+  const corps=document.getElementById('naCorps').value;
+  const code=document.getElementById('naGrade').value;
+  const g=findGrade(corps, code);
+  document.getElementById('naAccredPreview').textContent = g ? ('NIVEAU '+g.accred) : '—';
+}
 function openNewAgentModal(){
-  ['naDisplayName','naRank'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('naRole').value='moderateur';
+  document.getElementById('naDisplayName').value='';
+  populateCorpsSelect(document.getElementById('naCorps'));
+  populateGradeSelect(document.getElementById('naGrade'), document.getElementById('naCorps').value);
+  document.getElementById('naRole').value='joueur';
   document.getElementById('naError').textContent='';
   document.getElementById('naInviteResult').style.display='none';
+  updateNaAccredPreview();
   openModal('modalNewAgent');
 }
+document.getElementById('naCorps').addEventListener('change', ()=>{
+  populateGradeSelect(document.getElementById('naGrade'), document.getElementById('naCorps').value);
+  updateNaAccredPreview();
+});
+document.getElementById('naGrade').addEventListener('change', updateNaAccredPreview);
 document.getElementById('saveNewAgentBtn').addEventListener('click', async ()=>{
   if(!requireAuth('créer un profil agent')) return;
   if(!requireAdmin('créer un profil agent')) return;
   const err=document.getElementById('naError'); err.textContent='';
   const displayName=document.getElementById('naDisplayName').value.trim();
-  const rank=document.getElementById('naRank').value.trim();
+  const corps=document.getElementById('naCorps').value;
+  const gradeCode=document.getElementById('naGrade').value;
+  const grade=findGrade(corps, gradeCode);
   const role=document.getElementById('naRole').value;
   if(!displayName){ err.textContent='⚠ Nom affiché requis.'; return; }
+  if(!grade){ err.textContent='⚠ Grade invalide.'; return; }
+  const rank=grade.label, accreditation=grade.accred;
   try{
     const code=genInviteCode();
-    await fbAdd('users', {displayName, rank, role, discordId:null, pendingLinkCode:code});
-    await fbAdd('sec_agents', {name:displayName, rank, online:false});
+    await fbAdd('users', {displayName, rank, rankCode:gradeCode, corps, accreditation, role, discordId:null, pendingLinkCode:code});
+    await fbAdd('sec_agents', {name:displayName, rank, rankCode:gradeCode, corps, accreditation, online:false});
     document.getElementById('naInviteCode').textContent=code;
     document.getElementById('naInviteResult').style.display='block';
-    line('<span class="accent">✓ Profil agent créé :</span> '+esc(displayName)+' ('+role+') — code d\'invitation : <span class="white">'+code+'</span>');
-    notifyDiscord('🆕 **Profil agent créé** — '+displayName+' ('+role+') — code d\'invitation généré par '+(currentUser?.displayName||currentUser?.username)+' — '+new Date().toLocaleString('fr-FR'));
+    line('<span class="accent">✓ Profil agent créé :</span> '+esc(displayName)+' — '+esc(rank)+' ('+role+', accréd. '+accreditation+') — code d\'invitation : <span class="white">'+code+'</span>');
+    notifyDiscord('🆕 **Profil agent créé** — '+displayName+' — '+rank+' ('+role+') — code d\'invitation généré par '+(currentUser?.displayName||currentUser?.username)+' — '+new Date().toLocaleString('fr-FR'));
   }catch(e){ err.textContent='⚠ Erreur : '+e.message; }
 });
 
