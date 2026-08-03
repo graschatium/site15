@@ -945,6 +945,12 @@ function printHelp(){
   line('&nbsp;&nbsp;<span class="cmd">search &lt;mot-clé&gt;</span> — recherche protocoles + rapports');
   line('&nbsp;&nbsp;<span class="cmd">new proto|rapport|eval|appel</span> — créer (connexion requise)');
   line('&nbsp;&nbsp;<span class="cmd">new agent</span> — créer un profil agent + code d\'invitation (admin uniquement)');
+  line('&nbsp;&nbsp;<span class="cmd">agent grades regulier|eit</span> — liste les grades disponibles pour un corps');
+  line('&nbsp;&nbsp;<span class="cmd">agent grade &lt;n&gt; &lt;regulier|eit&gt; &lt;code&gt;</span> — change corps + grade d\'un agent (admin)');
+  line('&nbsp;&nbsp;<span class="cmd">agent role &lt;n&gt; joueur|moderateur|admin</span> — change le rôle d\'un agent (admin)');
+  line('&nbsp;&nbsp;<span class="cmd">agent accred &lt;n&gt; 0-4|auto</span> — force ou réinitialise l\'accréditation (admin)');
+  line('&nbsp;&nbsp;<span class="cmd">agent rename &lt;n&gt; &lt;nouveau nom&gt;</span> — renomme un agent (admin)');
+  line('&nbsp;&nbsp;<span class="cmd">delete rapport &lt;n&gt; [confirm]</span> — supprime un rapport (admin, confirmation requise)');
   line('&nbsp;&nbsp;<span class="cmd">appel present|absent|retard &lt;nom&gt;</span> — pointer un agent');
   line('&nbsp;&nbsp;<span class="cmd">appel status</span> — état de la session en cours');
   line('&nbsp;&nbsp;<span class="cmd">appel close</span> — clôturer &amp; exporter la session');
@@ -1088,6 +1094,147 @@ function cmdAppel(sub, rest){
   line('<span class="err">Usage : appel present|absent|retard &lt;nom&gt; · appel status · appel close</span>');
 }
 
+// ══════════════════════════════════════════
+// ÉDITION DES AGENTS EN COMMANDES (admin)
+// Reprend exactement la même logique que le formulaire "Éditer le profil"
+// de la fiche agent (corps, grade, rôle, dérogation d'accréditation, nom),
+// mais pilotable entièrement depuis le terminal.
+// ══════════════════════════════════════════
+async function getAgentCurrentProfile(agent){
+  const linked = await findLinkedUserDoc(agent);
+  const source = linked || agent;
+  const corps = source.corps || 'regulier';
+  const rankCode = source.rankCode || (HIERARCHY[corps]?.grades[0]?.code) || '';
+  const role = source.role || 'joueur';
+  const overrideRaw = (typeof source.accreditationOverride==='number') ? String(source.accreditationOverride) : '';
+  const name = source.displayName || agent.name || '';
+  return { linkedUserId: linked?._id||'', name, corps, rankCode, role, overrideRaw };
+}
+
+async function saveAgentProfile(agent, profile){
+  const {linkedUserId, name, corps, rankCode, role, overrideRaw} = profile;
+  const grade=findGrade(corps, rankCode);
+  if(!grade){ line('<span class="err">⚠ Grade ou corps invalide.</span>'); return false; }
+  if(!name){ line('<span class="err">⚠ Nom invalide.</span>'); return false; }
+  const hasOverride = overrideRaw!=='' && overrideRaw!=null;
+  const effective = hasOverride ? parseInt(overrideRaw) : grade.accred;
+  await fbUpdate('sec_agents', agent._id, {name, corps, rankCode, rank:grade.label, accreditation:effective});
+  // synchronise le profil "users" lié (retrouvé via linkedUserId, ou par discordId/nom sinon)
+  try{
+    let target=null;
+    if(linkedUserId){ target={_id:linkedUserId}; }
+    else { target = await findLinkedUserDoc(agent); }
+    if(target){
+      await fbUpdate('users', target._id, {
+        displayName:name, corps, rankCode, rank:grade.label, role,
+        accreditation:effective,
+        accreditationOverride: hasOverride ? effective : null
+      });
+      if(currentUser && currentUser._id===target._id){
+        currentUser={...currentUser, displayName:name, corps, rankCode, rank:grade.label, role, accreditation:effective, accreditationOverride: hasOverride?effective:null};
+        currentRole=role; currentAccred=effective;
+        onAuthChange(name, currentRole, currentUser.avatarUrl);
+      }
+    }
+  }catch(err){ console.warn('Synchronisation du profil utilisateur échouée', err); }
+  line('<span class="accent">✓ Profil mis à jour :</span> '+esc(name)+' → '+esc(grade.label)+' — rôle '+role+' — accréditation '+effective+(hasOverride?' (dérogation)':''));
+  return true;
+}
+
+function refreshAgentFileIfOpen(agentId){
+  if(currentFileItem && currentFileItem.kind==='agent' && currentFileItem.record._id===agentId){
+    setTimeout(()=>{ const updated=agents.find(a=>a._id===agentId); if(updated) openFile('agent', updated); }, 250);
+  }
+}
+
+async function cmdAgent(argStr){
+  const parts=argStr.trim().split(/\s+/).filter(Boolean);
+  if(!parts.length){ line('<span class="err">Usage : agent grade|role|accred|rename|grades ... — tapez <span class="cmd">help</span> pour le détail.</span>'); return; }
+  const sub=parts[0].toLowerCase();
+
+  if(sub==='grades'){
+    const corps=(parts[1]||'').toLowerCase();
+    if(!HIERARCHY[corps]){ line('<span class="err">Usage : agent grades regulier|eit</span>'); return; }
+    line('Grades disponibles — '+esc(HIERARCHY[corps].label)+' :');
+    HIERARCHY[corps].grades.forEach(g=> line('&nbsp;&nbsp;<span class="white">'+g.code+'</span> — '+esc(g.label)+' (accréd. '+g.accred+')'));
+    return;
+  }
+
+  if(!requireAuth('modifier un agent')) return;
+  if(!requireAdmin('modifier un agent')) return;
+
+  if(sub==='grade'){
+    const [nStr, corpsStr, codeStr]=parts.slice(1);
+    if(!nStr||!corpsStr||!codeStr){ line('<span class="err">Usage : agent grade &lt;n&gt; &lt;regulier|eit&gt; &lt;code&gt;</span>'); return; }
+    const item=resolveByKindIndex('agent', parseInt(nStr)); if(!item) return;
+    const corps=corpsStr.toLowerCase(), code=codeStr.toUpperCase();
+    if(!HIERARCHY[corps]){ line('<span class="err">Corps invalide. Utilisez : regulier ou eit.</span>'); return; }
+    if(!findGrade(corps, code)){ line('<span class="err">Grade invalide. Tapez <span class="cmd">agent grades '+corps+'</span> pour la liste.</span>'); return; }
+    const profile=await getAgentCurrentProfile(item.record);
+    profile.corps=corps; profile.rankCode=code;
+    const ok=await saveAgentProfile(item.record, profile);
+    if(ok) refreshAgentFileIfOpen(item.record._id);
+    return;
+  }
+  if(sub==='role'){
+    const [nStr, roleStr]=parts.slice(1);
+    if(!nStr||!roleStr||!['joueur','moderateur','admin'].includes(roleStr.toLowerCase())){ line('<span class="err">Usage : agent role &lt;n&gt; joueur|moderateur|admin</span>'); return; }
+    const item=resolveByKindIndex('agent', parseInt(nStr)); if(!item) return;
+    const profile=await getAgentCurrentProfile(item.record);
+    profile.role=roleStr.toLowerCase();
+    const ok=await saveAgentProfile(item.record, profile);
+    if(ok) refreshAgentFileIfOpen(item.record._id);
+    return;
+  }
+  if(sub==='accred'){
+    const [nStr, valStr]=parts.slice(1);
+    if(!nStr||!valStr){ line('<span class="err">Usage : agent accred &lt;n&gt; 0-4|auto</span>'); return; }
+    const item=resolveByKindIndex('agent', parseInt(nStr)); if(!item) return;
+    const profile=await getAgentCurrentProfile(item.record);
+    if(valStr.toLowerCase()==='auto'){ profile.overrideRaw=''; }
+    else{
+      const v=parseInt(valStr);
+      if(isNaN(v)||v<0||v>4){ line('<span class="err">Valeur invalide. Utilisez 0 à 4, ou "auto".</span>'); return; }
+      profile.overrideRaw=String(v);
+    }
+    const ok=await saveAgentProfile(item.record, profile);
+    if(ok) refreshAgentFileIfOpen(item.record._id);
+    return;
+  }
+  if(sub==='rename'){
+    const nStr=parts[1];
+    const newName=parts.slice(2).join(' ').trim();
+    if(!nStr||!newName){ line('<span class="err">Usage : agent rename &lt;n&gt; &lt;nouveau nom&gt;</span>'); return; }
+    const item=resolveByKindIndex('agent', parseInt(nStr)); if(!item) return;
+    const profile=await getAgentCurrentProfile(item.record);
+    profile.name=newName;
+    const ok=await saveAgentProfile(item.record, profile);
+    if(ok) refreshAgentFileIfOpen(item.record._id);
+    return;
+  }
+  line('<span class="err">Usage : agent grade|role|accred|rename|grades ...</span>');
+}
+
+// ══════════════════════════════════════════
+// SUPPRESSION D'UN RAPPORT (admin, confirmation requise)
+// ══════════════════════════════════════════
+async function cmdDeleteRapport(parts){
+  const nStr=parts[0];
+  const confirmFlag=(parts[1]||'').toLowerCase()==='confirm';
+  if(!nStr || !/^\d+$/.test(nStr)){ line('<span class="err">Usage : delete rapport &lt;n&gt; [confirm]</span>'); return; }
+  if(!requireAuth('supprimer un rapport')) return;
+  if(!requireAdmin('supprimer un rapport')) return;
+  const item=resolveByKindIndex('rapport', parseInt(nStr));
+  if(!item) return;
+  if(!confirmFlag){
+    line('<span class="err">⚠ Suppression définitive de « '+esc(item.record.title)+' ».</span> Tapez <span class="cmd">delete rapport '+nStr+' confirm</span> pour confirmer.');
+    return;
+  }
+  await fbDelete('sec_rapports', item.record._id);
+  line('<span class="accent">✓ Rapport supprimé :</span> '+esc(item.record.title));
+  if(currentFileItem && currentFileItem.kind==='rapport' && currentFileItem.record._id===item.record._id){ closeModal('modalFile'); }
+}
+
 function run(raw){
   const cmdText=raw.trim();
   echo(cmdText);
@@ -1114,6 +1261,13 @@ function run(raw){
     const sub=(sp2===-1?arg:arg.slice(0,sp2)).toLowerCase();
     const rest=sp2===-1?'':arg.slice(sp2+1);
     cmdAppel(sub, rest);
+  }
+  else if(cmd==='agent') cmdAgent(arg);
+  else if(cmd==='delete'){
+    const dparts=arg.trim().split(/\s+/).filter(Boolean);
+    const type=(dparts[0]||'').toLowerCase();
+    if(type==='rapport') cmdDeleteRapport(dparts.slice(1));
+    else line('<span class="err">Usage : delete rapport &lt;n&gt; [confirm]</span>');
   }
   else line('Commande inconnue : "'+esc(cmdText)+'". Tapez <span class="cmd">help</span>.');
 }
@@ -1329,33 +1483,10 @@ document.addEventListener('click', async e=>{
     const rankCode=document.getElementById('agGrade').value;
     const role=document.getElementById('agRoleSel').value;
     const overrideRaw=document.getElementById('agAccredOverride').value;
-    const grade=findGrade(corps, rankCode);
-    if(!grade) return;
     const agent=agents.find(a=>a._id===agentId);
     if(!agent || !name) return;
-    const hasOverride = overrideRaw!=='';
-    const effective = hasOverride ? parseInt(overrideRaw) : grade.accred;
-    await fbUpdate('sec_agents', agentId, {name, corps, rankCode, rank:grade.label, accreditation:effective});
-    // synchronise le profil "users" lié (retrouvé à l'ouverture de la fiche, par discordId ou nom)
-    try{
-      let target=null;
-      if(linkedUserId){ target={_id:linkedUserId}; }
-      else { target = await findLinkedUserDoc(agent); }
-      if(target){
-        await fbUpdate('users', target._id, {
-          displayName:name, corps, rankCode, rank:grade.label, role,
-          accreditation:effective,
-          accreditationOverride: hasOverride ? effective : null
-        });
-        if(currentUser && currentUser._id===target._id){
-          currentUser={...currentUser, displayName:name, corps, rankCode, rank:grade.label, role, accreditation:effective, accreditationOverride: hasOverride?effective:null};
-          currentRole=role; currentAccred=effective;
-          onAuthChange(name, currentRole, currentUser.avatarUrl);
-        }
-      }
-    }catch(err){ console.warn('Synchronisation du profil utilisateur échouée', err); }
-    line('<span class="accent">✓ Profil mis à jour :</span> '+esc(name)+' → '+esc(grade.label)+' — rôle '+role+' — accréditation '+effective+(hasOverride?' (dérogation)':''));
-    setTimeout(()=>openFile('agent', {...agent, name, corps, rankCode, rank:grade.label, accreditation:effective}), 200);
+    const ok=await saveAgentProfile(agent, {linkedUserId, name, corps, rankCode, role, overrideRaw});
+    if(ok) refreshAgentFileIfOpen(agentId);
   }
 });
 
