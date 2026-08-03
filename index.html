@@ -734,7 +734,7 @@ function run(raw){
     departements.forEach(d => line('&nbsp;&nbsp;<a href="/site15/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
   } else if(cmd === 'personnel'){
     line('Registre du personnel par département :');
-    departements.forEach(d => line('&nbsp;&nbsp;<a href="/site15/personnel' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a>'));
+    departements.forEach(d => line('&nbsp;&nbsp;<a href="/site15/personnel/" class="accent">' + esc(d.nom) + '</a>'));
   } else if(cmd === 'clear'){
     output.innerHTML = '';
     return;
