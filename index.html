@@ -714,6 +714,7 @@ function run(raw){
     line('&nbsp;&nbsp;<span class="cmd">logout</span> — déconnexion');
     line('&nbsp;&nbsp;<span class="cmd">whoami</span> — statut de connexion');
     line('&nbsp;&nbsp;<span class="cmd">clear</span> — efface le terminal');
+    line('&nbsp;&nbsp;<span class="cmd">personnel</span> — registre du personnel par département');
   } else if(cmd === 'login'){
     if(isAuthenticated){ line('Déjà connecté en tant que <b>'+esc(currentUser.displayName||currentUser.username)+'</b>.'); }
     else { openAuthFlyout(); line('Ouvrez le panneau de connexion en haut à droite, ou cliquez sur <span class="cmd">🔑 Connexion</span>.'); }
