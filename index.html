@@ -317,6 +317,8 @@
     footer a{ margin-left: 0; margin-right: 16px; }
     .auth-flyout{ right:12px; left:12px; width:auto; }
   }
+
+  .auth-user-role.joueur{ color:var(--text-muted); border-color:var(--border); background:rgba(139,92,246,.03); }
 </style>
 </head>
 <body>
@@ -511,7 +513,7 @@ async function handleOAuthRedirect(){
     const discordUser = await fetchDiscordUser(accessToken);
     const existing = await findUserByDiscordId(discordUser.id);
     if(existing){
-      currentUser=existing; currentRole=existing.role||'moderateur'; isAuthenticated=true;
+      currentUser=existing; currentRole=existing.role||'joueur'; isAuthenticated=true;
       saveSession(discordUser.id);
       onAuthChange(existing.displayName||discordDisplayName(discordUser), currentRole, discordAvatarUrl(discordUser));
     } else {
@@ -533,7 +535,7 @@ async function initAuth(){
     try{
       const found = await findUserByDiscordId(saved.discordId);
       if(found){
-        currentUser=found; currentRole=found.role||'moderateur'; isAuthenticated=true;
+        currentUser=found; currentRole=found.role||'joueur'; isAuthenticated=true;
         onAuthChange(found.displayName||found.username||'Agent', currentRole, found.avatarUrl);
         return;
       }
@@ -545,7 +547,7 @@ async function initAuth(){
 
 function onAuthChange(name, role, avatarUrl){
   updateAuthButton(name);
-  if(name){ line('<span class="accent">✓ Connecté :</span> ' + escHtml(name) + ' (' + (role||'moderateur') + ')'); showAuthUserPanel(name, role, avatarUrl); }
+  if(name){ line('<span class="accent">✓ Connecté :</span> ' + escHtml(name) + ' (' + (role||'joueur') + ')'); showAuthUserPanel(name, role, avatarUrl); }
   else showAuthLoginPanel();
 }
 function updateAuthButton(name){
@@ -580,8 +582,8 @@ function showAuthUserPanel(name, role, avatarUrl){
   const av=document.getElementById('afUserAvatar');
   if(avatarUrl){ av.src=avatarUrl; av.style.display='block'; } else { av.style.display='none'; }
   const r=document.getElementById('afUserRole');
-  r.textContent = role==='admin' ? '🔐 Administrateur' : '🛡 Modérateur';
-  r.className='auth-user-role '+(role||'moderateur');
+  r.textContent = role==='admin' ? '🔐 Administrateur' : role==='moderateur' ? '🛡 Modérateur' : '👤 Joueur';
+  r.className='auth-user-role '+(role||'joueur');
 }
 function showLinkPanel(discordUser){
   hideAllAuthPanels();
@@ -618,7 +620,7 @@ window.confirmLinkInvite=async function(){
       avatarUrl: discordAvatarUrl(du),
       pendingLinkCode: null
     });
-    currentUser={...target, discordId:du.id, avatarUrl:discordAvatarUrl(du)}; currentRole=target.role||'moderateur'; isAuthenticated=true;
+    currentUser={...target, discordId:du.id, avatarUrl:discordAvatarUrl(du)}; currentRole=target.role||'joueur'; isAuthenticated=true;
     saveSession(du.id);
     onAuthChange(target.displayName||discordDisplayName(du), currentRole, discordAvatarUrl(du));
     pendingDiscordProfile=null;
@@ -634,15 +636,17 @@ window.selfRegisterDiscord=async function(){
       discordUsername: du.username,
       avatarUrl: discordAvatarUrl(du),
       displayName: discordDisplayName(du),
-      role: 'moderateur',
+      role: 'joueur',
+      departmentManagerOf: [],
+      characters: {},
       rank: '',
       selfRegistered: true
     });
     await fbAdd('sec_agents', {name:discordDisplayName(du), username:du.username, rank:'', online:false, discordId:du.id, avatarUrl:discordAvatarUrl(du)});
-    currentUser={_id:doc_.id, discordId:du.id, displayName:discordDisplayName(du), role:'moderateur'};
-    currentRole='moderateur'; isAuthenticated=true;
+    currentUser={_id:doc_.id, discordId:du.id, displayName:discordDisplayName(du), role:'joueur'};
+    currentRole='joueur'; isAuthenticated=true;
     saveSession(du.id);
-    onAuthChange(discordDisplayName(du), 'moderateur', discordAvatarUrl(du));
+    onAuthChange(discordDisplayName(du), 'joueur', discordAvatarUrl(du));
     pendingDiscordProfile=null;
   }catch(e){
     document.getElementById('afLinkError').textContent='⚠ Erreur : '+e.message;
