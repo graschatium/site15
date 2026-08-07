@@ -6,7 +6,6 @@
 <title>SCiPNET — Sécurité // Site-15</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Barlow+Condensed:wght@600;700;900&display=swap" rel="stylesheet">
-<link rel="icon" href="https://graschatium.github.io/site15/ressources/favicon.ico" type="image/x-icon">
 <style>
 :root{
   --bg:#050409; --panel:#0d0b16; --terminal:#0a0812;
@@ -133,6 +132,18 @@ nav.topbar{
 .form-field input, .form-field select, .form-field textarea{ width:100%; background:#100d1c; border:1px solid var(--border2); color:var(--white); font-family:'JetBrains Mono',monospace; font-size:12px; padding:8px 10px; outline:none; }
 .form-field input:focus, .form-field select:focus, .form-field textarea:focus{ border-color:var(--dept-color); }
 .form-row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.md-toolbar{ display:flex; align-items:center; gap:4px; margin-bottom:6px; flex-wrap:wrap; }
+.md-btn{ font-family:'JetBrains Mono',monospace; font-size:10px; padding:4px 9px; background:#100d1c; border:1px solid var(--border2); color:var(--text-dim); cursor:pointer; }
+.md-btn:hover{ border-color:var(--dept-color); color:var(--dept-color); }
+.md-hint{ font-size:8px; color:var(--text-dim2); margin-left:auto; letter-spacing:.03em; }
+.md-h{ font-family:'Barlow Condensed',sans-serif; color:var(--white); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin:10px 0 4px; }
+.md-h1{ font-size:1.1rem; color:var(--dept-color); }
+.md-h2{ font-size:1rem; }
+.md-h3{ font-size:.92rem; color:var(--text-dim); }
+.md-list{ margin:4px 0 8px; padding-left:20px; }
+.md-list li{ margin-bottom:3px; }
+.md-line{ min-height:1.1em; }
+.file-sec-content code{ background:#1a1630; border:1px solid var(--border2); padding:1px 5px; border-radius:3px; font-size:.82em; color:var(--dept-color); }
 
 /* ── FICHE (classified file) modal ── */
 .file-modal .modal-box{ max-width:700px; }
@@ -315,10 +326,25 @@ nav.topbar{
     <div class="modal-body">
       <div class="form-field"><label>Titre *</label><input id="pTitle" placeholder="Ex: Protocole Brèche Alpha"/></div>
       <div class="form-row2">
+        <div class="form-field"><label>Type</label><select id="pType"><option value="proto">📄 Protocole</option><option value="folder">📁 Dossier (regroupe des sous-protocoles)</option></select></div>
+        <div class="form-field"><label>Dossier parent</label><select id="pParent"><option value="">— Racine —</option></select></div>
+      </div>
+      <div class="form-row2">
         <div class="form-field"><label>Catégorie</label><select id="pCat"><option value="urgent">Urgence</option><option value="confinement">Confinement</option><option value="patrouille">Patrouille</option><option value="personnel">Personnel</option></select></div>
         <div class="form-field"><label>Statut</label><input id="pStatus" value="Actif"/></div>
       </div>
-      <div class="form-field"><label>Contenu *</label><textarea id="pContent" rows="7" placeholder="Décrivez le protocole en détail…"></textarea></div>
+      <div class="form-field">
+        <label id="pContentLbl">Contenu *</label>
+        <div class="md-toolbar">
+          <button type="button" class="md-btn" data-md-wrap="pContent|**|**">Gras</button>
+          <button type="button" class="md-btn" data-md-wrap="pContent|*|*">Italique</button>
+          <button type="button" class="md-btn" data-md-wrap="pContent|`|`">Code</button>
+          <button type="button" class="md-btn" data-md-line="pContent|## ">Titre</button>
+          <button type="button" class="md-btn" data-md-line="pContent|- ">Liste</button>
+          <span class="md-hint">**gras** · *italique* · `code` · ## titre · - liste</span>
+        </div>
+        <textarea id="pContent" rows="7" placeholder="Décrivez le protocole en détail…"></textarea>
+      </div>
     </div>
     <div class="modal-footer"><button class="btn" data-close="modalProto">Annuler</button><button class="btn btn-primary" id="saveProtoBtn">💾 Sauvegarder</button></div>
   </div>
@@ -342,8 +368,26 @@ nav.topbar{
         <div class="form-field"><label>Témoins</label><input id="rWitnesses" placeholder="M.NOWAK, E.TERNON"/></div>
         <div class="form-field"><label>Code LRC</label><select id="rLRC"><option value="">— Aucun —</option><option>AMBER</option><option>BLUE</option><option>SUPERBLUE</option><option>GREEN</option><option>RED</option><option>BLACK</option><option>WHITE</option><option>GRAY</option><option>MAGENTA</option><option>BLANK</option><option>SUPERBLANK</option><option>COLDSILVER</option></select></div>
       </div>
-      <div class="form-field"><label>Description *</label><textarea id="rDesc" rows="4"></textarea></div>
-      <div class="form-field"><label>Conclusion &amp; mesures</label><textarea id="rConc" rows="3"></textarea></div>
+      <div class="form-field">
+        <label>Description *</label>
+        <div class="md-toolbar">
+          <button type="button" class="md-btn" data-md-wrap="rDesc|**|**">Gras</button>
+          <button type="button" class="md-btn" data-md-wrap="rDesc|*|*">Italique</button>
+          <button type="button" class="md-btn" data-md-wrap="rDesc|`|`">Code</button>
+          <button type="button" class="md-btn" data-md-line="rDesc|- ">Liste</button>
+          <span class="md-hint">**gras** · *italique* · `code` · - liste</span>
+        </div>
+        <textarea id="rDesc" rows="4"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Conclusion &amp; mesures</label>
+        <div class="md-toolbar">
+          <button type="button" class="md-btn" data-md-wrap="rConc|**|**">Gras</button>
+          <button type="button" class="md-btn" data-md-wrap="rConc|*|*">Italique</button>
+          <button type="button" class="md-btn" data-md-line="rConc|- ">Liste</button>
+        </div>
+        <textarea id="rConc" rows="3"></textarea>
+      </div>
     </div>
     <div class="modal-footer"><button class="btn" data-close="modalRapport">Annuler</button><button class="btn btn-primary" id="saveRapportBtn">💾 Enregistrer</button></div>
   </div>
@@ -433,6 +477,75 @@ const app = initializeApp({
 const db = getFirestore(app);
 
 function esc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ══════════════════════════════════════════
+// FORMATAGE LÉGER (markdown minimal) pour le contenu des protocoles
+// et la description/conclusion des rapports. Le texte brut est TOUJOURS
+// échappé en premier (esc) — seules les balises générées ici sont injectées,
+// donc aucune injection HTML n'est possible depuis le contenu saisi.
+// Syntaxe : **gras**, *italique*, `code`, ## Titre, - liste
+// ══════════════════════════════════════════
+function inlineMd(escaped){
+  let s=escaped;
+  s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  s = s.replace(/`([^`]+?)`/g, '<code>$1</code>');
+  s = s.replace(/(^|[^*])\*(?!\*)([^*]+?)\*(?!\*)/g, '$1<i>$2</i>');
+  return s;
+}
+function mdRender(raw){
+  if(!raw) return '';
+  const lines = esc(raw).split('\n');
+  let html=''; let inList=false;
+  for(const rawLine of lines){
+    const l=rawLine;
+    const h=l.match(/^(#{1,3})\s+(.*)$/);
+    if(h){
+      if(inList){ html+='</ul>'; inList=false; }
+      html += `<div class="md-h md-h${h[1].length}">${inlineMd(h[2])}</div>`;
+      continue;
+    }
+    const li=l.match(/^[-*]\s+(.*)$/);
+    if(li){
+      if(!inList){ html+='<ul class="md-list">'; inList=true; }
+      html += `<li>${inlineMd(li[1])}</li>`;
+      continue;
+    }
+    if(inList){ html+='</ul>'; inList=false; }
+    if(l.trim()===''){ html+='<div class="md-line">&nbsp;</div>'; continue; }
+    html += `<div class="md-line">${inlineMd(l)}</div>`;
+  }
+  if(inList) html+='</ul>';
+  return html;
+}
+
+// Barre d'outils de formatage : entoure la sélection (gras/italique/code)
+// ou insère un préfixe en début de ligne (titre/liste) dans le textarea ciblé.
+function mdWrapSelection(textareaId, before, after){
+  const ta=document.getElementById(textareaId); if(!ta) return;
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  const val=ta.value;
+  const sel=val.slice(start,end) || 'texte';
+  ta.value = val.slice(0,start) + before + sel + after + val.slice(end);
+  ta.focus();
+  ta.selectionStart = start + before.length;
+  ta.selectionEnd = start + before.length + sel.length;
+}
+function mdInsertLinePrefix(textareaId, prefix){
+  const ta=document.getElementById(textareaId); if(!ta) return;
+  const start=ta.selectionStart;
+  const val=ta.value;
+  const lineStart = val.lastIndexOf('\n', start-1)+1;
+  ta.value = val.slice(0,lineStart) + prefix + val.slice(lineStart);
+  ta.focus();
+  const pos=start+prefix.length;
+  ta.selectionStart=pos; ta.selectionEnd=pos;
+}
+document.addEventListener('click', e=>{
+  const wb=e.target.closest('[data-md-wrap]');
+  if(wb){ const [id,before,after]=wb.dataset.mdWrap.split('|'); mdWrapSelection(id, before, after); return; }
+  const lb=e.target.closest('[data-md-line]');
+  if(lb){ const [id,prefix]=lb.dataset.mdLine.split('|'); mdInsertLinePrefix(id, prefix); return; }
+});
 async function fbAdd(col,data){ return await addDoc(collection(db,col), {...data, createdAt:new Date().toISOString()}); }
 async function fbUpdate(col,id,data){ await updateDoc(doc(db,col,id), data); }
 async function fbDelete(col,id){ await deleteDoc(doc(db,col,id)); }
@@ -914,6 +1027,7 @@ const form=document.getElementById('promptForm');
 const input=document.getElementById('cmdInput');
 const term=document.querySelector('.terminal');
 let lastList=null; // { items: [{kind, record}] }
+let currentProtoFolder=null; // dossier de protocoles courant (navigation façon "cd") — null = racine
 
 function line(html){ const p=document.createElement('p'); p.innerHTML=html; output.appendChild(p); }
 function echo(t){ line('<span style="color:var(--text-dim2)">sec@site15:~$</span> '+esc(t)); }
@@ -923,10 +1037,12 @@ function printHelp(){
   line('Commandes disponibles :');
   line('&nbsp;&nbsp;<span class="cmd">help</span> — affiche cette aide');
   line('&nbsp;&nbsp;<span class="cmd">list proto|rapports|evaluations|effectifs|lrc|appel</span> — liste les entrées');
+  line('&nbsp;&nbsp;<span class="cmd">proto cd &lt;n&gt;</span> / <span class="cmd">proto cd ..</span> — entrer/sortir d\'un dossier de protocoles');
+  line('&nbsp;&nbsp;<span class="cmd">proto pwd</span> — affiche le dossier de protocoles courant');
   line('&nbsp;&nbsp;<span class="cmd">read &lt;n&gt;</span> — ouvre la fiche n° de la dernière liste');
   line('&nbsp;&nbsp;<span class="cmd">read proto|rapport|eval|agent|lrc &lt;n&gt;</span> — ouvre directement une fiche');
   line('&nbsp;&nbsp;<span class="cmd">search &lt;mot-clé&gt;</span> — recherche protocoles + rapports');
-  line('&nbsp;&nbsp;<span class="cmd">new proto|rapport|eval|appel</span> — créer (connexion requise)');
+  line('&nbsp;&nbsp;<span class="cmd">new proto|rapport|eval|appel</span> — créer (connexion requise, formatage **gras** *italique* `code` ## titre - liste)');
   line('&nbsp;&nbsp;<span class="cmd">new agent</span> — créer un profil agent + code d\'invitation (admin uniquement)');
   line('&nbsp;&nbsp;<span class="cmd">agent grades regulier|eit</span> — liste les grades disponibles pour un corps');
   line('&nbsp;&nbsp;<span class="cmd">agent grade &lt;n&gt; &lt;regulier|eit&gt; &lt;code&gt;</span> — change corps + grade d\'un agent (admin)');
@@ -955,9 +1071,65 @@ function printListGeneric(kind, arr, formatter, emptyMsg){
   line('<span style="color:var(--text-dim2)">→ tapez <span class="cmd">read '+(1)+'</span> pour ouvrir une fiche.</span>');
 }
 
+// ══════════════════════════════════════════
+// NAVIGATION DES PROTOCOLES EN DOSSIERS (façon "cd")
+// Un protocole peut être un dossier (isFolder) qui contient d'autres
+// protocoles/dossiers (via parentId). "list proto" affiche le contenu du
+// dossier courant ; "proto cd <n>" y entre, "proto cd .." en ressort.
+// ══════════════════════════════════════════
+function protoBreadcrumb(folder){
+  if(!folder) return 'Racine';
+  const parts=[]; let cur=folder; const guard=new Set();
+  while(cur && !guard.has(cur._id)){
+    guard.add(cur._id);
+    parts.unshift(cur.title);
+    cur = cur.parentId ? protocols.find(p=>p._id===cur.parentId) : null;
+  }
+  return 'Racine / '+parts.join(' / ');
+}
+function listProtoScope(){
+  const scopeId = currentProtoFolder ? currentProtoFolder._id : null;
+  const items = protocols.filter(p => (p.parentId||null) === scopeId);
+  line('<span style="color:var(--text-dim2)">📂 '+esc(protoBreadcrumb(currentProtoFolder))+'</span>');
+  if(!items.length){ line('(vide)'); return; }
+  setLastList(items.map(record=>({kind:'proto', record})));
+  items.forEach((p,i)=>{
+    if(p.isFolder){
+      const childCount = protocols.filter(c=>(c.parentId||null)===p._id).length;
+      line(`&nbsp;&nbsp;<span class="accent">${i+1}.</span> 📁 <span class="white">${esc(p.title)}</span> — ${childCount} élément(s)`);
+    } else {
+      line(`&nbsp;&nbsp;<span class="accent">${i+1}.</span> 📄 [${p.category}] <span class="white">${esc(p.title)}</span> — ${p.status||'—'}`);
+    }
+  });
+  line('<span style="color:var(--text-dim2)">→ <span class="cmd">read n</span> pour ouvrir · <span class="cmd">proto cd n</span> pour entrer dans un dossier'+(currentProtoFolder?' · <span class="cmd">proto cd ..</span> pour remonter':'')+'</span>');
+}
+async function cmdProto(argStr){
+  const parts=argStr.trim().split(/\s+/).filter(Boolean);
+  const sub=(parts[0]||'').toLowerCase();
+  if(sub==='pwd'){ line('📂 '+esc(protoBreadcrumb(currentProtoFolder))); return; }
+  if(sub==='cd'){
+    const arg2=parts[1];
+    if(!arg2){ line('<span class="err">Usage : proto cd &lt;n&gt; | proto cd ..</span>'); return; }
+    if(arg2==='..'){
+      if(!currentProtoFolder){ line('Déjà à la racine.'); return; }
+      currentProtoFolder = currentProtoFolder.parentId ? (protocols.find(p=>p._id===currentProtoFolder.parentId)||null) : null;
+      listProtoScope();
+      return;
+    }
+    if(!/^\d+$/.test(arg2)){ line('<span class="err">Usage : proto cd &lt;n&gt; | proto cd ..</span>'); return; }
+    const item=resolveFromLast(parseInt(arg2));
+    if(!item || item.kind!=='proto'){ line('<span class="err">Tapez d\'abord <span class="cmd">list proto</span>.</span>'); return; }
+    if(!item.record.isFolder){ line('<span class="err">« '+esc(item.record.title)+' » n\'est pas un dossier. Utilisez <span class="cmd">read '+arg2+'</span> pour l\'ouvrir.</span>'); return; }
+    currentProtoFolder=item.record;
+    listProtoScope();
+    return;
+  }
+  line('<span class="err">Usage : proto cd &lt;n&gt;|.. · proto pwd</span>');
+}
+
 function cmdList(kind){
   if(kind==='proto'||kind==='protocoles'||kind==='protocole'){
-    printListGeneric('proto', protocols, p=>`[${p.category}] <span class="white">${esc(p.title)}</span> — ${p.status||'—'}`, 'Aucun protocole enregistré.');
+    listProtoScope();
   } else if(kind==='rapports'||kind==='rapport'){
     printListGeneric('rapport', rapports, r=>{
       const req=classRapport(r).accr;
@@ -1013,7 +1185,7 @@ function cmdSearch(q){
   q=q.trim().toLowerCase();
   if(!q){ line('<span class="err">Usage : search &lt;mot-clé&gt;</span>'); return; }
   const matches=[];
-  protocols.forEach(p=>{ if((p.title+p.content).toLowerCase().includes(q)) matches.push({kind:'proto',record:p}); });
+  protocols.forEach(p=>{ if((p.title+(p.content||'')).toLowerCase().includes(q)) matches.push({kind:'proto',record:p}); });
   rapports.forEach(r=>{ if((r.title+r.description+(r.conclusion||'')).toLowerCase().includes(q)) matches.push({kind:'rapport',record:r}); });
   if(!matches.length){ line('Aucun résultat pour « '+esc(q)+' ».'); return; }
   setLastList(matches);
@@ -1295,6 +1467,7 @@ function run(raw){
     cmdAppel(sub, rest);
   }
   else if(cmd==='agent') cmdAgent(arg);
+  else if(cmd==='proto') cmdProto(arg);
   else if(cmd==='delete'){
     const dparts=arg.trim().split(/\s+/).filter(Boolean);
     const type=(dparts[0]||'').toLowerCase();
@@ -1382,6 +1555,20 @@ async function initAgentGradeForm(record){
 
 function buildFileBody(kind, r){
   if(kind==='proto'){
+    if(r.isFolder){
+      const children = protocols.filter(c=>(c.parentId||null)===r._id);
+      const childHtml = children.length
+        ? children.map(c=>`<div class="file-note-item">${c.isFolder?'📁':'📄'} <span class="white">${esc(c.title)}</span>${c.isFolder?'':' — '+esc(c.status||'—')}</div>`).join('')
+        : '<div style="font-size:.78rem;color:var(--text-dim2)">Dossier vide.</div>';
+      return `
+        <div class="file-meta-grid">
+          <div class="file-meta-item"><div class="file-meta-lbl">Type</div><div class="file-meta-val">📁 Dossier</div></div>
+          <div class="file-meta-item"><div class="file-meta-lbl">Éléments</div><div class="file-meta-val">${children.length}</div></div>
+        </div>
+        ${r.content?`<div class="file-sec"><div class="file-sec-lbl">Description</div><div class="file-sec-content">${mdRender(r.content)}</div></div>`:''}
+        <div class="file-sec"><div class="file-sec-lbl">Contenu du dossier</div><div class="file-notes-list">${childHtml}</div></div>
+        <div style="font-size:.7rem;color:var(--text-dim2);margin-top:6px">→ Fermez cette fiche puis tapez <span class="cmd">proto cd</span> avec l'index de ce dossier (depuis <span class="cmd">list proto</span>) pour naviguer dedans.</div>`;
+    }
     return `
       <div class="file-meta-grid">
         <div class="file-meta-item"><div class="file-meta-lbl">Catégorie</div><div class="file-meta-val">${esc(r.category)}</div></div>
@@ -1389,7 +1576,7 @@ function buildFileBody(kind, r){
         <div class="file-meta-item"><div class="file-meta-lbl">Date</div><div class="file-meta-val">${esc(r.date||'—')}</div></div>
         <div class="file-meta-item"><div class="file-meta-lbl">ID</div><div class="file-meta-val">${(r._id||'').slice(-8)||'—'}</div></div>
       </div>
-      <div class="file-sec"><div class="file-sec-lbl">Contenu du protocole</div><div class="file-sec-content">${esc(r.content)}</div></div>`;
+      <div class="file-sec"><div class="file-sec-lbl">Contenu du protocole</div><div class="file-sec-content">${mdRender(r.content)}</div></div>`;
   }
   if(kind==='rapport'){
     return `
@@ -1401,8 +1588,8 @@ function buildFileBody(kind, r){
         <div class="file-meta-item"><div class="file-meta-lbl">Code LRC</div><div class="file-meta-val">${r.lrc?'CODE: '+esc(r.lrc):'—'}</div></div>
         <div class="file-meta-item"><div class="file-meta-lbl">Témoins</div><div class="file-meta-val">${(r.witnesses||[]).join(', ')||'—'}</div></div>
       </div>
-      <div class="file-sec"><div class="file-sec-lbl">Description</div><div class="file-sec-content">${esc(r.description)}</div></div>
-      <div class="file-sec"><div class="file-sec-lbl">Conclusion &amp; mesures</div><div class="file-sec-content">${esc(r.conclusion||'—')}</div></div>`;
+      <div class="file-sec"><div class="file-sec-lbl">Description</div><div class="file-sec-content">${mdRender(r.description)}</div></div>
+      <div class="file-sec"><div class="file-sec-lbl">Conclusion &amp; mesures</div><div class="file-sec-content">${r.conclusion?mdRender(r.conclusion):'—'}</div></div>`;
   }
   if(kind==='eval'){
     const scores=r.scores||{};
@@ -1541,7 +1728,14 @@ document.getElementById('fExportBtn').addEventListener('click', ()=>{
     return;
   }
   const lines=['══════════════════════════════════════════','SCP FOUNDATION — SITE-15','FICHE — DÉPARTEMENT SÉCURITÉ','══════════════════════════════════════════'];
-  if(kind==='proto'){ lines.push(`TITRE: ${record.title}`,`CATÉGORIE: ${record.category}`,`STATUT: ${record.status||'—'}`,'', record.content); }
+  if(kind==='proto'){
+    if(record.isFolder){
+      const children=protocols.filter(c=>(c.parentId||null)===record._id);
+      lines.push(`TITRE: ${record.title}`,`TYPE: Dossier`,'', record.content||'(pas de description)','', 'CONTENU DU DOSSIER:', ...(children.length?children.map(c=>'- '+c.title):['(vide)']));
+    } else {
+      lines.push(`TITRE: ${record.title}`,`CATÉGORIE: ${record.category}`,`STATUT: ${record.status||'—'}`,'', record.content||'');
+    }
+  }
   else if(kind==='rapport'){ lines.push(`TITRE: ${record.title}`,`TYPE: ${record.type}`,`SÉVÉRITÉ: ${record.severity}`,`AUTEUR: ${record.author}`,`DATE: ${record.date}`,'','DESCRIPTION:',record.description,'','CONCLUSION:',record.conclusion||'—'); }
   else if(kind==='eval'){ lines.push(`AGENT: ${record.name}`,`SCORE: ${record.total||0}/60`,`DÉCISION: ${record.decision}`,`ÉVALUATEUR: ${record.author}`,'','COMMENTAIRES:',record.comments||'—'); }
   else if(kind==='agent'){ lines.push(`AGENT: ${record.name}`,`GRADE: ${record.rank||'—'}`,`STATUT: ${record.online?'EN LIGNE':'HORS LIGNE'}`); }
@@ -1554,13 +1748,36 @@ document.getElementById('fExportBtn').addEventListener('click', ()=>{
 // ══════════════════════════════════════════
 // FORMULAIRES DE CRÉATION
 // ══════════════════════════════════════════
-function openProtoModal(){ document.getElementById('pTitle').value=''; document.getElementById('pCat').value='urgent'; document.getElementById('pStatus').value='Actif'; document.getElementById('pContent').value=''; openModal('modalProto'); }
+function populateProtoParentSelect(){
+  const sel=document.getElementById('pParent');
+  const folders = protocols.filter(p=>p.isFolder);
+  sel.innerHTML = '<option value="">— Racine —</option>' + folders.map(f=>`<option value="${f._id}">${esc(protoBreadcrumb(f))}</option>`).join('');
+  sel.value = currentProtoFolder ? currentProtoFolder._id : '';
+}
+function updateProtoTypeUI(){
+  const isFolder = document.getElementById('pType').value==='folder';
+  document.getElementById('pContentLbl').textContent = isFolder ? 'Description (optionnelle)' : 'Contenu *';
+}
+function openProtoModal(){
+  document.getElementById('pTitle').value='';
+  document.getElementById('pType').value='proto';
+  document.getElementById('pCat').value='urgent';
+  document.getElementById('pStatus').value='Actif';
+  document.getElementById('pContent').value='';
+  populateProtoParentSelect();
+  updateProtoTypeUI();
+  openModal('modalProto');
+}
+document.getElementById('pType').addEventListener('change', updateProtoTypeUI);
 document.getElementById('saveProtoBtn').addEventListener('click', async ()=>{
   if(!requireAuth('sauvegarder un protocole')) return;
   const title=document.getElementById('pTitle').value.trim(), content=document.getElementById('pContent').value.trim();
-  if(!title||!content){ alert('Titre et contenu requis.'); return; }
-  await fbAdd('sec_protocols', {title, category:document.getElementById('pCat').value, status:document.getElementById('pStatus').value, content, date:fmtDate(today())});
-  closeModal('modalProto'); line('<span class="accent">✓ Protocole enregistré :</span> '+esc(title));
+  const isFolder = document.getElementById('pType').value==='folder';
+  if(!title || (!isFolder && !content)){ alert('Titre requis'+(isFolder?'.':' et contenu requis.')); return; }
+  const parentId = document.getElementById('pParent').value || null;
+  await fbAdd('sec_protocols', {title, category:document.getElementById('pCat').value, status:document.getElementById('pStatus').value, content, date:fmtDate(today()), isFolder, parentId});
+  closeModal('modalProto');
+  line('<span class="accent">✓ '+(isFolder?'Dossier créé':'Protocole enregistré')+' :</span> '+esc(title)+(parentId?' (dans '+esc(protoBreadcrumb(protocols.find(p=>p._id===parentId)))+')':''));
 });
 
 function openRapportModal(){ ['rTitle','rAuthor','rWitnesses','rDesc','rConc'].forEach(id=>document.getElementById(id).value=''); document.getElementById('rDate').value=today(); document.getElementById('rType').value='incident'; document.getElementById('rSev').value='moderate'; document.getElementById('rLRC').value=''; openModal('modalRapport'); }
