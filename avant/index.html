@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCiPNET — SITE-15 Network</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="https://graschatium.github.io/site15/ressources/favicon.ico" type="image/x-icon">
+<style>
+  :root{
+    --bg: #050409;
+    --panel: #0d0b16;
+    --terminal: #0a0812;
+    --border: #221d38;
+    --border-soft: #171328;
+    --violet: #8b5cf6;
+    --violet-soft: rgba(139,92,246,0.12);
+    --violet-glow: rgba(139,92,246,0.4);
+    --text: #d9d4ea;
+    --text-muted: #8b82a8;
+    --text-dim: #4d4666;
+    --green: #7ee787;
+    --amber: #f0b429;
+    --danger: #ff3355;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px),
+      radial-gradient(circle at 50% -10%, #140f26 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.6;
+  }
+
+  /* ---- Nav ---- */
+  nav.topbar{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+  .brand .logo{
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color: var(--violet);
+    flex-shrink:0;
+    overflow: hidden;
+  }
+  .brand .logo img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .brand .names{ line-height: 1.25; }
+  .brand .eyebrow{
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .brand .netname{
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #f4f2fc;
+    text-transform: uppercase;
+  }
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap: 30px;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+  }
+  .nav-links a{
+    color: var(--text-muted);
+    text-decoration:none;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+  }
+  .nav-links a:hover{ color: var(--text); }
+  .nav-links a.active{
+    color: var(--violet);
+    border-bottom-color: var(--violet);
+  }
+  .nav-right{
+    display:flex;
+    align-items:center;
+    gap: 14px;
+  }
+  .acc-chip{
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 3px;
+  }
+  .acc-chip b{ color: var(--green); }
+
+  /* ---- Auth ---- */
+  .auth-btn{
+    font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase;
+    padding:7px 14px; border:1px solid var(--border); background:transparent; color:var(--text-muted); cursor:pointer; transition:all .2s;
+  }
+  .auth-btn:hover{ border-color:var(--violet); color:var(--violet); }
+  .auth-btn.connected{ border-color:var(--green); color:var(--green); background:rgba(126,231,135,0.06); }
+
+  .auth-flyout{
+    position:fixed; top:64px; right:24px; width:300px; z-index:500;
+    background:var(--panel); border:1px solid var(--border); border-top:2px solid var(--violet);
+    box-shadow:0 20px 60px rgba(0,0,0,.7); display:none; padding:20px;
+  }
+  .auth-flyout.open{ display:block; }
+  .auth-flyout-title{ font-size:9px; letter-spacing:.25em; text-transform:uppercase; color:var(--violet); margin-bottom:14px; }
+  .af-field{ margin-bottom:10px; }
+  .af-field label{ font-size:9px; text-transform:uppercase; letter-spacing:.15em; color:var(--text-muted); display:block; margin-bottom:5px; }
+  .af-field input{ width:100%; background:#120f1e; border:1px solid var(--border); color:#f4f2fc; font-family:'JetBrains Mono',monospace; font-size:12px; padding:8px 10px; outline:none; }
+  .af-field input:focus{ border-color:var(--violet); }
+  .auth-flyout-err{ font-size:10px; color:var(--danger); min-height:14px; margin-bottom:8px; }
+  .auth-flyout-submit{ width:100%; padding:9px; background:rgba(139,92,246,.1); border:1px solid var(--violet); color:var(--violet); font-size:11px; letter-spacing:.18em; text-transform:uppercase; cursor:pointer; }
+  .auth-flyout-submit:hover{ background:rgba(139,92,246,.2); }
+  .auth-flyout-loading{ text-align:center; font-size:10px; color:var(--text-muted); padding:8px; letter-spacing:.15em; animation:blink 1s step-end infinite; }
+  @keyframes blink{ 50%{opacity:.3} }
+  .auth-user-panel{ text-align:center; padding:4px 0; }
+  .auth-user-name{ font-size:22px; font-weight:700; color:#f4f2fc; text-transform:uppercase; margin-bottom:4px; }
+  .auth-user-role{ font-size:9px; letter-spacing:.2em; padding:2px 10px; border:1px solid; text-transform:uppercase; display:inline-block; margin-bottom:14px; }
+  .auth-user-role.admin{ color:var(--danger); border-color:rgba(255,51,85,.5); background:rgba(255,51,85,.08); }
+  .auth-user-role.moderateur{ color:var(--violet); border-color:rgba(139,92,246,.4); background:rgba(139,92,246,.06); }
+  .auth-logout-btn{ width:100%; padding:8px; background:rgba(255,51,85,.06); border:1px solid rgba(255,51,85,.4); color:var(--danger); font-size:10px; letter-spacing:.15em; text-transform:uppercase; cursor:pointer; }
+  .auth-logout-btn:hover{ background:rgba(255,51,85,.14); }
+  .discord-btn{ width:100%; padding:10px; background:#5865F2; border:none; color:#fff; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .discord-btn:hover{ background:#4752c4; }
+  .discord-btn svg{ width:16px; height:16px; fill:#fff; }
+  .link-choice-btn{ width:100%; padding:9px; margin-bottom:8px; background:transparent; border:1px solid var(--border); color:var(--text-muted); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; }
+  .link-choice-btn:hover{ border-color:var(--violet); color:var(--violet); }
+  .link-invite-box{ margin-top:12px; }
+  .discord-avatar{ width:56px; height:56px; border-radius:50%; margin:0 auto 10px; display:block; border:2px solid var(--border); }
+
+  /* ---- Hero ---- */
+  .hero{
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 60px 24px 24px;
+  }
+  .pill{
+    display:inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    color: var(--violet);
+    background: var(--violet-soft);
+    border: 1px solid rgba(139,92,246,0.35);
+    padding: 5px 14px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .hero-row{
+    display:flex;
+    justify-content: space-between;
+    align-items:flex-end;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  h1.title{
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    margin: 0 0 8px;
+    color: #f4f2fc;
+    text-transform: uppercase;
+  }
+  .hero .sub{
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .session{
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    text-align: right;
+  }
+
+  /* ---- Terminal ---- */
+  .terminal-wrap{
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .terminal{
+    background: var(--terminal);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 40px 90px -40px rgba(0,0,0,0.7);
+  }
+  .terminal-bar{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .terminal-bar .label{
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .dots{ display:flex; gap: 7px; }
+  .dots span{
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    display:block;
+  }
+  .dots span:nth-child(1){ background:#e5555f; }
+  .dots span:nth-child(2){ background:#f0b429; }
+  .dots span:nth-child(3){ background:#3fce6b; }
+
+  .terminal-body{
+    padding: 26px 26px 20px;
+    min-height: 320px;
+    max-height: 420px;
+    overflow-y: auto;
+    font-size: 0.88rem;
+  }
+  .terminal-body::-webkit-scrollbar{ width: 8px; }
+  .terminal-body::-webkit-scrollbar-thumb{ background: var(--border); border-radius: 4px; }
+  .terminal-body p{ margin: 0 0 10px; color: var(--text-muted); }
+  .terminal-body b{ color: var(--text); }
+  .terminal-body .accent{ color: var(--violet); }
+  .terminal-body .cmd{ color: var(--green); }
+  .terminal-body .err{ color: var(--danger); }
+  .terminal-body a{ color: var(--violet); text-decoration: none; }
+  .terminal-body a:hover{ text-decoration: underline; }
+
+  .prompt-line{
+    border-top: 1px solid var(--border);
+    padding: 14px 26px;
+    font-size: 0.88rem;
+    color: #f4f2fc;
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    margin: 0;
+  }
+  .prompt-line .cmd-input{
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #f4f2fc;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    caret-color: var(--violet);
+  }
+  .prompt-line .cmd-input::placeholder{ color: var(--text-dim); }
+
+  .tip{
+    max-width: 1020px;
+    margin: 14px auto 0;
+    padding: 0 26px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+  .tip .cmd{ color: var(--green); }
+  .tip a{ color: var(--violet); text-decoration:none; }
+
+  /* ---- Footer ---- */
+  footer{
+    max-width: 1020px;
+    margin: 60px auto 0;
+    padding: 20px 24px 60px;
+    border-top: 1px solid var(--border);
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.03em;
+  }
+  footer a{
+    color: var(--text-muted);
+    text-decoration:none;
+    margin-left: 20px;
+    text-transform: uppercase;
+  }
+  footer a:hover{ color: var(--violet); }
+
+  @media (max-width: 720px){
+    nav.topbar{ padding: 14px 18px; flex-wrap: wrap; gap: 12px; }
+    .nav-links{ gap: 16px; order: 3; width: 100%; }
+    .hero{ padding: 40px 18px 18px; }
+    h1.title{ font-size: 1.5rem; }
+    .hero-row{ align-items: flex-start; }
+    .session{ text-align: left; }
+    .terminal-wrap{ padding: 0 18px; }
+    footer{ padding: 18px 18px 40px; flex-direction: column; align-items: flex-start; }
+    footer a{ margin-left: 0; margin-right: 16px; }
+    .auth-flyout{ right:12px; left:12px; width:auto; }
+  }
+
+  .auth-user-role.joueur{ color:var(--text-muted); border-color:var(--border); background:rgba(139,92,246,.03); }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="brand">
+    <div class="logo">
+      <img src="ressources/favicon.ico" alt="SITE-15">
+    </div>
+    <div class="names">
+      <div class="eyebrow">SCiPNET</div>
+      <div class="netname">SITE-15 NETWORK</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="active" href="#">Accueil</a>
+    <a href="cgu.html">CGU</a>
+    <a href="confidentialite.html">Confidentialité</a>
+    <a href="statut.html">Statut</a>
+  </div>
+  <div class="nav-right">
+    <span class="acc-chip">ALERTE : <b>AUCUNE</b></span>
+    <button class="auth-btn" id="authBtn" onclick="toggleAuthFlyout()">🔑 Connexion</button>
+  </div>
+</nav>
+
+<div class="auth-flyout" id="authFlyout">
+  <!-- Panneau 1 : pas connecté -->
+  <div id="afLoginPanel">
+    <div class="auth-flyout-title">// Authentification agent</div>
+    <button class="discord-btn" onclick="startDiscordLogin()">
+      <svg viewBox="0 0 127.14 96.36"><path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/></svg>
+      Se connecter avec Discord
+    </button>
+    <div class="auth-flyout-err" id="afError" style="margin-top:10px"></div>
+  </div>
+
+  <!-- Panneau 2 : chargement -->
+  <div id="afLoadingPanel" style="display:none" class="auth-flyout-loading">AUTHENTIFICATION DISCORD…</div>
+
+  <!-- Panneau 3 : compte Discord reconnu mais non lié à un profil agent -->
+  <div id="afLinkPanel" style="display:none">
+    <div class="auth-flyout-title">// Nouveau compte Discord détecté</div>
+    <img class="discord-avatar" id="afLinkAvatar" src="" alt=""/>
+    <div style="text-align:center;font-size:11px;color:#f4f2fc;margin-bottom:12px" id="afLinkDiscordName">—</div>
+    <div style="font-size:9px;color:var(--text-muted);margin-bottom:10px">Ce compte Discord n'est encore lié à aucun profil agent. Choisissez :</div>
+    <button class="link-choice-btn" onclick="showLinkInviteForm()">🔗 J'ai un code d'invitation (profil pré-créé)</button>
+    <button class="link-choice-btn" onclick="selfRegisterDiscord()">🆕 Créer mon propre profil</button>
+    <div class="link-invite-box" id="afInviteBox" style="display:none">
+      <div class="af-field"><label>Code d'invitation</label><input type="text" id="afInviteCode" placeholder="Ex: A7F3K2" style="text-transform:uppercase"/></div>
+      <button class="auth-flyout-submit" onclick="confirmLinkInvite()">→ Lier mon compte</button>
+    </div>
+    <div class="auth-flyout-err" id="afLinkError" style="margin-top:10px"></div>
+    <button class="auth-logout-btn" style="margin-top:10px" onclick="cancelDiscordLink()">Annuler</button>
+  </div>
+
+  <!-- Panneau 4 : connecté -->
+  <div id="afUserPanel" style="display:none">
+    <div class="auth-flyout-title">// Agent authentifié</div>
+    <div class="auth-user-panel">
+      <img class="discord-avatar" id="afUserAvatar" src="" alt="" style="display:none"/>
+      <div class="auth-user-name" id="afUserName">—</div>
+      <div class="auth-user-role" id="afUserRole">—</div>
+    </div>
+    <button class="auth-logout-btn" onclick="doAuthLogout()">↩ Déconnexion</button>
+  </div>
+</div>
+
+<div class="hero">
+  <span class="pill">Terminal</span>
+  <div class="hero-row">
+    <div>
+      <h1 class="title">Bienvenue, Agent.</h1>
+      <p class="sub">Accès aux informations SITE-15 — Fondation SCP</p>
+    </div>
+    <div class="session">Session : <span id="sessionId">291288-RHU2</span></div>
+  </div>
+</div>
+
+<div class="terminal-wrap">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="label">SCiPNET :: TERMINAL v2.6.4</span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+    <div class="terminal-body" id="output">
+      <p><b>SCiPNET v2.6.4</b> — terminal sécurisé, accès journalisé.</p>
+      <p>Tapez <span class="cmd">help</span> pour la liste des commandes. Ex : <span class="cmd">intranet</span>.</p>
+      <p style="margin-top:22px;">Dernières annonces —</p>
+      <p>&nbsp;&nbsp;[21/07] Mise à jour des CGU du réseau — voir <a href="cgu.html">Conditions d'utilisation</a>.</p>
+    </div>
+    <form class="prompt-line" id="promptForm" autocomplete="off">
+      <span>scipnet@site15:~$</span>
+      <label for="cmdInput" class="sr-only" style="position:absolute;left:-9999px;">Commande</label>
+      <input id="cmdInput" name="cmdInput" class="cmd-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus />
+    </form>
+  </div>
+  <p class="tip">Astuce : tapez <span class="cmd">help</span> pour la liste des commandes, <span class="cmd">intranet</span> pour les départements, <span class="cmd">login</span> pour vous connecter, ou <span class="cmd">discord</span> pour rejoindre le serveur.</p>
+</div>
+
+<footer>
+  <span>SITE-15 — Un projet © Voidline Studios 2026, tout droit réservé</span>
+  <span>
+    <a href="confidentialite.html">Politique de confidentialité</a><a href="cgu.html">Conditions d'utilisation</a>
+  </span>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyAKnnxGUTpNWtkYetID8UwTp6cJgbcj9Kc",
+  authDomain: "scp-site19.firebaseapp.com",
+  projectId: "scp-site19",
+  storageBucket: "scp-site19.firebasestorage.app",
+  messagingSenderId: "245750946774",
+  appId: "1:245750946774:web:821944a85e207094b22277"
+});
+const db = getFirestore(app);
+
+async function fbAdd(col,data){ return await addDoc(collection(db,col), {...data, createdAt:new Date().toISOString()}); }
+async function fbUpdate(col,id,data){ await updateDoc(doc(db,col,id), data); }
+
+document.getElementById('sessionId').textContent = Math.floor(100000+Math.random()*899999) + '-RHU' + Math.floor(Math.random()*99);
+
+// ══════════════════════════════════════════
+// AUTH — connexion via compte Discord (OAuth2 implicit grant)
+// même système que le terminal Sécurité (mêmes comptes/agents Firestore)
+// ══════════════════════════════════════════
+const DISCORD_CLIENT_ID = '1482165706484092928';
+const DISCORD_REDIRECT_URI = 'https://graschatium.github.io/site15/';
+const SESSION_KEY = 'scp_sec_session_discord';
+const OAUTH_STATE_KEY = 'scp_sec_oauth_state';
+let currentUser=null, currentRole=null, isAuthenticated=false;
+let pendingDiscordProfile=null;
+
+function loadSession(){ try{ const raw=localStorage.getItem(SESSION_KEY); return raw?JSON.parse(raw):null; }catch{ return null; } }
+function saveSession(discordId){ localStorage.setItem(SESSION_KEY, JSON.stringify({discordId})); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+function discordAvatarUrl(u){
+  if(!u) return '';
+  if(u.avatar) return `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.png?size=128`;
+  const idx = u.discriminator && u.discriminator!=='0' ? (parseInt(u.discriminator)%5) : (Number(BigInt(u.id)>>BigInt(22))%6);
+  return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
+}
+function discordDisplayName(u){ return u.global_name || u.username || 'Agent Discord'; }
+
+window.startDiscordLogin = function(){
+  const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  sessionStorage.setItem(OAUTH_STATE_KEY, state);
+  const url = 'https://discord.com/api/oauth2/authorize'
+    + '?response_type=token'
+    + '&client_id=' + encodeURIComponent(DISCORD_CLIENT_ID)
+    + '&redirect_uri=' + encodeURIComponent(DISCORD_REDIRECT_URI)
+    + '&scope=' + encodeURIComponent('identify')
+    + '&state=' + encodeURIComponent(state);
+  window.location.href = url;
+};
+
+async function fetchDiscordUser(accessToken){
+  const res = await fetch('https://discord.com/api/users/@me', { headers:{ Authorization: 'Bearer '+accessToken } });
+  if(!res.ok) throw new Error('Impossible de récupérer le profil Discord ('+res.status+').');
+  return await res.json();
+}
+
+async function findUserByDiscordId(discordId){
+  const snap = await getDocs(collection(db,'users'));
+  let found=null;
+  snap.forEach(d=>{ const u=d.data(); if(u.discordId===discordId) found={_id:d.id,...u}; });
+  return found;
+}
+
+async function handleOAuthRedirect(){
+  if(!window.location.hash || !window.location.hash.includes('access_token')) return false;
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const accessToken = params.get('access_token');
+  const returnedState = params.get('state');
+  const expectedState = sessionStorage.getItem(OAUTH_STATE_KEY);
+  sessionStorage.removeItem(OAUTH_STATE_KEY);
+  history.replaceState(null, '', window.location.pathname + window.location.search);
+  if(!accessToken) return false;
+  if(expectedState && returnedState && returnedState!==expectedState){
+    line('<span class="err">⚠ Échec de vérification OAuth (state invalide). Réessayez.</span>');
+    return false;
+  }
+  document.getElementById('afLoginPanel').style.display='none';
+  document.getElementById('afLoadingPanel').style.display='block';
+  flyoutOpen=true; document.getElementById('authFlyout').classList.add('open');
+  try{
+    const discordUser = await fetchDiscordUser(accessToken);
+    const existing = await findUserByDiscordId(discordUser.id);
+    if(existing){
+      currentUser=existing; currentRole=existing.role||'joueur'; isAuthenticated=true;
+      saveSession(discordUser.id);
+      onAuthChange(existing.displayName||discordDisplayName(discordUser), currentRole, discordAvatarUrl(discordUser));
+    } else {
+      pendingDiscordProfile = discordUser;
+      showLinkPanel(discordUser);
+    }
+  }catch(e){
+    showAuthLoginPanel();
+    document.getElementById('afError').textContent='⚠ Erreur Discord : '+e.message;
+  }
+  return true;
+}
+
+async function initAuth(){
+  const handled = await handleOAuthRedirect();
+  if(handled) return;
+  const saved = loadSession();
+  if(saved?.discordId){
+    try{
+      const found = await findUserByDiscordId(saved.discordId);
+      if(found){
+        currentUser=found; currentRole=found.role||'joueur'; isAuthenticated=true;
+        onAuthChange(found.displayName||found.username||'Agent', currentRole, found.avatarUrl);
+        return;
+      }
+    }catch(e){ console.warn('Session restore échouée', e); }
+    clearSession();
+  }
+  onAuthChange(null,null);
+}
+
+function onAuthChange(name, role, avatarUrl){
+  updateAuthButton(name);
+  if(name){ line('<span class="accent">✓ Connecté :</span> ' + escHtml(name) + ' (' + (role||'joueur') + ')'); showAuthUserPanel(name, role, avatarUrl); }
+  else showAuthLoginPanel();
+}
+function updateAuthButton(name){
+  const btn=document.getElementById('authBtn');
+  if(name){ btn.textContent='✓ '+name.split(' ')[0]; btn.className='auth-btn connected'; }
+  else { btn.textContent='🔑 Connexion'; btn.className='auth-btn'; }
+}
+
+let flyoutOpen=false;
+window.toggleAuthFlyout=function(){ flyoutOpen=!flyoutOpen; document.getElementById('authFlyout').classList.toggle('open',flyoutOpen); };
+window.openAuthFlyout=function(){ flyoutOpen=true; document.getElementById('authFlyout').classList.add('open'); };
+document.addEventListener('mousedown', e=>{
+  if(!flyoutOpen) return;
+  const fly=document.getElementById('authFlyout'), btn=document.getElementById('authBtn');
+  if(!fly?.contains(e.target) && !btn?.contains(e.target)){ flyoutOpen=false; fly?.classList.remove('open'); }
+});
+function hideAllAuthPanels(){
+  document.getElementById('afLoginPanel').style.display='none';
+  document.getElementById('afLoadingPanel').style.display='none';
+  document.getElementById('afLinkPanel').style.display='none';
+  document.getElementById('afUserPanel').style.display='none';
+}
+function showAuthLoginPanel(){
+  hideAllAuthPanels();
+  document.getElementById('afLoginPanel').style.display='block';
+  document.getElementById('afError').textContent='';
+}
+function showAuthUserPanel(name, role, avatarUrl){
+  hideAllAuthPanels();
+  document.getElementById('afUserPanel').style.display='block';
+  document.getElementById('afUserName').textContent=name;
+  const av=document.getElementById('afUserAvatar');
+  if(avatarUrl){ av.src=avatarUrl; av.style.display='block'; } else { av.style.display='none'; }
+  const r=document.getElementById('afUserRole');
+  r.textContent = role==='admin' ? '🔐 Administrateur' : role==='moderateur' ? '🛡 Modérateur' : '👤 Joueur';
+  r.className='auth-user-role '+(role||'joueur');
+}
+function showLinkPanel(discordUser){
+  hideAllAuthPanels();
+  document.getElementById('afLinkPanel').style.display='block';
+  document.getElementById('afLinkAvatar').src = discordAvatarUrl(discordUser);
+  document.getElementById('afLinkDiscordName').textContent = discordDisplayName(discordUser) + ' (@'+discordUser.username+')';
+  document.getElementById('afInviteBox').style.display='none';
+  document.getElementById('afLinkError').textContent='';
+}
+window.showLinkInviteForm=function(){
+  document.getElementById('afInviteBox').style.display='block';
+  document.getElementById('afInviteCode').focus();
+};
+window.cancelDiscordLink=function(){
+  pendingDiscordProfile=null;
+  clearSession();
+  showAuthLoginPanel();
+};
+
+window.confirmLinkInvite=async function(){
+  const err=document.getElementById('afLinkError'); err.textContent='';
+  const code=document.getElementById('afInviteCode').value.trim().toUpperCase();
+  if(!code){ err.textContent='⚠ Entrez un code.'; return; }
+  if(!pendingDiscordProfile){ err.textContent='⚠ Session Discord expirée, reconnectez-vous.'; return; }
+  try{
+    const snap=await getDocs(collection(db,'users'));
+    let target=null;
+    snap.forEach(d=>{ const u=d.data(); if((u.pendingLinkCode||'').toUpperCase()===code && !u.discordId) target={_id:d.id,...u}; });
+    if(!target){ err.textContent='⚠ Code invalide ou déjà utilisé.'; return; }
+    const du=pendingDiscordProfile;
+    await fbUpdate('users', target._id, {
+      discordId: du.id,
+      discordUsername: du.username,
+      avatarUrl: discordAvatarUrl(du),
+      pendingLinkCode: null
+    });
+    currentUser={...target, discordId:du.id, avatarUrl:discordAvatarUrl(du)}; currentRole=target.role||'joueur'; isAuthenticated=true;
+    saveSession(du.id);
+    onAuthChange(target.displayName||discordDisplayName(du), currentRole, discordAvatarUrl(du));
+    pendingDiscordProfile=null;
+  }catch(e){ err.textContent='⚠ Erreur : '+e.message; }
+};
+
+window.selfRegisterDiscord=async function(){
+  if(!pendingDiscordProfile) return;
+  const du=pendingDiscordProfile;
+  try{
+    const doc_ = await fbAdd('users', {
+      discordId: du.id,
+      discordUsername: du.username,
+      avatarUrl: discordAvatarUrl(du),
+      displayName: discordDisplayName(du),
+      role: 'joueur',
+      departmentManagerOf: [],
+      characters: {},
+      rank: '',
+      selfRegistered: true
+    });
+    await fbAdd('sec_agents', {name:discordDisplayName(du), username:du.username, rank:'', online:false, discordId:du.id, avatarUrl:discordAvatarUrl(du)});
+    currentUser={_id:doc_.id, discordId:du.id, displayName:discordDisplayName(du), role:'joueur'};
+    currentRole='joueur'; isAuthenticated=true;
+    saveSession(du.id);
+    onAuthChange(discordDisplayName(du), 'joueur', discordAvatarUrl(du));
+    pendingDiscordProfile=null;
+  }catch(e){
+    document.getElementById('afLinkError').textContent='⚠ Erreur : '+e.message;
+  }
+};
+
+window.doAuthLogout=function(){
+  currentUser=null; currentRole=null; isAuthenticated=false; clearSession();
+  onAuthChange(null,null);
+  line('<span class="err">↩ Déconnecté.</span>');
+  flyoutOpen=true; document.getElementById('authFlyout').classList.add('open');
+};
+
+function escHtml(str){ const d=document.createElement('div'); d.innerText=str; return d.innerHTML; }
+
+// ══════════════════════════════════════════
+// TERMINAL (inchangé, + commandes login/logout/whoami)
+// ══════════════════════════════════════════
+const output = document.getElementById('output');
+const form = document.getElementById('promptForm');
+const input = document.getElementById('cmdInput');
+const terminal = document.querySelector('.terminal');
+
+const departements = [
+  { nom: 'Médical', slug: 'medical', statut: 'En ligne' },
+  { nom: 'Sécurité', slug: 'securite', statut: 'En ligne' },
+  { nom: 'Administratif', slug: 'administratif', statut: 'En ligne' },
+  { nom: 'Scientifique', slug: 'scientifique', statut: 'En ligne' }
+];
+
+function esc(str){ return escHtml(str); }
+
+function line(html){
+  const p = document.createElement('p');
+  p.innerHTML = html;
+  output.appendChild(p);
+  terminal.scrollTop = terminal.scrollHeight;
+  output.scrollTop = output.scrollHeight;
+}
+
+function echo(cmdText){
+  line('<span style="color:var(--text-dim)">scipnet@site15:~$</span> ' + esc(cmdText));
+}
+
+function scrollDown(){
+  terminal.scrollTop = terminal.scrollHeight;
+  output.scrollTop = output.scrollHeight;
+}
+
+function run(raw){
+  const cmdText = raw.trim();
+  echo(cmdText);
+  if(!cmdText){ return; }
+  const parts = cmdText.split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  const arg = parts.slice(1).join(' ').toLowerCase();
+
+  if(cmd === 'help'){
+    line('Commandes disponibles :');
+    line('&nbsp;&nbsp;<span class="cmd">help</span> — affiche cette liste');
+    line('&nbsp;&nbsp;<span class="cmd">intranet</span> — liste les départements en ligne');
+    line('&nbsp;&nbsp;<span class="cmd">discord</span> — lien d\'invitation au serveur Discord');
+    line('&nbsp;&nbsp;<span class="cmd">statut</span> — état des systèmes SITE-15');
+    line('&nbsp;&nbsp;<span class="cmd">login</span> — connexion via compte Discord');
+    line('&nbsp;&nbsp;<span class="cmd">logout</span> — déconnexion');
+    line('&nbsp;&nbsp;<span class="cmd">whoami</span> — statut de connexion');
+    line('&nbsp;&nbsp;<span class="cmd">clear</span> — efface le terminal');
+    line('&nbsp;&nbsp;<span class="cmd">personnel</span> — registre du personnel par département');
+  } else if(cmd === 'login'){
+    if(isAuthenticated){ line('Déjà connecté en tant que <b>'+esc(currentUser.displayName||currentUser.username)+'</b>.'); }
+    else { openAuthFlyout(); line('Ouvrez le panneau de connexion en haut à droite, ou cliquez sur <span class="cmd">🔑 Connexion</span>.'); }
+  } else if(cmd === 'logout'){
+    if(!isAuthenticated){ line('<span class="err">Vous n\'êtes pas connecté.</span>'); }
+    else { window.doAuthLogout(); }
+  } else if(cmd === 'whoami'){
+    line(isAuthenticated ? ('Connecté en tant que <b>'+esc(currentUser.displayName||currentUser.username)+'</b> ('+currentRole+').') : 'Non connecté — accès public en lecture seule.');
+  } else if(cmd === 'discord'){
+    line('Rejoignez le serveur Discord officiel de SITE-15 :');
+    line('&nbsp;&nbsp;<a href="https://dsc.gg/site15" target="_blank" rel="noopener" class="accent">discord.gg/site15</a>');
+  } else if(cmd === 'statut'){
+    line('Consultez l\'état en temps réel des systèmes SITE-15 :');
+    line('&nbsp;&nbsp;<a href="statut.html" class="accent">/statut</a>');
+  } else if(cmd === 'intranet'){
+    line('Départements connectés à l\'intranet SITE-15 :');
+    departements.forEach(d => line('&nbsp;&nbsp;<a href="/site15/intranet/' + esc(d.slug) + '" class="accent">' + esc(d.nom) + '</a> — <span style="color:var(--green);">' + esc(d.statut) + '</span>'));
+  } else if(cmd === 'personnel'){
+    line('Registre du personnel par département :');
+    line('&nbsp;&nbsp;<a href="personnel" class="accent">/personnel</a>');
+  } else if(cmd === 'clear'){
+    output.innerHTML = '';
+    return;
+  } else {
+    line('Commande inconnue : "' + esc(cmdText) + '". Tapez <span class="cmd">help</span>.');
+  }
+}
+
+form.addEventListener('submit', function(e){
+  e.preventDefault();
+  const val = input.value;
+  if(!val.trim()){ return; }
+  input.value = '';
+  run(val);
+  scrollDown();
+});
+
+terminal.addEventListener('click', function(){ input.focus(); });
+input.focus();
+
+initAuth();
+</script>
+
+</body>
+</html>
