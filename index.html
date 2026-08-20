@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voidline Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void: #0A0B0E;
+    --void-2: #101218;
+    --panel: #14161D;
+    --line: #2A2D38;
+    --line-bright: #6E76FF;
+    --line-bright-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #5A5F6E;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  .field{
+    position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background:
+      radial-gradient(760px 520px at 82% -6%, rgba(110,118,255,0.16), transparent 60%),
+      radial-gradient(600px 460px at -6% 30%, rgba(110,118,255,0.08), transparent 60%),
+      linear-gradient(var(--void), var(--void));
+  }
+  .field::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.028) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.028) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 900px 700px at 70% 0%, black 10%, transparent 72%);
+  }
+
+  .grain{
+    position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:0.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection{ background:var(--line-bright); color:var(--void); }
+  a{ color:inherit; text-decoration:none; }
+
+  .mono{ font-family:'JetBrains Mono', monospace; letter-spacing:0.08em; text-transform:uppercase; }
+  .display{ font-family:'Space Grotesk', sans-serif; }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    padding:22px 0;
+    background:rgba(10,11,14,0.4);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid transparent;
+    transition:border-color .4s ease, background .4s ease;
+  }
+  header.scrolled{ background:rgba(10,11,14,0.78); border-bottom-color:var(--line); }
+
+  .reveal{
+    opacity:0; transform:translateY(18px);
+    transition:opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1);
+  }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+  @media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } }
+
+  .nav-inner{ display:flex; align-items:center; justify-content:space-between; }
+
+  .wordmark{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; letter-spacing:0.02em;
+    display:flex; align-items:center; gap:10px;
+  }
+  .wordmark .dot{ width:6px; height:6px; border-radius:50%; background:var(--line-bright); box-shadow:0 0 12px var(--line-bright); }
+
+  nav ul{ display:flex; gap:40px; list-style:none; }
+  nav a{ font-size:13px; color:var(--ink-dim); transition:color .25s ease; }
+  nav a:hover, nav a:focus-visible{ color:var(--ink); outline:none; }
+
+  /* ---------- Hero ---------- */
+
+  .hero{ min-height:100svh; display:flex; flex-direction:column; justify-content:center; position:relative; padding-top:120px; padding-bottom:80px; }
+  .hero-grid{ display:grid; grid-template-columns:1fr 340px; align-items:center; gap:40px; }
+  .hero-visual{ position:relative; width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+  .hero-visual svg{ width:100%; height:100%; overflow:visible; }
+
+  .orbit-ring{ fill:none; stroke:var(--line); stroke-width:1; }
+  .orbit-ring.dashed{ stroke-dasharray:2 6; animation:spin 40s linear infinite; transform-origin:center; }
+  .orbit-ring.dashed.reverse{ animation-direction:reverse; animation-duration:60s; }
+  .orbit-node{ fill:var(--line-bright); filter:drop-shadow(0 0 6px var(--line-bright)); }
+  .orbit-core{ fill:var(--void-2); stroke:var(--line-bright); stroke-width:1; opacity:0.9; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){ .orbit-ring.dashed{ animation:none; } }
+
+  .hero-eyebrow{ font-size:11px; color:var(--ink-faint); margin-bottom:28px; }
+  .hero h1{ font-size:clamp(44px, 8vw, 96px); font-weight:600; line-height:0.98; letter-spacing:-0.02em; max-width:900px; }
+  .hero h1 .accent{ color:var(--ink-dim); }
+  .hero-sub{ margin-top:28px; max-width:480px; font-size:16px; line-height:1.6; color:var(--ink-dim); }
+
+  .hero-socials{ margin-top:32px; display:flex; gap:10px; }
+  .hero-socials a{
+    width:38px; height:38px; border:1px solid var(--line); border-radius:8px;
+    display:flex; align-items:center; justify-content:center; color:var(--ink-dim);
+    transition:border-color .25s ease, color .25s ease, background .25s ease, transform .25s ease;
+  }
+  .hero-socials a:hover{ border-color:var(--line-bright); color:var(--ink); background:rgba(110,118,255,0.08); transform:translateY(-2px); }
+  .hero-socials svg{ width:16px; height:16px; }
+
+  .horizon{
+    margin-top:56px; height:1px; background:var(--line); position:relative;
+    transform-origin:left; transform:scaleX(0);
+    animation:draw 1.6s cubic-bezier(.16,1,.3,1) 0.3s forwards;
+  }
+  .horizon::after{
+    content:''; position:absolute; top:0; left:0; height:1px; width:140px;
+    background:linear-gradient(90deg, transparent, var(--line-bright), transparent);
+    animation:sweep 3.5s ease-in-out 2s infinite;
+  }
+  @keyframes draw{ to{ transform:scaleX(1); } }
+  @keyframes sweep{
+    0%{ left:-140px; opacity:0; } 10%{ opacity:1; } 90%{ opacity:1; } 100%{ left:100%; opacity:0; }
+  }
+  @media (prefers-reduced-motion: reduce){ .horizon, .horizon::after{ animation:none; transform:scaleX(1); } }
+
+  .hero-meta{ margin-top:20px; display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); }
+
+  /* ---------- Section scaffolding ---------- */
+
+  section{ padding:120px 0; position:relative; }
+  section + section{ border-top:1px solid var(--line); }
+
+  .section-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:64px; gap:24px; }
+  .section-label{ font-size:11px; color:var(--ink-faint); margin-bottom:14px; display:block; }
+  .section-head h2{ font-family:'Space Grotesk', sans-serif; font-size:clamp(28px, 3.5vw, 40px); font-weight:600; letter-spacing:-0.01em; max-width:560px; }
+  .section-head p{ max-width:280px; font-size:14px; color:var(--ink-dim); line-height:1.6; padding-bottom:4px; }
+
+  /* ---------- Projects (with generative photo art) ---------- */
+
+  .projects{ display:grid; grid-template-columns:repeat(2, 1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
+
+  .project-card{ background:var(--void); display:flex; flex-direction:column; transition:background .35s ease; }
+  .project-card:hover{ background:var(--void-2); }
+
+  .project-photo{
+    aspect-ratio:16/10;
+    position:relative;
+    border-bottom:1px solid var(--line);
+    overflow:hidden;
+  }
+  .project-photo .art{
+    position:absolute; inset:0;
+    background:var(--void-2);
+  }
+  .project-photo .art::before{
+    content:''; position:absolute; inset:-20%;
+    filter:blur(2px);
+  }
+  .project-photo .art.art-1::before{
+    background:
+      radial-gradient(340px 260px at 18% 20%, rgba(110,118,255,0.35), transparent 60%),
+      radial-gradient(260px 220px at 85% 75%, rgba(167,139,250,0.22), transparent 60%),
+      radial-gradient(200px 180px at 60% 10%, rgba(110,118,255,0.14), transparent 65%);
+  }
+  .project-photo .art.art-2::before{
+    background:
+      radial-gradient(300px 240px at 80% 15%, rgba(90,95,110,0.4), transparent 60%),
+      radial-gradient(280px 220px at 15% 85%, rgba(110,118,255,0.12), transparent 60%);
+  }
+  .project-photo .art .grid-overlay{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size:28px 28px;
+    mask-image:radial-gradient(ellipse 340px 260px at 50% 50%, black 0%, transparent 75%);
+  }
+  .project-photo .glyph{
+    position:absolute; right:-6%; bottom:-14%;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:180px; line-height:1;
+    color:transparent; -webkit-text-stroke:1px rgba(255,255,255,0.06);
+    user-select:none; pointer-events:none;
+  }
+  .project-photo .placeholder-tag{
+    position:absolute; left:16px; top:16px;
+    display:flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .project-photo .placeholder-tag svg{ width:12px; height:12px; opacity:0.6; }
+  .project-photo::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg, transparent 55%, rgba(10,11,14,0.65));
+    pointer-events:none;
+  }
+
+  .project-body{ padding:28px; display:flex; flex-direction:column; gap:10px; flex:1; }
+  .project-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .project-code{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+  .project-status{ font-size:11px; color:var(--ink-faint); white-space:nowrap; display:flex; align-items:center; gap:6px; }
+  .project-status::before{ content:''; width:5px; height:5px; border-radius:50%; background:var(--ink-faint); }
+  .status-live{ color:var(--line-bright); }
+  .status-live::before{ background:var(--line-bright); box-shadow:0 0 8px var(--line-bright); }
+
+  .project-body h3{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:600; }
+  .project-body p{ font-size:14px; color:var(--ink-dim); line-height:1.6; max-width:460px; }
+
+  .project-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .project-tags span{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--ink-dim); border:1px solid var(--line); padding:5px 9px;
+  }
+
+  .project-cta{
+    margin-top:auto; padding-top:18px; font-family:'JetBrains Mono', monospace; font-size:11px;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--line-bright);
+    display:inline-flex; align-items:center; gap:6px; width:fit-content;
+  }
+  .project-cta span{ transition:transform .25s ease; }
+  .project-card:hover .project-cta span{ transform:translateX(4px); }
+
+  /* ---------- Information ---------- */
+
+  .info-layout{ display:grid; grid-template-columns:0.85fr 1.15fr; gap:64px; }
+
+  .info-lead p{ font-size:15px; color:var(--ink-dim); line-height:1.75; }
+  .info-lead p + p{ margin-top:18px; }
+
+  .info-facts{ display:flex; flex-direction:column; }
+  .info-fact{
+    display:grid; grid-template-columns:120px 1fr; gap:24px;
+    padding:22px 0; border-top:1px solid var(--line);
+  }
+  .info-facts .info-fact:last-child{ border-bottom:1px solid var(--line); }
+  .info-fact .label{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.08em; padding-top:2px; }
+  .info-fact .value{ font-size:15px; color:var(--ink); line-height:1.6; }
+  .info-fact .value span{ color:var(--ink-dim); }
+
+  .principles{ display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin-top:64px; }
+  .principle-card{ background:var(--void); padding:32px 26px; transition:background .35s ease; }
+  .principle-card:hover{ background:var(--void-2); }
+  .principle-card .mark{ width:8px; height:8px; background:var(--line-bright); box-shadow:0 0 10px var(--line-bright); margin-bottom:22px; }
+  .principle-card h3{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; margin-bottom:10px; }
+  .principle-card p{ font-size:13.5px; color:var(--ink-dim); line-height:1.6; }
+
+  /* ---------- Information: présentation FAQ + visuel ---------- */
+
+  .presentation{ display:grid; grid-template-columns:1fr 0.85fr; gap:56px; align-items:start; }
+
+  .faq-block + .faq-block{ margin-top:24px; }
+  .faq-block h4{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; margin-bottom:8px; }
+  .faq-block p{ font-size:14px; color:var(--ink-dim); line-height:1.7; }
+
+  .presentation-socials{ margin-top:32px; display:flex; gap:10px; }
+  .presentation-socials a{
+    width:38px; height:38px; border:1px solid var(--line); border-radius:8px;
+    display:flex; align-items:center; justify-content:center; color:var(--ink-dim);
+    transition:border-color .25s ease, color .25s ease, background .25s ease, transform .25s ease;
+  }
+  .presentation-socials a:hover{ border-color:var(--line-bright); color:var(--ink); background:rgba(110,118,255,0.08); transform:translateY(-2px); }
+  .presentation-socials svg{ width:16px; height:16px; }
+
+  .info-photo{
+    aspect-ratio:4/5;
+    position:relative; overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .info-photo .art{ position:absolute; inset:0; background:var(--void-2); }
+  .info-photo .art::before{
+    content:''; position:absolute; inset:-20%; filter:blur(2px);
+    background:
+      radial-gradient(320px 260px at 25% 15%, rgba(110,118,255,0.3), transparent 60%),
+      radial-gradient(260px 220px at 80% 85%, rgba(167,139,250,0.2), transparent 60%);
+  }
+  .info-photo .grid-overlay{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size:28px 28px;
+    mask-image:radial-gradient(ellipse 320px 320px at 50% 50%, black 0%, transparent 75%);
+  }
+  .info-photo .placeholder-tag{
+    position:absolute; left:16px; top:16px;
+    display:flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .info-photo .placeholder-tag svg{ width:12px; height:12px; opacity:0.6; }
+  .info-photo::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg, transparent 60%, rgba(10,11,14,0.6));
+    pointer-events:none;
+  }
+
+  /* ---------- Information: équipe ---------- */
+
+  .subsection{ margin-top:96px; }
+  .subsection-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:36px; gap:24px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+  .subsection-head h3{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:600; }
+  .subsection-head p{ font-size:13px; color:var(--ink-faint); max-width:260px; text-align:right; }
+
+  .team-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
+  .team-card{ background:var(--void); padding:28px 24px; transition:background .35s ease; }
+  .team-card:hover{ background:var(--void-2); }
+  .team-avatar{
+    width:44px; height:44px; border-radius:50%;
+    background:rgba(110,118,255,0.12); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15px; color:var(--line-bright);
+    margin-bottom:20px;
+  }
+  .team-card h4{ font-family:'Space Grotesk', sans-serif; font-size:16px; font-weight:600; margin-bottom:4px; }
+  .team-role{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.07em; text-transform:uppercase; color:var(--line-bright); margin-bottom:12px; display:block; }
+  .team-card p{ font-size:13px; color:var(--ink-dim); line-height:1.6; }
+
+  /* ---------- Information: rejoindre l'équipe ---------- */
+
+  .join-grid{ display:grid; grid-template-columns:repeat(2, 1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
+  .join-card{ background:var(--void); padding:30px 28px; display:flex; flex-direction:column; transition:background .35s ease; }
+  .join-card:hover{ background:var(--void-2); }
+  .join-card h4{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; color:var(--line-bright); margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+  .join-card h4 .tag-closed{ font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint); border:1px solid var(--line); padding:3px 7px; border-radius:4px; }
+  .join-card p{ font-size:13.5px; color:var(--ink-dim); line-height:1.65; flex:1; }
+
+  .btn{
+    margin-top:20px; align-self:flex-start;
+    font-family:'Inter', sans-serif; font-size:13px; font-weight:600;
+    padding:11px 20px; border-radius:6px; border:1px solid transparent;
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    transition:transform .2s ease, background .25s ease, border-color .25s ease;
+  }
+  .btn-solid{ background:var(--line-bright); color:var(--void); }
+  .btn-solid:hover{ transform:translateY(-2px); background:#818AFF; }
+  .btn-ghost{ background:transparent; border-color:var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--line-bright); color:var(--line-bright); }
+  .btn-disabled{ background:transparent; border-color:var(--line); color:var(--ink-faint); cursor:not-allowed; }
+  .btn-disabled:hover{ transform:none; border-color:var(--line); color:var(--ink-faint); }
+
+  /* ---------- Information: soutenir ---------- */
+
+  .support-panel{
+    margin-top:96px;
+    border:1px solid var(--line);
+    background:linear-gradient(160deg, var(--panel), var(--void) 75%);
+    padding:36px 40px;
+    display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;
+  }
+  .support-left{ display:flex; align-items:center; gap:22px; }
+  .support-icon{
+    width:46px; height:46px; border-radius:10px; flex-shrink:0;
+    background:rgba(110,118,255,0.12); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; color:var(--line-bright);
+  }
+  .support-icon svg{ width:20px; height:20px; }
+  .support-text h4{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; margin-bottom:6px; }
+  .support-text p{ font-size:13.5px; color:var(--ink-dim); line-height:1.6; max-width:480px; }
+
+  /* ---------- Contact ---------- */
+
+  .contact-panel{
+    border:1px solid var(--line);
+    background:linear-gradient(160deg, var(--panel), var(--void) 70%);
+    padding:56px; position:relative; overflow:hidden;
+  }
+  .contact-panel::after{
+    content:''; position:absolute; top:-40%; right:-15%; width:360px; height:360px;
+    background:radial-gradient(circle, rgba(110,118,255,0.14), transparent 70%);
+    pointer-events:none;
+  }
+  .contact-inner{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:64px; position:relative; }
+  .contact-links{ display:flex; flex-direction:column; gap:0; }
+  .contact-links a{
+    display:flex; justify-content:space-between; align-items:center; padding:22px 0;
+    border-top:1px solid var(--line);
+    font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:500;
+    transition:color .25s ease, gap .25s ease;
+  }
+  .contact-links a:last-child{ border-bottom:1px solid var(--line); }
+  .contact-links a .arrow{ font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--ink-faint); transition:transform .25s ease, color .25s ease; }
+  .contact-links a:hover{ color:var(--line-bright); }
+  .contact-links a:hover .arrow{ transform:translateX(4px); color:var(--line-bright); }
+  .contact-note{ font-size:14px; color:var(--ink-dim); line-height:1.7; padding-top:8px; }
+  .contact-note strong{ color:var(--ink); font-weight:500; }
+
+  .contact-socials{ margin-top:28px; display:flex; gap:10px; }
+  .contact-socials a{
+    width:38px; height:38px; border:1px solid var(--line); border-radius:8px;
+    display:flex; align-items:center; justify-content:center; color:var(--ink-dim);
+    transition:border-color .25s ease, color .25s ease, background .25s ease, transform .25s ease;
+  }
+  .contact-socials a:hover{ border-color:var(--line-bright); color:var(--ink); background:rgba(110,118,255,0.08); transform:translateY(-2px); }
+  .contact-socials svg{ width:16px; height:16px; }
+
+  /* ---------- Footer ---------- */
+
+  footer{ padding:32px 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  footer .mono{ font-size:11px; color:var(--ink-faint); }
+
+  a:focus-visible, button:focus-visible{ outline:1px solid var(--line-bright); outline-offset:4px; }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width:820px){
+    nav ul{ display:none; }
+    .hero-grid{ grid-template-columns:1fr; }
+    .hero-visual{ max-width:220px; margin:0 auto; }
+    .section-head{ flex-direction:column; align-items:flex-start; }
+    .section-head p{ max-width:none; }
+    .projects{ grid-template-columns:1fr; }
+    .info-layout{ grid-template-columns:1fr; gap:40px; }
+    .info-fact{ grid-template-columns:1fr; gap:6px; }
+    .principles{ grid-template-columns:1fr; }
+    .presentation{ grid-template-columns:1fr; }
+    .subsection-head{ flex-direction:column; align-items:flex-start; }
+    .subsection-head p{ text-align:left; }
+    .team-grid{ grid-template-columns:1fr; }
+    .join-grid{ grid-template-columns:1fr; }
+    .support-panel{ flex-direction:column; align-items:flex-start; }
+    .contact-inner{ grid-template-columns:1fr; gap:40px; }
+    footer{ flex-direction:column; gap:12px; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="field"></div>
+<div class="grain"></div>
+
+<header>
+  <div class="wrap nav-inner">
+    <div class="wordmark"><span class="dot"></span>VOIDLINE STUDIO</div>
+    <nav>
+      <ul>
+        <li><a href="#top">Accueil</a></li>
+        <li><a href="#projets">Projets</a></li>
+        <li><a href="#information">Informations</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="hero-eyebrow mono reveal">Studio indépendant — fondé en 2025</span>
+        <h1 class="reveal" style="transition-delay:80ms">Des mondes<br>construits <span class="accent">avec précision.</span></h1>
+        <p class="hero-sub reveal" style="transition-delay:160ms">Voidline Studio conçoit des expériences de jeu narratives et systémiques, du prototype à la mise en ligne. Petite équipe, exigence élevée.</p>
+
+        <div class="hero-socials reveal" style="transition-delay:200ms" aria-label="Réseaux sociaux">
+          <a href="#" aria-label="Discord"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.9A18 18 0 0 0 15.9 3.5c-.2.4-.5.9-.6 1.3a16.7 16.7 0 0 0-5 0c-.2-.4-.4-.9-.6-1.3a18 18 0 0 0-4.4 1.4C2.8 8.6 2.1 12.2 2.4 15.8a18.1 18.1 0 0 0 5.5 2.8c.4-.6.8-1.3 1.1-2a11.6 11.6 0 0 1-1.8-.9l.4-.3a12.9 12.9 0 0 0 10.8 0l.4.3c-.6.3-1.2.6-1.8.9.3.7.7 1.3 1.1 2a18 18 0 0 0 5.5-2.8c.4-4.2-.6-7.7-2.3-10.9ZM9.7 13.6c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7Zm4.6 0c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7Z"/></svg></a>
+          <a href="#" aria-label="X / Twitter"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 3H22l-7.2 8.2L23 21h-6.6l-5.2-6.6L5 21H2l7.7-8.8L2 3h6.7l4.7 6.1L18.9 3Zm-1.2 16h1.7L7.4 5H5.6l12.1 14Z"/></svg></a>
+          <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12s0-3.2-.4-4.7a2.9 2.9 0 0 0-2-2C17.9 5 12 5 12 5s-5.9 0-7.6.3a2.9 2.9 0 0 0-2 2C2 8.8 2 12 2 12s0 3.2.4 4.7a2.9 2.9 0 0 0 2 2C6.1 19 12 19 12 19s5.9 0 7.6-.3a2.9 2.9 0 0 0 2-2c.4-1.5.4-4.7.4-4.7ZM10 15V9l5 3-5 3Z"/></svg></a>
+          <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 2h-3.2v13.7a2.9 2.9 0 1 1-2-2.7v-3.2a6.1 6.1 0 1 0 5.2 6V8.6a8.2 8.2 0 0 0 4.9 1.6V7a4.9 4.9 0 0 1-4.9-5Z"/></svg></a>
+        </div>
+
+        <div class="horizon"></div>
+        <div class="hero-meta mono">
+          <span>Basé à distance</span>
+          <span>Roblox · Web</span>
+        </div>
+      </div>
+      <div class="hero-visual reveal" style="transition-delay:280ms" aria-hidden="true">
+        <svg viewBox="0 0 300 300">
+          <circle class="orbit-ring dashed" cx="150" cy="150" r="140"/>
+          <circle class="orbit-ring dashed reverse" cx="150" cy="150" r="105"/>
+          <circle class="orbit-ring" cx="150" cy="150" r="70"/>
+          <circle class="orbit-core" cx="150" cy="150" r="34"/>
+          <circle class="orbit-node" cx="150" cy="10" r="3"/>
+          <circle class="orbit-node" cx="257" cy="220" r="2.5"/>
+          <circle class="orbit-node" cx="45" cy="95" r="2"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="projets">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <span class="section-label mono">Projets</span>
+          <h2>Ce que nous construisons</h2>
+        </div>
+        <p>Une sélection de projets en développement ou déjà en ligne.</p>
+      </div>
+
+      <div class="projects reveal">
+        <div class="project-card">
+          <div class="project-photo">
+            <div class="art art-1">
+              <div class="grid-overlay"></div>
+            </div>
+            <span class="glyph">01</span>
+            <span class="placeholder-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5.5-5-4 4L8 12l-5 5"/></svg>
+              Visuel provisoire
+            </span>
+          </div>
+          <div class="project-body">
+            <div class="project-top">
+              <span class="project-code">VDL-01</span>
+              <span class="project-status status-live mono">En ligne</span>
+            </div>
+            <h3>Site-15</h3>
+            <p>Serveur de roleplay SCP sur Roblox, avec système de connexion et de roster automatisé lié aux comptes Roblox des joueurs.</p>
+            <div class="project-tags">
+              <span>Roblox</span>
+              <span>Discord</span>
+              <span>Roleplay</span>
+            </div>
+            <a href="#" class="project-cta">Découvrir le projet <span>→</span></a>
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="project-photo">
+            <div class="art art-2">
+              <div class="grid-overlay"></div>
+            </div>
+            <span class="glyph">02</span>
+            <span class="placeholder-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              En conception
+            </span>
+          </div>
+          <div class="project-body">
+            <div class="project-top">
+              <span class="project-code">VDL-02</span>
+              <span class="project-status mono">En préparation</span>
+            </div>
+            <h3>Projet suivant</h3>
+            <p>Un nouveau projet est actuellement en phase de conception. Détails à venir prochainement.</p>
+            <div class="project-tags">
+              <span>À définir</span>
+            </div>
+            <a href="#" class="project-cta">Bientôt disponible <span>→</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="information">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <span class="section-label mono">Information</span>
+          <h2>Qui on est, comment on travaille</h2>
+        </div>
+      </div>
+
+      <div class="info-layout reveal">
+        <div class="info-lead">
+          <p>Voidline Studio est un studio indépendant fondé en 2025, spécialisé dans les expériences de jeu narratives et systémiques sur Roblox. On conçoit des mondes cohérents plutôt que des vitrines : chaque projet part d'une architecture technique solide avant de recevoir son habillage.</p>
+          <p>Petite équipe, décisions rapides, exigence élevée sur ce qui est livré. On documente nos choix et on communique directement avec la communauté plutôt que de se cacher derrière une façade marketing.</p>
+        </div>
+
+        <div class="info-facts">
+          <div class="info-fact">
+            <span class="label">Fondé</span>
+            <span class="value">2025</span>
+          </div>
+          <div class="info-fact">
+            <span class="label">Plateformes</span>
+            <span class="value">Roblox <span>·</span> Discord <span>·</span> Web</span>
+          </div>
+          <div class="info-fact">
+            <span class="label">Format</span>
+            <span class="value">Studio indépendant, équipe restreinte</span>
+          </div>
+          <div class="info-fact">
+            <span class="label">Basé</span>
+            <span class="value">À distance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="principles reveal">
+        <div class="principle-card">
+          <div class="mark"></div>
+          <h3>Systèmes avant contenu</h3>
+          <p>On conçoit d'abord les mécaniques et l'architecture technique, avant d'habiller l'expérience. Un système solide vieillit mieux qu'un décor.</p>
+        </div>
+        <div class="principle-card">
+          <div class="mark"></div>
+          <h3>Itération rapide</h3>
+          <p>Petites versions, retours réguliers de la communauté, ajustements continus plutôt que de longues périodes de silence.</p>
+        </div>
+        <div class="principle-card">
+          <div class="mark"></div>
+          <h3>Transparence</h3>
+          <p>Les décisions techniques et de conception sont documentées et communiquées, pas cachées derrière un vernis marketing.</p>
+        </div>
+      </div>
+
+      <!-- Présentation FAQ + visuel -->
+      <div class="subsection">
+        <div class="subsection-head">
+          <h3>Présentation</h3>
+          <p>Questions fréquentes sur le studio et ses projets.</p>
+        </div>
+
+        <div class="presentation">
+          <div>
+            <div class="faq-block reveal">
+              <h4>Qui sommes-nous et quels sont nos projets ?</h4>
+              <p>Voidline Studio est un studio indépendant de développement sur Roblox. Notre projet principal est Site-15, un serveur de roleplay SCP, et nous vendons également des scripts Roblox.</p>
+            </div>
+            <div class="faq-block reveal">
+              <h4>Peut-on intégrer le studio ?</h4>
+              <p>Les recrutements au studio sont fermés pour l'instant, mais vous pouvez rejoindre le staff de Site-15 via les postes ouverts ci-dessous.</p>
+            </div>
+            <div class="faq-block reveal">
+              <h4>Voidline Studio est-il lancé ?</h4>
+              <p>Oui. Notre projet principal n'est pas encore lancé publiquement, mais Site-15 est déjà en ligne et actif.</p>
+            </div>
+
+            <div class="presentation-socials reveal" aria-label="Réseaux sociaux">
+              <a href="#" aria-label="Discord"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.9A18 18 0 0 0 15.9 3.5c-.2.4-.5.9-.6 1.3a16.7 16.7 0 0 0-5 0c-.2-.4-.4-.9-.6-1.3a18 18 0 0 0-4.4 1.4C2.8 8.6 2.1 12.2 2.4 15.8a18.1 18.1 0 0 0 5.5 2.8c.4-.6.8-1.3 1.1-2a11.6 11.6 0 0 1-1.8-.9l.4-.3a12.9 12.9 0 0 0 10.8 0l.4.3c-.6.3-1.2.6-1.8.9.3.7.7 1.3 1.1 2a18 18 0 0 0 5.5-2.8c.4-4.2-.6-7.7-2.3-10.9ZM9.7 13.6c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7Zm4.6 0c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7Z"/></svg></a>
+              <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12s0-3.2-.4-4.7a2.9 2.9 0 0 0-2-2C17.9 5 12 5 12 5s-5.9 0-7.6.3a2.9 2.9 0 0 0-2 2C2 8.8 2 12 2 12s0 3.2.4 4.7a2.9 2.9 0 0 0 2 2C6.1 19 12 19 12 19s5.9 0 7.6-.3a2.9 2.9 0 0 0 2-2c.4-1.5.4-4.7.4-4.7ZM10 15V9l5 3-5 3Z"/></svg></a>
+              <a href="#" aria-label="X / Twitter"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 3H22l-7.2 8.2L23 21h-6.6l-5.2-6.6L5 21H2l7.7-8.8L2 3h6.7l4.7 6.1L18.9 3Zm-1.2 16h1.7L7.4 5H5.6l12.1 14Z"/></svg></a>
+              <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 2h-3.2v13.7a2.9 2.9 0 1 1-2-2.7v-3.2a6.1 6.1 0 1 0 5.2 6V8.6a8.2 8.2 0 0 0 4.9 1.6V7a4.9 4.9 0 0 1-4.9-5Z"/></svg></a>
+            </div>
+          </div>
+
+          <div class="info-photo reveal">
+            <div class="art">
+              <div class="grid-overlay"></div>
+            </div>
+            <span class="placeholder-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5" width="18" height="14" rx="1"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5.5-5-4 4L8 12l-5 5"/></svg>
+              Visuel provisoire
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Équipe -->
+      <div class="subsection">
+        <div class="subsection-head">
+          <h3>L'équipe de Voidline</h3>
+          <p>Les personnes qui font tourner le studio au quotidien.</p>
+        </div>
+
+        <div class="team-grid reveal">
+          <div class="team-card">
+            <div class="team-avatar">N</div>
+            <h4>Noctyra</h4>
+            <span class="team-role">Propriétaire</span>
+            <p>Fondateur de Voidline Studio.</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">N.A/</div>
+            <h4>N.A/</h4>
+            <span class="team-role">Community Manager</span>
+            <p>Gestion des réseaux et de la communication du studio.</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">N.A/</div>
+            <h4>N.A/</h4>
+            <span class="team-role">Développeur</span>
+            <p>Builder au sein de Voidline Studio.</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">N.A/</div>
+            <h4>N.A/</h4>
+            <span class="team-role">Développeur</span>
+            <p>Scripteur au sein de Voidline Studio.</p>
+          </div>
+          <div class="team-card">
+            <div class="team-avatar">N.A/</div>
+            <h4>N.A/</h4>
+            <span class="team-role">Administrateur</span>
+            <p>Administrateur du projet Site-15.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rejoindre l'équipe -->
+      <div class="subsection">
+        <div class="subsection-head">
+          <h3>Rejoindre Voidline</h3>
+          <p>Les postes actuellement ouverts au sein de Site-15.</p>
+        </div>
+
+        <div class="join-grid reveal">
+          <div class="join-card">
+            <h4>Devenir Scénariste <span class="tag-closed">Fermé</span></h4>
+            <p>Passionné par la conception d'histoires de jeu ? Ce poste consiste à créer des scénarios et à enrichir l'univers de nos projets.</p>
+            <button class="btn btn-disabled" disabled>Postuler</button>
+          </div>
+          <div class="join-card">
+            <h4>Devenir Développeur <span class="tag-closed">Fermé</span></h4>
+            <p>Spécialisé sur Roblox Studio — builder, scripteur, VFX maker, modélisateur ? Rejoignez l'équipe technique du studio.</p>
+            <button class="btn btn-disabled" disabled>Postuler</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Soutenir -->
+      <div class="support-panel reveal">
+        <div class="support-left">
+          <div class="support-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2 4.5 5.5 4a5 5 0 0 1 6.5 2.5A5 5 0 0 1 18.5 4C22 4.5 23.5 8 22 11.7 19.5 16.4 12 21 12 21Z"/></svg>
+          </div>
+          <div class="support-text">
+            <h4>Soutenir Voidline Studio</h4>
+            <p>Voidline est un projet indépendant. Un don nous aide à financer le développement et l'hébergement de nos projets.</p>
+          </div>
+        </div>
+        <button class="btn btn-solid">Faire un don</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <span class="section-label mono">Contact</span>
+          <h2>Parlons-en</h2>
+        </div>
+      </div>
+
+      <div class="contact-panel reveal">
+        <div class="contact-inner">
+          <div class="contact-links">
+            <a href="#">Discord <span class="arrow mono">→</span></a>
+            <a href="#">GitHub <span class="arrow mono">→</span></a>
+            <a href="#">Email <span class="arrow mono">→</span></a>
+          </div>
+          <div>
+            <p class="contact-note">
+              Pour toute question sur nos projets, une candidature à l'équipe, ou une proposition de collaboration : <strong>on répond via Discord en priorité.</strong>
+            </p>
+            <div class="contact-socials" aria-label="Réseaux sociaux">
+              <a href="#" aria-label="Discord"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.9A18 18 0 0 0 15.9 3.5c-.2.4-.5.9-.6 1.3a16.7 16.7 0 0 0-5 0c-.2-.4-.4-.9-.6-1.3a18 18 0 0 0-4.4 1.4C2.8 8.6 2.1 12.2 2.4 15.8a18.1 18.1 0 0 0 5.5 2.8c.4-.6.8-1.3 1.1-2a11.6 11.6 0 0 1-1.8-.9l.4-.3a12.9 12.9 0 0 0 10.8 0l.4.3c-.6.3-1.2.6-1.8.9.3.7.7 1.3 1.1 2a18 18 0 0 0 5.5-2.8c.4-4.2-.6-7.7-2.3-10.9ZM9.7 13.6c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7Zm4.6 0c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7Z"/></svg></a>
+              <a href="#" aria-label="X / Twitter"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 3H22l-7.2 8.2L23 21h-6.6l-5.2-6.6L5 21H2l7.7-8.8L2 3h6.7l4.7 6.1L18.9 3Zm-1.2 16h1.7L7.4 5H5.6l12.1 14Z"/></svg></a>
+              <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12s0-3.2-.4-4.7a2.9 2.9 0 0 0-2-2C17.9 5 12 5 12 5s-5.9 0-7.6.3a2.9 2.9 0 0 0-2 2C2 8.8 2 12 2 12s0 3.2.4 4.7a2.9 2.9 0 0 0 2 2C6.1 19 12 19 12 19s5.9 0 7.6-.3a2.9 2.9 0 0 0 2-2c.4-1.5.4-4.7.4-4.7ZM10 15V9l5 3-5 3Z"/></svg></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+    <span class="mono">© 2026 Voidline Studio</span>
+    <span class="mono">Conçu avec précision</span>
+  </div>
+</footer>
+
+<script>
+  const header = document.querySelector('header');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
