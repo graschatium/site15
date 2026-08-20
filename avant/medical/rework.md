@@ -38,3 +38,9 @@ R : Oui, certains champs (notes, statut)
 
 
 fais en sorte qu'on puisse déplacé les modaux et créer des comptes pour les nouveaux agents
+
+
+
+les visuels doivent être des images, fais en sorte qu'on puisse rajouter la team animation et la team modération et fais en sorte que le bouton pour la donation sois actif et logo du studio
+
+
