@@ -91,9 +91,63 @@
   object-fit: contain;
 }
 
-  nav ul{ display:flex; gap:40px; list-style:none; }
+  nav ul{ display:flex; align-items:center; gap:40px; list-style:none; }
   nav a{ font-size:13px; color:var(--ink-dim); transition:color .25s ease; }
   nav a:hover, nav a:focus-visible{ color:var(--ink); outline:none; }
+
+  /* ---------- Auth menu (header) ---------- */
+
+  .auth-menu{ position:relative; }
+
+  .auth-login-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Inter', sans-serif; font-size:13px; font-weight:600;
+    padding:9px 16px; border-radius:6px; border:1px solid var(--line);
+    color:var(--ink); background:transparent;
+    transition:border-color .25s ease, color .25s ease, background .25s ease, transform .2s ease;
+  }
+  .auth-login-btn:hover{ border-color:var(--line-bright); color:var(--line-bright); transform:translateY(-1px); }
+  .auth-login-btn svg{ width:14px; height:14px; }
+
+  .auth-btn{
+    display:flex; align-items:center; gap:9px; cursor:pointer;
+    background:transparent; border:1px solid transparent; padding:5px 10px 5px 6px; border-radius:8px;
+    font-family:'Inter', sans-serif; font-size:13px; color:var(--ink-dim);
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .auth-btn:hover{ color:var(--ink); border-color:var(--line); background:rgba(255,255,255,0.02); }
+  .auth-menu.open .auth-btn{ color:var(--ink); border-color:var(--line); }
+
+  .auth-avatar{
+    width:26px; height:26px; border-radius:50%; overflow:hidden; flex-shrink:0;
+    background:rgba(110,118,255,0.14); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:11px; color:var(--line-bright);
+  }
+  .auth-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .auth-name{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .auth-caret{ width:11px; height:11px; flex-shrink:0; transition:transform .25s ease; }
+  .auth-menu.open .auth-caret{ transform:rotate(180deg); }
+
+  .auth-dropdown{
+    position:absolute; top:calc(100% + 12px); right:0; min-width:210px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:6px;
+    opacity:0; visibility:hidden; transform:translateY(-8px);
+    transition:opacity .2s ease, transform .2s ease, visibility .2s;
+    box-shadow:0 24px 48px rgba(0,0,0,0.45); z-index:200;
+  }
+  .auth-menu.open .auth-dropdown{ opacity:1; visibility:visible; transform:translateY(0); }
+  .auth-dropdown a, .auth-dropdown button{
+    display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border-radius:6px;
+    font-family:'Inter', sans-serif; font-size:13px; color:var(--ink-dim);
+    background:transparent; border:none; cursor:pointer; text-align:left;
+    transition:background .15s ease, color .15s ease;
+  }
+  .auth-dropdown a:hover, .auth-dropdown button:hover{ background:var(--void-2); color:var(--ink); }
+  .auth-dropdown button.danger:hover{ color:var(--bad, #ED4245); }
+  .auth-dropdown svg{ width:15px; height:15px; flex-shrink:0; }
+  .auth-dropdown hr{ border:none; border-top:1px solid var(--line); margin:6px 2px; }
 
   /* ---------- Hero ---------- */
 
@@ -429,7 +483,7 @@
         <li><a href="#projets">Projets</a></li>
         <li><a href="#information">Informations</a></li>
         <li><a href="#contact">Contact</a></li>
-        <li><a href="account.html">Mon compte</a></li>
+        <li class="auth-menu" id="auth-menu"></li>
       </ul>
     </nav>
   </div>
@@ -761,6 +815,7 @@
   }, { threshold: 0.15 });
   revealEls.forEach(el => io.observe(el));
 </script>
+<script src="assets/auth-menu.js" defer></script>
 
 </body>
 </html>
