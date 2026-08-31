@@ -304,17 +304,17 @@
 
   function renderShell() {
     const tabs = [];
-    tabs.push({ id: 'rosters', label: 'Rosters' });
-    if (context.isAdminAnywhere) tabs.push({ id: 'sanctions', label: 'Sanctions' });
-    if (context.isAdminAnywhere) tabs.push({ id: 'absences', label: 'Absences' });
+    if (context.rosterLevel) tabs.push({ id: 'rosters', label: 'Rosters' });
+    if (context.canManageSanctions) tabs.push({ id: 'sanctions', label: 'Sanctions' });
+    if (context.canManageAbsences) tabs.push({ id: 'absences', label: 'Absences' });
 
     root.innerHTML = `
       <div class="tabs">
         ${tabs.map((t, i) => `<button class="tab-btn${i === 0 ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
       </div>
-      <div class="tab-panel active" id="tab-rosters"></div>
-      ${context.isAdminAnywhere ? '<div class="tab-panel" id="tab-sanctions"></div>' : ''}
-      ${context.isAdminAnywhere ? '<div class="tab-panel" id="tab-absences"></div>' : ''}
+      ${context.rosterLevel ? `<div class="tab-panel${tabs[0]?.id === 'rosters' ? ' active' : ''}" id="tab-rosters"></div>` : ''}
+      ${context.canManageSanctions ? `<div class="tab-panel${tabs[0]?.id === 'sanctions' ? ' active' : ''}" id="tab-sanctions"></div>` : ''}
+      ${context.canManageAbsences ? `<div class="tab-panel${tabs[0]?.id === 'absences' ? ' active' : ''}" id="tab-absences"></div>` : ''}
     `;
 
     root.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -330,7 +330,13 @@
       });
     });
 
-    loadRostersTab();
+    loadTab(tabs[0]?.id);
+  }
+
+  function loadTab(tabId) {
+    if (tabId === 'rosters') loadRostersTab();
+    else if (tabId === 'sanctions') loadSanctionsTab();
+    else if (tabId === 'absences') loadAbsencesTab();
   }
 
   // -----------------------------------------------------------------
@@ -356,6 +362,7 @@
     }
 
     currentDeptId = currentDeptId && depts.some((d) => d.deptId === currentDeptId) ? currentDeptId : depts[0].deptId;
+    const canEdit = context.rosterLevel === 'edit';
 
     panel.innerHTML = `
       <div class="field-row" style="max-width:320px;">
@@ -364,14 +371,16 @@
           ${depts
             .map(
               (d) =>
-                `<option value="${d.deptId}"${d.deptId === currentDeptId ? ' selected' : ''}>${escapeHtml(d.name)} ${d.level === 'director' ? '(directeur)' : ''}</option>`
+                `<option value="${d.deptId}"${d.deptId === currentDeptId ? ' selected' : ''}>${escapeHtml(d.name)}</option>`
             )
             .join('')}
         </select>
       </div>
       <div id="dept-agents"></div>
 
-      <div class="subsection">
+      ${
+        canEdit
+          ? `<div class="subsection">
         <h3>Ajouter un agent</h3>
         <form id="add-agent-form">
           <div class="field-grid">
@@ -394,7 +403,9 @@
           </div>
           <button class="btn" type="submit">Ajouter l'agent</button>
         </form>
-      </div>
+      </div>`
+          : ''
+      }
     `;
 
     renderDeptAgents(depts);
@@ -404,30 +415,33 @@
       renderDeptAgents(depts);
     });
 
-    document.getElementById('add-agent-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('agent-name').value.trim();
-      const username = document.getElementById('agent-username').value.trim();
-      const rank = document.getElementById('agent-rank').value.trim();
-      const command = document.getElementById('agent-command').value.trim();
+    const addForm = document.getElementById('add-agent-form');
+    if (addForm) {
+      addForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('agent-name').value.trim();
+        const username = document.getElementById('agent-username').value.trim();
+        const rank = document.getElementById('agent-rank').value.trim();
+        const command = document.getElementById('agent-command').value.trim();
 
-      if (!username) {
-        showToast('Le pseudo Roblox est obligatoire.', 'error');
-        return;
-      }
+        if (!username) {
+          showToast('Le pseudo Roblox est obligatoire.', 'error');
+          return;
+        }
 
-      try {
-        await apiFetch(`/api/admin/rosters/${encodeURIComponent(currentDeptId)}/agents`, {
-          method: 'POST',
-          body: JSON.stringify({ name, username, rank, command }),
-        });
-        showToast('Agent ajouté.', 'success');
-        panel.dataset.loaded = '';
-        loadRostersTab();
-      } catch (err) {
-        showToast(`Erreur : ${err.message}`, 'error');
-      }
-    });
+        try {
+          await apiFetch(`/api/admin/rosters/${encodeURIComponent(currentDeptId)}/agents`, {
+            method: 'POST',
+            body: JSON.stringify({ name, username, rank, command }),
+          });
+          showToast('Agent ajouté.', 'success');
+          panel.dataset.loaded = '';
+          loadRostersTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    }
   }
 
   function renderDeptAgents(depts) {
@@ -436,6 +450,8 @@
     if (!dept) return;
 
     const agents = dept.agents || [];
+    const canEdit = dept.level === 'admin';
+
     if (!agents.length) {
       container.innerHTML = '<div class="empty-row">Aucun agent dans ce département.</div>';
       return;
@@ -444,31 +460,34 @@
     container.innerHTML = `
       <table>
         <thead>
-          <tr><th>Nom</th><th>Pseudo</th><th>Grade</th><th>Statut</th><th></th></tr>
+          <tr><th>Nom</th><th>Pseudo</th><th>Grade</th><th>Statut</th>${canEdit ? '<th></th>' : ''}</tr>
         </thead>
         <tbody>
           ${agents
-            .map(
-              (a) => `
+            .map((a) => {
+              const statusCell = canEdit
+                ? `<select class="status-select" data-agent-id="${escapeHtml(a.id)}">
+                  <option value="actif"${a.status === 'actif' || !a.status ? ' selected' : ''}>Actif</option>
+                  <option value="inactif"${a.status === 'inactif' ? ' selected' : ''}>Inactif</option>
+                  <option value="archivé"${a.status === 'archivé' ? ' selected' : ''}>Archivé</option>
+                </select>`
+                : `<span class="status-pill status-${a.status || 'actif'}">${escapeHtml(a.status || 'actif')}</span>`;
+              return `
             <tr data-agent-id="${escapeHtml(a.id)}">
               <td>${escapeHtml(a.name || '—')}</td>
               <td class="mono-cell">${escapeHtml(a.username || '—')}</td>
               <td>${escapeHtml(a.rank || '—')}</td>
-              <td>
-                <select class="status-select" data-agent-id="${escapeHtml(a.id)}">
-                  <option value="actif"${a.status === 'actif' || !a.status ? ' selected' : ''}>Actif</option>
-                  <option value="inactif"${a.status === 'inactif' ? ' selected' : ''}>Inactif</option>
-                  <option value="archivé"${a.status === 'archivé' ? ' selected' : ''}>Archivé</option>
-                </select>
-              </td>
-              <td><button class="btn danger small remove-agent-btn" data-agent-id="${escapeHtml(a.id)}">Retirer</button></td>
+              <td>${statusCell}</td>
+              ${canEdit ? `<td><button class="btn danger small remove-agent-btn" data-agent-id="${escapeHtml(a.id)}">Retirer</button></td>` : ''}
             </tr>
-          `
-            )
+          `;
+            })
             .join('')}
         </tbody>
       </table>
     `;
+
+    if (!canEdit) return;
 
     container.querySelectorAll('.status-select').forEach((sel) => {
       sel.addEventListener('change', async (e) => {
@@ -695,7 +714,7 @@
       return;
     }
 
-    if (!context.isOwner && !context.isAdminAnywhere && !(context.depts || []).length) {
+    if (!context.isAdminAnywhere) {
       renderForbidden();
       return;
     }
