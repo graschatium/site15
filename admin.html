@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin — Voidline Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://graschatium.github.io/site15/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #0A0B0E;
+    --void-2: #101218;
+    --panel: #14161D;
+    --line: #2A2D38;
+    --line-bright: #6E76FF;
+    --line-bright-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #5A5F6E;
+    --good: #57F287;
+    --warn: #F79A3E;
+    --bad: #ED4245;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  .field{
+    position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background:
+      radial-gradient(760px 520px at 82% -6%, rgba(110,118,255,0.16), transparent 60%),
+      radial-gradient(600px 460px at -6% 30%, rgba(110,118,255,0.08), transparent 60%),
+      linear-gradient(var(--void), var(--void));
+  }
+  .field::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.028) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.028) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 900px 700px at 70% 0%, black 10%, transparent 72%);
+  }
+
+  ::selection{ background:var(--line-bright); color:var(--void); }
+  a{ color:inherit; text-decoration:none; }
+
+  .mono{ font-family:'JetBrains Mono', monospace; letter-spacing:0.08em; text-transform:uppercase; }
+  .display{ font-family:'Space Grotesk', sans-serif; }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    padding:22px 0;
+    background:rgba(10,11,14,0.4);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid transparent;
+    transition:border-color .4s ease, background .4s ease;
+  }
+  header.scrolled{ background:rgba(10,11,14,0.78); border-bottom-color:var(--line); }
+
+  .nav-inner{ display:flex; align-items:center; justify-content:space-between; }
+
+  .wordmark{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; letter-spacing:0.02em;
+    display:flex; align-items:center; gap:10px;
+  }
+  .wordmark .logo-mark{ width:30px; height:30px; object-fit:contain; }
+
+  nav ul{ display:flex; align-items:center; gap:40px; list-style:none; }
+  nav a{ font-size:13px; color:var(--ink-dim); transition:color .25s ease; }
+  nav a:hover, nav a:focus-visible{ color:var(--ink); outline:none; }
+  nav a.current{ color:var(--ink); }
+
+  main{ padding:150px 0 100px; min-height:100vh; }
+
+  .page-head{ margin-bottom:40px; }
+  .page-head .mono{ color:var(--line-bright-2); font-size:12px; }
+  .page-head h1{ font-family:'Space Grotesk', sans-serif; font-size:34px; margin:10px 0 8px; }
+  .page-head p{ color:var(--ink-dim); font-size:14px; max-width:560px; }
+
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:24px;
+  }
+
+  .center-msg{ text-align:center; padding:60px 20px; color:var(--ink-dim); font-size:14px; }
+  .center-msg a{ color:var(--line-bright-2); text-decoration:underline; }
+
+  .tabs{ display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+  .tab-btn{
+    font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:9px 16px; border-radius:6px; border:1px solid var(--line); background:transparent; color:var(--ink-dim);
+    cursor:pointer; transition:all .2s ease;
+  }
+  .tab-btn:hover{ color:var(--ink); border-color:var(--line-bright); }
+  .tab-btn.active{ color:var(--void); background:var(--line-bright); border-color:var(--line-bright); }
+
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  select, input, textarea{
+    font-family:'Inter', sans-serif; font-size:13px; color:var(--ink);
+    background:var(--void-2); border:1px solid var(--line); border-radius:6px;
+    padding:9px 12px; width:100%;
+  }
+  select:focus, input:focus, textarea:focus{ outline:none; border-color:var(--line-bright); }
+  label{ font-size:11px; color:var(--ink-faint); display:block; margin-bottom:6px; font-family:'JetBrains Mono', monospace; letter-spacing:0.05em; text-transform:uppercase; }
+
+  .field-row{ margin-bottom:14px; }
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-size:13px; font-weight:600;
+    padding:9px 18px; border-radius:6px; border:1px solid var(--line-bright);
+    color:var(--void); background:var(--line-bright); cursor:pointer;
+    transition:transform .15s ease, opacity .15s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
+  .btn.ghost{ background:transparent; color:var(--ink); }
+  .btn.danger{ background:var(--bad); border-color:var(--bad); color:#fff; }
+  .btn.small{ padding:6px 12px; font-size:12px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th, td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th{ color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.05em; text-transform:uppercase; font-weight:500; }
+  td.mono-cell{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-dim); }
+
+  .status-pill{
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px;
+    font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .status-actif{ background:rgba(87,242,135,0.12); color:var(--good); }
+  .status-inactif{ background:rgba(247,154,62,0.12); color:var(--warn); }
+  .status-archivé{ background:rgba(237,66,69,0.12); color:var(--bad); }
+
+  .empty-row{ color:var(--ink-faint); font-style:italic; padding:24px 0; text-align:center; }
+
+  .subsection{ margin-top:28px; padding-top:24px; border-top:1px solid var(--line); }
+  .subsection h3{ font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px; }
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; z-index:200;
+    background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:12px 18px; font-size:13px; max-width:320px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    display:none;
+  }
+  .toast.show{ display:block; }
+  .toast.error{ border-color:var(--bad); color:var(--bad); }
+  .toast.success{ border-color:var(--good); color:var(--good); }
+
+  footer{ padding:28px 0; border-top:1px solid var(--line); display:flex; justify-content:space-between; }
+  footer .mono{ font-size:11px; color:var(--ink-faint); }
+
+  @media (max-width:720px){
+    .wrap{ padding:0 20px; }
+    .field-grid{ grid-template-columns:1fr; }
+    nav ul{ gap:20px; }
+    nav a:not(.auth-menu):not(.current){ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="field"></div>
+
+<header>
+  <div class="wrap nav-inner">
+    <a href="index.html" class="wordmark">
+      <img src="ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+      VOIDLINE STUDIO
+    </a>
+    <nav>
+      <ul>
+        <li><a href="index.html#top">Accueil</a></li>
+        <li><a href="account.html">Mon compte</a></li>
+        <li><a href="admin.html" class="current">Admin</a></li>
+        <li class="auth-menu" id="auth-menu"></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <div class="page-head">
+      <span class="mono">Panel admin</span>
+      <h1>Gestion SITE-15</h1>
+      <p>Rosters, sanctions et absences — les mêmes droits que sur Discord (owner, rôle admin, ou rôle directeur limité à ton département).</p>
+    </div>
+
+    <div id="admin-root" class="panel">
+      <div class="center-msg">Chargement…</div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+    <span class="mono">© 2026 Voidline Studio</span>
+    <span class="mono">Conçu avec précision</span>
+  </div>
+</footer>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+  const TOKEN_KEY = 'vs_token';
+
+  (function captureTokenFromUrl() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    }
+  })();
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
+  const header = document.querySelector('header');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  const root = document.getElementById('admin-root');
+  const toastEl = document.getElementById('toast');
+
+  function showToast(message, type) {
+    toastEl.textContent = message;
+    toastEl.className = `toast show${type ? ` ${type}` : ''}`;
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove('show'), 3500);
+  }
+
+  function escapeHtml(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  async function apiFetch(path, options = {}) {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+    if (res.status === 204) return null;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || `Erreur ${res.status}`);
+    }
+    return data;
+  }
+
+  // -----------------------------------------------------------------
+  // État global du panel (rechargé au besoin par onglet)
+  // -----------------------------------------------------------------
+  let context = null; // { isOwner, isAdminAnywhere, depts }
+  let currentDeptId = null;
+
+  function renderLoggedOut() {
+    root.innerHTML = `
+      <div class="center-msg">
+        Connecte-toi d'abord pour accéder au panel admin.<br><br>
+        <a href="account.html">Aller à Mon compte</a>
+      </div>
+    `;
+  }
+
+  function renderForbidden() {
+    root.innerHTML = `
+      <div class="center-msg">
+        Tu n'as pas les droits pour accéder au panel admin (aucun rôle admin/directeur détecté sur les serveurs configurés).
+      </div>
+    `;
+  }
+
+  function renderError(message) {
+    root.innerHTML = `<div class="center-msg">${escapeHtml(message)}</div>`;
+  }
+
+  function renderShell() {
+    const tabs = [];
+    tabs.push({ id: 'rosters', label: 'Rosters' });
+    if (context.isAdminAnywhere) tabs.push({ id: 'sanctions', label: 'Sanctions' });
+    if (context.isAdminAnywhere) tabs.push({ id: 'absences', label: 'Absences' });
+
+    root.innerHTML = `
+      <div class="tabs">
+        ${tabs.map((t, i) => `<button class="tab-btn${i === 0 ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
+      </div>
+      <div class="tab-panel active" id="tab-rosters"></div>
+      ${context.isAdminAnywhere ? '<div class="tab-panel" id="tab-sanctions"></div>' : ''}
+      ${context.isAdminAnywhere ? '<div class="tab-panel" id="tab-absences"></div>' : ''}
+    `;
+
+    root.querySelectorAll('.tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        root.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+        root.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
+        btn.classList.add('active');
+        const panel = document.getElementById(`tab-${btn.dataset.tab}`);
+        panel.classList.add('active');
+        if (btn.dataset.tab === 'rosters' && !panel.dataset.loaded) loadRostersTab();
+        if (btn.dataset.tab === 'sanctions' && !panel.dataset.loaded) loadSanctionsTab();
+        if (btn.dataset.tab === 'absences' && !panel.dataset.loaded) loadAbsencesTab();
+      });
+    });
+
+    loadRostersTab();
+  }
+
+  // -----------------------------------------------------------------
+  // Onglet Rosters
+  // -----------------------------------------------------------------
+  async function loadRostersTab() {
+    const panel = document.getElementById('tab-rosters');
+    panel.dataset.loaded = '1';
+    panel.innerHTML = '<div class="center-msg">Chargement des rosters…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/admin/rosters');
+    } catch (err) {
+      panel.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const depts = data.depts || [];
+    if (!depts.length) {
+      panel.innerHTML = '<div class="center-msg">Aucun département accessible.</div>';
+      return;
+    }
+
+    currentDeptId = currentDeptId && depts.some((d) => d.deptId === currentDeptId) ? currentDeptId : depts[0].deptId;
+
+    panel.innerHTML = `
+      <div class="field-row" style="max-width:320px;">
+        <label>Département</label>
+        <select id="dept-select">
+          ${depts
+            .map(
+              (d) =>
+                `<option value="${d.deptId}"${d.deptId === currentDeptId ? ' selected' : ''}>${escapeHtml(d.name)} ${d.level === 'director' ? '(directeur)' : ''}</option>`
+            )
+            .join('')}
+        </select>
+      </div>
+      <div id="dept-agents"></div>
+
+      <div class="subsection">
+        <h3>Ajouter un agent</h3>
+        <form id="add-agent-form">
+          <div class="field-grid">
+            <div class="field-row">
+              <label>Nom (ex: C.FLANDEU)</label>
+              <input type="text" id="agent-name" placeholder="Optionnel">
+            </div>
+            <div class="field-row">
+              <label>Pseudo Roblox *</label>
+              <input type="text" id="agent-username" required>
+            </div>
+            <div class="field-row">
+              <label>Grade</label>
+              <input type="text" id="agent-rank" placeholder="Optionnel">
+            </div>
+            <div class="field-row">
+              <label>Commande / note</label>
+              <input type="text" id="agent-command" placeholder="Optionnel">
+            </div>
+          </div>
+          <button class="btn" type="submit">Ajouter l'agent</button>
+        </form>
+      </div>
+    `;
+
+    renderDeptAgents(depts);
+
+    document.getElementById('dept-select').addEventListener('change', (e) => {
+      currentDeptId = e.target.value;
+      renderDeptAgents(depts);
+    });
+
+    document.getElementById('add-agent-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('agent-name').value.trim();
+      const username = document.getElementById('agent-username').value.trim();
+      const rank = document.getElementById('agent-rank').value.trim();
+      const command = document.getElementById('agent-command').value.trim();
+
+      if (!username) {
+        showToast('Le pseudo Roblox est obligatoire.', 'error');
+        return;
+      }
+
+      try {
+        await apiFetch(`/api/admin/rosters/${encodeURIComponent(currentDeptId)}/agents`, {
+          method: 'POST',
+          body: JSON.stringify({ name, username, rank, command }),
+        });
+        showToast('Agent ajouté.', 'success');
+        panel.dataset.loaded = '';
+        loadRostersTab();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  function renderDeptAgents(depts) {
+    const dept = depts.find((d) => d.deptId === currentDeptId);
+    const container = document.getElementById('dept-agents');
+    if (!dept) return;
+
+    const agents = dept.agents || [];
+    if (!agents.length) {
+      container.innerHTML = '<div class="empty-row">Aucun agent dans ce département.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>Nom</th><th>Pseudo</th><th>Grade</th><th>Statut</th><th></th></tr>
+        </thead>
+        <tbody>
+          ${agents
+            .map(
+              (a) => `
+            <tr data-agent-id="${escapeHtml(a.id)}">
+              <td>${escapeHtml(a.name || '—')}</td>
+              <td class="mono-cell">${escapeHtml(a.username || '—')}</td>
+              <td>${escapeHtml(a.rank || '—')}</td>
+              <td>
+                <select class="status-select" data-agent-id="${escapeHtml(a.id)}">
+                  <option value="actif"${a.status === 'actif' || !a.status ? ' selected' : ''}>Actif</option>
+                  <option value="inactif"${a.status === 'inactif' ? ' selected' : ''}>Inactif</option>
+                  <option value="archivé"${a.status === 'archivé' ? ' selected' : ''}>Archivé</option>
+                </select>
+              </td>
+              <td><button class="btn danger small remove-agent-btn" data-agent-id="${escapeHtml(a.id)}">Retirer</button></td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
+
+    container.querySelectorAll('.status-select').forEach((sel) => {
+      sel.addEventListener('change', async (e) => {
+        const agentId = e.target.dataset.agentId;
+        try {
+          await apiFetch(`/api/admin/rosters/${encodeURIComponent(currentDeptId)}/agents/${encodeURIComponent(agentId)}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: e.target.value }),
+          });
+          showToast('Statut mis à jour.', 'success');
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    container.querySelectorAll('.remove-agent-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const agentId = btn.dataset.agentId;
+        if (!confirm('Retirer cet agent du roster ?')) return;
+        try {
+          await apiFetch(`/api/admin/rosters/${encodeURIComponent(currentDeptId)}/agents/${encodeURIComponent(agentId)}`, {
+            method: 'DELETE',
+          });
+          showToast('Agent retiré.', 'success');
+          document.getElementById('tab-rosters').dataset.loaded = '';
+          loadRostersTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Onglet Sanctions
+  // -----------------------------------------------------------------
+  const SANCTION_LABELS = { ban: 'Bannissement', mute: 'Mute', kick: 'Expulsion', warn: 'Avertissement' };
+
+  async function loadSanctionsTab() {
+    const panel = document.getElementById('tab-sanctions');
+    panel.dataset.loaded = '1';
+    panel.innerHTML = '<div class="center-msg">Chargement des sanctions…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/admin/sanctions');
+    } catch (err) {
+      panel.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const sanctions = data.sanctions || [];
+
+    panel.innerHTML = `
+      <div id="sanctions-list">
+        ${
+          sanctions.length
+            ? `<table>
+                <thead><tr><th>Pseudo</th><th>Type</th><th>Raison</th><th>Modérateur</th><th>Date</th></tr></thead>
+                <tbody>
+                  ${sanctions
+                    .map(
+                      (s) => `
+                    <tr>
+                      <td class="mono-cell">${escapeHtml(s.username || s.player || '—')}</td>
+                      <td>${escapeHtml(SANCTION_LABELS[s.type] || s.type || '—')}</td>
+                      <td>${escapeHtml(s.reason || '—')}</td>
+                      <td>${escapeHtml(s.mod || '—')}</td>
+                      <td class="mono-cell">${escapeHtml(s.date || '—')}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucune sanction enregistrée.</div>'
+        }
+      </div>
+
+      <div class="subsection">
+        <h3>Ajouter une sanction</h3>
+        <form id="add-sanction-form">
+          <div class="field-grid">
+            <div class="field-row">
+              <label>Pseudo Roblox *</label>
+              <input type="text" id="sanction-username" required>
+            </div>
+            <div class="field-row">
+              <label>Type *</label>
+              <select id="sanction-type">
+                <option value="warn">Avertissement</option>
+                <option value="kick">Expulsion</option>
+                <option value="mute">Mute</option>
+                <option value="ban">Bannissement</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Durée</label>
+              <input type="text" id="sanction-duration" placeholder="Ex: 24h, permanent...">
+            </div>
+            <div class="field-row">
+              <label>Détails</label>
+              <input type="text" id="sanction-details" placeholder="Optionnel">
+            </div>
+          </div>
+          <div class="field-row">
+            <label>Raison *</label>
+            <textarea id="sanction-reason" rows="2" required></textarea>
+          </div>
+          <button class="btn" type="submit">Ajouter la sanction</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('add-sanction-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('sanction-username').value.trim();
+      const type = document.getElementById('sanction-type').value;
+      const reason = document.getElementById('sanction-reason').value.trim();
+      const details = document.getElementById('sanction-details').value.trim();
+      const duration = document.getElementById('sanction-duration').value.trim();
+
+      if (!username || !reason) {
+        showToast('Pseudo et raison sont obligatoires.', 'error');
+        return;
+      }
+
+      try {
+        await apiFetch('/api/admin/sanctions', {
+          method: 'POST',
+          body: JSON.stringify({ username, type, reason, details, duration }),
+        });
+        showToast('Sanction ajoutée.', 'success');
+        panel.dataset.loaded = '';
+        loadSanctionsTab();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Onglet Absences
+  // -----------------------------------------------------------------
+  async function loadAbsencesTab() {
+    const panel = document.getElementById('tab-absences');
+    panel.dataset.loaded = '1';
+    panel.innerHTML = '<div class="center-msg">Chargement des absences…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/admin/absences');
+    } catch (err) {
+      panel.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const absences = data.absences || [];
+
+    if (!absences.length) {
+      panel.innerHTML = '<div class="empty-row">Aucune absence en cours.</div>';
+      return;
+    }
+
+    panel.innerHTML = `
+      <table>
+        <thead><tr><th>Membre</th><th>Raison</th><th>Retour prévu</th><th>Déclarée le</th><th></th></tr></thead>
+        <tbody>
+          ${absences
+            .map(
+              (a) => `
+            <tr data-absence-id="${escapeHtml(a.id)}">
+              <td class="mono-cell">${escapeHtml(a.username || a.discordId || '—')}</td>
+              <td>${escapeHtml(a.reason || '—')}</td>
+              <td>${escapeHtml(a.expectedReturn || '—')}</td>
+              <td class="mono-cell">${a.declaredAt ? new Date(a.declaredAt).toLocaleString('fr-FR') : '—'}</td>
+              <td><button class="btn small return-btn" data-absence-id="${escapeHtml(a.id)}">Marquer de retour</button></td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
+
+    panel.querySelectorAll('.return-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.absenceId;
+        btn.disabled = true;
+        try {
+          await apiFetch(`/api/admin/absences/${encodeURIComponent(id)}/return`, { method: 'POST' });
+          showToast('Absence clôturée.', 'success');
+          panel.dataset.loaded = '';
+          loadAbsencesTab();
+        } catch (err) {
+          btn.disabled = false;
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Point d'entrée
+  // -----------------------------------------------------------------
+  async function init() {
+    const token = getToken();
+    if (!token) {
+      renderLoggedOut();
+      return;
+    }
+
+    try {
+      context = await apiFetch('/api/admin/context');
+    } catch (err) {
+      if (err.message === 'forbidden') {
+        renderForbidden();
+      } else if (err.message === 'not_authenticated') {
+        renderLoggedOut();
+      } else {
+        renderError(`Impossible de charger le panel admin : ${err.message}`);
+      }
+      return;
+    }
+
+    if (!context.isOwner && !context.isAdminAnywhere && !(context.depts || []).length) {
+      renderForbidden();
+      return;
+    }
+
+    renderShell();
+  }
+
+  init();
+</script>
+<script src="assets/auth-menu.js" defer></script>
+</body>
+</html>
