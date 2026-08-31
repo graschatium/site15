@@ -138,9 +138,32 @@
       }
       const data = await res.json();
       renderLoggedIn(data.discord);
+      revealAdminLinkIfAllowed(token);
     } catch (err) {
       console.error('Erreur vérification connexion:', err);
       renderLoggedOut();
+    }
+  }
+
+  // Le lien "Admin" de la nav est masqué par défaut (cf account.html /
+  // index.html / admin.html : <li class="nav-admin-link" style="display:none">).
+  // On ne le révèle que si l'utilisateur a réellement un accès au panel
+  // (déterminé par ses rôles Discord côté serveur, cf adminAuth.js) —
+  // jamais en se fiant à un état côté client.
+  async function revealAdminLinkIfAllowed(token) {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/context`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const context = await res.json();
+      if (context.isAdminAnywhere) {
+        document.querySelectorAll('.nav-admin-link').forEach((el) => {
+          el.style.display = '';
+        });
+      }
+    } catch (err) {
+      console.error('Erreur vérification accès admin:', err);
     }
   }
 
