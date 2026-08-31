@@ -261,6 +261,37 @@
   .subsection{ margin-top:28px; padding-top:24px; border-top:1px solid var(--line); }
   .subsection h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; margin-bottom:16px; }
 
+  /* ---------- EDT grid (read-only animation view) ---------- */
+
+  .edt-toolbar{ display:flex; align-items:center; justify-content:center; gap:18px; margin-bottom:18px; }
+  .edt-range{ font-size:12px; color:var(--ink-dim); min-width:170px; text-align:center; }
+  .edt-grid-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+  .edt-grid{ display:grid; grid-template-columns:64px repeat(7, minmax(110px, 1fr)); min-width:820px; }
+  .edt-corner{ border-bottom:1px solid var(--line); border-right:1px solid var(--line); background:var(--panel); }
+  .edt-day-head{
+    padding:10px 8px; text-align:center; font-family:'Space Grotesk', sans-serif; font-size:12.5px; font-weight:600;
+    border-bottom:1px solid var(--line); border-right:1px solid var(--line-soft); background:var(--panel);
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .edt-day-head .mono{ font-size:10.5px; color:var(--ink-faint); font-weight:400; }
+  .edt-day-head.today{ color:var(--accent-2); background:var(--accent-soft); }
+  .edt-time-cell{
+    padding:6px 8px; font-size:10.5px; color:var(--ink-faint); border-right:1px solid var(--line);
+    border-bottom:1px solid var(--line-soft); display:flex; align-items:flex-start; justify-content:flex-end;
+    background:var(--void-2);
+  }
+  .edt-cell{
+    min-height:46px; border-right:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);
+    padding:3px; display:flex; flex-direction:column; gap:3px;
+  }
+  .edt-cell.today{ background:rgba(110,118,255,0.045); }
+  .edt-event{
+    background:var(--accent-soft); border-left:2px solid var(--accent); border-radius:4px;
+    padding:4px 6px; font-size:11px; line-height:1.35; color:var(--ink);
+  }
+  .edt-event strong{ display:block; font-weight:600; font-size:11.5px; }
+  .edt-event span{ display:block; color:var(--ink-dim); font-size:10px; margin-top:1px; }
+
   .toast{
     position:fixed; bottom:24px; right:24px; z-index:200;
     background:var(--panel-raised); border:1px solid var(--line); border-radius:8px;
@@ -386,6 +417,7 @@
     sanctions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M12 8v5M12 16.2v.1"/></svg>',
     absences: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
     animations: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="8.5" cy="14" r="1"/><circle cx="12" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/></svg>',
+    permissions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="3.5"/><path d="M10.5 13l8-8M15 8l2 2M18 5l2 2"/></svg>',
   };
 
   const TAB_META = {
@@ -393,7 +425,8 @@
     rosters: { title: 'Rosters', subtitle: "Effectifs par département, avec la commande de rôle prête à copier." },
     sanctions: { title: 'Sanctions', subtitle: 'Historique des sanctions et ajout de nouvelles entrées.' },
     absences: { title: 'Absences', subtitle: 'Déclarations en cours, RP comme Staff, tous serveurs confondus.' },
-    animations: { title: 'Animation', subtitle: "Planning des sessions d'animation à venir." },
+    animations: { title: 'Animation', subtitle: "Planning des sessions d'animation." },
+    permissions: { title: 'Permissions', subtitle: 'Droits accordés à chaque rôle du serveur staff.' },
   };
 
   function renderLoggedOut() {
@@ -428,7 +461,8 @@
     if (context.rosterLevel) tabs.push('rosters');
     if (context.canManageSanctions) tabs.push('sanctions');
     if (context.canManageAbsences) tabs.push('absences');
-    if (context.canManageAnimations) tabs.push('animations');
+    if (context.isAdminAnywhere) tabs.push('animations');
+    if (context.canManagePermissions) tabs.push('permissions');
 
     const badges = (context.roleLabels && context.roleLabels.length ? context.roleLabels : ['Accès limité'])
       .map((r) => `<span class="clearance-badge">${escapeHtml(r)}</span>`)
@@ -483,6 +517,7 @@
     else if (tabId === 'sanctions') loadSanctionsTab();
     else if (tabId === 'absences') loadAbsencesTab();
     else if (tabId === 'animations') loadAnimationsTab();
+    else if (tabId === 'permissions') loadPermissionsTab();
   }
 
   // -----------------------------------------------------------------
@@ -831,19 +866,29 @@
 
     const animations = data.animations || [];
 
+    if (context.canManageAnimations) {
+      renderAnimationsManageView(animations);
+    } else {
+      renderAnimationsEdtView(animations);
+    }
+  }
+
+  function renderAnimationsManageView(animations) {
+    const body = document.getElementById('console-body');
     body.innerHTML = `
       <div class="record-block">
         <div class="record-block-head"><h2>Planning</h2><span class="count">${animations.length} session(s)</span></div>
         ${
           animations.length
             ? `<table>
-                <thead><tr><th>Date/heure</th><th>Titre</th><th>Hébergeur</th><th>Description</th><th></th></tr></thead>
+                <thead><tr><th>Date</th><th>Heure</th><th>Titre</th><th>Hébergeur</th><th>Description</th><th></th></tr></thead>
                 <tbody>
                   ${animations
                     .map(
                       (a) => `
                     <tr data-animation-id="${escapeHtml(a.id)}">
-                      <td class="mono-cell">${escapeHtml(a.datetime || '—')}</td>
+                      <td class="mono-cell">${escapeHtml(a.date || '—')}</td>
+                      <td class="mono-cell">${escapeHtml(a.time || '—')}</td>
                       <td>${escapeHtml(a.title || '—')}</td>
                       <td>${escapeHtml(a.host || '—')}</td>
                       <td>${escapeHtml(a.description || '—')}</td>
@@ -862,8 +907,9 @@
         <form id="add-animation-form">
           <div class="field-grid">
             <div class="field-row"><label>Titre *</label><input type="text" id="animation-title" required></div>
-            <div class="field-row"><label>Date / heure</label><input type="text" id="animation-datetime" placeholder="Ex: 12/09/2026 20:00"></div>
             <div class="field-row"><label>Hébergeur</label><input type="text" id="animation-host" placeholder="Optionnel"></div>
+            <div class="field-row"><label>Date</label><input type="date" id="animation-date"></div>
+            <div class="field-row"><label>Heure</label><input type="time" id="animation-time"></div>
           </div>
           <div class="field-row"><label>Description</label><textarea id="animation-description" rows="2"></textarea></div>
           <button class="btn" type="submit">Ajouter au planning</button>
@@ -887,7 +933,8 @@
     document.getElementById('add-animation-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('animation-title').value.trim();
-      const datetime = document.getElementById('animation-datetime').value.trim();
+      const date = document.getElementById('animation-date').value;
+      const time = document.getElementById('animation-time').value;
       const host = document.getElementById('animation-host').value.trim();
       const description = document.getElementById('animation-description').value.trim();
 
@@ -897,9 +944,254 @@
       }
 
       try {
-        await apiFetch('/api/admin/animations', { method: 'POST', body: JSON.stringify({ title, datetime, host, description }) });
+        await apiFetch('/api/admin/animations', { method: 'POST', body: JSON.stringify({ title, date, time, host, description }) });
         showToast('Animation ajoutée.', 'success');
         loadAnimationsTab();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // Vue lecture seule "EDT" en grille hebdomadaire, pour tout le monde qui
+  // n'a pas canManageAnimations mais a accès à la console. Navigation
+  // semaine par semaine ; chaque session est casée dans la colonne du jour
+  // et la ligne de l'heure (arrondie à l'heure pleine, pas de positionnement
+  // au pixel près faute de durée renseignée).
+  function renderAnimationsEdtView(allAnimations) {
+    const body = document.getElementById('console-body');
+    const HOURS = Array.from({ length: 16 }, (_, i) => 8 + i); // 08h -> 23h
+    const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+    function getMonday(d) {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = (day === 0 ? -6 : 1) - day;
+      date.setDate(date.getDate() + diff);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function isoDate(d) {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    let weekStart = getMonday(new Date());
+
+    function draw() {
+      const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(weekStart);
+        d.setDate(d.getDate() + i);
+        return d;
+      });
+      const dayISOs = days.map(isoDate);
+      const todayISO = isoDate(new Date());
+
+      const eventsByCell = {};
+      allAnimations.forEach((a) => {
+        if (!dayISOs.includes(a.date)) return;
+        const hourNum = parseInt((a.time || '').split(':')[0], 10);
+        const h = Number.isFinite(hourNum) ? Math.min(Math.max(hourNum, 8), 23) : 8;
+        const key = `${a.date}_${h}`;
+        (eventsByCell[key] = eventsByCell[key] || []).push(a);
+      });
+
+      const rangeLabel = `${days[0].toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} – ${days[6].toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+
+      body.innerHTML = `
+        <div class="edt-toolbar">
+          <button class="btn ghost small" id="edt-prev">◀ Précédente</button>
+          <span class="edt-range mono">${rangeLabel}</span>
+          <button class="btn ghost small" id="edt-next">Suivante ▶</button>
+        </div>
+        <div class="edt-grid-wrap">
+          <div class="edt-grid">
+            <div class="edt-corner"></div>
+            ${days
+              .map(
+                (d, i) =>
+                  `<div class="edt-day-head${dayISOs[i] === todayISO ? ' today' : ''}">${DAY_LABELS[i]}<span class="mono">${d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span></div>`
+              )
+              .join('')}
+            ${HOURS.map(
+              (h) => `
+              <div class="edt-time-cell mono">${String(h).padStart(2, '0')}:00</div>
+              ${dayISOs
+                .map((iso) => {
+                  const evs = eventsByCell[`${iso}_${h}`] || [];
+                  return `<div class="edt-cell${iso === todayISO ? ' today' : ''}">${evs
+                    .map(
+                      (a) =>
+                        `<div class="edt-event" title="${escapeHtml(a.description || '')}"><strong>${escapeHtml(a.title || '')}</strong>${a.host ? `<span>${escapeHtml(a.host)}</span>` : ''}</div>`
+                    )
+                    .join('')}</div>`;
+                })
+                .join('')}
+            `
+            ).join('')}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('edt-prev').addEventListener('click', () => {
+        weekStart.setDate(weekStart.getDate() - 7);
+        draw();
+      });
+      document.getElementById('edt-next').addEventListener('click', () => {
+        weekStart.setDate(weekStart.getDate() + 7);
+        draw();
+      });
+    }
+
+    draw();
+  }
+
+  // -----------------------------------------------------------------
+  // Permissions
+  // -----------------------------------------------------------------
+  async function loadPermissionsTab() {
+    const body = document.getElementById('console-body');
+    body.innerHTML = '<div class="center-msg">Chargement des permissions…</div>';
+
+    let permData;
+    let rolesData;
+    try {
+      [permData, rolesData] = await Promise.all([
+        apiFetch('/api/admin/permissions'),
+        apiFetch('/api/admin/permissions/roles'),
+      ]);
+    } catch (err) {
+      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const configured = permData.permissions || [];
+    const allRoles = rolesData.roles || [];
+    const configuredIds = new Set(configured.map((p) => p.roleId));
+    const unconfiguredRoles = allRoles.filter((r) => !configuredIds.has(r.id));
+
+    const rosterLabel = { edit: 'Modification', view: 'Lecture seule', null: 'Aucun' };
+
+    body.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rôles configurés</h2><span class="count">${configured.length}</span></div>
+        ${
+          configured.length
+            ? `<table>
+                <thead><tr><th>Rôle</th><th>Rosters</th><th>Sanctions</th><th>Absences</th><th>Animation</th><th></th></tr></thead>
+                <tbody>
+                  ${configured
+                    .map(
+                      (p) => `
+                    <tr data-role-id="${escapeHtml(p.roleId)}">
+                      <td>${escapeHtml(p.label || p.roleId)} <span class="mono-cell">(${escapeHtml(p.roleId)})</span></td>
+                      <td>
+                        <select class="perm-rosters-select" data-role-id="${escapeHtml(p.roleId)}">
+                          <option value="" ${!p.rosters ? 'selected' : ''}>Aucun</option>
+                          <option value="view" ${p.rosters === 'view' ? 'selected' : ''}>Lecture seule</option>
+                          <option value="edit" ${p.rosters === 'edit' ? 'selected' : ''}>Modification</option>
+                        </select>
+                      </td>
+                      <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="sanctions" ${p.sanctions ? 'checked' : ''}></td>
+                      <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="absences" ${p.absences ? 'checked' : ''}></td>
+                      <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="animations" ${p.animations ? 'checked' : ''}></td>
+                      <td>
+                        <button class="btn small save-permission-btn" data-role-id="${escapeHtml(p.roleId)}" data-label="${escapeHtml(p.label || p.roleId)}">Enregistrer</button>
+                        <button class="btn danger small remove-permission-btn" data-role-id="${escapeHtml(p.roleId)}">Retirer</button>
+                      </td>
+                    </tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun rôle configuré.</div>'
+        }
+      </div>
+
+      <div class="subsection">
+        <h3>Ajouter un rôle</h3>
+        <div class="field-row" style="max-width:320px;">
+          <label>Rôle Discord</label>
+          <select id="new-role-select">
+            <option value="">— Choisir un rôle —</option>
+            ${unconfiguredRoles.map((r) => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field-grid" style="max-width:520px;">
+          <div class="field-row">
+            <label>Rosters</label>
+            <select id="new-role-rosters">
+              <option value="">Aucun</option>
+              <option value="view">Lecture seule</option>
+              <option value="edit">Modification</option>
+            </select>
+          </div>
+          <div class="field-row" style="display:flex; align-items:center; gap:20px; padding-top:22px;">
+            <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-sanctions"> Sanctions</label>
+            <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-absences"> Absences</label>
+            <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-animations"> Animation</label>
+          </div>
+        </div>
+        <button class="btn" id="add-role-permission-btn" type="button">Ajouter</button>
+      </div>
+    `;
+
+    async function savePermission(roleId, label) {
+      const row = body.querySelector(`tr[data-role-id="${roleId}"]`);
+      const rosters = row.querySelector('.perm-rosters-select').value || null;
+      const sanctions = row.querySelector('[data-field="sanctions"]').checked;
+      const absences = row.querySelector('[data-field="absences"]').checked;
+      const animations = row.querySelector('[data-field="animations"]').checked;
+
+      try {
+        await apiFetch(`/api/admin/permissions/${encodeURIComponent(roleId)}`, {
+          method: 'PUT',
+          body: JSON.stringify({ label, rosters, sanctions, absences, animations }),
+        });
+        showToast('Permissions enregistrées.', 'success');
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    }
+
+    body.querySelectorAll('.save-permission-btn').forEach((btn) => {
+      btn.addEventListener('click', () => savePermission(btn.dataset.roleId, btn.dataset.label));
+    });
+
+    body.querySelectorAll('.remove-permission-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Retirer tous les droits panel de ce rôle ?')) return;
+        try {
+          await apiFetch(`/api/admin/permissions/${encodeURIComponent(btn.dataset.roleId)}`, { method: 'DELETE' });
+          showToast('Permissions retirées.', 'success');
+          loadPermissionsTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('add-role-permission-btn').addEventListener('click', async () => {
+      const select = document.getElementById('new-role-select');
+      const roleId = select.value;
+      if (!roleId) {
+        showToast('Choisis un rôle.', 'error');
+        return;
+      }
+      const label = select.options[select.selectedIndex].text;
+      const rosters = document.getElementById('new-role-rosters').value || null;
+      const sanctions = document.getElementById('new-role-sanctions').checked;
+      const absences = document.getElementById('new-role-absences').checked;
+      const animations = document.getElementById('new-role-animations').checked;
+
+      try {
+        await apiFetch(`/api/admin/permissions/${encodeURIComponent(roleId)}`, {
+          method: 'PUT',
+          body: JSON.stringify({ label, rosters, sanctions, absences, animations }),
+        });
+        showToast('Rôle ajouté.', 'success');
+        loadPermissionsTab();
       } catch (err) {
         showToast(`Erreur : ${err.message}`, 'error');
       }
