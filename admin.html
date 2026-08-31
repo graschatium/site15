@@ -358,17 +358,17 @@
 
   function renderShell() {
     const tabs = [];
+    if (context.isAdminAnywhere) tabs.push({ id: 'dossier', label: 'Dossier' });
     if (context.rosterLevel) tabs.push({ id: 'rosters', label: 'Rosters' });
     if (context.canManageSanctions) tabs.push({ id: 'sanctions', label: 'Sanctions' });
     if (context.canManageAbsences) tabs.push({ id: 'absences', label: 'Absences' });
+    if (context.canManageAnimations) tabs.push({ id: 'animations', label: 'Animation' });
 
     root.innerHTML = `
       <div class="tabs">
         ${tabs.map((t, i) => `<button class="tab-btn${i === 0 ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
       </div>
-      ${context.rosterLevel ? `<div class="tab-panel${tabs[0]?.id === 'rosters' ? ' active' : ''}" id="tab-rosters"></div>` : ''}
-      ${context.canManageSanctions ? `<div class="tab-panel${tabs[0]?.id === 'sanctions' ? ' active' : ''}" id="tab-sanctions"></div>` : ''}
-      ${context.canManageAbsences ? `<div class="tab-panel${tabs[0]?.id === 'absences' ? ' active' : ''}" id="tab-absences"></div>` : ''}
+      ${tabs.map((t, i) => `<div class="tab-panel${i === 0 ? ' active' : ''}" id="tab-${t.id}"></div>`).join('')}
     `;
 
     root.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -378,9 +378,7 @@
         btn.classList.add('active');
         const panel = document.getElementById(`tab-${btn.dataset.tab}`);
         panel.classList.add('active');
-        if (btn.dataset.tab === 'rosters' && !panel.dataset.loaded) loadRostersTab();
-        if (btn.dataset.tab === 'sanctions' && !panel.dataset.loaded) loadSanctionsTab();
-        if (btn.dataset.tab === 'absences' && !panel.dataset.loaded) loadAbsencesTab();
+        if (!panel.dataset.loaded) loadTab(btn.dataset.tab);
       });
     });
 
@@ -388,9 +386,11 @@
   }
 
   function loadTab(tabId) {
-    if (tabId === 'rosters') loadRostersTab();
+    if (tabId === 'dossier') loadDossierTab();
+    else if (tabId === 'rosters') loadRostersTab();
     else if (tabId === 'sanctions') loadSanctionsTab();
     else if (tabId === 'absences') loadAbsencesTab();
+    else if (tabId === 'animations') loadAnimationsTab();
   }
 
   // -----------------------------------------------------------------
@@ -514,7 +514,7 @@
     container.innerHTML = `
       <table>
         <thead>
-          <tr><th>Nom</th><th>Pseudo</th><th>Grade</th><th>Statut</th>${canEdit ? '<th></th>' : ''}</tr>
+          <tr><th>Nom</th><th>Pseudo</th><th>Grade</th><th>Commande</th><th>Statut</th>${canEdit ? '<th></th>' : ''}</tr>
         </thead>
         <tbody>
           ${agents
@@ -526,11 +526,15 @@
                   <option value="archivé"${a.status === 'archivé' ? ' selected' : ''}>Archivé</option>
                 </select>`
                 : `<span class="status-pill status-${a.status || 'actif'}">${escapeHtml(a.status || 'actif')}</span>`;
+              const commandCell = a.command
+                ? `<button class="btn ghost small copy-command-btn" data-command="${escapeHtml(a.command)}" title="${escapeHtml(a.command)}">Copier</button>`
+                : '<span class="mono-cell">—</span>';
               return `
             <tr data-agent-id="${escapeHtml(a.id)}">
               <td>${escapeHtml(a.name || '—')}</td>
               <td class="mono-cell">${escapeHtml(a.username || '—')}</td>
               <td>${escapeHtml(a.rank || '—')}</td>
+              <td>${commandCell}</td>
               <td>${statusCell}</td>
               ${canEdit ? `<td><button class="btn danger small remove-agent-btn" data-agent-id="${escapeHtml(a.id)}">Retirer</button></td>` : ''}
             </tr>
@@ -540,6 +544,17 @@
         </tbody>
       </table>
     `;
+
+    container.querySelectorAll('.copy-command-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.command);
+          showToast('Commande copiée.', 'success');
+        } catch (err) {
+          showToast('Impossible de copier (clipboard bloqué par le navigateur).', 'error');
+        }
+      });
+    });
 
     if (!canEdit) return;
 
@@ -707,15 +722,18 @@
       return;
     }
 
+    const CATEGORY_LABELS = { rp: '🎭 RP', staff: '🛠️ Staff' };
+
     panel.innerHTML = `
       <table>
-        <thead><tr><th>Membre</th><th>Raison</th><th>Retour prévu</th><th>Déclarée le</th><th></th></tr></thead>
+        <thead><tr><th>Membre</th><th>Catégorie</th><th>Raison</th><th>Retour prévu</th><th>Déclarée le</th><th></th></tr></thead>
         <tbody>
           ${absences
             .map(
               (a) => `
             <tr data-absence-id="${escapeHtml(a.id)}">
               <td class="mono-cell">${escapeHtml(a.username || a.discordId || '—')}</td>
+              <td>${CATEGORY_LABELS[a.category] || '🎭 RP'}</td>
               <td>${escapeHtml(a.reason || '—')}</td>
               <td>${escapeHtml(a.expectedReturn || '—')}</td>
               <td class="mono-cell">${a.declaredAt ? new Date(a.declaredAt).toLocaleString('fr-FR') : '—'}</td>
@@ -743,6 +761,323 @@
         }
       });
     });
+  }
+
+  // -----------------------------------------------------------------
+  // Onglet Animation
+  // -----------------------------------------------------------------
+  async function loadAnimationsTab() {
+    const panel = document.getElementById('tab-animations');
+    panel.dataset.loaded = '1';
+    panel.innerHTML = '<div class="center-msg">Chargement de l\'emploi du temps…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/admin/animations');
+    } catch (err) {
+      panel.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const animations = data.animations || [];
+
+    panel.innerHTML = `
+      <div id="animations-list">
+        ${
+          animations.length
+            ? `<table>
+                <thead><tr><th>Date/heure</th><th>Titre</th><th>Hébergeur</th><th>Description</th><th></th></tr></thead>
+                <tbody>
+                  ${animations
+                    .map(
+                      (a) => `
+                    <tr data-animation-id="${escapeHtml(a.id)}">
+                      <td class="mono-cell">${escapeHtml(a.datetime || '—')}</td>
+                      <td>${escapeHtml(a.title || '—')}</td>
+                      <td>${escapeHtml(a.host || '—')}</td>
+                      <td>${escapeHtml(a.description || '—')}</td>
+                      <td><button class="btn danger small delete-animation-btn" data-animation-id="${escapeHtml(a.id)}">Supprimer</button></td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucune animation planifiée.</div>'
+        }
+      </div>
+
+      <div class="subsection">
+        <h3>Planifier une animation</h3>
+        <form id="add-animation-form">
+          <div class="field-grid">
+            <div class="field-row">
+              <label>Titre *</label>
+              <input type="text" id="animation-title" required>
+            </div>
+            <div class="field-row">
+              <label>Date / heure</label>
+              <input type="text" id="animation-datetime" placeholder="Ex: 12/09/2026 20:00">
+            </div>
+            <div class="field-row">
+              <label>Hébergeur</label>
+              <input type="text" id="animation-host" placeholder="Optionnel">
+            </div>
+          </div>
+          <div class="field-row">
+            <label>Description</label>
+            <textarea id="animation-description" rows="2"></textarea>
+          </div>
+          <button class="btn" type="submit">Ajouter au planning</button>
+        </form>
+      </div>
+    `;
+
+    panel.querySelectorAll('.delete-animation-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer cette animation du planning ?')) return;
+        try {
+          await apiFetch(`/api/admin/animations/${encodeURIComponent(btn.dataset.animationId)}`, { method: 'DELETE' });
+          showToast('Animation supprimée.', 'success');
+          panel.dataset.loaded = '';
+          loadAnimationsTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('add-animation-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('animation-title').value.trim();
+      const datetime = document.getElementById('animation-datetime').value.trim();
+      const host = document.getElementById('animation-host').value.trim();
+      const description = document.getElementById('animation-description').value.trim();
+
+      if (!title) {
+        showToast('Le titre est obligatoire.', 'error');
+        return;
+      }
+
+      try {
+        await apiFetch('/api/admin/animations', {
+          method: 'POST',
+          body: JSON.stringify({ title, datetime, host, description }),
+        });
+        showToast('Animation ajoutée.', 'success');
+        panel.dataset.loaded = '';
+        loadAnimationsTab();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Onglet Dossier
+  // -----------------------------------------------------------------
+  const DOSSIER_SANCTION_LABELS = { ban: 'Bannissement', mute: 'Mute', kick: 'Expulsion', warn: 'Avertissement' };
+  const DOSSIER_ABSENCE_LABELS = { rp: '🎭 RP', staff: '🛠️ Staff' };
+
+  async function loadDossierTab() {
+    const panel = document.getElementById('tab-dossier');
+    panel.dataset.loaded = '1';
+    panel.innerHTML = `
+      <div class="field-row" style="max-width:420px;">
+        <label>Pseudo Roblox ou ID Discord</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="dossier-search-input" placeholder="Ex: firefox_ultra1">
+          <button class="btn" id="dossier-search-btn" type="button">Chercher</button>
+        </div>
+      </div>
+      <div id="dossier-results"></div>
+    `;
+
+    const input = document.getElementById('dossier-search-input');
+    const runSearch = () => searchDossier(input.value.trim());
+
+    document.getElementById('dossier-search-btn').addEventListener('click', runSearch);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') runSearch();
+    });
+  }
+
+  async function searchDossier(query) {
+    const results = document.getElementById('dossier-results');
+    if (!query) {
+      results.innerHTML = '';
+      return;
+    }
+
+    results.innerHTML = '<div class="center-msg">Recherche…</div>';
+
+    let data;
+    try {
+      data = await apiFetch(`/api/admin/dossier?q=${encodeURIComponent(query)}`);
+    } catch (err) {
+      results.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { identity, robloxUsername, characters, sanctions, absences, canAddSanction } = data;
+
+    const identityBlock = `
+      <div class="subsection" style="margin-top:0; padding-top:0; border-top:none;">
+        <p><strong>Pseudo Roblox :</strong> ${escapeHtml(robloxUsername)}</p>
+        ${
+          identity
+            ? `<p><strong>Compte Discord lié :</strong> <span class="mono-cell">${escapeHtml(identity.discordId)}</span> ${identity.verified ? '(vérifié OAuth)' : '(lien manuel)'}</p>`
+            : '<p style="color:var(--ink-faint);">Aucun compte Discord lié trouvé pour ce pseudo.</p>'
+        }
+      </div>
+    `;
+
+    const charactersBlock = `
+      <div class="subsection">
+        <h3>Rosters (${characters.length})</h3>
+        ${
+          characters.length
+            ? `<table>
+                <thead><tr><th>Département</th><th>Nom</th><th>Grade</th><th>Statut</th><th>Commande</th></tr></thead>
+                <tbody>
+                  ${characters
+                    .map(
+                      (c) => `
+                    <tr>
+                      <td>${escapeHtml(c.deptId)}</td>
+                      <td>${escapeHtml(c.name || '—')}</td>
+                      <td>${escapeHtml(c.rank || '—')}</td>
+                      <td><span class="status-pill status-${c.status || 'actif'}">${escapeHtml(c.status || 'actif')}</span></td>
+                      <td>${c.command ? `<button class="btn ghost small copy-command-btn" data-command="${escapeHtml(c.command)}">Copier</button>` : '—'}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun personnage trouvé.</div>'
+        }
+      </div>
+    `;
+
+    const sanctionsBlock = `
+      <div class="subsection">
+        <h3>Sanctions (${sanctions.length})</h3>
+        ${
+          sanctions.length
+            ? `<table>
+                <thead><tr><th>Type</th><th>Raison</th><th>Modérateur</th><th>Date</th></tr></thead>
+                <tbody>
+                  ${sanctions
+                    .map(
+                      (s) => `
+                    <tr>
+                      <td>${escapeHtml(DOSSIER_SANCTION_LABELS[s.type] || s.type || '—')}</td>
+                      <td>${escapeHtml(s.reason || '—')}</td>
+                      <td>${escapeHtml(s.mod || '—')}</td>
+                      <td class="mono-cell">${escapeHtml(s.date || '—')}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucune sanction.</div>'
+        }
+        ${
+          canAddSanction
+            ? `<form id="dossier-add-sanction-form" style="margin-top:16px;">
+                <div class="field-grid">
+                  <div class="field-row">
+                    <label>Type *</label>
+                    <select id="dossier-sanction-type">
+                      <option value="warn">Avertissement</option>
+                      <option value="kick">Expulsion</option>
+                      <option value="mute">Mute</option>
+                      <option value="ban">Bannissement</option>
+                    </select>
+                  </div>
+                  <div class="field-row">
+                    <label>Durée</label>
+                    <input type="text" id="dossier-sanction-duration" placeholder="Ex: 24h, permanent...">
+                  </div>
+                </div>
+                <div class="field-row">
+                  <label>Raison *</label>
+                  <textarea id="dossier-sanction-reason" rows="2" required></textarea>
+                </div>
+                <button class="btn" type="submit">Ajouter la sanction</button>
+              </form>`
+            : ''
+        }
+      </div>
+    `;
+
+    const absencesBlock = `
+      <div class="subsection">
+        <h3>Absences (${absences.length})</h3>
+        ${
+          absences.length
+            ? `<table>
+                <thead><tr><th>Catégorie</th><th>Raison</th><th>Statut</th><th>Déclarée le</th></tr></thead>
+                <tbody>
+                  ${absences
+                    .map(
+                      (a) => `
+                    <tr>
+                      <td>${DOSSIER_ABSENCE_LABELS[a.category] || '🎭 RP'}</td>
+                      <td>${escapeHtml(a.reason || '—')}</td>
+                      <td>${a.status === 'returned' ? '🟢 De retour' : '🔴 Absent'}</td>
+                      <td class="mono-cell">${a.declaredAt ? new Date(a.declaredAt).toLocaleString('fr-FR') : '—'}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucune absence.</div>'
+        }
+      </div>
+    `;
+
+    results.innerHTML = identityBlock + charactersBlock + sanctionsBlock + absencesBlock;
+
+    results.querySelectorAll('.copy-command-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.command);
+          showToast('Commande copiée.', 'success');
+        } catch (err) {
+          showToast('Impossible de copier.', 'error');
+        }
+      });
+    });
+
+    const sanctionForm = document.getElementById('dossier-add-sanction-form');
+    if (sanctionForm) {
+      sanctionForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const type = document.getElementById('dossier-sanction-type').value;
+        const duration = document.getElementById('dossier-sanction-duration').value.trim();
+        const reason = document.getElementById('dossier-sanction-reason').value.trim();
+
+        if (!reason) {
+          showToast('La raison est obligatoire.', 'error');
+          return;
+        }
+
+        try {
+          await apiFetch('/api/admin/sanctions', {
+            method: 'POST',
+            body: JSON.stringify({ username: robloxUsername, type, reason, duration }),
+          });
+          showToast('Sanction ajoutée.', 'success');
+          searchDossier(robloxUsername);
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    }
   }
 
   // -----------------------------------------------------------------
