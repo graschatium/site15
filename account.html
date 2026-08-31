@@ -313,6 +313,28 @@
   // À CONFIGURER : URL publique du webserver.js (Render).
   // ---------------------------------------------------------------------
   const API_BASE = 'https://site15-bot.onrender.com';
+  const TOKEN_KEY = 'vs_token';
+
+  // Récupère le token transmis par le callback OAuth Discord
+  // (account.html?token=...), le stocke en localStorage, puis nettoie l'URL.
+  // Doit tourner avant tout fetch vers /api/account/me.
+  (function captureTokenFromUrl() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    }
+  })();
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
+  function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+  }
 
   const header = document.querySelector('header');
   window.addEventListener('scroll', () => {
@@ -470,8 +492,9 @@
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {
         logoutBtn.disabled = true;
+        clearToken();
         try {
-          await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+          await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
         } catch (err) {
           console.error('Erreur logout:', err);
         }
@@ -482,17 +505,29 @@
     const linkRobloxBtn = document.getElementById('link-roblox-btn');
     if (linkRobloxBtn) {
       linkRobloxBtn.addEventListener('click', () => {
-        window.location.href = `${API_BASE}/auth/roblox/login-web`;
+        // Navigation plein-écran : impossible de poser un header
+        // Authorization, donc le token passe en paramètre de requête.
+        const token = getToken();
+        window.location.href = `${API_BASE}/auth/roblox/login-web?token=${encodeURIComponent(token || '')}`;
       });
     }
   }
 
   async function loadAccount() {
+    const token = getToken();
+    if (!token) {
+      renderLoggedOut();
+      return;
+    }
+
     renderLoading();
     try {
-      const res = await fetch(`${API_BASE}/api/account/me`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE}/api/account/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (res.status === 401) {
+        clearToken();
         renderLoggedOut();
         return;
       }

@@ -5,9 +5,38 @@
   // quand connecté. Utilisé par index.html ET account.html.
   // ---------------------------------------------------------------------
   const API_BASE = 'https://site15-bot.onrender.com';
+  const TOKEN_KEY = 'vs_token';
 
   const container = document.getElementById('auth-menu');
   if (!container) return;
+
+  // ---------------------------------------------------------------------
+  // Gestion du token (remplace le cookie de session cross-site, bloqué par
+  // les bloqueurs de traqueurs de certains navigateurs — Opera GX, Brave,
+  // Safari ITP — même avec SameSite=None correctement configuré).
+  // Après le callback OAuth Discord, le serveur redirige vers
+  // account.html?token=... : on le récupère ici, on le stocke en
+  // localStorage, puis on nettoie l'URL.
+  // ---------------------------------------------------------------------
+  function captureTokenFromUrl() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    }
+  }
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+
+  function clearToken() {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+
+  captureTokenFromUrl();
 
   function icon(name) {
     const icons = {
@@ -68,8 +97,11 @@
       e.stopPropagation();
       const btn = e.currentTarget;
       btn.disabled = true;
+      clearToken();
       try {
-        await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+        // Best-effort, non bloquant : le token étant stateless, la
+        // déconnexion réelle se fait côté client en le supprimant.
+        await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
       } catch (err) {
         console.error('Erreur logout:', err);
       }
@@ -85,9 +117,18 @@
   });
 
   async function init() {
+    const token = getToken();
+    if (!token) {
+      renderLoggedOut();
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/api/account/me`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE}/api/account/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (res.status === 401) {
+        clearToken();
         renderLoggedOut();
         return;
       }
