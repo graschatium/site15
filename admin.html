@@ -207,6 +207,14 @@
 
   /* ---------- Content primitives ---------- */
 
+  .view-toggle{ display:inline-flex; gap:4px; padding:4px; background:var(--panel); border:1px solid var(--line); border-radius:9px; margin-bottom:20px; }
+  .toggle-btn{
+    font-family:'Inter', sans-serif; font-size:12.5px; font-weight:600; padding:7px 16px; border-radius:6px;
+    border:none; background:transparent; color:var(--ink-dim); cursor:pointer; transition:background .15s ease, color .15s ease;
+  }
+  .toggle-btn:hover{ color:var(--ink); }
+  .toggle-btn.active{ background:var(--accent); color:var(--void); }
+
   .record-block{ margin-bottom:36px; }
   .record-block-head{
     display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px;
@@ -892,6 +900,8 @@
   // -----------------------------------------------------------------
   // Animation
   // -----------------------------------------------------------------
+  let animationsViewMode = 'table'; // 'table' | 'calendar' — mémorisé pendant la session
+
   async function loadAnimationsTab() {
     const body = document.getElementById('console-body');
     body.innerHTML = "<div class=\"center-msg\">Chargement de l'emploi du temps…</div>";
@@ -904,18 +914,47 @@
       return;
     }
 
-    const animations = data.animations || [];
+    renderAnimationsSection(data.animations || []);
+  }
 
-    if (context.canManageAnimations) {
-      renderAnimationsManageView(animations);
+  // Pour les rôles avec droit de gestion : bascule Tableau / Calendrier.
+  // Pour les autres (lecture seule) : uniquement le calendrier, pas de choix.
+  function renderAnimationsSection(animations) {
+    const body = document.getElementById('console-body');
+
+    if (!context.canManageAnimations) {
+      body.innerHTML = '<div id="animations-view"></div>';
+      renderAnimationsEdtView(animations, document.getElementById('animations-view'));
+      return;
+    }
+
+    body.innerHTML = `
+      <div class="view-toggle">
+        <button class="toggle-btn${animationsViewMode === 'table' ? ' active' : ''}" id="toggle-table-view">Tableau</button>
+        <button class="toggle-btn${animationsViewMode === 'calendar' ? ' active' : ''}" id="toggle-calendar-view">Calendrier</button>
+      </div>
+      <div id="animations-view"></div>
+    `;
+
+    document.getElementById('toggle-table-view').addEventListener('click', () => {
+      animationsViewMode = 'table';
+      renderAnimationsSection(animations);
+    });
+    document.getElementById('toggle-calendar-view').addEventListener('click', () => {
+      animationsViewMode = 'calendar';
+      renderAnimationsSection(animations);
+    });
+
+    const container = document.getElementById('animations-view');
+    if (animationsViewMode === 'calendar') {
+      renderAnimationsEdtView(animations, container);
     } else {
-      renderAnimationsEdtView(animations);
+      renderAnimationsManageView(animations, container);
     }
   }
 
-  function renderAnimationsManageView(animations) {
-    const body = document.getElementById('console-body');
-    body.innerHTML = `
+  function renderAnimationsManageView(animations, container) {
+    container.innerHTML = `
       <div class="record-block">
         <div class="record-block-head"><h2>Planning</h2><span class="count">${animations.length} session(s)</span></div>
         ${
@@ -957,7 +996,7 @@
       </div>
     `;
 
-    body.querySelectorAll('.delete-animation-btn').forEach((btn) => {
+    container.querySelectorAll('.delete-animation-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (!confirm('Supprimer cette animation du planning ?')) return;
         try {
@@ -993,13 +1032,13 @@
     });
   }
 
-  // Vue lecture seule "EDT" en grille hebdomadaire, pour tout le monde qui
-  // n'a pas canManageAnimations mais a accès à la console. Navigation
-  // semaine par semaine ; chaque session est casée dans la colonne du jour
-  // et la ligne de l'heure (arrondie à l'heure pleine, pas de positionnement
-  // au pixel près faute de durée renseignée).
-  function renderAnimationsEdtView(allAnimations) {
-    const body = document.getElementById('console-body');
+  // Vue calendrier "EDT" en grille hebdomadaire. Lecture seule pour tout le
+  // monde (même les managers, qui utilisent le tableau pour ajouter/
+  // supprimer — cette vue sert juste à visualiser). Navigation semaine par
+  // semaine ; chaque session est casée dans la colonne du jour et la ligne
+  // de l'heure (arrondie à l'heure pleine, pas de positionnement au pixel
+  // près faute de durée renseignée).
+  function renderAnimationsEdtView(allAnimations, container) {
     const HOURS = Array.from({ length: 16 }, (_, i) => 8 + i); // 08h -> 23h
     const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -1039,7 +1078,7 @@
 
       const rangeLabel = `${days[0].toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} – ${days[6].toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}`;
 
-      body.innerHTML = `
+      container.innerHTML = `
         <div class="edt-toolbar">
           <button class="btn ghost small" id="edt-prev">◀ Précédente</button>
           <span class="edt-range mono">${rangeLabel}</span>
