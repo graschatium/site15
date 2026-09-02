@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Postuler — Voidline Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://graschatium.github.io/site15/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #08090C;
+    --void-2: #0D0F14;
+    --panel: #12141B;
+    --panel-raised: #171922;
+    --line: #23262F;
+    --line-soft: rgba(255,255,255,0.06);
+    --accent: #6E76FF;
+    --accent-soft: rgba(110,118,255,0.10);
+    --accent-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #565B6B;
+    --good: #4FD895;
+    --warn: #F0A83C;
+    --bad: #F0525A;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; overflow-x:hidden; position:relative; }
+
+  .field-texture{
+    position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(1100px 700px at 62% -10%, rgba(110,118,255,0.08), transparent 62%),
+      linear-gradient(var(--void), var(--void));
+  }
+  .field-texture::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.024) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.024) 1px, transparent 1px);
+    background-size:56px 56px;
+    mask-image:radial-gradient(ellipse 1500px 900px at 55% 0%, black 12%, transparent 78%);
+  }
+
+  ::selection{ background:var(--accent); color:var(--void); }
+  a{ color:inherit; text-decoration:none; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .wrap{ max-width:780px; margin:0 auto; padding:0 24px; }
+
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100; padding:22px 0;
+    background:rgba(8,9,12,0.5); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid transparent; transition:border-color .4s ease, background .4s ease;
+  }
+  header.scrolled{ background:rgba(8,9,12,0.82); border-bottom-color:var(--line); }
+  .nav-inner{ max-width:1180px; margin:0 auto; padding:0 32px; display:flex; align-items:center; justify-content:space-between; }
+  .wordmark{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; display:flex; align-items:center; gap:10px; }
+  .wordmark .logo-mark{ width:30px; height:30px; object-fit:contain; }
+  nav ul{ display:flex; align-items:center; gap:36px; list-style:none; }
+  nav a{ font-size:13px; color:var(--ink-dim); transition:color .25s ease; }
+  nav a:hover, nav a:focus-visible{ color:var(--ink); outline:none; }
+  nav a.current{ color:var(--ink); }
+
+  .auth-menu{ position:relative; }
+  .auth-login-btn{
+    display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
+    padding:9px 16px; border-radius:6px; border:1px solid var(--line); color:var(--ink); background:transparent;
+    transition:border-color .25s ease, color .25s ease, transform .2s ease;
+  }
+  .auth-login-btn:hover{ border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
+  .auth-login-btn svg{ width:14px; height:14px; }
+  .auth-btn{
+    display:flex; align-items:center; gap:9px; cursor:pointer; background:transparent; border:1px solid transparent;
+    padding:5px 10px 5px 6px; border-radius:8px; font-size:13px; color:var(--ink-dim);
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .auth-btn:hover{ color:var(--ink); border-color:var(--line); background:rgba(255,255,255,0.02); }
+  .auth-menu.open .auth-btn{ color:var(--ink); border-color:var(--line); }
+  .auth-avatar{
+    width:26px; height:26px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--accent-soft);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:11px; color:var(--accent);
+  }
+  .auth-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .auth-name{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .auth-caret{ width:11px; height:11px; flex-shrink:0; transition:transform .25s ease; }
+  .auth-menu.open .auth-caret{ transform:rotate(180deg); }
+  .auth-dropdown{
+    position:absolute; top:calc(100% + 12px); right:0; min-width:210px; background:var(--panel-raised);
+    border:1px solid var(--line); border-radius:10px; padding:6px; opacity:0; visibility:hidden; transform:translateY(-8px);
+    transition:opacity .2s ease, transform .2s ease, visibility .2s; box-shadow:0 24px 48px rgba(0,0,0,0.5); z-index:200;
+  }
+  .auth-menu.open .auth-dropdown{ opacity:1; visibility:visible; transform:translateY(0); }
+  .auth-dropdown a, .auth-dropdown button{
+    display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border-radius:6px; font-size:13px;
+    color:var(--ink-dim); background:transparent; border:none; cursor:pointer; text-align:left;
+    transition:background .15s ease, color .15s ease;
+  }
+  .auth-dropdown a:hover, .auth-dropdown button:hover{ background:var(--void-2); color:var(--ink); }
+  .auth-dropdown button.danger:hover{ color:var(--bad); }
+  .auth-dropdown svg{ width:15px; height:15px; flex-shrink:0; }
+  .auth-dropdown hr{ border:none; border-top:1px solid var(--line); margin:6px 2px; }
+
+  main{ padding:150px 0 100px; min-height:100vh; }
+
+  .page-head{ margin-bottom:36px; }
+  .page-head .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--accent-2); letter-spacing:0.08em; text-transform:uppercase; }
+  .page-head h1{ font-family:'Space Grotesk', sans-serif; font-size:32px; margin:10px 0 10px; }
+  .page-head p{ color:var(--ink-dim); font-size:14px; line-height:1.6; max-width:600px; }
+
+  .center-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:40px 32px;
+    text-align:center; margin-top:20px;
+  }
+  .center-card .display{ font-family:'Space Grotesk', sans-serif; font-size:20px; margin-bottom:10px; }
+  .center-card p{ color:var(--ink-dim); font-size:13.5px; line-height:1.6; }
+  .center-card a{ color:var(--accent); text-decoration:underline; }
+
+  .status-banner{
+    display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:20px;
+    font-family:'JetBrains Mono', monospace; font-size:12px; margin-bottom:18px;
+  }
+  .status-pending{ background:rgba(240,168,60,0.12); color:var(--warn); }
+  .status-accepted{ background:rgba(79,216,149,0.12); color:var(--good); }
+  .status-rejected{ background:rgba(240,82,90,0.12); color:var(--bad); }
+
+  form-section{ display:block; }
+  .form-section{ margin-bottom:34px; }
+  .form-section-title{
+    font-family:'Space Grotesk', sans-serif; font-size:16px; font-weight:600; margin-bottom:6px;
+    padding-bottom:10px; border-bottom:1px solid var(--line);
+  }
+  .question-block{ margin-top:20px; }
+  .question-label{ font-size:13.5px; color:var(--ink); margin-bottom:8px; line-height:1.5; }
+  .question-label .required{ color:var(--bad); margin-left:3px; }
+
+  select, input, textarea{
+    font-family:'Inter', sans-serif; font-size:13.5px; color:var(--ink); background:var(--void-2);
+    border:1px solid var(--line); border-radius:7px; padding:10px 12px; width:100%;
+  }
+  select:focus, input:focus, textarea:focus{ outline:none; border-color:var(--accent); }
+  textarea{ resize:vertical; min-height:90px; }
+  input[type="checkbox"]{ width:16px; height:16px; padding:0; accent-color:var(--accent); cursor:pointer; }
+
+  .choice-options{ display:flex; flex-wrap:wrap; gap:10px; }
+  .choice-option{
+    display:flex; align-items:center; gap:8px; padding:9px 14px; border:1px solid var(--line); border-radius:7px;
+    cursor:pointer; font-size:13px; transition:border-color .15s ease, background .15s ease;
+  }
+  .choice-option:hover{ border-color:var(--accent); }
+  .choice-option input{ width:15px; height:15px; accent-color:var(--accent); }
+
+  .scale-row{ display:flex; gap:6px; flex-wrap:wrap; }
+  .scale-option{
+    display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:7px;
+    border:1px solid var(--line); cursor:pointer; font-family:'JetBrains Mono', monospace; font-size:13px;
+    color:var(--ink-dim); transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .scale-option:hover{ border-color:var(--accent); color:var(--ink); }
+  .scale-option input{ display:none; }
+  .scale-option.checked{ background:var(--accent); border-color:var(--accent); color:var(--void); }
+
+  .checkbox-row{ display:flex; align-items:flex-start; gap:10px; }
+  .checkbox-row label{ font-size:13px; color:var(--ink-dim); line-height:1.5; cursor:pointer; }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-size:13.5px; font-weight:600; padding:11px 24px; border-radius:7px;
+    border:1px solid var(--accent); color:var(--void); background:var(--accent); cursor:pointer;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); background:#7B82FF; }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
+
+  .answers-review{ display:flex; flex-direction:column; gap:14px; text-align:left; margin-top:14px; }
+  .answer-block{ padding-bottom:12px; border-bottom:1px solid var(--line-soft); }
+  .answer-block:last-child{ border-bottom:none; }
+  .answer-q{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); margin-bottom:4px; }
+  .answer-a{ font-size:13.5px; color:var(--ink); white-space:pre-wrap; line-height:1.6; }
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; z-index:200; background:var(--panel-raised); border:1px solid var(--line);
+    border-radius:8px; padding:12px 18px; font-size:13px; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none;
+  }
+  .toast.show{ display:block; }
+  .toast.error{ border-color:var(--bad); color:var(--bad); }
+  .toast.success{ border-color:var(--good); color:var(--good); }
+
+  @media (max-width:600px){
+    .wrap{ padding:0 18px; }
+    .nav-inner{ padding:0 18px; }
+    nav a:not(.auth-menu):not(.current){ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="field-texture"></div>
+
+<header>
+  <div class="nav-inner">
+    <a href="index.html" class="wordmark">
+      <img src="ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+      VOIDLINE STUDIO
+    </a>
+    <nav>
+      <ul>
+        <li><a href="index.html#top">Accueil</a></li>
+        <li><a href="account.html">Mon compte</a></li>
+        <li><a href="postuler.html" class="current">Postuler</a></li>
+        <li class="nav-admin-link" style="display:none;"><a href="admin.html">Console</a></li>
+        <li class="auth-menu" id="auth-menu"></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="page-head">
+      <span class="eyebrow">Recrutement</span>
+      <h1 id="page-title">Postuler</h1>
+      <p id="page-subtitle">Chargement…</p>
+    </div>
+    <div id="form-root"></div>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+  const TOKEN_KEY = 'vs_token';
+  const FORM_ID = new URLSearchParams(window.location.search).get('form') || 'adjoint_manager';
+
+  (function captureTokenFromUrl() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    }
+  })();
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY); }
+
+  const header = document.querySelector('header');
+  window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 20));
+
+  const formRoot = document.getElementById('form-root');
+  const toastEl = document.getElementById('toast');
+
+  function showToast(message, type) {
+    toastEl.textContent = message;
+    toastEl.className = `toast show${type ? ` ${type}` : ''}`;
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove('show'), 3500);
+  }
+
+  function escapeHtml(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  async function apiFetch(path, options = {}) {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+    if (res.status === 204) return null;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    return data;
+  }
+
+  const STATUS_META = {
+    pending: { cls: 'status-pending', label: '🟡 En attente de traitement' },
+    accepted: { cls: 'status-accepted', label: '🟢 Candidature acceptée' },
+    rejected: { cls: 'status-rejected', label: '🔴 Candidature refusée' },
+  };
+
+  function renderLoggedOut() {
+    document.getElementById('page-subtitle').textContent = 'Connexion requise pour postuler.';
+    formRoot.innerHTML = `
+      <div class="center-card">
+        <div class="display">Connexion requise</div>
+        <p>Connecte-toi avec ton compte Discord avant de remplir ce formulaire.<br><br><a href="account.html">Aller à Mon compte</a></p>
+      </div>
+    `;
+  }
+
+  function renderError(message) {
+    formRoot.innerHTML = `<div class="center-card"><p>${escapeHtml(message)}</p></div>`;
+  }
+
+  function renderAlreadyApplied(form, application) {
+    const status = STATUS_META[application.status] || STATUS_META.pending;
+    const questionsById = {};
+    form.sections.forEach((s) => s.questions.forEach((q) => { questionsById[q.id] = q; }));
+
+    const answersHtml = Object.entries(application.answers || {})
+      .map(([qId, value]) => {
+        const q = questionsById[qId];
+        return `<div class="answer-block"><div class="answer-q">${escapeHtml(q ? q.label : qId)}</div><div class="answer-a">${escapeHtml(String(value))}</div></div>`;
+      })
+      .join('');
+
+    formRoot.innerHTML = `
+      <div class="center-card" style="text-align:left;">
+        <div style="text-align:center;">
+          <span class="status-banner ${status.cls}">${status.label}</span>
+        </div>
+        <p style="text-align:center;">Tu as déjà soumis une candidature pour ce poste — une seule candidature par personne est acceptée. Voici un rappel de tes réponses :</p>
+        <div class="answers-review">${answersHtml}</div>
+      </div>
+    `;
+  }
+
+  function renderQuestion(q) {
+    const requiredMark = q.required ? '<span class="required">*</span>' : '';
+
+    if (q.type === 'short') {
+      return `
+        <div class="question-block">
+          <div class="question-label">${escapeHtml(q.label)}${requiredMark}</div>
+          <input type="text" name="${q.id}" ${q.required ? 'required' : ''}>
+        </div>
+      `;
+    }
+
+    if (q.type === 'long') {
+      return `
+        <div class="question-block">
+          <div class="question-label">${escapeHtml(q.label)}${requiredMark}</div>
+          <textarea name="${q.id}" ${q.required ? 'required' : ''}></textarea>
+        </div>
+      `;
+    }
+
+    if (q.type === 'choice') {
+      return `
+        <div class="question-block">
+          <div class="question-label">${escapeHtml(q.label)}${requiredMark}</div>
+          <div class="choice-options">
+            ${q.options
+              .map(
+                (opt, i) => `
+              <label class="choice-option">
+                <input type="radio" name="${q.id}" value="${escapeHtml(opt)}" ${q.required ? 'required' : ''}>
+                ${escapeHtml(opt)}
+              </label>`
+              )
+              .join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    if (q.type === 'scale') {
+      return `
+        <div class="question-block">
+          <div class="question-label">${escapeHtml(q.label)}${requiredMark}</div>
+          <div class="scale-row" data-scale-for="${q.id}">
+            ${Array.from({ length: 10 }, (_, i) => i + 1)
+              .map(
+                (n) => `
+              <label class="scale-option">
+                <input type="radio" name="${q.id}" value="${n}" ${q.required ? 'required' : ''}>
+                ${n}
+              </label>`
+              )
+              .join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    if (q.type === 'checkbox') {
+      return `
+        <div class="question-block">
+          <div class="question-label">${escapeHtml(q.label)}${requiredMark}</div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="cb-${q.id}" name="${q.id}" ${q.required ? 'required' : ''}>
+            <label for="cb-${q.id}">${escapeHtml(q.checkboxLabel || 'J\'accepte')}</label>
+          </div>
+        </div>
+      `;
+    }
+
+    return '';
+  }
+
+  function renderForm(form) {
+    document.getElementById('page-title').textContent = form.title;
+    document.getElementById('page-subtitle').textContent = form.description;
+
+    formRoot.innerHTML = `
+      <form id="application-form">
+        ${form.sections
+          .map(
+            (section) => `
+          <div class="form-section">
+            <div class="form-section-title">${escapeHtml(section.title)}</div>
+            ${section.questions.map(renderQuestion).join('')}
+          </div>
+        `
+          )
+          .join('')}
+        <button class="btn" type="submit">Envoyer ma candidature</button>
+      </form>
+    `;
+
+    // Style visuel des boutons d'échelle (1-10) au clic, sans dépendre du CSS natif des radios.
+    formRoot.querySelectorAll('.scale-row').forEach((row) => {
+      row.querySelectorAll('input[type="radio"]').forEach((input) => {
+        input.addEventListener('change', () => {
+          row.querySelectorAll('.scale-option').forEach((el) => el.classList.remove('checked'));
+          input.closest('.scale-option').classList.add('checked');
+        });
+      });
+    });
+
+    document.getElementById('application-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formEl = e.target;
+      const submitBtn = formEl.querySelector('button[type="submit"]');
+
+      const answers = {};
+      form.sections.forEach((section) => {
+        section.questions.forEach((q) => {
+          if (q.type === 'checkbox') {
+            answers[q.id] = formEl.querySelector(`[name="${q.id}"]`)?.checked || false;
+          } else if (q.type === 'choice' || q.type === 'scale') {
+            const checked = formEl.querySelector(`[name="${q.id}"]:checked`);
+            answers[q.id] = checked ? checked.value : '';
+          } else {
+            answers[q.id] = formEl.querySelector(`[name="${q.id}"]`)?.value.trim() || '';
+          }
+        });
+      });
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Envoi…';
+
+      try {
+        await apiFetch(`/api/forms/${encodeURIComponent(form.id)}/submit`, {
+          method: 'POST',
+          body: JSON.stringify({ answers }),
+        });
+        showToast('Candidature envoyée !', 'success');
+        loadFormAndState();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Envoyer ma candidature';
+      }
+    });
+  }
+
+  async function loadFormAndState() {
+    formRoot.innerHTML = '<div class="center-card"><p>Chargement du formulaire…</p></div>';
+
+    let data;
+    try {
+      data = await apiFetch(`/api/forms/${encodeURIComponent(FORM_ID)}`);
+    } catch (err) {
+      if (err.message === 'form_not_found') {
+        renderError('Ce formulaire de recrutement n\'existe pas ou n\'est plus ouvert.');
+      } else {
+        renderError(`Erreur : ${err.message}`);
+      }
+      return;
+    }
+
+    const { form, application } = data;
+    if (application) {
+      document.getElementById('page-title').textContent = form.title;
+      document.getElementById('page-subtitle').textContent = form.description;
+      renderAlreadyApplied(form, application);
+    } else {
+      renderForm(form);
+    }
+  }
+
+  async function init() {
+    const token = getToken();
+    if (!token) { renderLoggedOut(); return; }
+    await loadFormAndState();
+  }
+
+  init();
+</script>
+<script src="assets/auth-menu.js" defer></script>
+</body>
+</html>

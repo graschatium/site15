@@ -307,6 +307,17 @@
   }
   .subsection h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; margin-bottom:16px; }
 
+  .application-detail{ padding:16px 4px; }
+  .answers-grid{ display:flex; flex-direction:column; gap:16px; }
+  .answer-block{ padding-bottom:14px; border-bottom:1px solid var(--line-soft); }
+  .answer-block:last-child{ border-bottom:none; padding-bottom:0; }
+  .answer-q{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint);
+    letter-spacing:0.02em; margin-bottom:5px;
+  }
+  .answer-a{ font-size:13.5px; color:var(--ink); line-height:1.6; white-space:pre-wrap; }
+  .application-row:hover{ cursor:pointer; }
+
   /* ---------- EDT grid (read-only animation view) ---------- */
 
   .edt-toolbar{ display:flex; align-items:center; justify-content:center; gap:18px; margin-bottom:18px; }
@@ -380,6 +391,7 @@
       <ul>
         <li><a href="index.html#top">Accueil</a></li>
         <li><a href="account.html">Mon compte</a></li>
+        <li><a href="postuler.html">Postuler</a></li>
         <li class="nav-admin-link" style="display:none;"><a href="admin.html" class="current">Console</a></li>
         <li class="auth-menu" id="auth-menu"></li>
       </ul>
@@ -465,6 +477,7 @@
     sanctions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M12 8v5M12 16.2v.1"/></svg>',
     absences: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
     animations: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="8.5" cy="14" r="1"/><circle cx="12" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/></svg>',
+    applications: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5h8a1 1 0 0 1 1 1V20l-3-2-2 2-2-2-3 2V4.5a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 11.5h6M9 15h3.5"/></svg>',
     permissions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="3.5"/><path d="M10.5 13l8-8M15 8l2 2M18 5l2 2"/></svg>',
   };
 
@@ -474,6 +487,7 @@
     sanctions: { title: 'Sanctions', subtitle: 'Historique des sanctions et ajout de nouvelles entrées.' },
     absences: { title: 'Absences', subtitle: 'Déclarations en cours, RP comme Staff, tous serveurs confondus.' },
     animations: { title: 'Animation', subtitle: "Planning des sessions d'animation." },
+    applications: { title: 'Candidatures', subtitle: 'Candidatures reçues via les formulaires de recrutement.' },
     permissions: { title: 'Permissions', subtitle: 'Droits accordés à chaque rôle du serveur staff.' },
   };
 
@@ -510,6 +524,7 @@
     if (context.canManageSanctions) tabs.push('sanctions');
     if (context.canManageAbsences) tabs.push('absences');
     if (context.isAdminAnywhere) tabs.push('animations');
+    if (context.canManageApplications) tabs.push('applications');
     if (context.canManagePermissions) tabs.push('permissions');
 
     const badges = (context.roleLabels && context.roleLabels.length ? context.roleLabels : ['Accès limité'])
@@ -565,6 +580,7 @@
     else if (tabId === 'sanctions') loadSanctionsTab();
     else if (tabId === 'absences') loadAbsencesTab();
     else if (tabId === 'animations') loadAnimationsTab();
+    else if (tabId === 'applications') loadApplicationsTab();
     else if (tabId === 'permissions') loadPermissionsTab();
   }
 
@@ -1127,6 +1143,153 @@
   }
 
   // -----------------------------------------------------------------
+  // Candidatures
+  // -----------------------------------------------------------------
+  const APPLICATION_STATUS_LABELS = {
+    pending: { label: '🟡 En attente', cls: 'status-inactif' },
+    accepted: { label: '🟢 Acceptée', cls: 'status-actif' },
+    rejected: { label: '🔴 Refusée', cls: 'status-archivé' },
+  };
+
+  async function loadApplicationsTab() {
+    const body = document.getElementById('console-body');
+    body.innerHTML = '<div class="center-msg">Chargement des candidatures…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/admin/applications');
+    } catch (err) {
+      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const applications = data.applications || [];
+
+    body.innerHTML = `
+      <div class="field-row" style="max-width:260px;">
+        <label>Filtrer par statut</label>
+        <select id="application-status-filter">
+          <option value="">Toutes</option>
+          <option value="pending">En attente</option>
+          <option value="accepted">Acceptées</option>
+          <option value="rejected">Refusées</option>
+        </select>
+      </div>
+      <div class="record-block">
+        <div class="record-block-head"><h2>Candidatures</h2><span class="count" id="applications-count">${applications.length}</span></div>
+        <div id="applications-list"></div>
+      </div>
+    `;
+
+    function renderList(list) {
+      const container = document.getElementById('applications-list');
+      document.getElementById('applications-count').textContent = list.length;
+
+      if (!list.length) {
+        container.innerHTML = '<div class="empty-row">Aucune candidature.</div>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead><tr><th>Candidat</th><th>Formulaire</th><th>Soumise le</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            ${list
+              .map((a) => {
+                const st = APPLICATION_STATUS_LABELS[a.status] || APPLICATION_STATUS_LABELS.pending;
+                return `
+              <tr data-application-id="${escapeHtml(a.id)}" class="application-row">
+                <td class="mono-cell">${escapeHtml(a.username || a.discordId || '—')}</td>
+                <td>${escapeHtml(a.formId || '—')}</td>
+                <td class="mono-cell">${a.submittedAt ? new Date(a.submittedAt).toLocaleString('fr-FR') : '—'}</td>
+                <td><span class="status-pill ${st.cls}">${st.label}</span></td>
+                <td><button class="btn ghost small view-application-btn" data-application-id="${escapeHtml(a.id)}">Voir</button></td>
+              </tr>
+              <tr class="application-detail-row" data-detail-for="${escapeHtml(a.id)}" style="display:none;">
+                <td colspan="5"><div class="application-detail" id="detail-${escapeHtml(a.id)}"></div></td>
+              </tr>`;
+              })
+              .join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.querySelectorAll('.view-application-btn').forEach((btn) => {
+        btn.addEventListener('click', () => toggleApplicationDetail(btn.dataset.applicationId));
+      });
+    }
+
+    async function toggleApplicationDetail(id) {
+      const row = document.querySelector(`.application-detail-row[data-detail-for="${id}"]`);
+      const isOpen = row.style.display !== 'none';
+      if (isOpen) {
+        row.style.display = 'none';
+        return;
+      }
+
+      const detailEl = document.getElementById(`detail-${id}`);
+      detailEl.innerHTML = '<div class="center-msg">Chargement…</div>';
+      row.style.display = '';
+
+      let detailData;
+      try {
+        detailData = await apiFetch(`/api/admin/applications/${encodeURIComponent(id)}`);
+      } catch (err) {
+        detailEl.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+        return;
+      }
+
+      const { application, form } = detailData;
+      const questionsById = {};
+      (form?.sections || []).forEach((s) => s.questions.forEach((q) => { questionsById[q.id] = q; }));
+
+      const answersHtml = Object.entries(application.answers || {})
+        .map(([qId, value]) => {
+          const q = questionsById[qId];
+          const label = q ? q.label : qId;
+          return `<div class="answer-block"><div class="answer-q">${escapeHtml(label)}</div><div class="answer-a">${escapeHtml(String(value))}</div></div>`;
+        })
+        .join('');
+
+      detailEl.innerHTML = `
+        <div class="answers-grid">${answersHtml}</div>
+        <div class="subsection" style="margin-top:18px;">
+          <h3>Décision</h3>
+          <div class="field-row"><label>Note (optionnelle)</label><textarea id="review-note-${id}" rows="2">${escapeHtml(application.reviewNote || '')}</textarea></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" data-action="accept" data-application-id="${id}">Accepter</button>
+            <button class="btn danger" data-action="reject" data-application-id="${id}" style="border-color:var(--bad); color:var(--bad);">Refuser</button>
+          </div>
+        </div>
+      `;
+
+      detailEl.querySelectorAll('[data-action]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const status = btn.dataset.action === 'accept' ? 'accepted' : 'rejected';
+          const note = document.getElementById(`review-note-${id}`).value.trim();
+          try {
+            await apiFetch(`/api/admin/applications/${encodeURIComponent(id)}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ status, note }),
+            });
+            showToast('Candidature mise à jour.', 'success');
+            loadApplicationsTab();
+          } catch (err) {
+            showToast(`Erreur : ${err.message}`, 'error');
+          }
+        });
+      });
+    }
+
+    renderList(applications);
+
+    document.getElementById('application-status-filter').addEventListener('change', (e) => {
+      const val = e.target.value;
+      renderList(val ? applications.filter((a) => a.status === val) : applications);
+    });
+  }
+
+  // -----------------------------------------------------------------
   // Permissions
   // -----------------------------------------------------------------
   async function loadPermissionsTab() {
@@ -1158,7 +1321,7 @@
         ${
           configured.length
             ? `<table>
-                <thead><tr><th>Rôle</th><th>Rosters</th><th>Sanctions</th><th>Absences</th><th>Animation</th><th></th></tr></thead>
+                <thead><tr><th>Rôle</th><th>Rosters</th><th>Sanctions</th><th>Absences</th><th>Animation</th><th>Candidatures</th><th></th></tr></thead>
                 <tbody>
                   ${configured
                     .map(
@@ -1175,6 +1338,7 @@
                       <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="sanctions" ${p.sanctions ? 'checked' : ''}></td>
                       <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="absences" ${p.absences ? 'checked' : ''}></td>
                       <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="animations" ${p.animations ? 'checked' : ''}></td>
+                      <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="applications" ${p.applications ? 'checked' : ''}></td>
                       <td>
                         <button class="btn small save-permission-btn" data-role-id="${escapeHtml(p.roleId)}" data-label="${escapeHtml(p.label || p.roleId)}">Enregistrer</button>
                         <button class="btn danger small remove-permission-btn" data-role-id="${escapeHtml(p.roleId)}">Retirer</button>
@@ -1206,10 +1370,11 @@
               <option value="edit">Modification</option>
             </select>
           </div>
-          <div class="field-row" style="display:flex; align-items:center; gap:20px; padding-top:22px;">
+          <div class="field-row" style="display:flex; align-items:center; gap:20px; padding-top:22px; flex-wrap:wrap;">
             <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-sanctions"> Sanctions</label>
             <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-absences"> Absences</label>
             <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-animations"> Animation</label>
+            <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-applications"> Candidatures</label>
           </div>
         </div>
         <button class="btn" id="add-role-permission-btn" type="button">Ajouter</button>
@@ -1222,11 +1387,12 @@
       const sanctions = row.querySelector('[data-field="sanctions"]').checked;
       const absences = row.querySelector('[data-field="absences"]').checked;
       const animations = row.querySelector('[data-field="animations"]').checked;
+      const applications = row.querySelector('[data-field="applications"]').checked;
 
       try {
         await apiFetch(`/api/admin/permissions/${encodeURIComponent(roleId)}`, {
           method: 'PUT',
-          body: JSON.stringify({ label, rosters, sanctions, absences, animations }),
+          body: JSON.stringify({ label, rosters, sanctions, absences, animations, applications }),
         });
         showToast('Permissions enregistrées.', 'success');
       } catch (err) {
@@ -1263,11 +1429,12 @@
       const sanctions = document.getElementById('new-role-sanctions').checked;
       const absences = document.getElementById('new-role-absences').checked;
       const animations = document.getElementById('new-role-animations').checked;
+      const applications = document.getElementById('new-role-applications').checked;
 
       try {
         await apiFetch(`/api/admin/permissions/${encodeURIComponent(roleId)}`, {
           method: 'PUT',
-          body: JSON.stringify({ label, rosters, sanctions, absences, animations }),
+          body: JSON.stringify({ label, rosters, sanctions, absences, animations, applications }),
         });
         showToast('Rôle ajouté.', 'success');
         loadPermissionsTab();
