@@ -364,6 +364,36 @@
   }
   .sci-card-actions{ display:flex; gap:8px; margin-top:12px; }
 
+  .sci-preview{ color:var(--ink-dim); }
+
+  .sci-body-rendered{ color:var(--ink-dim); line-height:1.75; font-size:13.5px; }
+  .sci-body-rendered h1, .sci-body-rendered h2, .sci-body-rendered h3{
+    font-family:'Space Grotesk', sans-serif; color:var(--ink); margin:18px 0 8px; line-height:1.3;
+  }
+  .sci-body-rendered h1:first-child, .sci-body-rendered h2:first-child, .sci-body-rendered h3:first-child{ margin-top:0; }
+  .sci-body-rendered h1{ font-size:17px; }
+  .sci-body-rendered h2{ font-size:15.5px; }
+  .sci-body-rendered h3{ font-size:14px; }
+  .sci-body-rendered p{ margin:10px 0; }
+  .sci-body-rendered strong{ color:var(--ink); font-weight:600; }
+  .sci-body-rendered em{ color:var(--ink); }
+  .sci-body-rendered ul, .sci-body-rendered ol{ margin:10px 0 10px 20px; }
+  .sci-body-rendered li{ margin:4px 0; }
+  .sci-body-rendered a{ color:var(--accent-2); text-decoration:underline; }
+  .sci-body-rendered img{ max-width:100%; border-radius:8px; border:1px solid var(--line); margin:12px 0; display:block; }
+  .sci-body-rendered blockquote{
+    border-left:2px solid var(--accent); padding:2px 14px; margin:12px 0; color:var(--ink-faint); font-style:italic;
+  }
+  .sci-body-rendered code{
+    font-family:'JetBrains Mono', monospace; font-size:12px; background:var(--void-2); border:1px solid var(--line);
+    padding:1px 5px; border-radius:4px; color:var(--accent-2);
+  }
+  .sci-body-rendered pre{
+    background:var(--void-2); border:1px solid var(--line); border-radius:8px; padding:12px 14px; overflow-x:auto; margin:12px 0;
+  }
+  .sci-body-rendered pre code{ background:none; border:none; padding:0; }
+  .sci-body-rendered hr{ border:none; border-top:1px solid var(--line); margin:16px 0; }
+
   .status-pill{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:10.5px; font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:0.04em; }
   .status-open{ background:rgba(79,216,149,0.12); color:var(--good); }
   .status-taken{ background:rgba(240,168,60,0.12); color:var(--warn); }
@@ -411,6 +441,8 @@
 
 <div id="toast" class="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script>
   const API_BASE = 'https://site15-bot.onrender.com';
   const TOKEN_KEY = 'vs_token';
@@ -483,7 +515,7 @@
     bulletin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3M9 11h6M9 15h6"/></svg>',
     people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c1.2-3.4 3.4-5 6-5s4.8 1.6 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c1.9.4 3.3 1.7 4.2 4"/></svg>',
     rdv: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
-    flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4 19a2 2 0 0 0 1.8 2.9h12.4A2 2 0 0 0 20 19l-5-10.5V2"/><path d="M9 2h6M8 15h8"/></svg>',
+    flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="5" rx="1"/><path d="M4.5 9v9a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg>',
   };
 
   function renderLoggedOut() {
@@ -577,7 +609,7 @@
 
     const tabs = [{ id: 'bulletin', label: 'Bulletin', icon: 'bulletin' }, { id: 'effectifs', label: 'Effectifs', icon: 'people' }];
     if (deptId === MEDICAL_DEPT_ID) tabs.push({ id: 'rdv', label: 'Rendez-vous', icon: 'rdv' });
-    tabs.push({ id: 'science', label: 'Publications Sci.', icon: 'flask' });
+    tabs.push({ id: 'science', label: 'Archives', icon: 'flask' });
 
     mainRoot.innerHTML = `
       <div class="terminal-screen">
@@ -957,21 +989,37 @@
   }
 
   // -----------------------------------------------------------------
-  // Publications Scientifiques (zone commune)
+  // Archives — fiches SCP rédigées par le département Scientifique,
+  // rendues en Markdown (titres, gras, listes, images...). Tronc commun en
+  // lecture pour tout le monde ayant un accès RP ; écriture réservée aux
+  // membres actifs Scientifique.
   // -----------------------------------------------------------------
   const SCIENCE_CLASSIFICATIONS = {
     safe: { label: 'SÛR', cls: 'sci-safe' },
     euclid: { label: 'EUCLIDE', cls: 'sci-euclid' },
     keter: { label: 'KETER', cls: 'sci-keter' },
   };
-  const SCIENCE_REPORT_TYPES = {
-    observation: 'Observation',
-    experience: 'Expérience',
-    incident: 'Incident',
-    analyse: 'Analyse',
-  };
 
   let scienceAllPublications = [];
+
+  // Version très simplifiée d'un aperçu texte : retire la syntaxe Markdown
+  // pour ne pas afficher de "##", "![alt](url)" etc. dans la carte réduite.
+  function stripMarkdown(md) {
+    return (md || '')
+      .replace(/!\[.*?\]\(.*?\)/g, '')
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+      .replace(/[#*_`>~-]/g, '')
+      .replace(/\n+/g, ' ')
+      .trim();
+  }
+
+  function renderMarkdown(md) {
+    if (window.marked && window.DOMPurify) {
+      return DOMPurify.sanitize(marked.parse(md || ''));
+    }
+    // Filet de sécurité si les libs CDN n'ont pas chargé : texte brut échappé.
+    return `<p>${escapeHtml(md || '').replace(/\n/g, '<br>')}</p>`;
+  }
 
   async function loadScienceModule() {
     const main = document.getElementById('terminal-main');
@@ -989,16 +1037,16 @@
     scienceAllPublications = publications;
 
     document.getElementById('stat-grid').innerHTML = `
-      <div class="stat-cell"><div class="stat-value">${publications.length}</div><div class="stat-label">Publications</div></div>
+      <div class="stat-cell"><div class="stat-value">${publications.length}</div><div class="stat-label">Fiches</div></div>
       <div class="stat-cell"><div class="stat-value">${canPublish ? 'OUI' : 'NON'}</div><div class="stat-label">Autorisé</div></div>
     `;
     document.getElementById('journal-panel').innerHTML = publications.length
       ? publications.slice(0, 4).map((p) => `<div class="journal-entry"><span class="journal-time">${p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(p.title)}</span></div>`).join('')
-      : '<div class="journal-entry"><span class="journal-text">Aucune publication.</span></div>';
+      : '<div class="journal-entry"><span class="journal-text">Aucune fiche.</span></div>';
 
     main.innerHTML = `
       <div class="record-block">
-        <div class="record-block-head"><h2>Rapports scientifiques</h2><span class="count" id="sci-count">${publications.length}</span></div>
+        <div class="record-block-head"><h2>Archives — Fiches d'objets</h2><span class="count" id="sci-count">${publications.length}</span></div>
 
         <div class="sci-filters">
           <input type="text" id="sci-search" placeholder="Rechercher un titre, un objet, un auteur...">
@@ -1016,31 +1064,25 @@
       ${
         canPublish
           ? `<div class="subsection">
-              <h3>Rédiger un rapport</h3>
+              <h3>Rédiger une fiche</h3>
               <form id="publication-form">
-                <div class="field-row"><label>Titre *</label><input type="text" id="publication-title" required></div>
                 <div class="field-grid">
-                  <div class="field-row"><label>Objet d'étude</label><input type="text" id="publication-subject" placeholder="Ex: SCP-1547, Zone C..."></div>
-                  <div class="field-row">
-                    <label>Type de rapport</label>
-                    <select id="publication-type">
-                      <option value="observation">Observation</option>
-                      <option value="experience">Expérience</option>
-                      <option value="incident">Incident</option>
-                      <option value="analyse">Analyse</option>
-                    </select>
-                  </div>
+                  <div class="field-row"><label>Titre *</label><input type="text" id="publication-title" required></div>
+                  <div class="field-row"><label>Numéro d'objet</label><input type="text" id="publication-subject" placeholder="Ex: SCP-1547"></div>
                 </div>
                 <div class="field-row">
-                  <label>Classification</label>
+                  <label>Classe d'objet</label>
                   <select id="publication-classification">
                     <option value="safe">Sûr</option>
                     <option value="euclid">Euclide</option>
                     <option value="keter">Keter</option>
                   </select>
                 </div>
-                <div class="field-row"><label>Contenu *</label><textarea id="publication-content" rows="6" required></textarea></div>
-                <button class="btn" type="submit">Publier le rapport</button>
+                <div class="field-row">
+                  <label>Contenu (Markdown) *</label>
+                  <textarea id="publication-content" rows="10" required placeholder="## Procédures de Confinement Spéciales&#10;...&#10;&#10;## Description&#10;...&#10;&#10;![légende](https://exemple.com/image.png)"></textarea>
+                </div>
+                <button class="btn" type="submit">Publier la fiche</button>
               </form>
             </div>`
           : ''
@@ -1059,15 +1101,14 @@
         const title = document.getElementById('publication-title').value.trim();
         const content = document.getElementById('publication-content').value.trim();
         const subject = document.getElementById('publication-subject').value.trim();
-        const reportType = document.getElementById('publication-type').value;
         const classification = document.getElementById('publication-classification').value;
         if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
         try {
           await apiFetch('/api/rp/science/publications', {
             method: 'POST',
-            body: JSON.stringify({ title, content, subject, reportType, classification }),
+            body: JSON.stringify({ title, content, subject, classification }),
           });
-          showToast('Rapport publié.', 'success');
+          showToast('Fiche publiée.', 'success');
           loadScienceModule();
         } catch (err) {
           showToast(`Erreur : ${err.message}`, 'error');
@@ -1095,31 +1136,30 @@
     document.getElementById('sci-count').textContent = publications.length;
 
     if (!publications.length) {
-      container.innerHTML = '<div class="empty-row">Aucun rapport ne correspond.</div>';
+      container.innerHTML = '<div class="empty-row">Aucune fiche ne correspond.</div>';
       return;
     }
 
     container.innerHTML = publications
       .map((p) => {
         const cls = SCIENCE_CLASSIFICATIONS[p.classification];
-        const typeLabel = SCIENCE_REPORT_TYPES[p.reportType];
-        const isLong = (p.content || '').length > 320;
-        const preview = isLong ? `${p.content.slice(0, 320).trim()}…` : p.content || '';
+        const preview = stripMarkdown(p.content).slice(0, 200);
+        const isTruncated = stripMarkdown(p.content).length > 200;
 
         return `
         <div class="sci-card" data-publication-id="${escapeHtml(p.id)}">
           <div class="sci-card-top">
             ${cls ? `<span class="sci-badge ${cls.cls}">${cls.label}</span>` : ''}
-            ${typeLabel ? `<span class="sci-type-badge">${escapeHtml(typeLabel)}</span>` : ''}
             ${p.subject ? `<span class="sci-subject">${escapeHtml(p.subject)}</span>` : ''}
           </div>
           <div class="post-card-head">
             <span class="post-card-title">${escapeHtml(p.title)}</span>
             <span class="post-card-meta">${escapeHtml(p.authorCharacterName)} — ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span>
           </div>
-          <div class="post-card-body sci-body" data-full="${escapeHtml(p.content || '')}">${escapeHtml(preview)}</div>
+          <div class="post-card-body sci-preview">${escapeHtml(preview)}${isTruncated ? '…' : ''}</div>
+          <div class="post-card-body sci-body-rendered" style="display:none;">${renderMarkdown(p.content)}</div>
           <div class="sci-card-actions">
-            ${isLong ? `<button class="btn ghost small sci-toggle-btn">Lire le rapport complet</button>` : ''}
+            <button class="btn ghost small sci-toggle-btn">Lire la fiche complète</button>
             ${p.isMine ? `<button class="btn danger small sci-delete-btn" data-publication-id="${escapeHtml(p.id)}">Supprimer</button>` : ''}
           </div>
         </div>
@@ -1129,20 +1169,22 @@
 
     container.querySelectorAll('.sci-toggle-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const bodyEl = btn.closest('.sci-card').querySelector('.sci-body');
-        const expanded = bodyEl.dataset.expanded === '1';
-        bodyEl.textContent = expanded ? `${bodyEl.dataset.full.slice(0, 320).trim()}…` : bodyEl.dataset.full;
-        bodyEl.dataset.expanded = expanded ? '0' : '1';
-        btn.textContent = expanded ? 'Lire le rapport complet' : 'Réduire';
+        const card = btn.closest('.sci-card');
+        const previewEl = card.querySelector('.sci-preview');
+        const renderedEl = card.querySelector('.sci-body-rendered');
+        const expanded = renderedEl.style.display !== 'none';
+        previewEl.style.display = expanded ? '' : 'none';
+        renderedEl.style.display = expanded ? 'none' : '';
+        btn.textContent = expanded ? 'Lire la fiche complète' : 'Réduire';
       });
     });
 
     container.querySelectorAll('.sci-delete-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
-        if (!confirm('Supprimer ce rapport ?')) return;
+        if (!confirm('Supprimer cette fiche ?')) return;
         try {
           await apiFetch(`/api/rp/science/publications/${encodeURIComponent(btn.dataset.publicationId)}`, { method: 'DELETE' });
-          showToast('Rapport supprimé.', 'success');
+          showToast('Fiche supprimée.', 'success');
           loadScienceModule();
         } catch (err) {
           showToast(`Erreur : ${err.message}`, 'error');
