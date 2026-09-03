@@ -511,6 +511,15 @@
   .urgency-moyenne{ background:rgba(240,168,60,0.12); color:var(--warn); }
   .urgency-haute{ background:rgba(240,82,90,0.12); color:var(--bad); }
 
+  .med-subnav{ display:flex; gap:4px; margin-bottom:24px; border-bottom:1px solid var(--line); }
+  .med-subnav-btn{
+    padding:9px 14px; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
+    color:var(--ink-faint); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .med-subnav-btn:hover{ color:var(--ink-dim); }
+  .med-subnav-btn.active{ color:var(--accent-2); border-bottom-color:var(--accent); }
+
   .dse-code-badge{ font-weight:700; letter-spacing:0.02em; }
 
   .redacted-text{
@@ -648,6 +657,12 @@
     radio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="3"/><path d="M6.5 8.5a8 8 0 0 1 11 0M4 6a11 11 0 0 1 16 0"/><path d="M9 4h6l-1 3H10z"/></svg>',
     folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2.2h8a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3.5 17.7z"/></svg>',
     badge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M8 13.5L6 22l6-3 6 3-2-8.5"/></svg>',
+    heartFile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3"/><path d="M9.5 12.3c-1-1-1-2.4 0-3.2.9-.8 2-.5 2.5.3.5-.8 1.6-1.1 2.5-.3 1 .8 1 2.2 0 3.2L12 15z"/></svg>',
+    cross: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M4 12h16"/></svg>',
+    alertTriangle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l9 15H3z"/><path d="M12 10v4M12 17v.01"/></svg>',
+    brain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5a2.5 2.5 0 0 0-2.5 2.5v.3A2.7 2.7 0 0 0 5 9.7v1.6a2.7 2.7 0 0 0 1.5 2.4v.3a3 3 0 0 0 3 3h1v-9.5A2.5 2.5 0 0 0 9 4.5z"/><path d="M15 4.5a2.5 2.5 0 0 1 2.5 2.5v.3a2.7 2.7 0 0 1 1.5 2.4v1.6a2.7 2.7 0 0 1-1.5 2.4v.3a3 3 0 0 1-3 3h-1v-9.5a2.5 2.5 0 0 1 1.5-2.5z"/></svg>',
+    scalpel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4L9 15"/><path d="M9 15L4 20l1.5-4.5z"/><path d="M15 4l5 5"/></svg>',
+    dna: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3c0 5 10 6 10 11 0 5-10 6-10 11M17 3c0 5-10 6-10 11 0 5 10 6 10 11"/><path d="M8 8h8M8 16h8"/></svg>',
   };
 
   function renderLoggedOut() {
@@ -853,7 +868,17 @@
     const deptCode = DEPT_CODES[deptId] || 'DEPT';
 
     const tabs = [{ id: 'bulletin', label: 'Bulletin', icon: 'bulletin' }, { id: 'effectifs', label: 'Effectifs', icon: 'people' }];
-    if (deptId === MEDICAL_DEPT_ID) tabs.push({ id: 'rdv', label: 'Rendez-vous', icon: 'rdv' });
+    if (deptId === MEDICAL_DEPT_ID) {
+      tabs.push({ id: 'rdv', label: 'Rendez-vous', icon: 'rdv' });
+      tabs.push({ id: 'med-records', label: 'Fiche Médicale', icon: 'heartFile' });
+      tabs.push({ id: 'med-deaths', label: 'Actes Décès', icon: 'cross' });
+      tabs.push({ id: 'med-classe-e', label: 'Classe-E', icon: 'alertTriangle' });
+      tabs.push({ id: 'med-documents', label: 'Documents', icon: 'folder' });
+      tabs.push({ id: 'med-specialties', label: 'Spécialités', icon: 'badge' });
+      tabs.push({ id: 'med-div-psy', label: 'PSY', icon: 'brain' });
+      tabs.push({ id: 'med-div-chi', label: 'CHI', icon: 'scalpel' });
+      tabs.push({ id: 'med-div-bio', label: 'BIO', icon: 'dna' });
+    }
     if (deptId === SECURITY_DEPT_ID) {
       tabs.push({ id: 'sec-reports', label: 'Rapport', icon: 'shield' });
       tabs.push({ id: 'sec-zc', label: 'Supervision ZC', icon: 'camera' });
@@ -944,6 +969,14 @@
     else if (tabId === 'sec-reinforcement') loadSecurityTicketModule('reinforcement');
     else if (tabId === 'sec-docs') loadSecurityDocs();
     else if (tabId === 'sec-service') loadSecurityService();
+    else if (tabId === 'med-records') loadMedicalRecords();
+    else if (tabId === 'med-deaths') loadMedicalDeaths();
+    else if (tabId === 'med-classe-e') loadClasseEFiles();
+    else if (tabId === 'med-documents') loadMedicalDocuments();
+    else if (tabId === 'med-specialties') loadMedicalSpecialties();
+    else if (tabId === 'med-div-psy') loadMedicalDivision('PSY');
+    else if (tabId === 'med-div-chi') loadMedicalDivision('CHI');
+    else if (tabId === 'med-div-bio') loadMedicalDivision('BIO');
   }
 
   // -----------------------------------------------------------------
@@ -993,6 +1026,14 @@
                   <tbody>
                     ${agents
                       .map((a) => {
+                        const rankCell = isDirector
+                          ? `<td>
+                              <div style="display:flex; gap:4px; align-items:center;">
+                                <input type="text" class="rp-agent-rank-input" data-agent-id="${escapeHtml(a.id)}" value="${escapeHtml(a.rank || '')}" style="padding:5px 8px; font-size:12px;">
+                                <button class="btn ghost small rp-agent-rank-save-btn" data-agent-id="${escapeHtml(a.id)}" title="Enregistrer le grade">✓</button>
+                              </div>
+                            </td>`
+                          : `<td>${escapeHtml(a.rank || '—')}</td>`;
                         const statusCell = isDirector
                           ? `<td>
                               <select class="rp-agent-status-select" data-agent-id="${escapeHtml(a.id)}" style="padding:5px 24px 5px 8px; font-size:12px;">
@@ -1003,7 +1044,7 @@
                             </td>
                             <td><button class="btn danger small rp-agent-remove-btn" data-agent-id="${escapeHtml(a.id)}">Retirer</button></td>`
                           : '';
-                        return `<tr><td>${escapeHtml(a.name || '—')}</td><td>${escapeHtml(a.rank || '—')}</td>${agents.some((x) => x.division) ? `<td>${escapeHtml(a.division || '—')}</td>` : ''}${statusCell}</tr>`;
+                        return `<tr><td>${escapeHtml(a.name || '—')}</td>${rankCell}${agents.some((x) => x.division) ? `<td>${escapeHtml(a.division || '—')}</td>` : ''}${statusCell}</tr>`;
                       })
                       .join('')}
                   </tbody>
@@ -1022,6 +1063,23 @@
                 body: JSON.stringify({ status: e.target.value }),
               });
               showToast('Statut mis à jour.', 'success');
+              loadDeptData(deptId, 'effectifs');
+            } catch (err) {
+              showToast(`Erreur : ${err.message}`, 'error');
+            }
+          });
+        });
+        main.querySelectorAll('.rp-agent-rank-save-btn').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const input = main.querySelector(`.rp-agent-rank-input[data-agent-id="${btn.dataset.agentId}"]`);
+            const rank = input.value.trim();
+            if (!rank) { showToast('Le grade ne peut pas être vide.', 'error'); return; }
+            try {
+              await apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}/agents/${encodeURIComponent(btn.dataset.agentId)}/rank`, {
+                method: 'PATCH',
+                body: JSON.stringify({ rank }),
+              });
+              showToast('Grade mis à jour.', 'success');
               loadDeptData(deptId, 'effectifs');
             } catch (err) {
               showToast(`Erreur : ${err.message}`, 'error');
@@ -1610,7 +1668,16 @@
             <span class="record-block-head-title">Docs DSE</span>
             <span class="count">${docs.length}${isDirector ? ' · Tri Directeur' : ''}</span>
           </div>
-          ${canManage ? '<button class="btn small" id="sec-doc-new-btn" type="button" style="width:100%; margin-top:10px;">+ Nouveau document</button>' : ''}
+          <div class="field-row" style="margin-top:10px;">
+            <select id="sec-doc-accred-filter">
+              <option value="">Toutes accréditations</option>
+              <option value="1">Accréd. 1</option>
+              <option value="2">Accréd. 2</option>
+              <option value="3">Accréd. 3</option>
+              <option value="4">Accréd. 4</option>
+            </select>
+          </div>
+          ${canManage ? '<button class="btn small" id="sec-doc-new-btn" type="button" style="width:100%; margin-top:6px;">+ Nouveau document</button>' : ''}
           <div class="wiki-toc-list" id="sec-doc-toc-list"></div>
         </div>
         <div class="wiki-article" id="sec-doc-article"></div>
@@ -1625,6 +1692,10 @@
       renderSecurityDocToc(canManage, isDirector);
       renderSecurityDocArticle(canManage);
     });
+
+    document.getElementById('sec-doc-accred-filter').addEventListener('change', (e) => {
+      renderSecurityDocToc(canManage, isDirector, e.target.value);
+    });
   }
 
   async function persistSecurityDocOrder() {
@@ -1638,37 +1709,41 @@
     }
   }
 
-  function renderSecurityDocToc(canManage, isDirector) {
+  function renderSecurityDocToc(canManage, isDirector, accredFilter) {
     const list = document.getElementById('sec-doc-toc-list');
-    if (!secDocsCache.length) {
-      list.innerHTML = '<div class="empty-row">Aucun document accessible à ton accréditation.</div>';
+    const filtered = accredFilter ? secDocsCache.filter((d) => String(d.minAccreditation) === String(accredFilter)) : secDocsCache;
+    const showReorder = isDirector && !accredFilter; // le tri manuel n'a de sens que sur la liste complète, non filtrée
+
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-row">Aucun document ne correspond.</div>';
       return;
     }
-    list.innerHTML = secDocsCache
-      .map(
-        (d, i) => `
+    list.innerHTML = filtered
+      .map((d) => {
+        const realIndex = secDocsCache.findIndex((x) => x.id === d.id);
+        return `
       <div class="wiki-toc-row">
         <button class="wiki-toc-item${d.id === secDocsSelectedId ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
           <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
           <span class="wiki-toc-meta">Accréd. ${d.minAccreditation} · ${escapeHtml(d.authorCharacterName)}</span>
         </button>
         ${
-          isDirector
+          showReorder
             ? `<div class="wiki-toc-reorder">
-                <button class="wiki-toc-arrow" data-move="up" data-index="${i}" type="button" ${i === 0 ? 'disabled' : ''} title="Monter">▲</button>
-                <button class="wiki-toc-arrow" data-move="down" data-index="${i}" type="button" ${i === secDocsCache.length - 1 ? 'disabled' : ''} title="Descendre">▼</button>
+                <button class="wiki-toc-arrow" data-move="up" data-index="${realIndex}" type="button" ${realIndex === 0 ? 'disabled' : ''} title="Monter">▲</button>
+                <button class="wiki-toc-arrow" data-move="down" data-index="${realIndex}" type="button" ${realIndex === secDocsCache.length - 1 ? 'disabled' : ''} title="Descendre">▼</button>
               </div>`
             : ''
         }
       </div>
-    `
-      )
+    `;
+      })
       .join('');
 
     list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
       btn.addEventListener('click', () => {
         secDocsSelectedId = btn.dataset.docId;
-        renderSecurityDocToc(canManage, isDirector);
+        renderSecurityDocToc(canManage, isDirector, accredFilter);
         renderSecurityDocArticle(canManage);
       });
     });
@@ -1680,7 +1755,7 @@
         const targetIndex = btn.dataset.move === 'up' ? index - 1 : index + 1;
         if (targetIndex < 0 || targetIndex >= secDocsCache.length) return;
         [secDocsCache[index], secDocsCache[targetIndex]] = [secDocsCache[targetIndex], secDocsCache[index]];
-        renderSecurityDocToc(canManage, isDirector);
+        renderSecurityDocToc(canManage, isDirector, accredFilter);
         await persistSecurityDocOrder();
       });
     });
@@ -1689,26 +1764,39 @@
   function renderSecurityDocArticle(canManage) {
     const article = document.getElementById('sec-doc-article');
 
-    if (secDocsSelectedId === 'new') {
+    if (secDocsSelectedId === 'new' || (typeof secDocsSelectedId === 'string' && secDocsSelectedId.startsWith('edit:'))) {
+      const isEdit = secDocsSelectedId.startsWith('edit:');
+      const editingDoc = isEdit ? secDocsCache.find((d) => d.id === secDocsSelectedId.slice(5)) : null;
+      if (isEdit && !editingDoc) { secDocsSelectedId = null; renderSecurityDocArticle(canManage); return; }
+
       article.innerHTML = `
-        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">Nouveau document</h3>
+        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">${isEdit ? 'Modifier le document' : 'Nouveau document'}</h3>
         <form id="sec-doc-form">
           <div class="field-grid">
-            <div class="field-row"><label>Titre *</label><input type="text" id="sec-doc-title" required></div>
+            <div class="field-row"><label>Titre *</label><input type="text" id="sec-doc-title" required value="${isEdit ? escapeHtml(editingDoc.title) : ''}"></div>
             <div class="field-row">
               <label>Accréditation minimale</label>
               <select id="sec-doc-accreditation">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
+                <option value="1"${isEdit && editingDoc.minAccreditation === 1 ? ' selected' : ''}>1</option>
+                <option value="2"${isEdit && editingDoc.minAccreditation === 2 ? ' selected' : ''}>2</option>
+                <option value="3"${isEdit && editingDoc.minAccreditation === 3 ? ' selected' : ''}>3</option>
+                <option value="4"${isEdit && editingDoc.minAccreditation === 4 ? ' selected' : ''}>4</option>
               </select>
             </div>
           </div>
-          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="sec-doc-content" rows="12" required></textarea></div>
-          <button class="btn" type="submit">Publier le document</button>
+          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="sec-doc-content" rows="12" required>${isEdit ? escapeHtml(editingDoc.content) : ''}</textarea></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" type="submit">${isEdit ? 'Enregistrer les modifications' : 'Publier le document'}</button>
+            ${isEdit ? '<button class="btn ghost" type="button" id="sec-doc-cancel-edit-btn">Annuler</button>' : ''}
+          </div>
         </form>
       `;
+
+      document.getElementById('sec-doc-cancel-edit-btn')?.addEventListener('click', () => {
+        secDocsSelectedId = isEdit ? editingDoc.id : null;
+        renderSecurityDocArticle(canManage);
+      });
+
       document.getElementById('sec-doc-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = document.getElementById('sec-doc-title').value.trim();
@@ -1716,9 +1804,18 @@
         const minAccreditation = document.getElementById('sec-doc-accreditation').value;
         if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
         try {
-          await apiFetch('/api/rp/security/docs', { method: 'POST', body: JSON.stringify({ title, content, minAccreditation }) });
-          showToast('Document publié.', 'success');
-          secDocsSelectedId = null;
+          if (isEdit) {
+            await apiFetch(`/api/rp/security/docs/${encodeURIComponent(editingDoc.id)}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ title, content, minAccreditation }),
+            });
+            showToast('Document modifié.', 'success');
+            secDocsSelectedId = editingDoc.id;
+          } else {
+            await apiFetch('/api/rp/security/docs', { method: 'POST', body: JSON.stringify({ title, content, minAccreditation }) });
+            showToast('Document publié.', 'success');
+            secDocsSelectedId = null;
+          }
           loadSecurityDocs();
         } catch (err) {
           showToast(`Erreur : ${err.message}`, 'error');
@@ -1738,8 +1835,20 @@
       <h2 class="wiki-article-title">${escapeHtml(doc.title)}</h2>
       <div class="post-card-meta" style="margin-bottom:20px;">${escapeHtml(doc.authorCharacterName)} — ${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
       <div class="sci-body-rendered">${highlightDseCodes(renderMarkdown(doc.content))}</div>
-      ${canManage ? `<div class="sci-card-actions" style="margin-top:24px;"><button class="btn danger small" id="sec-doc-delete-btn">Supprimer ce document</button></div>` : ''}
+      ${
+        canManage
+          ? `<div class="sci-card-actions" style="margin-top:24px;">
+              <button class="btn ghost small" id="sec-doc-edit-btn">Modifier</button>
+              <button class="btn danger small" id="sec-doc-delete-btn">Supprimer ce document</button>
+            </div>`
+          : ''
+      }
     `;
+
+    document.getElementById('sec-doc-edit-btn')?.addEventListener('click', () => {
+      secDocsSelectedId = `edit:${doc.id}`;
+      renderSecurityDocArticle(canManage);
+    });
 
     document.getElementById('sec-doc-delete-btn')?.addEventListener('click', async () => {
       if (!confirm('Supprimer ce document ?')) return;
@@ -1835,6 +1944,871 @@
         await apiFetch('/api/rp/security/service', { method: 'POST', body: JSON.stringify({ action: 'end' }) });
         showToast('Service terminé.', 'success');
         loadSecurityService();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Médical — Fiche Médicale (confidentiel)
+  // -----------------------------------------------------------------
+  async function loadMedicalRecords() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/medical-ops/records');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const records = data.records || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${records.length}</div><div class="stat-label">Fiches</div></div>
+      <div class="stat-cell"><div class="stat-value">CONF</div><div class="stat-label">Accès</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = records.length
+      ? records.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.characterName)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune fiche.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Fiche Médicale</h2><span class="count">${records.length}</span></div>
+        <input type="text" id="med-records-search" placeholder="Rechercher un personnage..." style="margin-bottom:14px;">
+        <div id="med-records-list"></div>
+      </div>
+      <div class="subsection">
+        <h3>Ajouter une entrée</h3>
+        <form id="med-record-form">
+          <div class="field-row"><label>Personnage *</label><input type="text" id="med-record-name" required></div>
+          <div class="field-row"><label>Notes médicales</label><textarea id="med-record-content" rows="5"></textarea></div>
+          <button class="btn" type="submit">Enregistrer</button>
+        </form>
+      </div>
+    `;
+
+    function renderList(filtered) {
+      const list = document.getElementById('med-records-list');
+      list.innerHTML = filtered.length
+        ? filtered
+            .map(
+              (r) => `
+        <div class="post-card">
+          <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.characterName)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span></div>
+          <div class="post-card-body">${escapeHtml(r.content || '')}</div>
+        </div>
+      `
+            )
+            .join('')
+        : '<div class="empty-row">Aucune fiche ne correspond.</div>';
+    }
+    renderList(records);
+
+    document.getElementById('med-records-search').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      renderList(records.filter((r) => (r.characterName || '').toLowerCase().includes(q)));
+    });
+
+    document.getElementById('med-record-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const characterName = document.getElementById('med-record-name').value.trim();
+      const content = document.getElementById('med-record-content').value.trim();
+      if (!characterName) { showToast('Le nom du personnage est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/medical-ops/records', { method: 'POST', body: JSON.stringify({ characterName, content }) });
+        showToast('Fiche enregistrée.', 'success');
+        loadMedicalRecords();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Médical — Actes Décès (confidentiel)
+  // -----------------------------------------------------------------
+  async function loadMedicalDeaths() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/medical-ops/deaths');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const deaths = data.deaths || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${deaths.length}</div><div class="stat-label">Actes</div></div>
+      <div class="stat-cell"><div class="stat-value">CONF</div><div class="stat-label">Accès</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = deaths.length
+      ? deaths.slice(0, 4).map((d) => `<div class="journal-entry"><span class="journal-time">${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(d.characterName)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun acte.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Actes de décès</h2><span class="count">${deaths.length}</span></div>
+        ${
+          deaths.length
+            ? deaths
+                .map(
+                  (d) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(d.characterName)}</span><span class="post-card-meta">${escapeHtml(d.authorCharacterName)} — ${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : ''}</span></div>
+            <div class="post-card-meta" style="margin-bottom:6px;">Cause : ${escapeHtml(d.causeOfDeath || '—')}</div>
+            <div class="post-card-body">${escapeHtml(d.notes || '')}</div>
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucun acte de décès enregistré.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Établir un acte de décès</h3>
+        <form id="med-death-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Personnage *</label><input type="text" id="med-death-name" required></div>
+            <div class="field-row"><label>Cause du décès</label><input type="text" id="med-death-cause"></div>
+          </div>
+          <div class="field-row"><label>Notes</label><textarea id="med-death-notes" rows="4"></textarea></div>
+          <button class="btn" type="submit">Établir l'acte</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('med-death-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const characterName = document.getElementById('med-death-name').value.trim();
+      const causeOfDeath = document.getElementById('med-death-cause').value.trim();
+      const notes = document.getElementById('med-death-notes').value.trim();
+      if (!characterName) { showToast('Le nom du personnage est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/medical-ops/deaths', { method: 'POST', body: JSON.stringify({ characterName, causeOfDeath, notes }) });
+        showToast('Acte établi.', 'success');
+        loadMedicalDeaths();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Médical — Fiches Classe-E (confidentiel)
+  // -----------------------------------------------------------------
+  async function loadClasseEFiles() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/medical-ops/classe-e');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const files = data.files || [];
+    const enCours = files.filter((f) => f.quarantineStatus !== 'terminee');
+    const terminees = files.filter((f) => f.quarantineStatus === 'terminee');
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${enCours.length}</div><div class="stat-label">En quarantaine</div></div>
+      <div class="stat-cell"><div class="stat-value">${files.length}</div><div class="stat-label">Total</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = files.length
+      ? files.slice(0, 4).map((f) => `<div class="journal-entry"><span class="journal-time">${f.createdAt ? new Date(f.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(f.characterName)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune fiche.</span></div>';
+
+    function fileCard(f) {
+      return `
+        <div class="post-card" data-file-id="${escapeHtml(f.id)}">
+          <div class="post-card-head">
+            <span class="post-card-title">${escapeHtml(f.characterName)}</span>
+            <span class="status-pill ${f.quarantineStatus === 'terminee' ? 'status-open' : 'status-taken'}">${f.quarantineStatus === 'terminee' ? 'Terminée' : 'En cours'}</span>
+          </div>
+          <div class="post-card-meta" style="margin-bottom:6px;">Anomalie : ${escapeHtml(f.anomalyInvolved || '—')}${f.contactDate ? ` — Contact : ${escapeHtml(f.contactDate)}` : ''}</div>
+          <div class="post-card-body">${escapeHtml(f.notes || '')}</div>
+          ${f.quarantineStatus !== 'terminee' ? `<div class="sci-card-actions"><button class="btn small med-classee-end-btn" data-file-id="${escapeHtml(f.id)}">Marquer terminée</button></div>` : ''}
+        </div>
+      `;
+    }
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>En quarantaine</h2><span class="count">${enCours.length}</span></div>
+        ${enCours.length ? enCours.map(fileCard).join('') : '<div class="empty-row">Aucune quarantaine en cours.</div>'}
+      </div>
+      ${
+        terminees.length
+          ? `<div class="record-block">
+              <div class="record-block-head"><h2>Terminées</h2><span class="count">${terminees.length}</span></div>
+              ${terminees.slice(0, 10).map(fileCard).join('')}
+            </div>`
+          : ''
+      }
+      <div class="subsection">
+        <h3>Ouvrir une fiche Classe-E</h3>
+        <form id="med-classee-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Personnage *</label><input type="text" id="med-classee-name" required></div>
+            <div class="field-row"><label>Date de contact</label><input type="text" id="med-classee-date" placeholder="JJ/MM/AAAA"></div>
+          </div>
+          <div class="field-row"><label>Anomalie impliquée</label><input type="text" id="med-classee-anomaly" placeholder="Ex: SCP-1547"></div>
+          <div class="field-row"><label>Notes</label><textarea id="med-classee-notes" rows="4"></textarea></div>
+          <button class="btn" type="submit">Ouvrir la fiche</button>
+        </form>
+      </div>
+    `;
+
+    main.querySelectorAll('.med-classee-end-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/medical-ops/classe-e/${encodeURIComponent(btn.dataset.fileId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ quarantineStatus: 'terminee' }),
+          });
+          showToast('Quarantaine terminée.', 'success');
+          loadClasseEFiles();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('med-classee-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const characterName = document.getElementById('med-classee-name').value.trim();
+      const contactDate = document.getElementById('med-classee-date').value.trim();
+      const anomalyInvolved = document.getElementById('med-classee-anomaly').value.trim();
+      const notes = document.getElementById('med-classee-notes').value.trim();
+      if (!characterName) { showToast('Le nom du personnage est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/medical-ops/classe-e', { method: 'POST', body: JSON.stringify({ characterName, anomalyInvolved, contactDate, notes }) });
+        showToast('Fiche ouverte.', 'success');
+        loadClasseEFiles();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Médical — Documents Médicaux (FIM peut lire)
+  // -----------------------------------------------------------------
+  let medDocsSelectedId = null;
+  let medDocsCache = [];
+
+  async function loadMedicalDocuments() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/medical-ops/documents');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { documents, canManage } = data;
+    medDocsCache = documents;
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${documents.length}</div><div class="stat-label">Documents</div></div>
+      <div class="stat-cell"><div class="stat-value">${canManage ? 'OUI' : 'NON'}</div><div class="stat-label">Autorisé</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = documents.length
+      ? documents.slice(0, 4).map((d) => `<div class="journal-entry"><span class="journal-time">${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(d.title)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun document.</span></div>';
+
+    main.innerHTML = `
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Documents Médicaux</span><span class="count">${documents.length}</span></div>
+          ${canManage ? '<button class="btn small" id="med-doc-new-btn" type="button" style="width:100%; margin-top:10px;">+ Nouveau document</button>' : ''}
+          <div class="wiki-toc-list" id="med-doc-toc-list"></div>
+        </div>
+        <div class="wiki-article" id="med-doc-article"></div>
+      </div>
+    `;
+    renderMedDocToc(canManage);
+    renderMedDocArticle(canManage);
+    document.getElementById('med-doc-new-btn')?.addEventListener('click', () => {
+      medDocsSelectedId = 'new';
+      renderMedDocToc(canManage);
+      renderMedDocArticle(canManage);
+    });
+  }
+
+  function renderMedDocToc(canManage) {
+    const list = document.getElementById('med-doc-toc-list');
+    if (!medDocsCache.length) { list.innerHTML = '<div class="empty-row">Aucun document.</div>'; return; }
+    list.innerHTML = medDocsCache
+      .map(
+        (d) => `
+      <button class="wiki-toc-item${d.id === medDocsSelectedId ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
+        <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
+        <span class="wiki-toc-meta">${escapeHtml(d.authorCharacterName)}</span>
+      </button>
+    `
+      )
+      .join('');
+    list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        medDocsSelectedId = btn.dataset.docId;
+        renderMedDocToc(canManage);
+        renderMedDocArticle(canManage);
+      });
+    });
+  }
+
+  function renderMedDocArticle(canManage) {
+    const article = document.getElementById('med-doc-article');
+    if (medDocsSelectedId === 'new' || (typeof medDocsSelectedId === 'string' && medDocsSelectedId.startsWith('edit:'))) {
+      const isEdit = medDocsSelectedId.startsWith('edit:');
+      const editingDoc = isEdit ? medDocsCache.find((d) => d.id === medDocsSelectedId.slice(5)) : null;
+      article.innerHTML = `
+        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">${isEdit ? 'Modifier' : 'Nouveau document'}</h3>
+        <form id="med-doc-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="med-doc-title" required value="${isEdit ? escapeHtml(editingDoc.title) : ''}"></div>
+          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="med-doc-content" rows="12" required>${isEdit ? escapeHtml(editingDoc.content) : ''}</textarea></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" type="submit">${isEdit ? 'Enregistrer' : 'Publier'}</button>
+            ${isEdit ? '<button class="btn ghost" type="button" id="med-doc-cancel-btn">Annuler</button>' : ''}
+          </div>
+        </form>
+      `;
+      document.getElementById('med-doc-cancel-btn')?.addEventListener('click', () => {
+        medDocsSelectedId = isEdit ? editingDoc.id : null;
+        renderMedDocArticle(canManage);
+      });
+      document.getElementById('med-doc-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('med-doc-title').value.trim();
+        const content = document.getElementById('med-doc-content').value.trim();
+        if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
+        try {
+          if (isEdit) {
+            await apiFetch(`/api/rp/medical-ops/documents/${encodeURIComponent(editingDoc.id)}`, { method: 'PATCH', body: JSON.stringify({ title, content }) });
+            showToast('Document modifié.', 'success');
+            medDocsSelectedId = editingDoc.id;
+          } else {
+            await apiFetch('/api/rp/medical-ops/documents', { method: 'POST', body: JSON.stringify({ title, content }) });
+            showToast('Document publié.', 'success');
+            medDocsSelectedId = null;
+          }
+          loadMedicalDocuments();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      return;
+    }
+
+    const doc = medDocsCache.find((d) => d.id === medDocsSelectedId);
+    if (!doc) {
+      article.innerHTML = `<div class="wiki-empty"><div class="wiki-empty-title">Documents Médicaux</div><p>Sélectionne un document${canManage ? ', ou clique sur "+ Nouveau document".' : '.'}</p></div>`;
+      return;
+    }
+    article.innerHTML = `
+      <h2 class="wiki-article-title">${escapeHtml(doc.title)}</h2>
+      <div class="post-card-meta" style="margin-bottom:20px;">${escapeHtml(doc.authorCharacterName)} — ${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
+      <div class="sci-body-rendered">${renderMarkdown(doc.content)}</div>
+      ${canManage ? `<div class="sci-card-actions" style="margin-top:24px;"><button class="btn ghost small" id="med-doc-edit-btn">Modifier</button><button class="btn danger small" id="med-doc-delete-btn">Supprimer</button></div>` : ''}
+    `;
+    document.getElementById('med-doc-edit-btn')?.addEventListener('click', () => {
+      medDocsSelectedId = `edit:${doc.id}`;
+      renderMedDocArticle(canManage);
+    });
+    document.getElementById('med-doc-delete-btn')?.addEventListener('click', async () => {
+      if (!confirm('Supprimer ce document ?')) return;
+      try {
+        await apiFetch(`/api/rp/medical-ops/documents/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+        showToast('Document supprimé.', 'success');
+        medDocsSelectedId = null;
+        loadMedicalDocuments();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Médical — Spécialités (annuaire, FIM peut lire)
+  // -----------------------------------------------------------------
+  async function loadMedicalSpecialties() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/medical-ops/specialties');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { specialties, canManage } = data;
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${specialties.length}</div><div class="stat-label">Entrées</div></div>
+      <div class="stat-cell"><div class="stat-value">MED</div><div class="stat-label">Annuaire</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = specialties.length
+      ? specialties.slice(0, 4).map((s) => `<div class="journal-entry"><span class="journal-time">${s.createdAt ? new Date(s.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(s.characterName)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune entrée.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Annuaire des spécialités</h2><span class="count">${specialties.length}</span></div>
+        ${
+          specialties.length
+            ? `<table>
+                <thead><tr><th>Personnage</th><th>Spécialité</th><th>Notes</th>${canManage ? '<th></th>' : ''}</tr></thead>
+                <tbody>
+                  ${specialties
+                    .map(
+                      (s) => `
+                    <tr>
+                      <td>${escapeHtml(s.characterName)}</td>
+                      <td>${escapeHtml(s.specialty)}</td>
+                      <td>${escapeHtml(s.notes || '—')}</td>
+                      ${canManage ? `<td>${s.isMine ? `<button class="btn danger small med-spec-delete-btn" data-spec-id="${escapeHtml(s.id)}">Retirer</button>` : ''}</td>` : ''}
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucune spécialité enregistrée.</div>'
+        }
+      </div>
+      ${
+        canManage
+          ? `<div class="subsection">
+              <h3>Ajouter ma spécialité</h3>
+              <form id="med-spec-form">
+                <div class="field-row"><label>Spécialité *</label><input type="text" id="med-spec-specialty" required placeholder="Ex: Traumatologie de terrain"></div>
+                <div class="field-row"><label>Notes</label><input type="text" id="med-spec-notes" placeholder="Optionnel"></div>
+                <button class="btn" type="submit">Ajouter</button>
+              </form>
+            </div>`
+          : ''
+      }
+    `;
+
+    main.querySelectorAll('.med-spec-delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/medical-ops/specialties/${encodeURIComponent(btn.dataset.specId)}`, { method: 'DELETE' });
+          showToast('Spécialité retirée.', 'success');
+          loadMedicalSpecialties();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('med-spec-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const specialty = document.getElementById('med-spec-specialty').value.trim();
+      const notes = document.getElementById('med-spec-notes').value.trim();
+      if (!specialty) { showToast('La spécialité est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/medical-ops/specialties', { method: 'POST', body: JSON.stringify({ specialty, notes }) });
+        showToast('Spécialité ajoutée.', 'success');
+        loadMedicalSpecialties();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Médical — Divisions PSY / CHI / BIO (Manuel, Dossier Patients,
+  // Rapports, + Examens PPA pour PSY uniquement)
+  // -----------------------------------------------------------------
+  const medDivisionSubTab = {};
+  let medManuelSelected = {};
+  let medManuelCache = {};
+
+  function loadMedicalDivision(division) {
+    if (!medDivisionSubTab[division]) medDivisionSubTab[division] = 'manuel';
+    renderMedicalDivisionShell(division);
+  }
+
+  function renderMedicalDivisionShell(division) {
+    const main = document.getElementById('terminal-main');
+    const subTabs = [
+      { id: 'manuel', label: 'Manuel' },
+      { id: 'patients', label: 'Dossier Patients' },
+      { id: 'rapports', label: 'Rapports' },
+    ];
+    if (division === 'PSY') subTabs.push({ id: 'ppa', label: 'Examens PPA' });
+
+    main.innerHTML = `
+      <div class="med-subnav">
+        ${subTabs.map((t) => `<button class="med-subnav-btn${medDivisionSubTab[division] === t.id ? ' active' : ''}" data-sub="${t.id}" type="button">${t.label}</button>`).join('')}
+      </div>
+      <div id="med-division-content"></div>
+    `;
+    main.querySelectorAll('.med-subnav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        medDivisionSubTab[division] = btn.dataset.sub;
+        renderMedicalDivisionShell(division);
+      });
+    });
+
+    const sub = medDivisionSubTab[division];
+    if (sub === 'manuel') loadDivisionManuel(division);
+    else if (sub === 'patients') loadDivisionPatients(division);
+    else if (sub === 'rapports') loadDivisionReports(division);
+    else if (sub === 'ppa') loadPpaExams();
+  }
+
+  async function loadDivisionManuel(division) {
+    const content = document.getElementById('med-division-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch(`/api/rp/medical-ops/division/${division}/docs`);
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { docs, canManage } = data;
+    medManuelCache[division] = docs;
+
+    content.innerHTML = `
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Manuel ${division}</span><span class="count">${docs.length}</span></div>
+          ${canManage ? `<button class="btn small" id="med-manuel-new-btn" type="button" style="width:100%; margin-top:10px;">+ Nouveau document</button>` : ''}
+          <div class="wiki-toc-list" id="med-manuel-toc-list"></div>
+        </div>
+        <div class="wiki-article" id="med-manuel-article"></div>
+      </div>
+    `;
+    renderMedManuelToc(division, canManage);
+    renderMedManuelArticle(division, canManage);
+    document.getElementById('med-manuel-new-btn')?.addEventListener('click', () => {
+      medManuelSelected[division] = 'new';
+      renderMedManuelToc(division, canManage);
+      renderMedManuelArticle(division, canManage);
+    });
+  }
+
+  function renderMedManuelToc(division, canManage) {
+    const list = document.getElementById('med-manuel-toc-list');
+    const docs = medManuelCache[division] || [];
+    if (!docs.length) { list.innerHTML = '<div class="empty-row">Aucun document.</div>'; return; }
+    list.innerHTML = docs
+      .map(
+        (d) => `
+      <button class="wiki-toc-item${medManuelSelected[division] === d.id ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
+        <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
+        <span class="wiki-toc-meta">${escapeHtml(d.authorCharacterName)}</span>
+      </button>
+    `
+      )
+      .join('');
+    list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        medManuelSelected[division] = btn.dataset.docId;
+        renderMedManuelToc(division, canManage);
+        renderMedManuelArticle(division, canManage);
+      });
+    });
+  }
+
+  function renderMedManuelArticle(division, canManage) {
+    const article = document.getElementById('med-manuel-article');
+    const sel = medManuelSelected[division];
+    const docs = medManuelCache[division] || [];
+
+    if (sel === 'new' || (typeof sel === 'string' && sel.startsWith('edit:'))) {
+      const isEdit = sel.startsWith('edit:');
+      const editingDoc = isEdit ? docs.find((d) => d.id === sel.slice(5)) : null;
+      article.innerHTML = `
+        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">${isEdit ? 'Modifier le document' : 'Nouveau document'}</h3>
+        <form id="med-manuel-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="med-manuel-title" required value="${isEdit ? escapeHtml(editingDoc.title) : ''}"></div>
+          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="med-manuel-content" rows="12" required>${isEdit ? escapeHtml(editingDoc.content) : ''}</textarea></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" type="submit">${isEdit ? 'Enregistrer' : 'Publier'}</button>
+            ${isEdit ? '<button class="btn ghost" type="button" id="med-manuel-cancel-btn">Annuler</button>' : ''}
+          </div>
+        </form>
+      `;
+      document.getElementById('med-manuel-cancel-btn')?.addEventListener('click', () => {
+        medManuelSelected[division] = isEdit ? editingDoc.id : null;
+        renderMedManuelArticle(division, canManage);
+      });
+      document.getElementById('med-manuel-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('med-manuel-title').value.trim();
+        const content = document.getElementById('med-manuel-content').value.trim();
+        if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
+        try {
+          if (isEdit) {
+            await apiFetch(`/api/rp/medical-ops/division/${division}/docs/${encodeURIComponent(editingDoc.id)}`, { method: 'PATCH', body: JSON.stringify({ title, content }) });
+            showToast('Document modifié.', 'success');
+            medManuelSelected[division] = editingDoc.id;
+          } else {
+            await apiFetch(`/api/rp/medical-ops/division/${division}/docs`, { method: 'POST', body: JSON.stringify({ title, content }) });
+            showToast('Document publié.', 'success');
+            medManuelSelected[division] = null;
+          }
+          loadDivisionManuel(division);
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      return;
+    }
+
+    const doc = docs.find((d) => d.id === sel);
+    if (!doc) {
+      article.innerHTML = `<div class="wiki-empty"><div class="wiki-empty-title">Manuel ${division}</div><p>Sélectionne un document${canManage ? ', ou clique sur "+ Nouveau document".' : '.'}</p></div>`;
+      return;
+    }
+    article.innerHTML = `
+      <h2 class="wiki-article-title">${escapeHtml(doc.title)}</h2>
+      <div class="post-card-meta" style="margin-bottom:20px;">${escapeHtml(doc.authorCharacterName)} — ${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
+      <div class="sci-body-rendered">${renderMarkdown(doc.content)}</div>
+      ${canManage ? `<div class="sci-card-actions" style="margin-top:24px;"><button class="btn ghost small" id="med-manuel-edit-btn">Modifier</button><button class="btn danger small" id="med-manuel-delete-btn">Supprimer</button></div>` : ''}
+    `;
+    document.getElementById('med-manuel-edit-btn')?.addEventListener('click', () => {
+      medManuelSelected[division] = `edit:${doc.id}`;
+      renderMedManuelArticle(division, canManage);
+    });
+    document.getElementById('med-manuel-delete-btn')?.addEventListener('click', async () => {
+      if (!confirm('Supprimer ce document ?')) return;
+      try {
+        await apiFetch(`/api/rp/medical-ops/division/${division}/docs/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+        showToast('Document supprimé.', 'success');
+        medManuelSelected[division] = null;
+        loadDivisionManuel(division);
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  async function loadDivisionPatients(division) {
+    const content = document.getElementById('med-division-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch(`/api/rp/medical-ops/division/${division}/patients`);
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const patients = data.patients || [];
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Dossier Patients ${division}</h2><span class="count">${patients.length}</span></div>
+        ${
+          patients.length
+            ? patients
+                .map(
+                  (p) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(p.patientCharacterName)}</span><span class="post-card-meta">${escapeHtml(p.authorCharacterName)} — ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span></div>
+            <div class="post-card-body">${escapeHtml(p.content || '')}</div>
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucun dossier patient enregistré.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Nouveau dossier patient</h3>
+        <form id="med-patient-form">
+          <div class="field-row"><label>Patient (personnage) *</label><input type="text" id="med-patient-name" required></div>
+          <div class="field-row"><label>Notes / observations</label><textarea id="med-patient-content" rows="5"></textarea></div>
+          <button class="btn" type="submit">Enregistrer</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('med-patient-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const patientCharacterName = document.getElementById('med-patient-name').value.trim();
+      const contentVal = document.getElementById('med-patient-content').value.trim();
+      if (!patientCharacterName) { showToast('Le nom du patient est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch(`/api/rp/medical-ops/division/${division}/patients`, { method: 'POST', body: JSON.stringify({ patientCharacterName, content: contentVal }) });
+        showToast('Dossier enregistré.', 'success');
+        loadDivisionPatients(division);
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  async function loadDivisionReports(division) {
+    const content = document.getElementById('med-division-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch(`/api/rp/medical-ops/division/${division}/reports`);
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { reports, canManage } = data;
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rapports ${division}</h2><span class="count">${reports.length}</span></div>
+        ${
+          reports.length
+            ? reports
+                .map(
+                  (r) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.title)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : ''}</span></div>
+            <div class="post-card-body">${escapeHtml(r.content || '')}</div>
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucun rapport.</div>'
+        }
+      </div>
+      ${
+        canManage
+          ? `<div class="subsection">
+              <h3>Rédiger un rapport</h3>
+              <form id="med-report-form">
+                <div class="field-row"><label>Titre *</label><input type="text" id="med-report-title" required></div>
+                <div class="field-row"><label>Contenu</label><textarea id="med-report-content" rows="6"></textarea></div>
+                <button class="btn" type="submit">Publier</button>
+              </form>
+            </div>`
+          : ''
+      }
+    `;
+
+    document.getElementById('med-report-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('med-report-title').value.trim();
+      const contentVal = document.getElementById('med-report-content').value.trim();
+      if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch(`/api/rp/medical-ops/division/${division}/reports`, { method: 'POST', body: JSON.stringify({ title, content: contentVal }) });
+        showToast('Rapport publié.', 'success');
+        loadDivisionReports(division);
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  async function loadPpaExams() {
+    const content = document.getElementById('med-division-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/medical-ops/ppa');
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { exams, canExamine, canValidate } = data;
+    const pending = exams.filter((e) => e.status !== 'validated');
+    const validated = exams.filter((e) => e.status === 'validated');
+
+    function examCard(e) {
+      return `
+        <div class="post-card" data-exam-id="${escapeHtml(e.id)}">
+          <div class="post-card-head">
+            <span class="post-card-title">${escapeHtml(e.targetCharacterName)}</span>
+            <span class="status-pill ${e.status === 'validated' ? 'status-open' : 'status-taken'}">${e.status === 'validated' ? 'Validé' : 'En attente'}</span>
+          </div>
+          <div class="post-card-meta" style="margin-bottom:6px;">Examinateur : ${escapeHtml(e.examinerCharacterName)} — ${e.createdAt ? new Date(e.createdAt).toLocaleDateString('fr-FR') : ''}</div>
+          ${e.result ? `<div class="post-card-meta" style="margin-bottom:6px;">Résultat : ${escapeHtml(e.result)}</div>` : ''}
+          <div class="post-card-body">${escapeHtml(e.content || '')}</div>
+          ${
+            e.status === 'validated'
+              ? `<div class="post-card-meta" style="margin-top:8px;">Validé par ${escapeHtml(e.validatedBy || '—')}</div>`
+              : canValidate
+              ? `<div class="sci-card-actions"><button class="btn small med-ppa-validate-btn" data-exam-id="${escapeHtml(e.id)}">Valider</button></div>`
+              : ''
+          }
+        </div>
+      `;
+    }
+
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Examens PPA — en attente</h2><span class="count">${pending.length}</span></div>
+        ${pending.length ? pending.map(examCard).join('') : '<div class="empty-row">Aucun examen en attente.</div>'}
+      </div>
+      ${
+        validated.length
+          ? `<div class="record-block">
+              <div class="record-block-head"><h2>Validés</h2><span class="count">${validated.length}</span></div>
+              ${validated.slice(0, 10).map(examCard).join('')}
+            </div>`
+          : ''
+      }
+      ${
+        canExamine
+          ? `<div class="subsection">
+              <h3>Nouvel examen PPA</h3>
+              <form id="med-ppa-form">
+                <div class="field-row"><label>Personnage examiné *</label><input type="text" id="med-ppa-target" required></div>
+                <div class="field-row"><label>Résultat</label><input type="text" id="med-ppa-result" placeholder="Ex: Apte / Inapte / Sous surveillance"></div>
+                <div class="field-row"><label>Notes d'examen</label><textarea id="med-ppa-content" rows="6"></textarea></div>
+                <button class="btn" type="submit">Soumettre l'examen</button>
+              </form>
+            </div>`
+          : ''
+      }
+    `;
+
+    content.querySelectorAll('.med-ppa-validate-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/medical-ops/ppa/${encodeURIComponent(btn.dataset.examId)}/validate`, { method: 'PATCH' });
+          showToast('Examen validé.', 'success');
+          loadPpaExams();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('med-ppa-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const targetCharacterName = document.getElementById('med-ppa-target').value.trim();
+      const result = document.getElementById('med-ppa-result').value.trim();
+      const contentVal = document.getElementById('med-ppa-content').value.trim();
+      if (!targetCharacterName) { showToast('Le nom du personnage examiné est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/medical-ops/ppa', { method: 'POST', body: JSON.stringify({ targetCharacterName, result, content: contentVal }) });
+        showToast('Examen soumis.', 'success');
+        loadPpaExams();
       } catch (err) {
         showToast(`Erreur : ${err.message}`, 'error');
       }
