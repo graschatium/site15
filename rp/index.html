@@ -190,6 +190,33 @@
   .selector-head p{ color:var(--ink-dim); font-size:14px; }
 
   .selector-grid{ max-width:720px; margin:0 auto; display:flex; flex-direction:column; gap:12px; }
+
+  /* ---------- Menu principal (2 boutons Départements / Archives) ---------- */
+  .topchoice-grid{
+    max-width:760px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:18px;
+  }
+  .topchoice-card{
+    display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:14px;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:30px 26px;
+    cursor:pointer; font-family:'Inter', sans-serif; color:inherit;
+    transition:border-color .22s ease, transform .18s ease, background .22s ease, box-shadow .22s ease;
+  }
+  .topchoice-card:hover{
+    border-color:var(--accent); transform:translateY(-3px); background:var(--panel-raised);
+    box-shadow:0 16px 40px rgba(110,118,255,0.14);
+  }
+  .topchoice-icon{
+    width:52px; height:52px; border-radius:10px; background:var(--accent-soft); border:1px solid rgba(110,118,255,0.25);
+    display:flex; align-items:center; justify-content:center; color:var(--accent-2);
+  }
+  .topchoice-icon svg{ width:24px; height:24px; }
+  .topchoice-title{ font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:600; }
+  .topchoice-desc{ font-size:13px; color:var(--ink-dim); line-height:1.6; }
+
+  @media (max-width:640px){
+    .topchoice-grid{ grid-template-columns:1fr; }
+  }
+
   .selector-card{
     display:flex; align-items:center; justify-content:space-between; gap:16px;
     background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px 22px;
@@ -553,6 +580,39 @@
   // un accès FIM (lecture, sans forcément avoir de perso dans ce dept)
   // sont tous deux proposés comme des cartes distinctes.
   // -----------------------------------------------------------------
+  function renderTopChoice() {
+    mainRoot.innerHTML = `
+      <div class="selector-screen">
+        <div class="selector-head">
+          <span class="eyebrow">Site-15 // Menu principal</span>
+          <h1>Que veux-tu consulter ?</h1>
+          <p>Connecte-toi à l'intranet de ton département, ou consulte les archives fondationnaires communes.</p>
+        </div>
+        <div class="topchoice-grid">
+          <button class="topchoice-card" id="topchoice-depts" type="button">
+            <div class="topchoice-icon">${ICONS.building}</div>
+            <div class="topchoice-title">Départements</div>
+            <div class="topchoice-desc">Connecte-toi à l'intranet de ton département avec l'un de tes personnages actifs.</div>
+          </button>
+          <button class="topchoice-card" id="topchoice-archives" type="button">
+            <div class="topchoice-icon">${ICONS.flask}</div>
+            <div class="topchoice-title">Archives Fondationnaires</div>
+            <div class="topchoice-desc">Consulte les fiches d'objets publiées par le département Scientifique — accessible à tous.</div>
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('topchoice-depts').addEventListener('click', () => {
+      if (context.depts.length === 1) {
+        enterTerminal(context.depts[0].deptId);
+      } else {
+        renderSelector();
+      }
+    });
+    document.getElementById('topchoice-archives').addEventListener('click', renderArchivesShell);
+  }
+
   function renderSelector() {
     const cards = context.depts.map((d) => {
       const character = context.characters.find((c) => c.deptId === d.deptId);
@@ -562,6 +622,7 @@
 
     mainRoot.innerHTML = `
       <div class="selector-screen">
+        <button class="terminal-breadcrumb" id="back-to-topchoice" style="margin-bottom:24px;">${ICONS.back} RETOUR AU MENU</button>
         <div class="selector-head">
           <span class="eyebrow">Site-15 // Accès terminal</span>
           <h1>Choisis ton accès</h1>
@@ -589,6 +650,7 @@
       </div>
     `;
 
+    document.getElementById('back-to-topchoice').addEventListener('click', renderTopChoice);
     mainRoot.querySelectorAll('.selector-card').forEach((card) => {
       card.addEventListener('click', () => enterTerminal(card.dataset.deptId));
     });
@@ -596,6 +658,61 @@
 
   function enterTerminal(deptId) {
     renderTerminalShell(deptId);
+  }
+
+  // -----------------------------------------------------------------
+  // Archives fondationnaires — destination indépendante des départements,
+  // accessible directement depuis le menu principal (pas besoin de choisir
+  // un personnage précis, juste d'avoir un accès RP quelconque).
+  // -----------------------------------------------------------------
+  function renderArchivesShell() {
+    mainRoot.innerHTML = `
+      <div class="terminal-screen">
+        <div class="terminal-topbar">
+          <div class="terminal-topbar-inner">
+            <div>
+              <button class="terminal-breadcrumb" id="back-to-topchoice-archives">${ICONS.back} SITE-15 // MENU PRINCIPAL</button>
+              <div class="terminal-title-row" style="margin-top:8px;">
+                ${ICONS.flask}
+                <span class="terminal-title">ARCHIVES FONDATIONNAIRES</span>
+              </div>
+              <div class="terminal-subtitle">IRC-15 // TRONC COMMUN — LECTURE PUBLIQUE</div>
+            </div>
+            <div class="terminal-status-group">
+              <div class="status-dot-row"><span class="status-dot"></span> SYSTÈME EN LIGNE</div>
+              <div class="clearance-chip">LECTURE</div>
+            </div>
+          </div>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-main" id="terminal-main"></div>
+          <div class="terminal-side">
+            <div class="side-panel">
+              <div class="side-panel-title">Statistiques</div>
+              <div class="stat-grid" id="stat-grid">
+                <div class="stat-cell"><div class="stat-value">—</div><div class="stat-label">Fiches</div></div>
+                <div class="stat-cell"><div class="stat-value">—</div><div class="stat-label">Autorisé</div></div>
+              </div>
+            </div>
+            <div class="side-panel">
+              <div class="side-panel-title">Terminal Site-15</div>
+              <div class="terminal-console">
+                <div><span class="prompt">archives@site-15:~$</span> status</div>
+                <div class="ok">▶ Archives fondationnaires : EN LIGNE</div>
+                <div><span class="prompt">archives@site-15:~$</span> <span style="opacity:.5;">_</span></div>
+              </div>
+            </div>
+            <div class="side-panel">
+              <div class="side-panel-title">Journal</div>
+              <div id="journal-panel"><div class="journal-entry"><span class="journal-text">Chargement…</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('back-to-topchoice-archives').addEventListener('click', renderTopChoice);
+    loadScienceModule();
   }
 
   // -----------------------------------------------------------------
@@ -609,7 +726,6 @@
 
     const tabs = [{ id: 'bulletin', label: 'Bulletin', icon: 'bulletin' }, { id: 'effectifs', label: 'Effectifs', icon: 'people' }];
     if (deptId === MEDICAL_DEPT_ID) tabs.push({ id: 'rdv', label: 'Rendez-vous', icon: 'rdv' });
-    tabs.push({ id: 'science', label: 'Archives', icon: 'flask' });
 
     mainRoot.innerHTML = `
       <div class="terminal-screen">
@@ -686,7 +802,6 @@
   function loadTerminalTab(deptId, tabId) {
     if (tabId === 'bulletin' || tabId === 'effectifs') loadDeptData(deptId, tabId);
     else if (tabId === 'rdv') loadMedicalModule();
-    else if (tabId === 'science') loadScienceModule();
   }
 
   // -----------------------------------------------------------------
@@ -1302,11 +1417,7 @@
       return;
     }
 
-    if (context.depts.length === 1) {
-      enterTerminal(context.depts[0].deptId);
-    } else {
-      renderSelector();
-    }
+    renderTopChoice();
   }
 
   init();
