@@ -341,6 +341,29 @@
   .post-card-meta{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
   .post-card-body{ font-size:13.5px; color:var(--ink-dim); line-height:1.7; white-space:pre-wrap; }
 
+  /* ---------- Rapports scientifiques ---------- */
+  .sci-filters{ display:flex; gap:10px; margin-bottom:16px; }
+  .sci-filters input{ flex:1; }
+  .sci-filters select{ max-width:220px; }
+
+  .sci-card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:12px; }
+  .sci-card-top{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .sci-badge{
+    font-family:'JetBrains Mono', monospace; font-size:10px; font-weight:700; letter-spacing:0.06em;
+    padding:3px 9px; border-radius:4px; border:1px solid transparent;
+  }
+  .sci-badge.sci-safe{ color:var(--good); background:rgba(79,216,149,0.12); border-color:rgba(79,216,149,0.3); }
+  .sci-badge.sci-euclid{ color:var(--warn); background:rgba(240,168,60,0.12); border-color:rgba(240,168,60,0.3); }
+  .sci-badge.sci-keter{ color:var(--bad); background:rgba(240,82,90,0.12); border-color:rgba(240,82,90,0.3); }
+  .sci-type-badge{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.05em; text-transform:uppercase;
+    padding:3px 9px; border-radius:4px; border:1px solid var(--line); color:var(--ink-dim);
+  }
+  .sci-subject{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--accent-2); margin-left:auto;
+  }
+  .sci-card-actions{ display:flex; gap:8px; margin-top:12px; }
+
   .status-pill{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:10.5px; font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:0.04em; }
   .status-open{ background:rgba(79,216,149,0.12); color:var(--good); }
   .status-taken{ background:rgba(240,168,60,0.12); color:var(--warn); }
@@ -936,6 +959,20 @@
   // -----------------------------------------------------------------
   // Publications Scientifiques (zone commune)
   // -----------------------------------------------------------------
+  const SCIENCE_CLASSIFICATIONS = {
+    safe: { label: 'SÛR', cls: 'sci-safe' },
+    euclid: { label: 'EUCLIDE', cls: 'sci-euclid' },
+    keter: { label: 'KETER', cls: 'sci-keter' },
+  };
+  const SCIENCE_REPORT_TYPES = {
+    observation: 'Observation',
+    experience: 'Expérience',
+    incident: 'Incident',
+    analyse: 'Analyse',
+  };
+
+  let scienceAllPublications = [];
+
   async function loadScienceModule() {
     const main = document.getElementById('terminal-main');
     main.innerHTML = '<div class="center-msg">Chargement…</div>';
@@ -949,6 +986,7 @@
     }
 
     const { publications, canPublish } = data;
+    scienceAllPublications = publications;
 
     document.getElementById('stat-grid').innerHTML = `
       <div class="stat-cell"><div class="stat-value">${publications.length}</div><div class="stat-label">Publications</div></div>
@@ -960,41 +998,59 @@
 
     main.innerHTML = `
       <div class="record-block">
-        <div class="record-block-head"><h2>Publications</h2><span class="count">${publications.length}</span></div>
-        <div id="publications-list">
-          ${
-            publications.length
-              ? publications
-                  .map(
-                    (p) => `
-              <div class="post-card">
-                <div class="post-card-head">
-                  <span class="post-card-title">${escapeHtml(p.title)}</span>
-                  <span class="post-card-meta">${escapeHtml(p.authorCharacterName)} — ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span>
-                </div>
-                <div class="post-card-body">${escapeHtml(p.content || '')}</div>
-              </div>
-            `
-                  )
-                  .join('')
-              : '<div class="empty-row">Aucune publication pour le moment.</div>'
-          }
+        <div class="record-block-head"><h2>Rapports scientifiques</h2><span class="count" id="sci-count">${publications.length}</span></div>
+
+        <div class="sci-filters">
+          <input type="text" id="sci-search" placeholder="Rechercher un titre, un objet, un auteur...">
+          <select id="sci-classification-filter">
+            <option value="">Toutes classifications</option>
+            <option value="safe">Sûr</option>
+            <option value="euclid">Euclide</option>
+            <option value="keter">Keter</option>
+          </select>
         </div>
+
+        <div id="publications-list"></div>
       </div>
 
       ${
         canPublish
           ? `<div class="subsection">
-              <h3>Publier un travail</h3>
+              <h3>Rédiger un rapport</h3>
               <form id="publication-form">
                 <div class="field-row"><label>Titre *</label><input type="text" id="publication-title" required></div>
-                <div class="field-row"><label>Contenu *</label><textarea id="publication-content" rows="5" required></textarea></div>
-                <button class="btn" type="submit">Publier</button>
+                <div class="field-grid">
+                  <div class="field-row"><label>Objet d'étude</label><input type="text" id="publication-subject" placeholder="Ex: SCP-1547, Zone C..."></div>
+                  <div class="field-row">
+                    <label>Type de rapport</label>
+                    <select id="publication-type">
+                      <option value="observation">Observation</option>
+                      <option value="experience">Expérience</option>
+                      <option value="incident">Incident</option>
+                      <option value="analyse">Analyse</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field-row">
+                  <label>Classification</label>
+                  <select id="publication-classification">
+                    <option value="safe">Sûr</option>
+                    <option value="euclid">Euclide</option>
+                    <option value="keter">Keter</option>
+                  </select>
+                </div>
+                <div class="field-row"><label>Contenu *</label><textarea id="publication-content" rows="6" required></textarea></div>
+                <button class="btn" type="submit">Publier le rapport</button>
               </form>
             </div>`
           : ''
       }
     `;
+
+    renderSciencePublicationsList(publications);
+
+    document.getElementById('sci-search').addEventListener('input', applyScienceFilters);
+    document.getElementById('sci-classification-filter').addEventListener('change', applyScienceFilters);
 
     const form = document.getElementById('publication-form');
     if (form) {
@@ -1002,16 +1058,97 @@
         e.preventDefault();
         const title = document.getElementById('publication-title').value.trim();
         const content = document.getElementById('publication-content').value.trim();
+        const subject = document.getElementById('publication-subject').value.trim();
+        const reportType = document.getElementById('publication-type').value;
+        const classification = document.getElementById('publication-classification').value;
         if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
         try {
-          await apiFetch('/api/rp/science/publications', { method: 'POST', body: JSON.stringify({ title, content }) });
-          showToast('Publication ajoutée.', 'success');
+          await apiFetch('/api/rp/science/publications', {
+            method: 'POST',
+            body: JSON.stringify({ title, content, subject, reportType, classification }),
+          });
+          showToast('Rapport publié.', 'success');
           loadScienceModule();
         } catch (err) {
           showToast(`Erreur : ${err.message}`, 'error');
         }
       });
     }
+  }
+
+  function applyScienceFilters() {
+    const query = document.getElementById('sci-search').value.trim().toLowerCase();
+    const classification = document.getElementById('sci-classification-filter').value;
+
+    const filtered = scienceAllPublications.filter((p) => {
+      if (classification && p.classification !== classification) return false;
+      if (!query) return true;
+      const haystack = `${p.title} ${p.subject || ''} ${p.authorCharacterName || ''}`.toLowerCase();
+      return haystack.includes(query);
+    });
+
+    renderSciencePublicationsList(filtered);
+  }
+
+  function renderSciencePublicationsList(publications) {
+    const container = document.getElementById('publications-list');
+    document.getElementById('sci-count').textContent = publications.length;
+
+    if (!publications.length) {
+      container.innerHTML = '<div class="empty-row">Aucun rapport ne correspond.</div>';
+      return;
+    }
+
+    container.innerHTML = publications
+      .map((p) => {
+        const cls = SCIENCE_CLASSIFICATIONS[p.classification];
+        const typeLabel = SCIENCE_REPORT_TYPES[p.reportType];
+        const isLong = (p.content || '').length > 320;
+        const preview = isLong ? `${p.content.slice(0, 320).trim()}…` : p.content || '';
+
+        return `
+        <div class="sci-card" data-publication-id="${escapeHtml(p.id)}">
+          <div class="sci-card-top">
+            ${cls ? `<span class="sci-badge ${cls.cls}">${cls.label}</span>` : ''}
+            ${typeLabel ? `<span class="sci-type-badge">${escapeHtml(typeLabel)}</span>` : ''}
+            ${p.subject ? `<span class="sci-subject">${escapeHtml(p.subject)}</span>` : ''}
+          </div>
+          <div class="post-card-head">
+            <span class="post-card-title">${escapeHtml(p.title)}</span>
+            <span class="post-card-meta">${escapeHtml(p.authorCharacterName)} — ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span>
+          </div>
+          <div class="post-card-body sci-body" data-full="${escapeHtml(p.content || '')}">${escapeHtml(preview)}</div>
+          <div class="sci-card-actions">
+            ${isLong ? `<button class="btn ghost small sci-toggle-btn">Lire le rapport complet</button>` : ''}
+            ${p.isMine ? `<button class="btn danger small sci-delete-btn" data-publication-id="${escapeHtml(p.id)}">Supprimer</button>` : ''}
+          </div>
+        </div>
+      `;
+      })
+      .join('');
+
+    container.querySelectorAll('.sci-toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const bodyEl = btn.closest('.sci-card').querySelector('.sci-body');
+        const expanded = bodyEl.dataset.expanded === '1';
+        bodyEl.textContent = expanded ? `${bodyEl.dataset.full.slice(0, 320).trim()}…` : bodyEl.dataset.full;
+        bodyEl.dataset.expanded = expanded ? '0' : '1';
+        btn.textContent = expanded ? 'Lire le rapport complet' : 'Réduire';
+      });
+    });
+
+    container.querySelectorAll('.sci-delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer ce rapport ?')) return;
+        try {
+          await apiFetch(`/api/rp/science/publications/${encodeURIComponent(btn.dataset.publicationId)}`, { method: 'DELETE' });
+          showToast('Rapport supprimé.', 'success');
+          loadScienceModule();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
   }
 
   // -----------------------------------------------------------------
