@@ -82,8 +82,8 @@
         ${icon('caret')}
       </button>
       <div class="auth-dropdown" role="menu">
-        <a href="/site15/account/" role="menuitem">${icon('user')} Mon compte</a>
-        <a href="/site15/rp/" role="menuitem">${icon('department')} Département</a>
+        <a href="/account/" role="menuitem">${icon('user')} Mon compte</a>
+        <a href="/rp/" role="menuitem">${icon('department')} Département</a>
         <div id="auth-admin-slot"></div>
         <hr>
         <button class="danger" id="auth-logout" type="button" role="menuitem">${icon('logout')} Se déconnecter</button>
@@ -161,7 +161,7 @@
       const context = await res.json();
       const slot = document.getElementById('auth-admin-slot');
       if (context.isAdminAnywhere && slot) {
-        slot.innerHTML = `<a href="/site15/admin/" role="menuitem">${icon('admin')} Admin</a>`;
+        slot.innerHTML = `<a href="/admin/" role="menuitem">${icon('admin')} Admin</a>`;
       }
     } catch (err) {
       console.error('Erreur vérification accès admin:', err);
