@@ -120,6 +120,15 @@
   .center-card p{ color:var(--ink-dim); font-size:13.5px; line-height:1.6; }
   .center-card a{ color:var(--accent); text-decoration:underline; }
 
+  .form-picker{ display:flex; flex-direction:column; gap:12px; margin-top:8px; }
+  .form-picker-item{
+    display:block; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px 22px;
+    transition:border-color .2s ease, transform .15s ease;
+  }
+  .form-picker-item:hover{ border-color:var(--accent); transform:translateY(-1px); }
+  .form-picker-title{ font-family:'Space Grotesk', sans-serif; font-size:16px; font-weight:600; margin-bottom:6px; }
+  .form-picker-desc{ color:var(--ink-dim); font-size:13px; line-height:1.5; }
+
   .status-banner{
     display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:20px;
     font-family:'JetBrains Mono', monospace; font-size:12px; margin-bottom:18px;
@@ -234,7 +243,6 @@
 <script>
   const API_BASE = 'https://site15-bot.onrender.com';
   const TOKEN_KEY = 'vs_token';
-  const FORM_ID = new URLSearchParams(window.location.search).get('form') || 'adjoint_manager';
 
   (function captureTokenFromUrl() {
     const url = new URL(window.location.href);
@@ -467,12 +475,12 @@
     });
   }
 
-  async function loadFormAndState() {
+  async function loadFormAndState(formId) {
     formRoot.innerHTML = '<div class="center-card"><p>Chargement du formulaire…</p></div>';
 
     let data;
     try {
-      data = await apiFetch(`/api/forms/${encodeURIComponent(FORM_ID)}`);
+      data = await apiFetch(`/api/forms/${encodeURIComponent(formId)}`);
     } catch (err) {
       if (err.message === 'form_not_found') {
         renderError('Ce formulaire de recrutement n\'existe pas ou n\'est plus ouvert.');
@@ -492,10 +500,64 @@
     }
   }
 
+  function renderFormPicker(forms) {
+    document.getElementById('page-title').textContent = 'Postuler';
+    document.getElementById('page-subtitle').textContent = 'Choisis le poste auquel tu souhaites postuler.';
+    formRoot.innerHTML = `
+      <div class="form-picker">
+        ${forms
+          .map(
+            (f) => `
+          <a class="form-picker-item" href="?form=${encodeURIComponent(f.id)}">
+            <div class="form-picker-title">${escapeHtml(f.title)}</div>
+            <div class="form-picker-desc">${escapeHtml(f.description || '')}</div>
+          </a>
+        `
+          )
+          .join('')}
+      </div>
+    `;
+  }
+
   async function init() {
     const token = getToken();
     if (!token) { renderLoggedOut(); return; }
-    await loadFormAndState();
+
+    const explicitFormId = new URLSearchParams(window.location.search).get('form');
+    if (explicitFormId) {
+      await loadFormAndState(explicitFormId);
+      return;
+    }
+
+    // Pas de formulaire précisé dans l'URL : on liste les formulaires
+    // ouverts. Un seul -> on l'ouvre directement. Plusieurs -> sélecteur.
+    formRoot.innerHTML = '<div class="center-card"><p>Chargement…</p></div>';
+    let listData;
+    try {
+      listData = await apiFetch('/api/forms');
+    } catch (err) {
+      renderError(`Erreur : ${err.message}`);
+      return;
+    }
+
+    const forms = listData.forms || [];
+    if (!forms.length) {
+      document.getElementById('page-subtitle').textContent = 'Aucun poste ouvert au recrutement actuellement.';
+      formRoot.innerHTML = `
+        <div class="center-card">
+          <div class="display">Aucune candidature ouverte</div>
+          <p>Reviens plus tard, aucun formulaire de recrutement n'est actif pour le moment.</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (forms.length === 1) {
+      await loadFormAndState(forms[0].id);
+      return;
+    }
+
+    renderFormPicker(forms);
   }
 
   init();
