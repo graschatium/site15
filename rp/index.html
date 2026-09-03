@@ -110,34 +110,42 @@
   /* ---------- Messages simples (pas d'accès, chargement, erreur) ---------- */
   .center-screen{ min-height:calc(100vh - 88px); display:flex; align-items:center; justify-content:center; padding:40px 24px; }
 
-  /* ---------- Séquence de boot (connexion IRC-15) ---------- */
-  .boot-screen{ min-height:calc(100vh - 88px); display:flex; align-items:center; justify-content:center; padding:40px 20px; }
-  .boot-card{
-    width:100%; max-width:520px; background:var(--panel); border:1px solid var(--line); border-radius:10px;
-    padding:22px 24px 24px; box-shadow:0 30px 80px rgba(0,0,0,0.5);
+  /* ---------- Séquence de boot plein écran (connexion IRC-15) ---------- */
+  .boot-overlay{
+    position:fixed; inset:0; z-index:500; background:var(--void);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
   }
-  .boot-header{
-    display:flex; align-items:center; gap:9px; font-family:'JetBrains Mono', monospace; font-size:11px;
-    letter-spacing:0.08em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:16px; padding-bottom:14px;
-    border-bottom:1px solid var(--line);
+  .boot-watermark{
+    position:absolute; top:50%; left:50%; transform:translate(-38%, -50%);
+    width:min(60vw, 720px); opacity:0.05; pointer-events:none; filter:grayscale(1);
   }
-  .boot-dot{ width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); animation:boot-pulse 1.4s ease-in-out infinite; flex-shrink:0; }
-  @keyframes boot-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
-  .boot-log{
-    font-family:'JetBrains Mono', monospace; font-size:12px; line-height:2; color:var(--ink-dim);
-    min-height:198px; max-height:240px; overflow-y:auto;
+  .boot-content{ position:relative; width:100%; max-width:680px; padding:0 32px; }
+  .boot-header{ display:flex; align-items:center; gap:16px; margin-bottom:34px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+  .boot-badge{
+    width:44px; height:44px; flex-shrink:0; border:1px solid var(--line); border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:14px; letter-spacing:0.02em; color:var(--ink);
   }
-  .boot-line{ animation:boot-in .25s ease; opacity:0; animation-fill-mode:forwards; }
-  @keyframes boot-in{ from{ opacity:0; transform:translateY(3px); } to{ opacity:1; transform:translateY(0); } }
-  .boot-tag{ color:var(--accent-2); margin-right:7px; }
-  .boot-line.ok{ color:var(--good); }
-  .boot-line.ok .boot-tag{ color:var(--good); }
-  .boot-line.warn{ color:var(--warn); }
-  .boot-line.warn .boot-tag{ color:var(--warn); }
-  .boot-cursor{ display:inline-block; width:7px; height:12px; background:var(--accent); vertical-align:-2px; animation:boot-blink 1s step-end infinite; margin-left:2px; }
+  .boot-header-text .boot-network{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-faint);
+  }
+  .boot-header-text .boot-title{
+    font-family:'JetBrains Mono', monospace; font-size:18px; font-weight:700; letter-spacing:0.02em; color:var(--ink); margin-top:4px;
+  }
+  .boot-log{ font-family:'JetBrains Mono', monospace; font-size:13.5px; }
+  .boot-line{
+    display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+    padding:6px 0; opacity:0; transform:translateY(4px);
+    animation:boot-in .3s ease forwards;
+    transition:opacity .5s ease;
+  }
+  @keyframes boot-in{ to{ opacity:1; transform:translateY(0); } }
+  .boot-line-text{ color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .boot-line-status{ font-size:11.5px; color:var(--good); flex-shrink:0; }
+  .boot-line-status.warn{ color:var(--warn); }
+  .boot-cursor{ display:inline-block; width:7px; height:13px; background:var(--accent); vertical-align:-2px; animation:boot-blink 1s step-end infinite; margin-left:4px; }
   @keyframes boot-blink{ 0%,49%{ opacity:1; } 50%,100%{ opacity:0; } }
-  .boot-progress{ margin-top:16px; height:3px; background:var(--void-2); border-radius:2px; overflow:hidden; }
-  .boot-progress-bar{ height:100%; width:0%; background:var(--accent); transition:width .2s ease; }
   .console-message-inner{ max-width:400px; text-align:center; }
   .console-message-inner .display{ font-family:'Space Grotesk', sans-serif; font-size:22px; margin-bottom:10px; }
   .console-message-inner p{ color:var(--ink-dim); font-size:14px; line-height:1.6; }
@@ -976,60 +984,83 @@
   }
 
   // -----------------------------------------------------------------
-  // Séquence de boot — animation de "connexion au serveur de la
+  // Séquence de boot — animation plein écran "connexion au serveur de la
   // Fondation" affichée pendant le chargement initial de l'intranet.
   // Tourne en parallèle du vrai appel réseau (/api/rp/context) : la durée
   // totale affichée est le max des deux, pour que l'animation ne soit
   // jamais coupée en plein milieu même si la réponse serveur est rapide.
+  // Rendue directement dans <body> (pas dans mainRoot) pour recouvrir
+  // vraiment tout l'écran, header compris.
   // -----------------------------------------------------------------
   const BOOT_LINES = [
-    { tag: 'SYS', text: 'Initialisation du terminal...' },
-    { tag: 'NET', text: 'Connexion à IRC-15...' },
-    { tag: 'NET', text: 'Négociation du protocole sécurisé... OK', cls: 'ok' },
-    { tag: 'AUTH', text: 'Vérification des identifiants Fondation...' },
-    { tag: 'AUTH', text: 'Session validée.', cls: 'ok' },
-    { tag: 'DB', text: 'Synchronisation du registre du personnel...' },
-    { tag: 'DB', text: 'Chargement des accès départementaux...' },
-    { tag: 'SYS', text: '2 anomalies en observation active.', cls: 'warn' },
-    { tag: 'OK', text: 'Connexion établie — bienvenue sur IRC-15.', cls: 'ok' },
+    { text: 'Connexion sécurisée au réseau IRC-15...' },
+    { text: "Vérification du protocole d'authentification...", status: 'OK' },
+    { text: 'Récupération de votre identité Discord...', status: 'OK' },
+    { text: 'Synchronisation du registre du personnel...', status: 'OK' },
+    { text: 'Chargement des accès départementaux...', status: 'OK' },
+    { text: '2 anomalies en observation active.', status: 'WARN', warn: true },
+    { text: 'Connexion établie — bienvenue sur IRC-15.', status: 'OK' },
   ];
 
   function renderBootSequence() {
-    mainRoot.innerHTML = `
-      <div class="boot-screen">
-        <div class="boot-card">
-          <div class="boot-header"><span class="boot-dot"></span> IRC-15 // TERMINAL D'ACCÈS</div>
-          <div class="boot-log" id="boot-log"></div>
-          <div class="boot-progress"><div class="boot-progress-bar" id="boot-progress-bar"></div></div>
+    const overlay = document.createElement('div');
+    overlay.className = 'boot-overlay';
+    overlay.id = 'boot-overlay';
+    overlay.innerHTML = `
+      <img class="boot-watermark" src="/site15/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
+      <div class="boot-content">
+        <div class="boot-header">
+          <div class="boot-badge">S15</div>
+          <div class="boot-header-text">
+            <div class="boot-network">IRC-15 — RÉSEAU FONDATION</div>
+            <div class="boot-title">INITIALISATION DU TERMINAL</div>
+          </div>
         </div>
+        <div class="boot-log" id="boot-log"></div>
       </div>
     `;
+    document.body.appendChild(overlay);
+  }
+
+  function removeBootSequence() {
+    document.getElementById('boot-overlay')?.remove();
   }
 
   function runBootAnimation() {
     return new Promise((resolve) => {
       const logEl = document.getElementById('boot-log');
-      const barEl = document.getElementById('boot-progress-bar');
       let i = 0;
 
+      function refreshOpacities() {
+        const lines = [...logEl.children];
+        const total = lines.length;
+        lines.forEach((el, idx) => {
+          const distanceFromEnd = total - 1 - idx;
+          const opacity = distanceFromEnd === 0 ? 1 : distanceFromEnd === 1 ? 0.55 : distanceFromEnd === 2 ? 0.28 : distanceFromEnd === 3 ? 0.12 : 0.04;
+          el.style.opacity = opacity;
+        });
+      }
+
       function next() {
-        if (!logEl || !barEl) { resolve(); return; }
+        if (!logEl) { resolve(); return; }
         if (i >= BOOT_LINES.length) {
           const cursor = document.createElement('span');
           cursor.className = 'boot-cursor';
-          logEl.lastElementChild?.appendChild(cursor);
-          setTimeout(resolve, 260);
+          logEl.lastElementChild?.querySelector('.boot-line-text')?.appendChild(cursor);
+          setTimeout(resolve, 320);
           return;
         }
         const line = BOOT_LINES[i];
         const div = document.createElement('div');
-        div.className = `boot-line ${line.cls || ''}`;
-        div.innerHTML = `<span class="boot-tag">[${line.tag}]</span>${escapeHtml(line.text)}`;
+        div.className = 'boot-line';
+        div.innerHTML = `
+          <span class="boot-line-text">› ${escapeHtml(line.text)}</span>
+          ${line.status ? `<span class="boot-line-status${line.warn ? ' warn' : ''}">${line.status}</span>` : ''}
+        `;
         logEl.appendChild(div);
-        logEl.scrollTop = logEl.scrollHeight;
+        refreshOpacities();
         i += 1;
-        barEl.style.width = `${Math.round((i / BOOT_LINES.length) * 100)}%`;
-        setTimeout(next, 190 + Math.random() * 170);
+        setTimeout(next, 260 + Math.random() * 220);
       }
 
       next();
@@ -1047,6 +1078,7 @@
       .catch((err) => ({ ok: false, error: err.message }));
 
     const [, result] = await Promise.all([bootPromise, contextPromise]);
+    removeBootSequence();
 
     if (!result.ok) {
       renderError(`Impossible de charger l'intranet RP : ${result.error}`);
