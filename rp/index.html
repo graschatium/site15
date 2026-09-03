@@ -428,6 +428,17 @@
   .wiki-toc-title{ display:block; font-size:12.5px; font-weight:600; line-height:1.4; }
   .wiki-toc-meta{ display:block; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); margin-top:3px; }
 
+  .wiki-toc-row{ display:flex; align-items:stretch; gap:4px; }
+  .wiki-toc-row .wiki-toc-item{ flex:1; min-width:0; }
+  .wiki-toc-reorder{ display:flex; flex-direction:column; gap:1px; flex-shrink:0; }
+  .wiki-toc-arrow{
+    width:20px; height:14px; display:flex; align-items:center; justify-content:center;
+    background:var(--void-2); border:1px solid var(--line); color:var(--ink-faint); font-size:8px;
+    cursor:pointer; padding:0; border-radius:1px; transition:color .15s ease, border-color .15s ease;
+  }
+  .wiki-toc-arrow:hover:not(:disabled){ color:var(--accent-2); border-color:var(--accent); }
+  .wiki-toc-arrow:disabled{ opacity:0.3; cursor:not-allowed; }
+
   .wiki-article{ background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:26px 28px; min-height:360px; }
   .wiki-article-head{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
   .wiki-article-title{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; margin-bottom:6px; }
@@ -1581,7 +1592,7 @@
       return;
     }
 
-    const { docs, myAccreditation, canManage } = data;
+    const { docs, myAccreditation, canManage, isDirector } = data;
     secDocsCache = docs;
 
     document.getElementById('stat-grid').innerHTML = `
@@ -1597,7 +1608,7 @@
         <div class="wiki-toc">
           <div class="wiki-toc-head">
             <span class="record-block-head-title">Docs DSE</span>
-            <span class="count">${docs.length}</span>
+            <span class="count">${docs.length}${isDirector ? ' · Tri Directeur' : ''}</span>
           </div>
           ${canManage ? '<button class="btn small" id="sec-doc-new-btn" type="button" style="width:100%; margin-top:10px;">+ Nouveau document</button>' : ''}
           <div class="wiki-toc-list" id="sec-doc-toc-list"></div>
@@ -1606,17 +1617,28 @@
       </div>
     `;
 
-    renderSecurityDocToc(canManage);
+    renderSecurityDocToc(canManage, isDirector);
     renderSecurityDocArticle(canManage);
 
     document.getElementById('sec-doc-new-btn')?.addEventListener('click', () => {
       secDocsSelectedId = 'new';
-      renderSecurityDocToc(canManage);
+      renderSecurityDocToc(canManage, isDirector);
       renderSecurityDocArticle(canManage);
     });
   }
 
-  function renderSecurityDocToc(canManage) {
+  async function persistSecurityDocOrder() {
+    try {
+      await apiFetch('/api/rp/security/docs/reorder', {
+        method: 'POST',
+        body: JSON.stringify({ orderedIds: secDocsCache.map((d) => d.id) }),
+      });
+    } catch (err) {
+      showToast(`Erreur lors du tri : ${err.message}`, 'error');
+    }
+  }
+
+  function renderSecurityDocToc(canManage, isDirector) {
     const list = document.getElementById('sec-doc-toc-list');
     if (!secDocsCache.length) {
       list.innerHTML = '<div class="empty-row">Aucun document accessible à ton accréditation.</div>';
@@ -1624,11 +1646,21 @@
     }
     list.innerHTML = secDocsCache
       .map(
-        (d) => `
-      <button class="wiki-toc-item${d.id === secDocsSelectedId ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
-        <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
-        <span class="wiki-toc-meta">Accréd. ${d.minAccreditation} · ${escapeHtml(d.authorCharacterName)}</span>
-      </button>
+        (d, i) => `
+      <div class="wiki-toc-row">
+        <button class="wiki-toc-item${d.id === secDocsSelectedId ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
+          <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
+          <span class="wiki-toc-meta">Accréd. ${d.minAccreditation} · ${escapeHtml(d.authorCharacterName)}</span>
+        </button>
+        ${
+          isDirector
+            ? `<div class="wiki-toc-reorder">
+                <button class="wiki-toc-arrow" data-move="up" data-index="${i}" type="button" ${i === 0 ? 'disabled' : ''} title="Monter">▲</button>
+                <button class="wiki-toc-arrow" data-move="down" data-index="${i}" type="button" ${i === secDocsCache.length - 1 ? 'disabled' : ''} title="Descendre">▼</button>
+              </div>`
+            : ''
+        }
+      </div>
     `
       )
       .join('');
@@ -1636,8 +1668,20 @@
     list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
       btn.addEventListener('click', () => {
         secDocsSelectedId = btn.dataset.docId;
-        renderSecurityDocToc(canManage);
+        renderSecurityDocToc(canManage, isDirector);
         renderSecurityDocArticle(canManage);
+      });
+    });
+
+    list.querySelectorAll('.wiki-toc-arrow').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const index = Number(btn.dataset.index);
+        const targetIndex = btn.dataset.move === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= secDocsCache.length) return;
+        [secDocsCache[index], secDocsCache[targetIndex]] = [secDocsCache[targetIndex], secDocsCache[index]];
+        renderSecurityDocToc(canManage, isDirector);
+        await persistSecurityDocOrder();
       });
     });
   }
