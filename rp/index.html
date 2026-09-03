@@ -106,62 +106,120 @@
   .auth-dropdown hr{ border:none; border-top:1px solid var(--line); margin:6px 2px; }
 
   main{ padding-top:88px; min-height:100vh; }
-  .console{ display:flex; align-items:stretch; min-height:calc(100vh - 88px); }
 
-  .console-loading, .console-message{
-    flex:1; display:flex; align-items:center; justify-content:center; padding:80px 24px; text-align:center;
-  }
-  .console-message-inner{ max-width:400px; }
+  /* ---------- Messages simples (pas d'accès, chargement, erreur) ---------- */
+  .center-screen{ min-height:calc(100vh - 88px); display:flex; align-items:center; justify-content:center; padding:40px 24px; }
+  .console-message-inner{ max-width:400px; text-align:center; }
   .console-message-inner .display{ font-family:'Space Grotesk', sans-serif; font-size:22px; margin-bottom:10px; }
   .console-message-inner p{ color:var(--ink-dim); font-size:14px; line-height:1.6; }
   .console-message-inner a{ color:var(--accent); text-decoration:underline; }
 
-  .sidebar{
-    width:252px; flex-shrink:0; border-right:1px solid var(--line); padding:28px 18px;
-    display:flex; flex-direction:column; gap:26px; position:sticky; top:88px; align-self:flex-start; height:calc(100vh - 88px);
+  /* ---------- Écran de sélection (choix du personnage/accès) ---------- */
+  .selector-screen{ padding:60px 24px 100px; }
+  .selector-head{ max-width:640px; margin:0 auto 36px; text-align:center; }
+  .selector-head .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--accent-2); letter-spacing:0.1em; text-transform:uppercase; }
+  .selector-head h1{ font-family:'Space Grotesk', sans-serif; font-size:30px; margin:10px 0 8px; }
+  .selector-head p{ color:var(--ink-dim); font-size:14px; }
+
+  .selector-grid{ max-width:720px; margin:0 auto; display:flex; flex-direction:column; gap:12px; }
+  .selector-card{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:20px 22px;
+    cursor:pointer; transition:border-color .2s ease, transform .15s ease, background .2s ease;
   }
-  .sidebar-brand{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.14em; color:var(--ink-faint); text-transform:uppercase; padding:0 10px; }
-  .clearance-card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 14px 16px; }
-  .clearance-label{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.1em; color:var(--ink-faint); text-transform:uppercase; display:block; margin-bottom:10px; }
-  .clearance-badges{ display:flex; flex-wrap:wrap; gap:6px; }
-  .clearance-badge{
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.03em; padding:4px 8px; border-radius:4px;
-    background:var(--accent-soft); color:var(--accent-2); border:1px solid rgba(110,118,255,0.25);
+  .selector-card:hover{ border-color:var(--accent); transform:translateY(-1px); background:var(--panel-raised); }
+  .selector-card-left{ display:flex; align-items:center; gap:16px; }
+  .selector-card-icon{
+    width:42px; height:42px; border-radius:8px; background:var(--accent-soft); border:1px solid rgba(110,118,255,0.25);
+    display:flex; align-items:center; justify-content:center; color:var(--accent-2); flex-shrink:0;
+  }
+  .selector-card-icon svg{ width:20px; height:20px; }
+  .selector-card-title{ font-family:'Space Grotesk', sans-serif; font-size:16px; font-weight:600; }
+  .selector-card-sub{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-faint); margin-top:3px; }
+  .selector-card-badge{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.05em; text-transform:uppercase;
+    padding:4px 9px; border-radius:20px; background:rgba(240,168,60,0.12); color:var(--warn); white-space:nowrap;
+  }
+  .selector-card-arrow{ color:var(--ink-faint); flex-shrink:0; }
+  .selector-card-arrow svg{ width:18px; height:18px; }
+
+  /* ---------- Terminal départemental ---------- */
+  .terminal-screen{ padding:0 0 80px; }
+  .terminal-topbar{ border-bottom:1px solid var(--line); background:var(--panel); }
+  .terminal-topbar-inner{
+    max-width:1280px; margin:0 auto; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; gap:20px;
+  }
+  .terminal-breadcrumb{
+    display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--ink-faint); background:none; border:none; cursor:pointer; padding:0; letter-spacing:0.04em;
+  }
+  .terminal-breadcrumb:hover{ color:var(--accent-2); }
+  .terminal-breadcrumb svg{ width:13px; height:13px; }
+
+  .terminal-title-row{ display:flex; align-items:center; gap:10px; }
+  .terminal-title-row svg{ width:20px; height:20px; color:var(--accent-2); flex-shrink:0; }
+  .terminal-title{ font-family:'Space Grotesk', sans-serif; font-size:20px; font-weight:700; letter-spacing:0.02em; }
+  .terminal-subtitle{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); letter-spacing:0.08em; margin-top:2px; }
+
+  .terminal-status-group{ display:flex; align-items:center; gap:14px; flex-shrink:0; }
+  .status-dot-row{ display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--good); }
+  .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--good); box-shadow:0 0 8px var(--good); }
+  .clearance-chip{
+    font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:600; padding:6px 12px; border-radius:6px;
+    background:var(--accent-soft); color:var(--accent-2); border:1px solid rgba(110,118,255,0.3);
   }
 
-  .sidebar-nav{ display:flex; flex-direction:column; gap:2px; }
-  .sidebar-nav-label{
+  .terminal-tabs{ max-width:1280px; margin:0 auto; padding:0 32px; display:flex; gap:4px; border-bottom:1px solid var(--line); }
+  .terminal-tab{
+    display:flex; align-items:center; gap:7px; padding:14px 16px; font-family:'JetBrains Mono', monospace; font-size:11.5px;
+    letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-faint); background:none; border:none; cursor:pointer;
+    border-bottom:2px solid transparent; transition:color .15s ease, border-color .15s ease;
+  }
+  .terminal-tab svg{ width:14px; height:14px; }
+  .terminal-tab:hover{ color:var(--ink-dim); }
+  .terminal-tab.active{ color:var(--accent-2); border-bottom-color:var(--accent); }
+
+  .terminal-body{ max-width:1280px; margin:0 auto; padding:32px; display:grid; grid-template-columns:1fr 300px; gap:28px; }
+  .terminal-main{ min-width:0; }
+  .terminal-side{ display:flex; flex-direction:column; gap:20px; }
+
+  .side-panel{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  .side-panel-title{
     font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.1em; color:var(--ink-faint);
-    text-transform:uppercase; padding:10px 10px 4px;
+    text-transform:uppercase; margin-bottom:12px; padding-left:8px; border-left:2px solid var(--accent);
   }
-  .nav-item{
-    display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:8px; border:none; background:transparent;
-    color:var(--ink-dim); font-family:'Inter', sans-serif; font-size:13.5px; font-weight:500; cursor:pointer; text-align:left;
-    width:100%; position:relative; transition:background .15s ease, color .15s ease;
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stat-cell{ text-align:center; padding:10px 6px; background:var(--void-2); border-radius:8px; }
+  .stat-value{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:var(--accent-2); }
+  .stat-label{ font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+
+  .access-row{ display:flex; justify-content:space-between; font-size:12px; padding:6px 0; border-bottom:1px solid var(--line-soft); }
+  .access-row:last-child{ border-bottom:none; }
+  .access-row span:first-child{ color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; }
+  .access-row span:last-child{ color:var(--ink); font-weight:500; }
+
+  .terminal-console{
+    background:var(--void-2); border-radius:8px; padding:12px 14px; font-family:'JetBrains Mono', monospace;
+    font-size:11.5px; line-height:1.8; color:var(--ink-dim); max-height:180px; overflow-y:auto;
   }
-  .nav-item svg{ width:17px; height:17px; flex-shrink:0; opacity:0.85; }
-  .nav-item:hover{ background:var(--panel); color:var(--ink); }
-  .nav-item.active{ background:var(--accent-soft); color:var(--ink); }
-  .nav-item.active::before{ content:''; position:absolute; left:-18px; top:50%; transform:translateY(-50%); width:3px; height:18px; border-radius:0 3px 3px 0; background:var(--accent); }
+  .terminal-console .prompt{ color:var(--accent-2); }
+  .terminal-console .ok{ color:var(--good); }
+  .terminal-console .alert{ color:var(--bad); }
 
-  .sidebar-footer{ margin-top:auto; }
-  .sidebar-footer .mono{ font-size:10px; color:var(--ink-faint); letter-spacing:0.08em; padding:0 10px; }
+  .journal-entry{ font-size:11.5px; padding:7px 0; border-bottom:1px solid var(--line-soft); }
+  .journal-entry:last-child{ border-bottom:none; }
+  .journal-time{ font-family:'JetBrains Mono', monospace; color:var(--accent-2); margin-right:6px; }
+  .journal-text{ color:var(--ink-dim); }
 
-  .console-main{ flex:1; min-width:0; padding:40px 48px 80px; }
-  .console-header{ margin-bottom:30px; }
-  .console-header h1{ font-family:'Space Grotesk', sans-serif; font-size:26px; font-weight:600; letter-spacing:-0.01em; }
-  .console-header p{ margin-top:6px; color:var(--ink-dim); font-size:13.5px; max-width:560px; }
-  .console-body{ display:flex; flex-direction:column; gap:0; }
-
-  .record-block{ margin-bottom:36px; }
+  /* ---------- Contenu principal réutilisé (annonces / effectif / rdv / pubs) ---------- */
+  .record-block{ margin-bottom:32px; }
   .record-block-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; }
   .record-block-head h2{ font-family:'Space Grotesk', sans-serif; font-size:15.5px; font-weight:600; }
   .record-block-head .count{
     font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-dim);
     background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:3px 10px;
   }
-
-  .center-msg{ text-align:center; padding:56px 20px; color:var(--ink-dim); font-size:13.5px; }
+  .center-msg{ text-align:center; padding:40px 20px; color:var(--ink-dim); font-size:13.5px; }
   .empty-row{ color:var(--ink-faint); font-size:13px; padding:22px 18px; text-align:center; border:1px dashed var(--line); border-radius:10px; }
 
   select, input, textarea{
@@ -179,7 +237,6 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239297A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:right 10px center; background-size:14px; padding-right:32px; cursor:pointer;
   }
-
   .field-row{ margin-bottom:14px; }
   .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 
@@ -200,26 +257,23 @@
     width:100%; border-collapse:separate; border-spacing:0; font-size:13px;
     background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden;
   }
-  th, td{ text-align:left; padding:12px 14px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+  th, td{ text-align:left; padding:11px 13px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
   thead th{ background:var(--panel-raised); border-bottom:1px solid var(--line); }
   th{ color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; font-weight:500; }
   tbody tr:hover{ background:rgba(255,255,255,0.02); }
   tbody tr:last-child td{ border-bottom:none; }
   td.mono-cell{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-dim); }
 
-  .subsection{ margin-top:28px; padding:22px 22px 24px; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
-  .subsection h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; margin-bottom:16px; }
+  .subsection{ margin-top:24px; padding:20px 20px 22px; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
+  .subsection h3{ font-family:'Space Grotesk', sans-serif; font-size:14.5px; font-weight:600; margin-bottom:14px; }
 
-  .post-card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:14px; }
+  .post-card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:12px; }
   .post-card-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; }
-  .post-card-title{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; }
+  .post-card-title{ font-family:'Space Grotesk', sans-serif; font-size:14.5px; font-weight:600; }
   .post-card-meta{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
   .post-card-body{ font-size:13.5px; color:var(--ink-dim); line-height:1.7; white-space:pre-wrap; }
 
-  .status-pill{
-    display:inline-block; padding:3px 10px; border-radius:20px; font-size:10.5px;
-    font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:0.04em;
-  }
+  .status-pill{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:10.5px; font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:0.04em; }
   .status-open{ background:rgba(79,216,149,0.12); color:var(--good); }
   .status-taken{ background:rgba(240,168,60,0.12); color:var(--warn); }
 
@@ -233,17 +287,9 @@
 
   @media (max-width:900px){
     main{ padding-top:76px; }
-    .console{ flex-direction:column; }
-    .sidebar{
-      position:static; width:100%; height:auto; flex-direction:row; align-items:center;
-      overflow-x:auto; padding:14px 16px; gap:16px; border-right:none; border-bottom:1px solid var(--line);
-    }
-    .sidebar-brand, .clearance-card, .sidebar-footer, .sidebar-nav-label{ display:none; }
-    .sidebar-nav{ flex-direction:row; gap:6px; }
-    .nav-item{ white-space:nowrap; }
-    .nav-item.active::before{ display:none; }
-    .console-main{ padding:28px 20px 60px; }
-    .field-grid{ grid-template-columns:1fr; }
+    .terminal-body{ grid-template-columns:1fr; padding:24px 18px; }
+    .terminal-topbar-inner{ flex-direction:column; align-items:flex-start; gap:12px; padding:16px 18px; }
+    .terminal-tabs{ padding:0 18px; overflow-x:auto; }
     nav a:not(.auth-menu):not(.current){ display:none; }
   }
 </style>
@@ -268,10 +314,8 @@
   </div>
 </header>
 
-<main>
-  <div class="console" id="console-root">
-    <div class="console-loading"><span class="center-msg">Chargement…</span></div>
-  </div>
+<main id="main-root">
+  <div class="center-screen"><span class="center-msg">Chargement…</span></div>
 </main>
 
 <div id="toast" class="toast"></div>
@@ -295,7 +339,7 @@
   const header = document.querySelector('header');
   window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 20));
 
-  const consoleRoot = document.getElementById('console-root');
+  const mainRoot = document.getElementById('main-root');
   const toastEl = document.getElementById('toast');
 
   function showToast(message, type) {
@@ -331,12 +375,29 @@
   const MEDICAL_DEPT_ID = 'medical';
   const SCIENCE_DEPT_ID = 'scientifique_mmqbrd32f2z7';
 
-  const DEPT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M9 21v-6h6v6"/><path d="M9 10h.01M9 14h.01M15 10h.01M15 14h.01"/></svg>';
-  const SCIENCE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4 19a2 2 0 0 0 1.8 2.9h12.4A2 2 0 0 0 20 19l-5-10.5V2"/><path d="M9 2h6M8 15h8"/></svg>';
+  const DEPT_CODES = {
+    security: 'DEPT-SEC',
+    medical: 'DEPT-MED',
+    scientifique_mmqbrd32f2z7: 'DEPT-SCI',
+    administratif_mmqbmvq8ikle: 'DEPT-ADM',
+    classe_d_mmqbk7ziqke2: 'DEPT-D',
+    fim_mmqbs55q2vge: 'DEPT-FIM',
+  };
+
+  const ICONS = {
+    building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M9 21v-6h6v6"/><path d="M9 10h.01M9 14h.01M15 10h.01M15 14h.01"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+    arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+    bulletin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3M9 11h6M9 15h6"/></svg>',
+    people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c1.2-3.4 3.4-5 6-5s4.8 1.6 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c1.9.4 3.3 1.7 4.2 4"/></svg>',
+    rdv: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+    flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4 19a2 2 0 0 0 1.8 2.9h12.4A2 2 0 0 0 20 19l-5-10.5V2"/><path d="M9 2h6M8 15h8"/></svg>',
+  };
 
   function renderLoggedOut() {
-    consoleRoot.innerHTML = `
-      <div class="console-message">
+    mainRoot.innerHTML = `
+      <div class="center-screen">
         <div class="console-message-inner">
           <div class="display">Accès restreint</div>
           <p>Connecte-toi d'abord pour ouvrir l'intranet RP.<br><br><a href="/site15/account/">Aller à Mon compte</a></p>
@@ -349,8 +410,8 @@
     const reason = !ctx.robloxUsername
       ? "Ton compte Discord n'est pas encore lié à un compte Roblox."
       : "Aucun personnage actif ne t'est associé dans le roster.";
-    consoleRoot.innerHTML = `
-      <div class="console-message">
+    mainRoot.innerHTML = `
+      <div class="center-screen">
         <div class="console-message-inner">
           <div class="display">Aucun accès RP</div>
           <p>${escapeHtml(reason)}<br><br>${!ctx.robloxUsername ? '<a href="/site15/account/">Lier mon compte Roblox</a>' : "Contacte le staff roster si tu penses que c'est une erreur."}</p>
@@ -360,91 +421,217 @@
   }
 
   function renderError(message) {
-    consoleRoot.innerHTML = `<div class="console-message"><div class="console-message-inner"><p>${escapeHtml(message)}</p></div></div>`;
+    mainRoot.innerHTML = `<div class="center-screen"><div class="console-message-inner"><p>${escapeHtml(message)}</p></div></div>`;
   }
 
-  function renderShell() {
-    const badges = context.characters.map((c) => `<span class="clearance-badge">${escapeHtml(c.name)}</span>`).join('') || '<span class="clearance-badge">Aucun</span>';
+  // -----------------------------------------------------------------
+  // Écran de sélection — un accès = UN département choisi, jamais
+  // plusieurs affichés en même temps. Un accès "propre" (perso actif) et
+  // un accès FIM (lecture, sans forcément avoir de perso dans ce dept)
+  // sont tous deux proposés comme des cartes distinctes.
+  // -----------------------------------------------------------------
+  function renderSelector() {
+    const cards = context.depts.map((d) => {
+      const character = context.characters.find((c) => c.deptId === d.deptId);
+      const isFimOnly = !character && context.isFIM;
+      return { deptId: d.deptId, name: d.name, character, isFimOnly };
+    });
 
-    const deptItems = context.depts
-      .map((d) => `<button class="nav-item" data-view="dept" data-dept-id="${escapeHtml(d.deptId)}">${DEPT_ICON}<span>${escapeHtml(d.name)}</span></button>`)
-      .join('');
-
-    consoleRoot.innerHTML = `
-      <aside class="sidebar">
-        <div class="sidebar-brand">Site-15 // Intranet RP</div>
-        <div class="clearance-card">
-          <span class="clearance-label">Personnages actifs</span>
-          <div class="clearance-badges">${badges}</div>
-          ${context.isFIM ? '<div style="margin-top:8px;"><span class="clearance-badge" style="background:rgba(240,168,60,0.12); color:var(--warn); border-color:rgba(240,168,60,0.3);">Accès FIM — tous départements</span></div>' : ''}
+    mainRoot.innerHTML = `
+      <div class="selector-screen">
+        <div class="selector-head">
+          <span class="eyebrow">Site-15 // Accès terminal</span>
+          <h1>Choisis ton accès</h1>
+          <p>Sélectionne le personnage ou l'accès avec lequel te connecter. Un seul intranet à la fois.</p>
         </div>
-        <nav class="sidebar-nav">
-          <div class="sidebar-nav-label">Départements</div>
-          ${deptItems}
-          <div class="sidebar-nav-label">Zones communes</div>
-          <button class="nav-item" data-view="science">${SCIENCE_ICON}<span>Publications Scientifiques</span></button>
-        </nav>
-        <div class="sidebar-footer"><span class="mono">Voidline Studio</span></div>
-      </aside>
-      <section class="console-main">
-        <div class="console-header">
-          <h1 id="console-title"></h1>
-          <p id="console-subtitle"></p>
+        <div class="selector-grid">
+          ${cards
+            .map(
+              (c) => `
+            <div class="selector-card" data-dept-id="${escapeHtml(c.deptId)}">
+              <div class="selector-card-left">
+                <div class="selector-card-icon">${ICONS.building}</div>
+                <div>
+                  <div class="selector-card-title">${escapeHtml(c.name)}</div>
+                  <div class="selector-card-sub">${c.character ? `${escapeHtml(c.character.name)} — ${escapeHtml(c.character.rank || 'Grade non précisé')}` : 'Accès en lecture'}</div>
+                </div>
+              </div>
+              ${c.isFimOnly ? '<span class="selector-card-badge">FIM</span>' : ''}
+              <span class="selector-card-arrow">${ICONS.arrow}</span>
+            </div>
+          `
+            )
+            .join('')}
         </div>
-        <div class="console-body" id="console-body"></div>
-      </section>
+      </div>
     `;
 
-    consoleRoot.querySelectorAll('.nav-item').forEach((btn) => {
+    mainRoot.querySelectorAll('.selector-card').forEach((card) => {
+      card.addEventListener('click', () => enterTerminal(card.dataset.deptId));
+    });
+  }
+
+  function enterTerminal(deptId) {
+    renderTerminalShell(deptId);
+  }
+
+  // -----------------------------------------------------------------
+  // Terminal départemental — un seul département affiché à la fois,
+  // avec un bouton pour revenir au choix ("à la volée", sans recharger).
+  // -----------------------------------------------------------------
+  function renderTerminalShell(deptId) {
+    const deptMeta = context.depts.find((d) => d.deptId === deptId);
+    const character = context.characters.find((c) => c.deptId === deptId);
+    const deptCode = DEPT_CODES[deptId] || 'DEPT';
+
+    const tabs = [{ id: 'bulletin', label: 'Bulletin', icon: 'bulletin' }, { id: 'effectifs', label: 'Effectifs', icon: 'people' }];
+    if (deptId === MEDICAL_DEPT_ID) tabs.push({ id: 'rdv', label: 'Rendez-vous', icon: 'rdv' });
+    tabs.push({ id: 'science', label: 'Publications Sci.', icon: 'flask' });
+
+    mainRoot.innerHTML = `
+      <div class="terminal-screen">
+        <div class="terminal-topbar">
+          <div class="terminal-topbar-inner">
+            <div>
+              <button class="terminal-breadcrumb" id="back-to-selector">${ICONS.back} SITE-15 // CHANGER D'ACCÈS</button>
+              <div class="terminal-title-row" style="margin-top:8px;">
+                ${ICONS.lock}
+                <span class="terminal-title">${escapeHtml(deptMeta?.name || deptId).toUpperCase()}</span>
+              </div>
+              <div class="terminal-subtitle">${deptCode} // ${character ? escapeHtml(character.name).toUpperCase() : 'ACCÈS LECTURE'} — NIV.${context.isFIM ? '3 (FIM)' : '1'}</div>
+            </div>
+            <div class="terminal-status-group">
+              <div class="status-dot-row"><span class="status-dot"></span> SYSTÈME EN LIGNE</div>
+              <div class="clearance-chip">${character ? escapeHtml(character.rank || 'AGENT') : 'LECTURE SEULE'}</div>
+            </div>
+          </div>
+        </div>
+        <div class="terminal-tabs">
+          ${tabs
+            .map(
+              (t, i) => `<button class="terminal-tab${i === 0 ? ' active' : ''}" data-tab="${t.id}">${ICONS[t.icon]}${t.label}</button>`
+            )
+            .join('')}
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-main" id="terminal-main"></div>
+          <div class="terminal-side">
+            <div class="side-panel">
+              <div class="side-panel-title">Statistiques</div>
+              <div class="stat-grid" id="stat-grid">
+                <div class="stat-cell"><div class="stat-value">—</div><div class="stat-label">Annonces</div></div>
+                <div class="stat-cell"><div class="stat-value">—</div><div class="stat-label">Effectif</div></div>
+              </div>
+            </div>
+            <div class="side-panel">
+              <div class="side-panel-title">Accès</div>
+              <div class="access-row"><span>Statut</span><span>Connecté</span></div>
+              <div class="access-row"><span>Personnage</span><span>${character ? escapeHtml(character.name) : '—'}</span></div>
+              <div class="access-row"><span>Grade</span><span>${character ? escapeHtml(character.rank || '—') : '—'}</span></div>
+              <div class="access-row"><span>Rôle</span><span>${character ? 'Membre' : 'Lecture (FIM)'}</span></div>
+            </div>
+            <div class="side-panel">
+              <div class="side-panel-title">Terminal Site-15</div>
+              <div class="terminal-console" id="terminal-console">
+                <div><span class="prompt">${deptCode.toLowerCase().replace('dept-', '')}@site-15:~$</span> status</div>
+                <div class="ok">▶ Intranet ${escapeHtml(deptCode)} : EN LIGNE</div>
+                <div><span class="prompt">${deptCode.toLowerCase().replace('dept-', '')}@site-15:~$</span> <span style="opacity:.5;">_</span></div>
+              </div>
+            </div>
+            <div class="side-panel">
+              <div class="side-panel-title">Journal</div>
+              <div id="journal-panel"><div class="journal-entry"><span class="journal-text">Chargement…</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('back-to-selector').addEventListener('click', renderSelector);
+
+    mainRoot.querySelectorAll('.terminal-tab').forEach((btn) => {
       btn.addEventListener('click', () => {
-        consoleRoot.querySelectorAll('.nav-item').forEach((b) => b.classList.remove('active'));
+        mainRoot.querySelectorAll('.terminal-tab').forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
-        if (btn.dataset.view === 'dept') loadDeptView(btn.dataset.deptId);
-        else loadScienceView();
+        loadTerminalTab(deptId, btn.dataset.tab);
       });
     });
 
-    if (context.depts.length) {
-      consoleRoot.querySelector('.nav-item[data-view="dept"]').classList.add('active');
-      loadDeptView(context.depts[0].deptId);
-    } else {
-      consoleRoot.querySelector('.nav-item[data-view="science"]').classList.add('active');
-      loadScienceView();
-    }
+    loadTerminalTab(deptId, 'bulletin');
+  }
+
+  function loadTerminalTab(deptId, tabId) {
+    if (tabId === 'bulletin' || tabId === 'effectifs') loadDeptData(deptId, tabId);
+    else if (tabId === 'rdv') loadMedicalModule();
+    else if (tabId === 'science') loadScienceModule();
   }
 
   // -----------------------------------------------------------------
-  // Page générique d'un département (annonces + effectif), avec le
-  // module RDV Médical ajouté en plus si deptId === medical.
+  // Bulletin + Effectifs (page générique d'un département)
   // -----------------------------------------------------------------
-  async function loadDeptView(deptId) {
-    document.getElementById('console-title').textContent = context.depts.find((d) => d.deptId === deptId)?.name || 'Département';
-    document.getElementById('console-subtitle').textContent = 'Annonces internes et effectif actif du département.';
-
-    const body = document.getElementById('console-body');
-    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+  async function loadDeptData(deptId, focus) {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
 
     let data;
     try {
       data = await apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`);
     } catch (err) {
-      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
       return;
     }
 
     const { dept, announcements, canPost } = data;
     const agents = dept.agents || [];
 
-    body.innerHTML = `
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${announcements.length}</div><div class="stat-label">Annonces</div></div>
+      <div class="stat-cell"><div class="stat-value">${agents.length}</div><div class="stat-label">Effectif</div></div>
+    `;
+
+    document.getElementById('journal-panel').innerHTML = announcements.length
+      ? announcements
+          .slice(0, 4)
+          .map(
+            (a) =>
+              `<div class="journal-entry"><span class="journal-time">${a.createdAt ? new Date(a.createdAt).toLocaleDateString('fr-FR') : '—'}</span><span class="journal-text">${escapeHtml(a.title)}</span></div>`
+          )
+          .join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune activité récente.</span></div>';
+
+    if (focus === 'effectifs') {
+      main.innerHTML = `
+        <div class="record-block">
+          <div class="record-block-head"><h2>Effectif actif</h2><span class="count">${agents.length}</span></div>
+          ${
+            agents.length
+              ? `<table>
+                  <thead><tr><th>Nom</th><th>Grade</th>${agents.some((a) => a.division) ? '<th>Division</th>' : ''}</tr></thead>
+                  <tbody>
+                    ${agents
+                      .map(
+                        (a) => `<tr><td>${escapeHtml(a.name || '—')}</td><td>${escapeHtml(a.rank || '—')}</td>${agents.some((x) => x.division) ? `<td>${escapeHtml(a.division || '—')}</td>` : ''}</tr>`
+                      )
+                      .join('')}
+                  </tbody>
+                </table>`
+              : '<div class="empty-row">Aucun agent actif enregistré.</div>'
+          }
+        </div>
+      `;
+      return;
+    }
+
+    main.innerHTML = `
       <div class="record-block">
-        <div class="record-block-head"><h2>Annonces</h2><span class="count">${announcements.length}</span></div>
+        <div class="record-block-head"><h2>Bulletin</h2><span class="count">${announcements.length}</span></div>
         <div id="announcements-list">
           ${
             announcements.length
               ? announcements
                   .map(
                     (a) => `
-              <div class="post-card" data-announcement-id="${escapeHtml(a.id)}">
+              <div class="post-card">
                 <div class="post-card-head">
                   <span class="post-card-title">${escapeHtml(a.title)}</span>
                   <span class="post-card-meta">${escapeHtml(a.authorName)} — ${a.createdAt ? new Date(a.createdAt).toLocaleDateString('fr-FR') : ''}</span>
@@ -470,26 +657,6 @@
             : ''
         }
       </div>
-
-      <div class="record-block">
-        <div class="record-block-head"><h2>Effectif actif</h2><span class="count">${agents.length}</span></div>
-        ${
-          agents.length
-            ? `<table>
-                <thead><tr><th>Nom</th><th>Grade</th>${agents.some((a) => a.division) ? '<th>Division</th>' : ''}</tr></thead>
-                <tbody>
-                  ${agents
-                    .map(
-                      (a) => `<tr><td>${escapeHtml(a.name || '—')}</td><td>${escapeHtml(a.rank || '—')}</td>${agents.some((x) => x.division) ? `<td>${escapeHtml(a.division || '—')}</td>` : ''}</tr>`
-                    )
-                    .join('')}
-                </tbody>
-              </table>`
-            : '<div class="empty-row">Aucun agent actif enregistré.</div>'
-        }
-      </div>
-
-      ${deptId === MEDICAL_DEPT_ID ? '<div id="medical-module"></div>' : ''}
     `;
 
     const form = document.getElementById('announcement-form');
@@ -505,15 +672,11 @@
             body: JSON.stringify({ title, content }),
           });
           showToast('Annonce publiée.', 'success');
-          loadDeptView(deptId);
+          loadDeptData(deptId, 'bulletin');
         } catch (err) {
           showToast(`Erreur : ${err.message}`, 'error');
         }
       });
-    }
-
-    if (deptId === MEDICAL_DEPT_ID) {
-      loadMedicalModule();
     }
   }
 
@@ -521,14 +684,14 @@
   // Module RDV Médical
   // -----------------------------------------------------------------
   async function loadMedicalModule() {
-    const container = document.getElementById('medical-module');
-    container.innerHTML = '<div class="center-msg">Chargement des rendez-vous…</div>';
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement des rendez-vous…</div>';
 
     let data;
     try {
       data = await apiFetch('/api/rp/medical');
     } catch (err) {
-      container.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
       return;
     }
 
@@ -632,12 +795,20 @@
       `
       : '';
 
-    container.innerHTML = myBookingsHtml + availableHtml + staffHtml;
+    main.innerHTML = myBookingsHtml + availableHtml + staffHtml;
 
-    container.querySelectorAll('.book-slot-btn').forEach((btn) => {
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${available.length}</div><div class="stat-label">Libres</div></div>
+      <div class="stat-cell"><div class="stat-value">${mine.length}</div><div class="stat-label">Mes RDV</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = mine.length
+      ? mine.slice(0, 4).map((s) => `<div class="journal-entry"><span class="journal-time">${escapeHtml(s.date)}</span><span class="journal-text">RDV avec ${escapeHtml(s.staffCharacterName)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun rendez-vous.</span></div>';
+
+    main.querySelectorAll('.book-slot-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const slotId = btn.dataset.slotId;
-        const select = container.querySelector(`.book-character-select[data-slot-id="${slotId}"]`);
+        const select = main.querySelector(`.book-character-select[data-slot-id="${slotId}"]`);
         try {
           await apiFetch(`/api/rp/medical/slots/${encodeURIComponent(slotId)}/book`, {
             method: 'POST',
@@ -651,7 +822,7 @@
       });
     });
 
-    container.querySelectorAll('.cancel-booking-btn, .staff-cancel-btn').forEach((btn) => {
+    main.querySelectorAll('.cancel-booking-btn, .staff-cancel-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         try {
           await apiFetch(`/api/rp/medical/slots/${encodeURIComponent(btn.dataset.slotId)}/cancel`, { method: 'POST' });
@@ -663,7 +834,7 @@
       });
     });
 
-    container.querySelectorAll('.delete-slot-btn').forEach((btn) => {
+    main.querySelectorAll('.delete-slot-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (!confirm('Supprimer ce créneau ?')) return;
         try {
@@ -697,24 +868,29 @@
   // -----------------------------------------------------------------
   // Publications Scientifiques (zone commune)
   // -----------------------------------------------------------------
-  async function loadScienceView() {
-    document.getElementById('console-title').textContent = 'Publications Scientifiques';
-    document.getElementById('console-subtitle').textContent = 'Travaux publiés par le département Scientifique, consultables par tous.';
-
-    const body = document.getElementById('console-body');
-    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+  async function loadScienceModule() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
 
     let data;
     try {
       data = await apiFetch('/api/rp/science/publications');
     } catch (err) {
-      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
       return;
     }
 
     const { publications, canPublish } = data;
 
-    body.innerHTML = `
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${publications.length}</div><div class="stat-label">Publications</div></div>
+      <div class="stat-cell"><div class="stat-value">${canPublish ? 'OUI' : 'NON'}</div><div class="stat-label">Autorisé</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = publications.length
+      ? publications.slice(0, 4).map((p) => `<div class="journal-entry"><span class="journal-time">${p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(p.title)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune publication.</span></div>';
+
+    main.innerHTML = `
       <div class="record-block">
         <div class="record-block-head"><h2>Publications</h2><span class="count">${publications.length}</span></div>
         <div id="publications-list">
@@ -723,7 +899,7 @@
               ? publications
                   .map(
                     (p) => `
-              <div class="post-card" data-publication-id="${escapeHtml(p.id)}">
+              <div class="post-card">
                 <div class="post-card-head">
                   <span class="post-card-title">${escapeHtml(p.title)}</span>
                   <span class="post-card-meta">${escapeHtml(p.authorCharacterName)} — ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span>
@@ -762,7 +938,7 @@
         try {
           await apiFetch('/api/rp/science/publications', { method: 'POST', body: JSON.stringify({ title, content }) });
           showToast('Publication ajoutée.', 'success');
-          loadScienceView();
+          loadScienceModule();
         } catch (err) {
           showToast(`Erreur : ${err.message}`, 'error');
         }
@@ -786,7 +962,11 @@
       return;
     }
 
-    renderShell();
+    if (context.depts.length === 1) {
+      enterTerminal(context.depts[0].deptId);
+    } else {
+      renderSelector();
+    }
   }
 
   init();
