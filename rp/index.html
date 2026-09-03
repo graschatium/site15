@@ -273,6 +273,10 @@
   .clearance-chip{
     font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:600; padding:6px 12px; border-radius:6px;
     background:var(--accent-soft); color:var(--accent-2); border:1px solid rgba(110,118,255,0.3);
+    transition:background .2s ease, color .2s ease, border-color .2s ease;
+  }
+  .clearance-chip-elevated{
+    background:rgba(79,216,149,0.12); color:var(--good); border-color:rgba(79,216,149,0.3);
   }
 
   .terminal-tabs{ max-width:1280px; margin:0 auto; padding:0 32px; display:flex; gap:4px; border-bottom:1px solid var(--line); }
@@ -728,7 +732,7 @@
             </div>
             <div class="terminal-status-group">
               <div class="status-dot-row"><span class="status-dot"></span> SYSTÈME EN LIGNE</div>
-              <div class="clearance-chip">LECTURE</div>
+              <div class="clearance-chip" id="archives-clearance-chip">LECTURE</div>
             </div>
           </div>
         </div>
@@ -1188,6 +1192,12 @@
 
     const { publications, canPublish } = data;
     scienceAllPublications = publications;
+
+    const clearanceChip = document.getElementById('archives-clearance-chip');
+    if (clearanceChip) {
+      clearanceChip.textContent = canPublish ? 'ACCRÉDITÉ SCIENTIFIQUE' : 'LECTURE';
+      clearanceChip.classList.toggle('clearance-chip-elevated', canPublish);
+    }
 
     document.getElementById('stat-grid').innerHTML = `
       <div class="stat-cell"><div class="stat-value">${publications.length}</div><div class="stat-label">Fiches</div></div>
