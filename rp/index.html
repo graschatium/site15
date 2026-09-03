@@ -193,25 +193,36 @@
 
   /* ---------- Menu principal (2 boutons Départements / Archives) ---------- */
   .topchoice-grid{
-    max-width:760px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:18px;
+    max-width:760px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:stretch;
   }
   .topchoice-card{
-    display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:14px;
-    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:30px 26px;
+    display:flex; flex-direction:column; align-items:flex-start; text-align:left;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:22px 24px 24px;
     cursor:pointer; font-family:'Inter', sans-serif; color:inherit;
     transition:border-color .22s ease, transform .18s ease, background .22s ease, box-shadow .22s ease;
   }
-  .topchoice-card:hover{
-    border-color:var(--accent); transform:translateY(-3px); background:var(--panel-raised);
-    box-shadow:0 16px 40px rgba(110,118,255,0.14);
+  .topchoice-card.primary{
+    border-color:rgba(110,118,255,0.35);
+    background:linear-gradient(160deg, var(--accent-soft), var(--panel) 72%);
   }
-  .topchoice-icon{
-    width:52px; height:52px; border-radius:10px; background:var(--accent-soft); border:1px solid rgba(110,118,255,0.25);
-    display:flex; align-items:center; justify-content:center; color:var(--accent-2);
+  .topchoice-card:hover{ transform:translateY(-2px); }
+  .topchoice-card.primary:hover{ border-color:var(--accent); box-shadow:0 16px 36px rgba(110,118,255,0.16); }
+  .topchoice-card:not(.primary):hover{ border-color:var(--ink-faint); background:var(--panel-raised); }
+
+  .topchoice-eyebrow{
+    display:flex; align-items:center; gap:7px; margin-bottom:16px;
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.12em; text-transform:uppercase;
   }
-  .topchoice-icon svg{ width:24px; height:24px; }
-  .topchoice-title{ font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:600; }
-  .topchoice-desc{ font-size:13px; color:var(--ink-dim); line-height:1.6; }
+  .topchoice-eyebrow svg{ width:13px; height:13px; flex-shrink:0; }
+  .topchoice-card.primary .topchoice-eyebrow{ color:var(--accent-2); }
+  .topchoice-card:not(.primary) .topchoice-eyebrow{ color:var(--ink-faint); }
+
+  .topchoice-title{
+    font-family:'JetBrains Mono', monospace; font-size:15px; font-weight:700; letter-spacing:0.03em;
+    text-transform:uppercase; color:var(--ink); margin-bottom:10px; line-height:1.35;
+  }
+  .topchoice-desc{ font-size:12.5px; color:var(--ink-dim); line-height:1.65; }
+  .topchoice-desc strong{ color:var(--ink); font-weight:600; }
 
   @media (max-width:640px){
     .topchoice-grid{ grid-template-columns:1fr; }
@@ -543,6 +554,8 @@
     people: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c1.2-3.4 3.4-5 6-5s4.8 1.6 6 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c1.9.4 3.3 1.7 4.2 4"/></svg>',
     rdv: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
     flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="5" rx="1"/><path d="M4.5 9v9a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg>',
+    enter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13M12 5l7 7-7 7"/><path d="M20 4v16"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v.01M12 11v5"/></svg>',
   };
 
   function renderLoggedOut() {
@@ -581,6 +594,8 @@
   // sont tous deux proposés comme des cartes distinctes.
   // -----------------------------------------------------------------
   function renderTopChoice() {
+    const primaryCharacter = context.characters[0];
+
     mainRoot.innerHTML = `
       <div class="selector-screen">
         <div class="selector-head">
@@ -589,15 +604,19 @@
           <p>Connecte-toi à l'intranet de ton département, ou consulte les archives fondationnaires communes.</p>
         </div>
         <div class="topchoice-grid">
-          <button class="topchoice-card" id="topchoice-depts" type="button">
-            <div class="topchoice-icon">${ICONS.building}</div>
+          <button class="topchoice-card primary" id="topchoice-depts" type="button">
+            <div class="topchoice-eyebrow">${ICONS.enter} Accès personnel</div>
             <div class="topchoice-title">Départements</div>
-            <div class="topchoice-desc">Connecte-toi à l'intranet de ton département avec l'un de tes personnages actifs.</div>
+            <div class="topchoice-desc">${
+              primaryCharacter
+                ? `Identifié en tant que <strong>${escapeHtml(primaryCharacter.name)}</strong>. Lancer la connexion départementale.`
+                : 'Accès en lecture via ton statut FIM. Lancer la connexion départementale.'
+            }</div>
           </button>
           <button class="topchoice-card" id="topchoice-archives" type="button">
-            <div class="topchoice-icon">${ICONS.flask}</div>
+            <div class="topchoice-eyebrow">${ICONS.info} Accès public</div>
             <div class="topchoice-title">Archives Fondationnaires</div>
-            <div class="topchoice-desc">Consulte les fiches d'objets publiées par le département Scientifique — accessible à tous.</div>
+            <div class="topchoice-desc">Fiches d'objets publiées par le département Scientifique. Aucun personnage requis pour consulter.</div>
           </button>
         </div>
       </div>
