@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intranet RP — Site-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://graschatium.github.io/site15/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #08090C;
+    --void-2: #0D0F14;
+    --panel: #12141B;
+    --panel-raised: #171922;
+    --line: #23262F;
+    --line-soft: rgba(255,255,255,0.06);
+    --accent: #6E76FF;
+    --accent-soft: rgba(110,118,255,0.10);
+    --accent-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #565B6B;
+    --good: #4FD895;
+    --warn: #F0A83C;
+    --bad: #F0525A;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; overflow-x:hidden; position:relative; }
+
+  .field-texture{
+    position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(1100px 700px at 62% -10%, rgba(110,118,255,0.08), transparent 62%),
+      linear-gradient(var(--void), var(--void));
+  }
+  .field-texture::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.024) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.024) 1px, transparent 1px);
+    background-size:56px 56px;
+    mask-image:radial-gradient(ellipse 1500px 900px at 55% 0%, black 12%, transparent 78%);
+  }
+
+  ::selection{ background:var(--accent); color:var(--void); }
+  a{ color:inherit; text-decoration:none; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100; padding:22px 0;
+    background:rgba(8,9,12,0.5); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid transparent; transition:border-color .4s ease, background .4s ease;
+  }
+  header.scrolled{ background:rgba(8,9,12,0.82); border-bottom-color:var(--line); }
+  .nav-inner{ display:flex; align-items:center; justify-content:space-between; }
+  .wordmark{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; display:flex; align-items:center; gap:10px; }
+  .wordmark .logo-mark{ width:30px; height:30px; object-fit:contain; }
+  nav ul{ display:flex; align-items:center; gap:36px; list-style:none; }
+  nav a{ font-size:13px; color:var(--ink-dim); transition:color .25s ease; }
+  nav a:hover, nav a:focus-visible{ color:var(--ink); outline:none; }
+  nav a.current{ color:var(--ink); }
+
+  .auth-menu{ position:relative; }
+  .auth-login-btn{
+    display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
+    padding:9px 16px; border-radius:6px; border:1px solid var(--line); color:var(--ink); background:transparent;
+    transition:border-color .25s ease, color .25s ease, transform .2s ease;
+  }
+  .auth-login-btn:hover{ border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
+  .auth-login-btn svg{ width:14px; height:14px; }
+  .auth-btn{
+    display:flex; align-items:center; gap:9px; cursor:pointer; background:transparent; border:1px solid transparent;
+    padding:5px 10px 5px 6px; border-radius:8px; font-size:13px; color:var(--ink-dim);
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .auth-btn:hover{ color:var(--ink); border-color:var(--line); background:rgba(255,255,255,0.02); }
+  .auth-menu.open .auth-btn{ color:var(--ink); border-color:var(--line); }
+  .auth-avatar{
+    width:26px; height:26px; border-radius:50%; overflow:hidden; flex-shrink:0; background:var(--accent-soft);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:11px; color:var(--accent);
+  }
+  .auth-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .auth-name{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .auth-caret{ width:11px; height:11px; flex-shrink:0; transition:transform .25s ease; }
+  .auth-menu.open .auth-caret{ transform:rotate(180deg); }
+  .auth-dropdown{
+    position:absolute; top:calc(100% + 12px); right:0; min-width:210px; background:var(--panel-raised);
+    border:1px solid var(--line); border-radius:10px; padding:6px; opacity:0; visibility:hidden; transform:translateY(-8px);
+    transition:opacity .2s ease, transform .2s ease, visibility .2s; box-shadow:0 24px 48px rgba(0,0,0,0.5); z-index:200;
+  }
+  .auth-menu.open .auth-dropdown{ opacity:1; visibility:visible; transform:translateY(0); }
+  .auth-dropdown a, .auth-dropdown button{
+    display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border-radius:6px; font-size:13px;
+    color:var(--ink-dim); background:transparent; border:none; cursor:pointer; text-align:left;
+    transition:background .15s ease, color .15s ease;
+  }
+  .auth-dropdown a:hover, .auth-dropdown button:hover{ background:var(--void-2); color:var(--ink); }
+  .auth-dropdown button.danger:hover{ color:var(--bad); }
+  .auth-dropdown svg{ width:15px; height:15px; flex-shrink:0; }
+  .auth-dropdown hr{ border:none; border-top:1px solid var(--line); margin:6px 2px; }
+
+  main{ padding-top:88px; min-height:100vh; }
+  .console{ display:flex; align-items:stretch; min-height:calc(100vh - 88px); }
+
+  .console-loading, .console-message{
+    flex:1; display:flex; align-items:center; justify-content:center; padding:80px 24px; text-align:center;
+  }
+  .console-message-inner{ max-width:400px; }
+  .console-message-inner .display{ font-family:'Space Grotesk', sans-serif; font-size:22px; margin-bottom:10px; }
+  .console-message-inner p{ color:var(--ink-dim); font-size:14px; line-height:1.6; }
+  .console-message-inner a{ color:var(--accent); text-decoration:underline; }
+
+  .sidebar{
+    width:252px; flex-shrink:0; border-right:1px solid var(--line); padding:28px 18px;
+    display:flex; flex-direction:column; gap:26px; position:sticky; top:88px; align-self:flex-start; height:calc(100vh - 88px);
+  }
+  .sidebar-brand{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.14em; color:var(--ink-faint); text-transform:uppercase; padding:0 10px; }
+  .clearance-card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 14px 16px; }
+  .clearance-label{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.1em; color:var(--ink-faint); text-transform:uppercase; display:block; margin-bottom:10px; }
+  .clearance-badges{ display:flex; flex-wrap:wrap; gap:6px; }
+  .clearance-badge{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.03em; padding:4px 8px; border-radius:4px;
+    background:var(--accent-soft); color:var(--accent-2); border:1px solid rgba(110,118,255,0.25);
+  }
+
+  .sidebar-nav{ display:flex; flex-direction:column; gap:2px; }
+  .sidebar-nav-label{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.1em; color:var(--ink-faint);
+    text-transform:uppercase; padding:10px 10px 4px;
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:8px; border:none; background:transparent;
+    color:var(--ink-dim); font-family:'Inter', sans-serif; font-size:13.5px; font-weight:500; cursor:pointer; text-align:left;
+    width:100%; position:relative; transition:background .15s ease, color .15s ease;
+  }
+  .nav-item svg{ width:17px; height:17px; flex-shrink:0; opacity:0.85; }
+  .nav-item:hover{ background:var(--panel); color:var(--ink); }
+  .nav-item.active{ background:var(--accent-soft); color:var(--ink); }
+  .nav-item.active::before{ content:''; position:absolute; left:-18px; top:50%; transform:translateY(-50%); width:3px; height:18px; border-radius:0 3px 3px 0; background:var(--accent); }
+
+  .sidebar-footer{ margin-top:auto; }
+  .sidebar-footer .mono{ font-size:10px; color:var(--ink-faint); letter-spacing:0.08em; padding:0 10px; }
+
+  .console-main{ flex:1; min-width:0; padding:40px 48px 80px; }
+  .console-header{ margin-bottom:30px; }
+  .console-header h1{ font-family:'Space Grotesk', sans-serif; font-size:26px; font-weight:600; letter-spacing:-0.01em; }
+  .console-header p{ margin-top:6px; color:var(--ink-dim); font-size:13.5px; max-width:560px; }
+  .console-body{ display:flex; flex-direction:column; gap:0; }
+
+  .record-block{ margin-bottom:36px; }
+  .record-block-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; }
+  .record-block-head h2{ font-family:'Space Grotesk', sans-serif; font-size:15.5px; font-weight:600; }
+  .record-block-head .count{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-dim);
+    background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:3px 10px;
+  }
+
+  .center-msg{ text-align:center; padding:56px 20px; color:var(--ink-dim); font-size:13.5px; }
+  .empty-row{ color:var(--ink-faint); font-size:13px; padding:22px 18px; text-align:center; border:1px dashed var(--line); border-radius:10px; }
+
+  select, input, textarea{
+    font-family:'Inter', sans-serif; font-size:13.5px; color:var(--ink); background:var(--void-2);
+    border:1px solid var(--line); border-radius:7px; padding:9px 12px; width:100%;
+  }
+  select:focus, input:focus, textarea:focus{ outline:none; border-color:var(--accent); }
+  textarea{ resize:vertical; }
+  label{
+    font-size:10.5px; color:var(--ink-faint); display:block; margin-bottom:6px;
+    font-family:'JetBrains Mono', monospace; letter-spacing:0.06em; text-transform:uppercase;
+  }
+  select{
+    appearance:none; -webkit-appearance:none; -moz-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239297A8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 10px center; background-size:14px; padding-right:32px; cursor:pointer;
+  }
+
+  .field-row{ margin-bottom:14px; }
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  .btn{
+    font-family:'Inter', sans-serif; font-size:13px; font-weight:600; padding:9px 18px; border-radius:7px;
+    border:1px solid var(--accent); color:var(--void); background:var(--accent); cursor:pointer;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); background:#7B82FF; }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; transform:none; }
+  .btn.ghost{ background:transparent; color:var(--ink-dim); border-color:var(--line); }
+  .btn.ghost:hover{ color:var(--ink); border-color:var(--accent); background:transparent; }
+  .btn.danger{ background:transparent; border-color:var(--line); color:var(--ink-faint); }
+  .btn.danger:hover{ border-color:var(--bad); color:var(--bad); background:transparent; transform:none; }
+  .btn.small{ padding:6px 12px; font-size:12px; }
+
+  table{
+    width:100%; border-collapse:separate; border-spacing:0; font-size:13px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden;
+  }
+  th, td{ text-align:left; padding:12px 14px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+  thead th{ background:var(--panel-raised); border-bottom:1px solid var(--line); }
+  th{ color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; font-weight:500; }
+  tbody tr:hover{ background:rgba(255,255,255,0.02); }
+  tbody tr:last-child td{ border-bottom:none; }
+  td.mono-cell{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-dim); }
+
+  .subsection{ margin-top:28px; padding:22px 22px 24px; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
+  .subsection h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; margin-bottom:16px; }
+
+  .post-card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:14px; }
+  .post-card-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px; }
+  .post-card-title{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; }
+  .post-card-meta{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+  .post-card-body{ font-size:13.5px; color:var(--ink-dim); line-height:1.7; white-space:pre-wrap; }
+
+  .status-pill{
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:10.5px;
+    font-family:'JetBrains Mono', monospace; text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .status-open{ background:rgba(79,216,149,0.12); color:var(--good); }
+  .status-taken{ background:rgba(240,168,60,0.12); color:var(--warn); }
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; z-index:200; background:var(--panel-raised); border:1px solid var(--line);
+    border-radius:8px; padding:12px 18px; font-size:13px; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none;
+  }
+  .toast.show{ display:block; }
+  .toast.error{ border-color:var(--bad); color:var(--bad); }
+  .toast.success{ border-color:var(--good); color:var(--good); }
+
+  @media (max-width:900px){
+    main{ padding-top:76px; }
+    .console{ flex-direction:column; }
+    .sidebar{
+      position:static; width:100%; height:auto; flex-direction:row; align-items:center;
+      overflow-x:auto; padding:14px 16px; gap:16px; border-right:none; border-bottom:1px solid var(--line);
+    }
+    .sidebar-brand, .clearance-card, .sidebar-footer, .sidebar-nav-label{ display:none; }
+    .sidebar-nav{ flex-direction:row; gap:6px; }
+    .nav-item{ white-space:nowrap; }
+    .nav-item.active::before{ display:none; }
+    .console-main{ padding:28px 20px 60px; }
+    .field-grid{ grid-template-columns:1fr; }
+    nav a:not(.auth-menu):not(.current){ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="field-texture"></div>
+
+<header>
+  <div class="wrap nav-inner">
+    <a href="index.html" class="wordmark">
+      <img src="ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+      VOIDLINE STUDIO
+    </a>
+    <nav>
+      <ul>
+        <li><a href="index.html#top">Accueil</a></li>
+        <li><a href="account.html">Mon compte</a></li>
+        <li><a href="rp.html" class="current">Intranet RP</a></li>
+        <li class="nav-admin-link" style="display:none;"><a href="admin.html">Console</a></li>
+        <li class="auth-menu" id="auth-menu"></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="console" id="console-root">
+    <div class="console-loading"><span class="center-msg">Chargement…</span></div>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+  const TOKEN_KEY = 'vs_token';
+
+  (function captureTokenFromUrl() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    }
+  })();
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY); }
+
+  const header = document.querySelector('header');
+  window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 20));
+
+  const consoleRoot = document.getElementById('console-root');
+  const toastEl = document.getElementById('toast');
+
+  function showToast(message, type) {
+    toastEl.textContent = message;
+    toastEl.className = `toast show${type ? ` ${type}` : ''}`;
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove('show'), 3500);
+  }
+
+  function escapeHtml(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  async function apiFetch(path, options = {}) {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+    if (res.status === 204) return null;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    return data;
+  }
+
+  let context = null;
+  const MEDICAL_DEPT_ID = 'medical';
+  const SCIENCE_DEPT_ID = 'scientifique_mmqbrd32f2z7';
+
+  const DEPT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M9 21v-6h6v6"/><path d="M9 10h.01M9 14h.01M15 10h.01M15 14h.01"/></svg>';
+  const SCIENCE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4 19a2 2 0 0 0 1.8 2.9h12.4A2 2 0 0 0 20 19l-5-10.5V2"/><path d="M9 2h6M8 15h8"/></svg>';
+
+  function renderLoggedOut() {
+    consoleRoot.innerHTML = `
+      <div class="console-message">
+        <div class="console-message-inner">
+          <div class="display">Accès restreint</div>
+          <p>Connecte-toi d'abord pour ouvrir l'intranet RP.<br><br><a href="account.html">Aller à Mon compte</a></p>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderNoAccess(ctx) {
+    const reason = !ctx.robloxUsername
+      ? "Ton compte Discord n'est pas encore lié à un compte Roblox."
+      : "Aucun personnage actif ne t'est associé dans le roster.";
+    consoleRoot.innerHTML = `
+      <div class="console-message">
+        <div class="console-message-inner">
+          <div class="display">Aucun accès RP</div>
+          <p>${escapeHtml(reason)}<br><br>${!ctx.robloxUsername ? '<a href="account.html">Lier mon compte Roblox</a>' : "Contacte le staff roster si tu penses que c'est une erreur."}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderError(message) {
+    consoleRoot.innerHTML = `<div class="console-message"><div class="console-message-inner"><p>${escapeHtml(message)}</p></div></div>`;
+  }
+
+  function renderShell() {
+    const badges = context.characters.map((c) => `<span class="clearance-badge">${escapeHtml(c.name)}</span>`).join('') || '<span class="clearance-badge">Aucun</span>';
+
+    const deptItems = context.depts
+      .map((d) => `<button class="nav-item" data-view="dept" data-dept-id="${escapeHtml(d.deptId)}">${DEPT_ICON}<span>${escapeHtml(d.name)}</span></button>`)
+      .join('');
+
+    consoleRoot.innerHTML = `
+      <aside class="sidebar">
+        <div class="sidebar-brand">Site-15 // Intranet RP</div>
+        <div class="clearance-card">
+          <span class="clearance-label">Personnages actifs</span>
+          <div class="clearance-badges">${badges}</div>
+          ${context.isFIM ? '<div style="margin-top:8px;"><span class="clearance-badge" style="background:rgba(240,168,60,0.12); color:var(--warn); border-color:rgba(240,168,60,0.3);">Accès FIM — tous départements</span></div>' : ''}
+        </div>
+        <nav class="sidebar-nav">
+          <div class="sidebar-nav-label">Départements</div>
+          ${deptItems}
+          <div class="sidebar-nav-label">Zones communes</div>
+          <button class="nav-item" data-view="science">${SCIENCE_ICON}<span>Publications Scientifiques</span></button>
+        </nav>
+        <div class="sidebar-footer"><span class="mono">Voidline Studio</span></div>
+      </aside>
+      <section class="console-main">
+        <div class="console-header">
+          <h1 id="console-title"></h1>
+          <p id="console-subtitle"></p>
+        </div>
+        <div class="console-body" id="console-body"></div>
+      </section>
+    `;
+
+    consoleRoot.querySelectorAll('.nav-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        consoleRoot.querySelectorAll('.nav-item').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (btn.dataset.view === 'dept') loadDeptView(btn.dataset.deptId);
+        else loadScienceView();
+      });
+    });
+
+    if (context.depts.length) {
+      consoleRoot.querySelector('.nav-item[data-view="dept"]').classList.add('active');
+      loadDeptView(context.depts[0].deptId);
+    } else {
+      consoleRoot.querySelector('.nav-item[data-view="science"]').classList.add('active');
+      loadScienceView();
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Page générique d'un département (annonces + effectif), avec le
+  // module RDV Médical ajouté en plus si deptId === medical.
+  // -----------------------------------------------------------------
+  async function loadDeptView(deptId) {
+    document.getElementById('console-title').textContent = context.depts.find((d) => d.deptId === deptId)?.name || 'Département';
+    document.getElementById('console-subtitle').textContent = 'Annonces internes et effectif actif du département.';
+
+    const body = document.getElementById('console-body');
+    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`);
+    } catch (err) {
+      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { dept, announcements, canPost } = data;
+    const agents = dept.agents || [];
+
+    body.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Annonces</h2><span class="count">${announcements.length}</span></div>
+        <div id="announcements-list">
+          ${
+            announcements.length
+              ? announcements
+                  .map(
+                    (a) => `
+              <div class="post-card" data-announcement-id="${escapeHtml(a.id)}">
+                <div class="post-card-head">
+                  <span class="post-card-title">${escapeHtml(a.title)}</span>
+                  <span class="post-card-meta">${escapeHtml(a.authorName)} — ${a.createdAt ? new Date(a.createdAt).toLocaleDateString('fr-FR') : ''}</span>
+                </div>
+                <div class="post-card-body">${escapeHtml(a.content || '')}</div>
+              </div>
+            `
+                  )
+                  .join('')
+              : '<div class="empty-row">Aucune annonce pour le moment.</div>'
+          }
+        </div>
+        ${
+          canPost
+            ? `<div class="subsection">
+                <h3>Publier une annonce</h3>
+                <form id="announcement-form">
+                  <div class="field-row"><label>Titre *</label><input type="text" id="announcement-title" required></div>
+                  <div class="field-row"><label>Contenu</label><textarea id="announcement-content" rows="3"></textarea></div>
+                  <button class="btn" type="submit">Publier</button>
+                </form>
+              </div>`
+            : ''
+        }
+      </div>
+
+      <div class="record-block">
+        <div class="record-block-head"><h2>Effectif actif</h2><span class="count">${agents.length}</span></div>
+        ${
+          agents.length
+            ? `<table>
+                <thead><tr><th>Nom</th><th>Grade</th>${agents.some((a) => a.division) ? '<th>Division</th>' : ''}</tr></thead>
+                <tbody>
+                  ${agents
+                    .map(
+                      (a) => `<tr><td>${escapeHtml(a.name || '—')}</td><td>${escapeHtml(a.rank || '—')}</td>${agents.some((x) => x.division) ? `<td>${escapeHtml(a.division || '—')}</td>` : ''}</tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun agent actif enregistré.</div>'
+        }
+      </div>
+
+      ${deptId === MEDICAL_DEPT_ID ? '<div id="medical-module"></div>' : ''}
+    `;
+
+    const form = document.getElementById('announcement-form');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('announcement-title').value.trim();
+        const content = document.getElementById('announcement-content').value.trim();
+        if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
+        try {
+          await apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}/announcements`, {
+            method: 'POST',
+            body: JSON.stringify({ title, content }),
+          });
+          showToast('Annonce publiée.', 'success');
+          loadDeptView(deptId);
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    }
+
+    if (deptId === MEDICAL_DEPT_ID) {
+      loadMedicalModule();
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Module RDV Médical
+  // -----------------------------------------------------------------
+  async function loadMedicalModule() {
+    const container = document.getElementById('medical-module');
+    container.innerHTML = '<div class="center-msg">Chargement des rendez-vous…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/medical');
+    } catch (err) {
+      container.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { isMedicalStaff, available, mine, staffView, myCharacters } = data;
+
+    const myBookingsHtml = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Mes rendez-vous</h2><span class="count">${mine.length}</span></div>
+        ${
+          mine.length
+            ? `<table>
+                <thead><tr><th>Date</th><th>Heure</th><th>Médecin</th><th></th></tr></thead>
+                <tbody>
+                  ${mine
+                    .map(
+                      (s) => `
+                    <tr>
+                      <td class="mono-cell">${escapeHtml(s.date)}</td>
+                      <td class="mono-cell">${escapeHtml(s.time)}</td>
+                      <td>${escapeHtml(s.staffCharacterName)}</td>
+                      <td><button class="btn danger small cancel-booking-btn" data-slot-id="${escapeHtml(s.id)}">Annuler</button></td>
+                    </tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun rendez-vous pris.</div>'
+        }
+      </div>
+    `;
+
+    const availableHtml = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Créneaux disponibles</h2><span class="count">${available.length}</span></div>
+        ${
+          available.length
+            ? `<table>
+                <thead><tr><th>Date</th><th>Heure</th><th>Médecin</th><th>Note</th><th></th></tr></thead>
+                <tbody>
+                  ${available
+                    .map(
+                      (s) => `
+                    <tr>
+                      <td class="mono-cell">${escapeHtml(s.date)}</td>
+                      <td class="mono-cell">${escapeHtml(s.time)}</td>
+                      <td>${escapeHtml(s.staffCharacterName)}</td>
+                      <td>${escapeHtml(s.notes || '—')}</td>
+                      <td>
+                        ${
+                          myCharacters.length
+                            ? `<select class="book-character-select" data-slot-id="${escapeHtml(s.id)}" style="display:inline-block; width:auto; padding:5px 24px 5px 8px; font-size:12px;">
+                                ${myCharacters.map((c) => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('')}
+                              </select>
+                              <button class="btn small book-slot-btn" data-slot-id="${escapeHtml(s.id)}">Réserver</button>`
+                            : '—'
+                        }
+                      </td>
+                    </tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun créneau disponible actuellement.</div>'
+        }
+      </div>
+    `;
+
+    const staffHtml = isMedicalStaff
+      ? `
+      <div class="subsection">
+        <h3>Gestion des créneaux (staff médical)</h3>
+        <table style="margin-bottom:18px;">
+          <thead><tr><th>Date</th><th>Heure</th><th>Statut</th><th>Patient</th><th></th></tr></thead>
+          <tbody>
+            ${(staffView || [])
+              .map(
+                (s) => `
+              <tr>
+                <td class="mono-cell">${escapeHtml(s.date)}</td>
+                <td class="mono-cell">${escapeHtml(s.time)}</td>
+                <td><span class="status-pill ${s.status === 'available' ? 'status-open' : 'status-taken'}">${s.status === 'available' ? 'Libre' : 'Réservé'}</span></td>
+                <td>${escapeHtml(s.patientCharacterName || '—')}</td>
+                <td>
+                  ${s.status === 'booked' ? `<button class="btn ghost small staff-cancel-btn" data-slot-id="${escapeHtml(s.id)}">Libérer</button>` : ''}
+                  <button class="btn danger small delete-slot-btn" data-slot-id="${escapeHtml(s.id)}">Supprimer</button>
+                </td>
+              </tr>`
+              )
+              .join('')}
+          </tbody>
+        </table>
+        <form id="add-slot-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Date</label><input type="date" id="slot-date" required></div>
+            <div class="field-row"><label>Heure</label><input type="time" id="slot-time" required></div>
+          </div>
+          <div class="field-row"><label>Note</label><input type="text" id="slot-notes" placeholder="Optionnel"></div>
+          <button class="btn" type="submit">Ajouter le créneau</button>
+        </form>
+      </div>
+      `
+      : '';
+
+    container.innerHTML = myBookingsHtml + availableHtml + staffHtml;
+
+    container.querySelectorAll('.book-slot-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const slotId = btn.dataset.slotId;
+        const select = container.querySelector(`.book-character-select[data-slot-id="${slotId}"]`);
+        try {
+          await apiFetch(`/api/rp/medical/slots/${encodeURIComponent(slotId)}/book`, {
+            method: 'POST',
+            body: JSON.stringify({ characterName: select.value }),
+          });
+          showToast('Rendez-vous réservé.', 'success');
+          loadMedicalModule();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    container.querySelectorAll('.cancel-booking-btn, .staff-cancel-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/medical/slots/${encodeURIComponent(btn.dataset.slotId)}/cancel`, { method: 'POST' });
+          showToast('Rendez-vous annulé.', 'success');
+          loadMedicalModule();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    container.querySelectorAll('.delete-slot-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer ce créneau ?')) return;
+        try {
+          await apiFetch(`/api/rp/medical/slots/${encodeURIComponent(btn.dataset.slotId)}`, { method: 'DELETE' });
+          showToast('Créneau supprimé.', 'success');
+          loadMedicalModule();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    const addSlotForm = document.getElementById('add-slot-form');
+    if (addSlotForm) {
+      addSlotForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const date = document.getElementById('slot-date').value;
+        const time = document.getElementById('slot-time').value;
+        const notes = document.getElementById('slot-notes').value.trim();
+        try {
+          await apiFetch('/api/rp/medical/slots', { method: 'POST', body: JSON.stringify({ date, time, notes }) });
+          showToast('Créneau ajouté.', 'success');
+          loadMedicalModule();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Publications Scientifiques (zone commune)
+  // -----------------------------------------------------------------
+  async function loadScienceView() {
+    document.getElementById('console-title').textContent = 'Publications Scientifiques';
+    document.getElementById('console-subtitle').textContent = 'Travaux publiés par le département Scientifique, consultables par tous.';
+
+    const body = document.getElementById('console-body');
+    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/science/publications');
+    } catch (err) {
+      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { publications, canPublish } = data;
+
+    body.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Publications</h2><span class="count">${publications.length}</span></div>
+        <div id="publications-list">
+          ${
+            publications.length
+              ? publications
+                  .map(
+                    (p) => `
+              <div class="post-card" data-publication-id="${escapeHtml(p.id)}">
+                <div class="post-card-head">
+                  <span class="post-card-title">${escapeHtml(p.title)}</span>
+                  <span class="post-card-meta">${escapeHtml(p.authorCharacterName)} — ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : ''}</span>
+                </div>
+                <div class="post-card-body">${escapeHtml(p.content || '')}</div>
+              </div>
+            `
+                  )
+                  .join('')
+              : '<div class="empty-row">Aucune publication pour le moment.</div>'
+          }
+        </div>
+      </div>
+
+      ${
+        canPublish
+          ? `<div class="subsection">
+              <h3>Publier un travail</h3>
+              <form id="publication-form">
+                <div class="field-row"><label>Titre *</label><input type="text" id="publication-title" required></div>
+                <div class="field-row"><label>Contenu *</label><textarea id="publication-content" rows="5" required></textarea></div>
+                <button class="btn" type="submit">Publier</button>
+              </form>
+            </div>`
+          : ''
+      }
+    `;
+
+    const form = document.getElementById('publication-form');
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('publication-title').value.trim();
+        const content = document.getElementById('publication-content').value.trim();
+        if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
+        try {
+          await apiFetch('/api/rp/science/publications', { method: 'POST', body: JSON.stringify({ title, content }) });
+          showToast('Publication ajoutée.', 'success');
+          loadScienceView();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    }
+  }
+
+  async function init() {
+    const token = getToken();
+    if (!token) { renderLoggedOut(); return; }
+
+    try {
+      context = await apiFetch('/api/rp/context');
+    } catch (err) {
+      renderError(`Impossible de charger l'intranet RP : ${err.message}`);
+      return;
+    }
+
+    if (!context.hasAnyAccess) {
+      renderNoAccess(context);
+      return;
+    }
+
+    renderShell();
+  }
+
+  init();
+</script>
+<script src="assets/auth-menu.js" defer></script>
+</body>
+</html>
