@@ -254,14 +254,14 @@
 
 <header>
   <div class="wrap nav-inner">
-    <a href="index.html" class="wordmark">
-      <img src="ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+    <a href="/site15/" class="wordmark">
+      <img src="/site15/ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
       VOIDLINE STUDIO
     </a>
     <nav>
       <ul>
-        <li><a href="index.html#top">Accueil</a></li>
-        <li><a href="postuler.html">Postuler</a></li>
+        <li><a href="/site15/#top">Accueil</a></li>
+        <li><a href="/site15/postuler/">Postuler</a></li>
         <li class="auth-menu" id="auth-menu"></li>
       </ul>
     </nav>
@@ -339,7 +339,7 @@
       <div class="console-message">
         <div class="console-message-inner">
           <div class="display">Accès restreint</div>
-          <p>Connecte-toi d'abord pour ouvrir l'intranet RP.<br><br><a href="account.html">Aller à Mon compte</a></p>
+          <p>Connecte-toi d'abord pour ouvrir l'intranet RP.<br><br><a href="/site15/account/">Aller à Mon compte</a></p>
         </div>
       </div>
     `;
@@ -353,7 +353,7 @@
       <div class="console-message">
         <div class="console-message-inner">
           <div class="display">Aucun accès RP</div>
-          <p>${escapeHtml(reason)}<br><br>${!ctx.robloxUsername ? '<a href="account.html">Lier mon compte Roblox</a>' : "Contacte le staff roster si tu penses que c'est une erreur."}</p>
+          <p>${escapeHtml(reason)}<br><br>${!ctx.robloxUsername ? '<a href="/site15/account/">Lier mon compte Roblox</a>' : "Contacte le staff roster si tu penses que c'est une erreur."}</p>
         </div>
       </div>
     `;
@@ -791,6 +791,6 @@
 
   init();
 </script>
-<script src="assets/auth-menu.js" defer></script>
+<script src="/site15/assets/auth-menu.js" defer></script>
 </body>
 </html>
