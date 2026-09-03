@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="icon" href="https://graschatium.github.io/site15/ressources/voidline.ico" type="image/x-icon">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
 <style>
   :root{
     --void: #08090C;
@@ -544,14 +544,14 @@
 
 <header>
   <div class="wrap nav-inner">
-    <a href="/site15/" class="wordmark">
-      <img src="/site15/ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+    <a href="/" class="wordmark">
+      <img src="/ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
       VOIDLINE STUDIO
     </a>
     <nav>
       <ul>
-        <li><a href="/site15/#top">Accueil</a></li>
-        <li><a href="/site15/postuler/">Postuler</a></li>
+        <li><a href="/#top">Accueil</a></li>
+        <li><a href="/postuler/">Postuler</a></li>
         <li class="auth-menu" id="auth-menu"></li>
       </ul>
     </nav>
@@ -655,7 +655,7 @@
       <div class="center-screen">
         <div class="console-message-inner">
           <div class="display">Accès restreint</div>
-          <p>Connecte-toi d'abord pour ouvrir l'intranet RP.<br><br><a href="/site15/account/">Aller à Mon compte</a></p>
+          <p>Connecte-toi d'abord pour ouvrir l'intranet RP.<br><br><a href="/account/">Aller à Mon compte</a></p>
         </div>
       </div>
     `;
@@ -669,7 +669,7 @@
       <div class="center-screen">
         <div class="console-message-inner">
           <div class="display">Aucun accès RP</div>
-          <p>${escapeHtml(reason)}<br><br>${!ctx.robloxUsername ? '<a href="/site15/account/">Lier mon compte Roblox</a>' : "Contacte le staff roster si tu penses que c'est une erreur."}</p>
+          <p>${escapeHtml(reason)}<br><br>${!ctx.robloxUsername ? '<a href="/account/">Lier mon compte Roblox</a>' : "Contacte le staff roster si tu penses que c'est une erreur."}</p>
         </div>
       </div>
     `;
@@ -681,7 +681,7 @@
   function renderBanScreen(reason) {
     mainRoot.innerHTML = `
       <div class="ban-screen">
-        <img class="boot-watermark" src="/site15/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
+        <img class="boot-watermark" src="/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
         <div class="ban-content">
           <div class="ban-icon">${ICONS.lock}</div>
           <div class="ban-title">ACCÈS RÉVOQUÉ</div>
@@ -2170,7 +2170,7 @@
     overlay.className = 'boot-overlay';
     overlay.id = 'boot-overlay';
     overlay.innerHTML = `
-      <img class="boot-watermark" src="/site15/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
+      <img class="boot-watermark" src="/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
       <div class="boot-scanbar"></div>
       <div class="boot-content">
         <div class="boot-header">
@@ -2265,6 +2265,6 @@
 
   init();
 </script>
-<script src="/site15/assets/auth-menu.js" defer></script>
+<script src="/assets/auth-menu.js" defer></script>
 </body>
 </html>
