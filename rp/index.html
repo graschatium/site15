@@ -1166,6 +1166,12 @@
     euclid: { label: 'EUCLIDE', cls: 'sci-euclid' },
     keter: { label: 'KETER', cls: 'sci-keter' },
   };
+  const SCIENCE_DOC_TYPES = {
+    objet: 'Fiche d\'objet',
+    directive: 'Directive',
+    lore: 'Lore',
+    rapport: 'Rapport',
+  };
 
   let scienceAllPublications = [];
   let scienceSelectedId = null; // id de la fiche affichée, 'new' pour le formulaire, ou null (accueil)
@@ -1216,8 +1222,15 @@
           </div>
           <div class="sci-filters">
             <input type="text" id="sci-search" placeholder="Rechercher...">
+            <select id="sci-doctype-filter">
+              <option value="">Tous les types</option>
+              <option value="objet">Fiche d'objet</option>
+              <option value="directive">Directive</option>
+              <option value="lore">Lore</option>
+              <option value="rapport">Rapport</option>
+            </select>
             <select id="sci-classification-filter">
-              <option value="">Toutes</option>
+              <option value="">Toutes classes</option>
               <option value="safe">Sûr</option>
               <option value="euclid">Euclide</option>
               <option value="keter">Keter</option>
@@ -1231,6 +1244,7 @@
     `;
 
     document.getElementById('sci-search').addEventListener('input', applyScienceFilters);
+    document.getElementById('sci-doctype-filter').addEventListener('change', applyScienceFilters);
     document.getElementById('sci-classification-filter').addEventListener('change', applyScienceFilters);
     document.getElementById('wiki-new-btn')?.addEventListener('click', () => {
       scienceSelectedId = 'new';
@@ -1244,9 +1258,11 @@
 
   function applyScienceFilters() {
     const query = document.getElementById('sci-search').value.trim().toLowerCase();
+    const docType = document.getElementById('sci-doctype-filter').value;
     const classification = document.getElementById('sci-classification-filter').value;
 
     const filtered = scienceAllPublications.filter((p) => {
+      if (docType && (p.docType || 'objet') !== docType) return false;
       if (classification && p.classification !== classification) return false;
       if (!query) return true;
       const haystack = `${p.title} ${p.subject || ''} ${p.authorCharacterName || ''}`.toLowerCase();
@@ -1269,10 +1285,11 @@
     list.innerHTML = publications
       .map((p) => {
         const cls = SCIENCE_CLASSIFICATIONS[p.classification];
+        const typeLabel = SCIENCE_DOC_TYPES[p.docType || 'objet'];
         return `
         <button class="wiki-toc-item${p.id === scienceSelectedId ? ' active' : ''}" data-publication-id="${escapeHtml(p.id)}" type="button">
           <span class="wiki-toc-title">${escapeHtml(p.subject ? `${p.subject} — ${p.title}` : p.title)}</span>
-          <span class="wiki-toc-meta">${cls ? cls.label : '—'} · ${escapeHtml(p.authorCharacterName)}</span>
+          <span class="wiki-toc-meta">${escapeHtml(typeLabel)}${cls ? ` · ${cls.label}` : ''} · ${escapeHtml(p.authorCharacterName)}</span>
         </button>
       `;
       })
@@ -1298,11 +1315,20 @@
       article.innerHTML = `
         <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">Rédiger une fiche</h3>
         <form id="publication-form">
+          <div class="field-row">
+            <label>Type de fichier</label>
+            <select id="publication-doctype">
+              <option value="objet">Fiche d'objet</option>
+              <option value="directive">Directive</option>
+              <option value="lore">Lore</option>
+              <option value="rapport">Rapport</option>
+            </select>
+          </div>
           <div class="field-grid">
             <div class="field-row"><label>Titre *</label><input type="text" id="publication-title" required></div>
-            <div class="field-row"><label>Numéro d'objet</label><input type="text" id="publication-subject" placeholder="Ex: SCP-1547"></div>
+            <div class="field-row"><label>Référence</label><input type="text" id="publication-subject" placeholder="Ex: SCP-1547"></div>
           </div>
-          <div class="field-row">
+          <div class="field-row" id="publication-classification-row">
             <label>Classe d'objet</label>
             <select id="publication-classification">
               <option value="safe">Sûr</option>
@@ -1314,23 +1340,34 @@
             <label>Contenu (Markdown) *</label>
             <textarea id="publication-content" rows="12" required placeholder="## Procédures de Confinement Spéciales&#10;...&#10;&#10;## Description&#10;...&#10;&#10;![légende](https://exemple.com/image.png)"></textarea>
           </div>
-          <button class="btn" type="submit">Publier la fiche</button>
+          <button class="btn" type="submit">Publier</button>
         </form>
       `;
+
+      const doctypeSelect = document.getElementById('publication-doctype');
+      const classificationRow = document.getElementById('publication-classification-row');
+      // La classification d'objet (Sûr/Euclide/Keter) ne concerne que les
+      // fiches d'objet — masquée pour les autres types de fichiers.
+      function toggleClassificationRow() {
+        classificationRow.style.display = doctypeSelect.value === 'objet' ? '' : 'none';
+      }
+      toggleClassificationRow();
+      doctypeSelect.addEventListener('change', toggleClassificationRow);
 
       document.getElementById('publication-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = document.getElementById('publication-title').value.trim();
         const content = document.getElementById('publication-content').value.trim();
         const subject = document.getElementById('publication-subject').value.trim();
-        const classification = document.getElementById('publication-classification').value;
+        const docType = doctypeSelect.value;
+        const classification = docType === 'objet' ? document.getElementById('publication-classification').value : null;
         if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
         try {
           await apiFetch('/api/rp/science/publications', {
             method: 'POST',
-            body: JSON.stringify({ title, content, subject, classification }),
+            body: JSON.stringify({ title, content, subject, classification, docType }),
           });
-          showToast('Fiche publiée.', 'success');
+          showToast('Fichier publié.', 'success');
           scienceSelectedId = null;
           loadScienceModule();
         } catch (err) {
@@ -1352,8 +1389,10 @@
     }
 
     const cls = SCIENCE_CLASSIFICATIONS[pub.classification];
+    const typeLabel = SCIENCE_DOC_TYPES[pub.docType || 'objet'];
     article.innerHTML = `
       <div class="wiki-article-head">
+        <span class="sci-type-badge">${escapeHtml(typeLabel)}</span>
         ${cls ? `<span class="sci-badge ${cls.cls}">${cls.label}</span>` : ''}
         ${pub.subject ? `<span class="sci-subject">${escapeHtml(pub.subject)}</span>` : ''}
       </div>
