@@ -477,6 +477,8 @@
   .urgency-moyenne{ background:rgba(240,168,60,0.12); color:var(--warn); }
   .urgency-haute{ background:rgba(240,82,90,0.12); color:var(--bad); }
 
+  .dse-code-badge{ font-weight:700; letter-spacing:0.02em; }
+
   .toast{
     position:fixed; bottom:24px; right:24px; z-index:200; background:var(--panel-raised); border:1px solid var(--line);
     border-radius:3px; padding:12px 18px; font-size:13px; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none;
@@ -1601,7 +1603,7 @@
       <div class="wiki-article-head"><span class="sci-type-badge">Accréditation ${doc.minAccreditation}</span></div>
       <h2 class="wiki-article-title">${escapeHtml(doc.title)}</h2>
       <div class="post-card-meta" style="margin-bottom:20px;">${escapeHtml(doc.authorCharacterName)} — ${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
-      <div class="sci-body-rendered">${renderMarkdown(doc.content)}</div>
+      <div class="sci-body-rendered">${highlightDseCodes(renderMarkdown(doc.content))}</div>
       ${canManage ? `<div class="sci-card-actions" style="margin-top:24px;"><button class="btn danger small" id="sec-doc-delete-btn">Supprimer ce document</button></div>` : ''}
     `;
 
@@ -1732,6 +1734,30 @@
     }
     // Filet de sécurité si les libs CDN n'ont pas chargé : texte brut échappé.
     return `<p>${escapeHtml(md || '').replace(/\n/g, '<br>')}</p>`;
+  }
+
+  // Colore automatiquement les mentions "CODE VERT/JAUNE/ORANGE/ROUGE/
+  // MAUVE/BLANC/NOIR" dans le HTML déjà rendu — spécifique aux Docs DSE
+  // (protocoles de codes d'alerte), pas appliqué aux Archives Scientifique.
+  const DSE_CODE_STYLES = {
+    vert: { color: '#4FD895' },
+    jaune: { color: '#F0D93C' },
+    orange: { color: '#F0A83C' },
+    rouge: { color: '#F0525A' },
+    mauve: { color: '#A78BFA' },
+    blanc: { color: '#ECEDF1' },
+    // "Noir" en texte noir serait invisible sur le fond sombre du site —
+    // badge inversé (fond clair, texte noir) pour rester lisible.
+    noir: { color: '#08090C', background: '#ECEDF1' },
+  };
+
+  function highlightDseCodes(html) {
+    return (html || '').replace(/\bCODE\s+(VERT|JAUNE|ORANGE|ROUGE|MAUVE|BLANC|NOIR)\b/gi, (match, colorWord) => {
+      const style = DSE_CODE_STYLES[colorWord.toLowerCase()];
+      if (!style) return match;
+      const bg = style.background ? `background:${style.background}; padding:2px 7px; border-radius:2px;` : '';
+      return `<span class="dse-code-badge" style="color:${style.color}; ${bg}">${match}</span>`;
+    });
   }
 
   async function loadScienceModule() {
