@@ -116,11 +116,42 @@
     display:flex; align-items:center; justify-content:center;
     overflow:hidden;
   }
-  .boot-watermark{
-    position:absolute; top:50%; left:50%; transform:translate(-38%, -50%);
-    width:min(60vw, 720px); opacity:0.05; pointer-events:none; filter:grayscale(1);
+  .boot-overlay::before{
+    /* Scanlines statiques */
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.035) 0px,
+      rgba(255,255,255,0.035) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode:overlay;
   }
-  .boot-content{ position:relative; width:100%; max-width:680px; padding:0 32px; }
+  .boot-overlay::after{
+    /* Vignette + léger scintillement cathodique */
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:3;
+    background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
+    animation:crt-flicker 6s infinite;
+  }
+  @keyframes crt-flicker{
+    0%, 91%, 100%{ opacity:1; }
+    92%{ opacity:0.85; }
+    93%{ opacity:1; }
+    95%{ opacity:0.92; }
+    96%{ opacity:1; }
+  }
+  .boot-scanbar{
+    position:absolute; left:0; right:0; height:140px; z-index:2; pointer-events:none;
+    background:linear-gradient(to bottom, transparent, rgba(110,118,255,0.06), transparent);
+    animation:crt-scan 6.5s linear infinite;
+  }
+  @keyframes crt-scan{ 0%{ top:-140px; } 100%{ top:100%; } }
+  .boot-watermark{
+    position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+    width:min(60vw, 720px); opacity:0.05; pointer-events:none; filter:grayscale(1); z-index:1;
+  }
+  .boot-content{ position:relative; z-index:4; width:100%; max-width:680px; padding:0 32px; }
   .boot-header{ display:flex; align-items:center; gap:16px; margin-bottom:34px; padding-bottom:20px; border-bottom:1px solid var(--line); }
   .boot-badge{
     width:44px; height:44px; flex-shrink:0; border:1px solid var(--line); border-radius:4px;
@@ -1008,6 +1039,7 @@
     overlay.id = 'boot-overlay';
     overlay.innerHTML = `
       <img class="boot-watermark" src="/site15/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
+      <div class="boot-scanbar"></div>
       <div class="boot-content">
         <div class="boot-header">
           <div class="boot-badge">S15</div>
@@ -1047,7 +1079,7 @@
           const cursor = document.createElement('span');
           cursor.className = 'boot-cursor';
           logEl.lastElementChild?.querySelector('.boot-line-text')?.appendChild(cursor);
-          setTimeout(resolve, 320);
+          setTimeout(resolve, 550);
           return;
         }
         const line = BOOT_LINES[i];
@@ -1060,10 +1092,10 @@
         logEl.appendChild(div);
         refreshOpacities();
         i += 1;
-        setTimeout(next, 260 + Math.random() * 220);
+        setTimeout(next, 620 + Math.random() * 480);
       }
 
-      next();
+      setTimeout(next, 650);
     });
   }
 
