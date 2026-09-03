@@ -469,6 +469,14 @@
   .status-open{ background:rgba(79,216,149,0.12); color:var(--good); }
   .status-taken{ background:rgba(240,168,60,0.12); color:var(--warn); }
 
+  .urgency-pill{
+    display:inline-block; padding:3px 9px; border-radius:2px; font-family:'JetBrains Mono', monospace;
+    font-size:10px; letter-spacing:0.04em; text-transform:uppercase; flex-shrink:0;
+  }
+  .urgency-faible{ background:rgba(79,216,149,0.12); color:var(--good); }
+  .urgency-moyenne{ background:rgba(240,168,60,0.12); color:var(--warn); }
+  .urgency-haute{ background:rgba(240,82,90,0.12); color:var(--bad); }
+
   .toast{
     position:fixed; bottom:24px; right:24px; z-index:200; background:var(--panel-raised); border:1px solid var(--line);
     border-radius:3px; padding:12px 18px; font-size:13px; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none;
@@ -568,6 +576,7 @@
   let context = null;
   const MEDICAL_DEPT_ID = 'medical';
   const SCIENCE_DEPT_ID = 'scientifique_mmqbrd32f2z7';
+  const SECURITY_DEPT_ID = 'security';
 
   const DEPT_CODES = {
     security: 'DEPT-SEC',
@@ -589,6 +598,12 @@
     flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="5" rx="1"/><path d="M4.5 9v9a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/></svg>',
     enter: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13M12 5l7 7-7 7"/><path d="M20 4v16"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v.01M12 11v5"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M12 8v5M12 16.2v.1"/></svg>',
+    camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="12" rx="2"/><path d="M17 10l4-2.5v9L17 14"/></svg>',
+    siren: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a5 5 0 0 1 5 5v7H7v-7a5 5 0 0 1 5-5z"/><path d="M4 15h16v3H4z"/><path d="M12 3V1"/></svg>',
+    radio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="3"/><path d="M6.5 8.5a8 8 0 0 1 11 0M4 6a11 11 0 0 1 16 0"/><path d="M9 4h6l-1 3H10z"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2.2h8a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-14A1.5 1.5 0 0 1 3.5 17.7z"/></svg>',
+    badge: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M8 13.5L6 22l6-3 6 3-2-8.5"/></svg>',
   };
 
   function renderLoggedOut() {
@@ -778,6 +793,14 @@
 
     const tabs = [{ id: 'bulletin', label: 'Bulletin', icon: 'bulletin' }, { id: 'effectifs', label: 'Effectifs', icon: 'people' }];
     if (deptId === MEDICAL_DEPT_ID) tabs.push({ id: 'rdv', label: 'Rendez-vous', icon: 'rdv' });
+    if (deptId === SECURITY_DEPT_ID) {
+      tabs.push({ id: 'sec-reports', label: 'Rapport', icon: 'shield' });
+      tabs.push({ id: 'sec-zc', label: 'Supervision ZC', icon: 'camera' });
+      tabs.push({ id: 'sec-eit', label: 'Demande EIT', icon: 'siren' });
+      tabs.push({ id: 'sec-reinforcement', label: 'Renfort', icon: 'radio' });
+      tabs.push({ id: 'sec-docs', label: 'Docs DSE', icon: 'folder' });
+      tabs.push({ id: 'sec-service', label: 'Service', icon: 'badge' });
+    }
 
     mainRoot.innerHTML = `
       <div class="terminal-screen">
@@ -854,6 +877,12 @@
   function loadTerminalTab(deptId, tabId) {
     if (tabId === 'bulletin' || tabId === 'effectifs') loadDeptData(deptId, tabId);
     else if (tabId === 'rdv') loadMedicalModule();
+    else if (tabId === 'sec-reports') loadSecurityReports();
+    else if (tabId === 'sec-zc') loadSecurityZcLog();
+    else if (tabId === 'sec-eit') loadSecurityTicketModule('eit');
+    else if (tabId === 'sec-reinforcement') loadSecurityTicketModule('reinforcement');
+    else if (tabId === 'sec-docs') loadSecurityDocs();
+    else if (tabId === 'sec-service') loadSecurityService();
   }
 
   // -----------------------------------------------------------------
@@ -1153,6 +1182,527 @@
         }
       });
     }
+  }
+
+  // -----------------------------------------------------------------
+  // Sécurité — Rapports d'incident/intervention
+  // -----------------------------------------------------------------
+  async function loadSecurityReports() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/security/reports');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const reports = data.reports || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${reports.length}</div><div class="stat-label">Rapports</div></div>
+      <div class="stat-cell"><div class="stat-value">SEC</div><div class="stat-label">Module</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = reports.length
+      ? reports.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.title)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun rapport.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rapports d'incident</h2><span class="count">${reports.length}</span></div>
+        ${
+          reports.length
+            ? reports
+                .map(
+                  (r) => `
+          <div class="post-card">
+            <div class="post-card-head">
+              <span class="post-card-title">${escapeHtml(r.title)}</span>
+              <span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : ''}</span>
+            </div>
+            ${r.involved ? `<div class="post-card-meta" style="margin-bottom:6px;">Impliqués : ${escapeHtml(r.involved)}</div>` : ''}
+            <div class="post-card-body">${escapeHtml(r.description || '')}</div>
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucun rapport enregistré.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Rédiger un rapport</h3>
+        <form id="sec-report-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="sec-report-title" required></div>
+          <div class="field-row"><label>Personnes impliquées</label><input type="text" id="sec-report-involved" placeholder="Noms séparés par des virgules"></div>
+          <div class="field-row"><label>Description</label><textarea id="sec-report-description" rows="5"></textarea></div>
+          <button class="btn" type="submit">Publier le rapport</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('sec-report-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('sec-report-title').value.trim();
+      const involved = document.getElementById('sec-report-involved').value.trim();
+      const description = document.getElementById('sec-report-description').value.trim();
+      if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/security/reports', { method: 'POST', body: JSON.stringify({ title, involved, description }) });
+        showToast('Rapport publié.', 'success');
+        loadSecurityReports();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Sécurité — Supervision ZC (journal de relève / cantine)
+  // -----------------------------------------------------------------
+  async function loadSecurityZcLog() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/security/zc-log');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const entries = data.entries || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${entries.length}</div><div class="stat-label">Entrées</div></div>
+      <div class="stat-cell"><div class="stat-value">ZC</div><div class="stat-label">Zone</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = entries.length
+      ? entries.slice(0, 4).map((e) => `<div class="journal-entry"><span class="journal-time">${e.createdAt ? new Date(e.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}</span><span class="journal-text">${escapeHtml(e.characterName)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune entrée.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Journal — Zone Carcérale</h2><span class="count">${entries.length}</span></div>
+        <div class="terminal-console" style="max-height:420px; font-size:12px;">
+          ${
+            entries.length
+              ? entries
+                  .map((e) => {
+                    const date = e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : '';
+                    if (e.type === 'cantine') {
+                      return `<div style="margin-bottom:10px;">— ${date} <span class="prompt">➤</span> @${escapeHtml(e.characterName)}<br>&nbsp;&nbsp;↳ Cantine ZC<br>&nbsp;&nbsp;↳ Début : ${escapeHtml(e.startTime)}${e.endTime ? ` — Fin : ${escapeHtml(e.endTime)}` : ''}</div>`;
+                    }
+                    return `<div style="margin-bottom:10px;">— ${date} <span class="prompt">➤</span> @${escapeHtml(e.characterName)}<br>&nbsp;&nbsp;↳ Relève de ${e.relievedFrom ? `@${escapeHtml(e.relievedFrom)}` : '///'}<br>&nbsp;&nbsp;↳ Début : ${escapeHtml(e.startTime)}</div>`;
+                  })
+                  .join('')
+              : '<div>Aucune entrée pour le moment.</div>'
+          }
+        </div>
+      </div>
+      <div class="subsection">
+        <h3>Ajouter une entrée</h3>
+        <form id="sec-zc-form">
+          <div class="field-row">
+            <label>Type</label>
+            <select id="sec-zc-type">
+              <option value="releve">Relève</option>
+              <option value="cantine">Cantine ZC</option>
+            </select>
+          </div>
+          <div class="field-grid">
+            <div class="field-row" id="sec-zc-relieved-row"><label>Relève de (vide si aucun)</label><input type="text" id="sec-zc-relieved" placeholder="Ex: R.GARROS"></div>
+            <div class="field-row"><label>Heure de début *</label><input type="text" id="sec-zc-start" placeholder="Ex: 20h09" required></div>
+          </div>
+          <div class="field-row" id="sec-zc-end-row" style="display:none;"><label>Heure de fin</label><input type="text" id="sec-zc-end" placeholder="Ex: 20h58"></div>
+          <button class="btn" type="submit">Ajouter au journal</button>
+        </form>
+      </div>
+    `;
+
+    const typeSelect = document.getElementById('sec-zc-type');
+    const relievedRow = document.getElementById('sec-zc-relieved-row');
+    const endRow = document.getElementById('sec-zc-end-row');
+    function toggleZcFields() {
+      const isCantine = typeSelect.value === 'cantine';
+      relievedRow.style.display = isCantine ? 'none' : '';
+      endRow.style.display = isCantine ? '' : 'none';
+    }
+    toggleZcFields();
+    typeSelect.addEventListener('change', toggleZcFields);
+
+    document.getElementById('sec-zc-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const type = typeSelect.value;
+      const relievedFrom = document.getElementById('sec-zc-relieved').value.trim();
+      const startTime = document.getElementById('sec-zc-start').value.trim();
+      const endTime = document.getElementById('sec-zc-end').value.trim();
+      if (!startTime) { showToast("L'heure de début est obligatoire.", 'error'); return; }
+      try {
+        await apiFetch('/api/rp/security/zc-log', { method: 'POST', body: JSON.stringify({ type, relievedFrom, startTime, endTime }) });
+        showToast('Entrée ajoutée.', 'success');
+        loadSecurityZcLog();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Sécurité — Demande EIT / Renfort (même logique de ticket, deux
+  // collections séparées)
+  // -----------------------------------------------------------------
+  const SEC_TICKET_META = {
+    eit: { label: 'Demande EIT', endpoint: '/api/rp/security/eit', createLabel: 'Demander une intervention EIT' },
+    reinforcement: { label: 'Renfort', endpoint: '/api/rp/security/reinforcement', createLabel: 'Demander un renfort' },
+  };
+  const URGENCY_META = {
+    faible: { label: 'Faible', cls: 'urgency-faible' },
+    moyenne: { label: 'Moyenne', cls: 'urgency-moyenne' },
+    haute: { label: 'Haute', cls: 'urgency-haute' },
+  };
+
+  async function loadSecurityTicketModule(kind) {
+    const meta = SEC_TICKET_META[kind];
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch(meta.endpoint);
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const requests = data.requests || [];
+    const pending = requests.filter((r) => r.status !== 'handled');
+    const handled = requests.filter((r) => r.status === 'handled');
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${pending.length}</div><div class="stat-label">En attente</div></div>
+      <div class="stat-cell"><div class="stat-value">${handled.length}</div><div class="stat-label">Traitées</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = requests.length
+      ? requests.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}</span><span class="journal-text">${escapeHtml((r.reason || '').slice(0, 36))}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune demande.</span></div>';
+
+    function ticketRow(r) {
+      const urgency = URGENCY_META[r.urgency] || URGENCY_META.moyenne;
+      return `
+        <div class="post-card" data-ticket-id="${escapeHtml(r.id)}">
+          <div class="post-card-head">
+            <span class="post-card-title">${escapeHtml(r.reason)}</span>
+            <span class="urgency-pill ${urgency.cls}">${urgency.label}</span>
+          </div>
+          <div class="post-card-meta" style="margin-bottom:6px;">${r.location ? `Lieu : ${escapeHtml(r.location)} — ` : ''}${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : ''}</div>
+          ${
+            r.status === 'handled'
+              ? `<div class="post-card-meta">Traité par ${escapeHtml(r.handledBy || '—')}${r.handledAt ? ` — ${new Date(r.handledAt).toLocaleString('fr-FR')}` : ''}</div>`
+              : `<div class="sci-card-actions"><button class="btn small sec-ticket-handle-btn" data-ticket-id="${escapeHtml(r.id)}">Marquer comme traité</button></div>`
+          }
+        </div>
+      `;
+    }
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>${escapeHtml(meta.label)} — en attente</h2><span class="count">${pending.length}</span></div>
+        ${pending.length ? pending.map(ticketRow).join('') : '<div class="empty-row">Aucune demande en attente.</div>'}
+      </div>
+      ${
+        handled.length
+          ? `<div class="record-block">
+              <div class="record-block-head"><h2>Traitées récemment</h2><span class="count">${handled.length}</span></div>
+              ${handled.slice(0, 10).map(ticketRow).join('')}
+            </div>`
+          : ''
+      }
+      <div class="subsection">
+        <h3>${escapeHtml(meta.createLabel)}</h3>
+        <form id="sec-ticket-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Lieu</label><input type="text" id="sec-ticket-location" placeholder="Ex: Zone C, Bloc 2"></div>
+            <div class="field-row">
+              <label>Urgence</label>
+              <select id="sec-ticket-urgency">
+                <option value="faible">Faible</option>
+                <option value="moyenne" selected>Moyenne</option>
+                <option value="haute">Haute</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row"><label>Raison *</label><textarea id="sec-ticket-reason" rows="3" required></textarea></div>
+          <button class="btn" type="submit">Envoyer la demande</button>
+        </form>
+      </div>
+    `;
+
+    main.querySelectorAll('.sec-ticket-handle-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`${meta.endpoint}/${encodeURIComponent(btn.dataset.ticketId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: 'handled' }),
+          });
+          showToast('Demande marquée comme traitée.', 'success');
+          loadSecurityTicketModule(kind);
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('sec-ticket-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const reason = document.getElementById('sec-ticket-reason').value.trim();
+      const location = document.getElementById('sec-ticket-location').value.trim();
+      const urgency = document.getElementById('sec-ticket-urgency').value;
+      if (!reason) { showToast('La raison est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch(meta.endpoint, { method: 'POST', body: JSON.stringify({ reason, location, urgency }) });
+        showToast('Demande envoyée.', 'success');
+        loadSecurityTicketModule(kind);
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Sécurité — Docs DSE (bibliothèque filtrée par accréditation)
+  // -----------------------------------------------------------------
+  let secDocsSelectedId = null;
+  let secDocsCache = [];
+
+  async function loadSecurityDocs() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/security/docs');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { docs, myAccreditation, canManage } = data;
+    secDocsCache = docs;
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${docs.length}</div><div class="stat-label">Docs visibles</div></div>
+      <div class="stat-cell"><div class="stat-value">${myAccreditation}</div><div class="stat-label">Accréditation</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = docs.length
+      ? docs.slice(0, 4).map((d) => `<div class="journal-entry"><span class="journal-time">${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(d.title)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun document.</span></div>';
+
+    main.innerHTML = `
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head">
+            <span class="record-block-head-title">Docs DSE</span>
+            <span class="count">${docs.length}</span>
+          </div>
+          ${canManage ? '<button class="btn small" id="sec-doc-new-btn" type="button" style="width:100%; margin-top:10px;">+ Nouveau document</button>' : ''}
+          <div class="wiki-toc-list" id="sec-doc-toc-list"></div>
+        </div>
+        <div class="wiki-article" id="sec-doc-article"></div>
+      </div>
+    `;
+
+    renderSecurityDocToc(canManage);
+    renderSecurityDocArticle(canManage);
+
+    document.getElementById('sec-doc-new-btn')?.addEventListener('click', () => {
+      secDocsSelectedId = 'new';
+      renderSecurityDocToc(canManage);
+      renderSecurityDocArticle(canManage);
+    });
+  }
+
+  function renderSecurityDocToc(canManage) {
+    const list = document.getElementById('sec-doc-toc-list');
+    if (!secDocsCache.length) {
+      list.innerHTML = '<div class="empty-row">Aucun document accessible à ton accréditation.</div>';
+      return;
+    }
+    list.innerHTML = secDocsCache
+      .map(
+        (d) => `
+      <button class="wiki-toc-item${d.id === secDocsSelectedId ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
+        <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
+        <span class="wiki-toc-meta">Accréd. ${d.minAccreditation} · ${escapeHtml(d.authorCharacterName)}</span>
+      </button>
+    `
+      )
+      .join('');
+
+    list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        secDocsSelectedId = btn.dataset.docId;
+        renderSecurityDocToc(canManage);
+        renderSecurityDocArticle(canManage);
+      });
+    });
+  }
+
+  function renderSecurityDocArticle(canManage) {
+    const article = document.getElementById('sec-doc-article');
+
+    if (secDocsSelectedId === 'new') {
+      article.innerHTML = `
+        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">Nouveau document</h3>
+        <form id="sec-doc-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Titre *</label><input type="text" id="sec-doc-title" required></div>
+            <div class="field-row">
+              <label>Accréditation minimale</label>
+              <select id="sec-doc-accreditation">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="sec-doc-content" rows="12" required></textarea></div>
+          <button class="btn" type="submit">Publier le document</button>
+        </form>
+      `;
+      document.getElementById('sec-doc-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('sec-doc-title').value.trim();
+        const content = document.getElementById('sec-doc-content').value.trim();
+        const minAccreditation = document.getElementById('sec-doc-accreditation').value;
+        if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
+        try {
+          await apiFetch('/api/rp/security/docs', { method: 'POST', body: JSON.stringify({ title, content, minAccreditation }) });
+          showToast('Document publié.', 'success');
+          secDocsSelectedId = null;
+          loadSecurityDocs();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      return;
+    }
+
+    const doc = secDocsCache.find((d) => d.id === secDocsSelectedId);
+    if (!doc) {
+      article.innerHTML = `<div class="wiki-empty"><div class="wiki-empty-title">Docs DSE</div><p>Sélectionne un document dans le sommaire${canManage ? ', ou clique sur "+ Nouveau document" pour en publier un.' : '.'}</p></div>`;
+      return;
+    }
+
+    article.innerHTML = `
+      <div class="wiki-article-head"><span class="sci-type-badge">Accréditation ${doc.minAccreditation}</span></div>
+      <h2 class="wiki-article-title">${escapeHtml(doc.title)}</h2>
+      <div class="post-card-meta" style="margin-bottom:20px;">${escapeHtml(doc.authorCharacterName)} — ${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
+      <div class="sci-body-rendered">${renderMarkdown(doc.content)}</div>
+      ${canManage ? `<div class="sci-card-actions" style="margin-top:24px;"><button class="btn danger small" id="sec-doc-delete-btn">Supprimer ce document</button></div>` : ''}
+    `;
+
+    document.getElementById('sec-doc-delete-btn')?.addEventListener('click', async () => {
+      if (!confirm('Supprimer ce document ?')) return;
+      try {
+        await apiFetch(`/api/rp/security/docs/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+        showToast('Document supprimé.', 'success');
+        secDocsSelectedId = null;
+        loadSecurityDocs();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Sécurité — Service (registre départemental prise/fin de service)
+  // -----------------------------------------------------------------
+  async function loadSecurityService() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/security/service');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { log, onDuty, myCharacterName } = data;
+    const amOnDuty = !!myCharacterName && onDuty.some((o) => o.characterName === myCharacterName);
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${onDuty.length}</div><div class="stat-label">En service</div></div>
+      <div class="stat-cell"><div class="stat-value">${amOnDuty ? 'OUI' : 'NON'}</div><div class="stat-label">Toi</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = log.length
+      ? log.slice(0, 4).map((l) => `<div class="journal-entry"><span class="journal-time">${l.createdAt ? new Date(l.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}</span><span class="journal-text">${escapeHtml(l.characterName)} — ${l.action === 'start' ? 'prise' : 'fin'}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune activité.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Actuellement en service</h2><span class="count">${onDuty.length}</span></div>
+        ${
+          onDuty.length
+            ? `<table>
+                <thead><tr><th>Personnage</th><th>Depuis</th></tr></thead>
+                <tbody>
+                  ${onDuty.map((o) => `<tr><td>${escapeHtml(o.characterName)}</td><td class="mono-cell">${o.since ? new Date(o.since).toLocaleString('fr-FR') : '—'}</td></tr>`).join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Personne en service actuellement.</div>'
+        }
+        ${
+          myCharacterName
+            ? `<div class="sci-card-actions" style="margin-top:16px;">
+                ${
+                  amOnDuty
+                    ? '<button class="btn danger small" id="sec-service-end-btn">Terminer mon service</button>'
+                    : '<button class="btn small" id="sec-service-start-btn">Prendre mon service</button>'
+                }
+              </div>`
+            : ''
+        }
+      </div>
+
+      <div class="record-block">
+        <div class="record-block-head"><h2>Historique</h2><span class="count">${log.length}</span></div>
+        ${
+          log.length
+            ? `<table>
+                <thead><tr><th>Personnage</th><th>Action</th><th>Date/heure</th></tr></thead>
+                <tbody>
+                  ${log.map((l) => `<tr><td>${escapeHtml(l.characterName)}</td><td>${l.action === 'start' ? 'Prise de service' : 'Fin de service'}</td><td class="mono-cell">${l.createdAt ? new Date(l.createdAt).toLocaleString('fr-FR') : '—'}</td></tr>`).join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun historique.</div>'
+        }
+      </div>
+    `;
+
+    document.getElementById('sec-service-start-btn')?.addEventListener('click', async () => {
+      try {
+        await apiFetch('/api/rp/security/service', { method: 'POST', body: JSON.stringify({ action: 'start' }) });
+        showToast('Service pris.', 'success');
+        loadSecurityService();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+    document.getElementById('sec-service-end-btn')?.addEventListener('click', async () => {
+      try {
+        await apiFetch('/api/rp/security/service', { method: 'POST', body: JSON.stringify({ action: 'end' }) });
+        showToast('Service terminé.', 'success');
+        loadSecurityService();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
   }
 
   // -----------------------------------------------------------------
