@@ -393,14 +393,14 @@
 
 <header>
   <div class="wrap nav-inner">
-    <a href="index.html" class="wordmark">
-      <img src="ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+    <a href="/site15/" class="wordmark">
+      <img src="/site15/ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
       VOIDLINE STUDIO
     </a>
     <nav>
       <ul>
-        <li><a href="index.html#top">Accueil</a></li>
-        <li><a href="postuler.html">Postuler</a></li>
+        <li><a href="/site15/#top">Accueil</a></li>
+        <li><a href="/site15/postuler/">Postuler</a></li>
         <li class="auth-menu" id="auth-menu"></li>
       </ul>
     </nav>
@@ -487,6 +487,7 @@
     animations: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><circle cx="8.5" cy="14" r="1"/><circle cx="12" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/></svg>',
     applications: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5h8a1 1 0 0 1 1 1V20l-3-2-2 2-2-2-3 2V4.5a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 11.5h6M9 15h3.5"/></svg>',
     permissions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="3.5"/><path d="M10.5 13l8-8M15 8l2 2M18 5l2 2"/></svg>',
+    rpbans: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M9 15l6-3.5"/></svg>',
   };
 
   const TAB_META = {
@@ -497,6 +498,7 @@
     animations: { title: 'Animation', subtitle: "Planning des sessions d'animation." },
     applications: { title: 'Candidatures', subtitle: 'Candidatures reçues via les formulaires de recrutement.' },
     permissions: { title: 'Permissions', subtitle: 'Droits accordés à chaque rôle du serveur staff.' },
+    rpbans: { title: 'Bannis RP', subtitle: "Comptes bannis de l'intranet RP (IRC-15) — n'affecte pas le reste du site." },
   };
 
   function renderLoggedOut() {
@@ -504,7 +506,7 @@
       <div class="console-message">
         <div class="console-message-inner">
           <div class="display">Accès restreint</div>
-          <p>Connecte-toi d'abord pour ouvrir la console.<br><br><a href="account.html">Aller à Mon compte</a></p>
+          <p>Connecte-toi d'abord pour ouvrir la console.<br><br><a href="/site15/account/">Aller à Mon compte</a></p>
         </div>
       </div>
     `;
@@ -534,6 +536,7 @@
     if (context.isAdminAnywhere) tabs.push('animations');
     if (context.canManageApplications) tabs.push('applications');
     if (context.canManagePermissions) tabs.push('permissions');
+    if (context.canManagePermissions) tabs.push('rpbans');
 
     const badges = (context.roleLabels && context.roleLabels.length ? context.roleLabels : ['Accès limité'])
       .map((r) => `<span class="clearance-badge">${escapeHtml(r)}</span>`)
@@ -590,6 +593,7 @@
     else if (tabId === 'animations') loadAnimationsTab();
     else if (tabId === 'applications') loadApplicationsTab();
     else if (tabId === 'permissions') loadPermissionsTab();
+    else if (tabId === 'rpbans') loadRpBansTab();
   }
 
   // -----------------------------------------------------------------
@@ -1480,7 +1484,7 @@
       <div class="field-row"><label>Description</label><textarea id="builder-description" rows="2">${escapeHtml(builderState.description)}</textarea></div>
       <div class="field-row" style="display:flex; align-items:center; gap:8px;">
         <input type="checkbox" id="builder-active" ${builderState.active ? 'checked' : ''}>
-        <label style="margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);">Formulaire actif (visible sur /postuler.html)</label>
+        <label style="margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);">Formulaire actif (visible sur /postuler/)</label>
       </div>
 
       <div id="builder-sections">
@@ -1793,6 +1797,88 @@
   }
 
   // -----------------------------------------------------------------
+  // Bannis RP — bannissement de l'intranet RP uniquement (pas du site).
+  // -----------------------------------------------------------------
+  async function loadRpBansTab() {
+    const body = document.getElementById('console-body');
+    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/admin/rp-bans');
+    } catch (err) {
+      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const bans = data.bans || [];
+
+    body.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Comptes bannis</h2><span class="count">${bans.length}</span></div>
+        ${
+          bans.length
+            ? `<table>
+                <thead><tr><th>ID Discord</th><th>Motif</th><th>Banni par</th><th>Date</th><th></th></tr></thead>
+                <tbody>
+                  ${bans
+                    .map(
+                      (b) => `
+                    <tr data-discord-id="${escapeHtml(b.discordId)}">
+                      <td class="mono-cell">${escapeHtml(b.discordId)}</td>
+                      <td>${escapeHtml(b.reason || '—')}</td>
+                      <td>${escapeHtml(b.bannedBy || '—')}</td>
+                      <td class="mono-cell">${b.bannedAt ? new Date(b.bannedAt).toLocaleString('fr-FR') : '—'}</td>
+                      <td><button class="btn ghost small rpban-unban-btn" data-discord-id="${escapeHtml(b.discordId)}">Lever le bannissement</button></td>
+                    </tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun compte banni de l\'intranet RP.</div>'
+        }
+      </div>
+
+      <div class="subsection">
+        <h3>Bannir un compte</h3>
+        <p style="font-size:12.5px; color:var(--ink-dim); margin-bottom:14px;">L'utilisateur perd l'accès à l'intranet RP (IRC-15) uniquement — son compte reste valide pour le reste du site.</p>
+        <form id="rpban-form">
+          <div class="field-row"><label>ID Discord *</label><input type="text" id="rpban-discord-id" placeholder="Ex: 1370448277027291288" required></div>
+          <div class="field-row"><label>Motif</label><input type="text" id="rpban-reason" placeholder="Optionnel"></div>
+          <button class="btn" type="submit">Bannir</button>
+        </form>
+      </div>
+    `;
+
+    body.querySelectorAll('.rpban-unban-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Lever ce bannissement RP ?')) return;
+        try {
+          await apiFetch(`/api/admin/rp-bans/${encodeURIComponent(btn.dataset.discordId)}`, { method: 'DELETE' });
+          showToast('Bannissement levé.', 'success');
+          loadRpBansTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('rpban-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const discordId = document.getElementById('rpban-discord-id').value.trim();
+      const reason = document.getElementById('rpban-reason').value.trim();
+      if (!discordId) { showToast("L'ID Discord est obligatoire.", 'error'); return; }
+      try {
+        await apiFetch('/api/admin/rp-bans', { method: 'POST', body: JSON.stringify({ discordId, reason }) });
+        showToast('Compte banni de l\'intranet RP.', 'success');
+        loadRpBansTab();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
   // Dossier
   // -----------------------------------------------------------------
   const DOSSIER_SANCTION_LABELS = { ban: 'Bannissement', mute: 'Mute', kick: 'Expulsion', warn: 'Avertissement' };
@@ -2000,6 +2086,6 @@
 
   init();
 </script>
-<script src="assets/auth-menu.js" defer></script>
+<script src="/site15/assets/auth-menu.js" defer></script>
 </body>
 </html>

@@ -182,6 +182,29 @@
   .console-message-inner p{ color:var(--ink-dim); font-size:14px; line-height:1.6; }
   .console-message-inner a{ color:var(--accent); text-decoration:underline; }
 
+  /* ---------- Écran de bannissement RP ---------- */
+  .ban-screen{
+    position:relative; min-height:calc(100vh - 88px); display:flex; align-items:center; justify-content:center;
+    overflow:hidden; text-align:center; padding:40px 24px;
+  }
+  .ban-screen .boot-watermark{
+    position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);
+    width:min(55vw, 640px); opacity:0.06; filter:grayscale(1); pointer-events:none;
+  }
+  .ban-content{ position:relative; z-index:2; max-width:420px; }
+  .ban-icon{ width:52px; height:52px; margin:0 auto 22px; color:var(--bad); }
+  .ban-icon svg{ width:100%; height:100%; }
+  .ban-title{
+    font-family:'JetBrains Mono', monospace; font-size:20px; font-weight:700; letter-spacing:0.1em;
+    color:var(--bad); margin-bottom:14px;
+  }
+  .ban-text{ color:var(--ink-dim); font-size:13.5px; line-height:1.7; }
+  .ban-reason{
+    margin-top:16px; padding:12px 16px; background:rgba(240,82,90,0.08); border:1px solid rgba(240,82,90,0.25);
+    border-radius:2px; color:var(--ink); font-size:13px; text-align:left;
+  }
+  .ban-reason strong{ display:block; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--bad); margin-bottom:4px; }
+
   /* ---------- Écran de sélection (choix du personnage/accès) ---------- */
   .selector-screen{ padding:60px 24px 100px; }
   .selector-head{ max-width:640px; margin:0 auto 36px; text-align:center; }
@@ -479,6 +502,14 @@
 
   .dse-code-badge{ font-weight:700; letter-spacing:0.02em; }
 
+  .redacted-text{
+    background:#000; color:#000; padding:1px 6px; border-radius:1px; cursor:pointer;
+    font-family:'JetBrains Mono', monospace; letter-spacing:0.02em; user-select:none;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06); transition:color .15s ease, background .15s ease;
+  }
+  .redacted-text:hover{ box-shadow:inset 0 0 0 1px rgba(240,82,90,0.4); }
+  .redacted-text.revealed{ background:var(--void-2); color:var(--bad); box-shadow:inset 0 0 0 1px var(--bad); }
+
   .toast{
     position:fixed; bottom:24px; right:24px; z-index:200; background:var(--panel-raised); border:1px solid var(--line);
     border-radius:3px; padding:12px 18px; font-size:13px; max-width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5); display:none;
@@ -628,6 +659,23 @@
         <div class="console-message-inner">
           <div class="display">Aucun accès RP</div>
           <p>${escapeHtml(reason)}<br><br>${!ctx.robloxUsername ? '<a href="/site15/account/">Lier mon compte Roblox</a>' : "Contacte le staff roster si tu penses que c'est une erreur."}</p>
+        </div>
+      </div>
+    `;
+  }
+
+  // Bannissement RP : distinct d'un bannissement du site — le compte
+  // Discord reste utilisable partout ailleurs, seul l'intranet RP est
+  // verrouillé (cf rpBanService.js / panel admin, section Bannis RP).
+  function renderBanScreen(reason) {
+    mainRoot.innerHTML = `
+      <div class="ban-screen">
+        <img class="boot-watermark" src="/site15/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
+        <div class="ban-content">
+          <div class="ban-icon">${ICONS.lock}</div>
+          <div class="ban-title">ACCÈS RÉVOQUÉ</div>
+          <p class="ban-text">Ton accès à l'intranet RP (IRC-15) a été suspendu par la direction du Site-15. Le reste de ton compte reste inchangé.</p>
+          ${reason ? `<div class="ban-reason"><strong>Motif</strong>${escapeHtml(reason)}</div>` : ''}
         </div>
       </div>
     `;
@@ -902,7 +950,7 @@
       return;
     }
 
-    const { dept, announcements, canPost } = data;
+    const { dept, announcements, canPost, isDirector } = data;
     const agents = dept.agents || [];
 
     document.getElementById('stat-grid').innerHTML = `
@@ -923,16 +971,29 @@
     if (focus === 'effectifs') {
       main.innerHTML = `
         <div class="record-block">
-          <div class="record-block-head"><h2>Effectif actif</h2><span class="count">${agents.length}</span></div>
+          <div class="record-block-head">
+            <h2>Effectif actif</h2>
+            <span class="count">${agents.length}${isDirector ? ' · Gestion Directeur' : ''}</span>
+          </div>
           ${
             agents.length
               ? `<table>
-                  <thead><tr><th>Nom</th><th>Grade</th>${agents.some((a) => a.division) ? '<th>Division</th>' : ''}</tr></thead>
+                  <thead><tr><th>Nom</th><th>Grade</th>${agents.some((a) => a.division) ? '<th>Division</th>' : ''}${isDirector ? '<th>Statut</th><th></th>' : ''}</tr></thead>
                   <tbody>
                     ${agents
-                      .map(
-                        (a) => `<tr><td>${escapeHtml(a.name || '—')}</td><td>${escapeHtml(a.rank || '—')}</td>${agents.some((x) => x.division) ? `<td>${escapeHtml(a.division || '—')}</td>` : ''}</tr>`
-                      )
+                      .map((a) => {
+                        const statusCell = isDirector
+                          ? `<td>
+                              <select class="rp-agent-status-select" data-agent-id="${escapeHtml(a.id)}" style="padding:5px 24px 5px 8px; font-size:12px;">
+                                <option value="actif"${(a.status || 'actif') === 'actif' ? ' selected' : ''}>Actif</option>
+                                <option value="inactif"${a.status === 'inactif' ? ' selected' : ''}>Inactif</option>
+                                <option value="archivé"${a.status === 'archivé' ? ' selected' : ''}>Archivé</option>
+                              </select>
+                            </td>
+                            <td><button class="btn danger small rp-agent-remove-btn" data-agent-id="${escapeHtml(a.id)}">Retirer</button></td>`
+                          : '';
+                        return `<tr><td>${escapeHtml(a.name || '—')}</td><td>${escapeHtml(a.rank || '—')}</td>${agents.some((x) => x.division) ? `<td>${escapeHtml(a.division || '—')}</td>` : ''}${statusCell}</tr>`;
+                      })
                       .join('')}
                   </tbody>
                 </table>`
@@ -940,6 +1001,35 @@
           }
         </div>
       `;
+
+      if (isDirector) {
+        main.querySelectorAll('.rp-agent-status-select').forEach((sel) => {
+          sel.addEventListener('change', async (e) => {
+            try {
+              await apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}/agents/${encodeURIComponent(e.target.dataset.agentId)}/status`, {
+                method: 'PATCH',
+                body: JSON.stringify({ status: e.target.value }),
+              });
+              showToast('Statut mis à jour.', 'success');
+              loadDeptData(deptId, 'effectifs');
+            } catch (err) {
+              showToast(`Erreur : ${err.message}`, 'error');
+            }
+          });
+        });
+        main.querySelectorAll('.rp-agent-remove-btn').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Retirer cet agent du roster ?')) return;
+            try {
+              await apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}/agents/${encodeURIComponent(btn.dataset.agentId)}`, { method: 'DELETE' });
+              showToast('Agent retiré.', 'success');
+              loadDeptData(deptId, 'effectifs');
+            } catch (err) {
+              showToast(`Erreur : ${err.message}`, 'error');
+            }
+          });
+        });
+      }
       return;
     }
 
@@ -1729,12 +1819,33 @@
   let scienceSelectedId = null; // id de la fiche affichée, 'new' pour le formulaire, ou null (accueil)
 
   function renderMarkdown(md) {
+    let html;
     if (window.marked && window.DOMPurify) {
-      return DOMPurify.sanitize(marked.parse(md || ''));
+      html = DOMPurify.sanitize(marked.parse(md || ''));
+    } else {
+      // Filet de sécurité si les libs CDN n'ont pas chargé : texte brut échappé.
+      html = `<p>${escapeHtml(md || '').replace(/\n/g, '<br>')}</p>`;
     }
-    // Filet de sécurité si les libs CDN n'ont pas chargé : texte brut échappé.
-    return `<p>${escapeHtml(md || '').replace(/\n/g, '<br>')}</p>`;
+    return applyRedacted(html);
   }
+
+  // Texte encadré par {{comme ceci}} dans le Markdown source s'affiche en
+  // bandeau "classifié" noir (police mono, façon document caviardé SCP) —
+  // cliquable pour révéler. S'applique partout où renderMarkdown est
+  // utilisé (Archives comme Docs DSE).
+  function applyRedacted(html) {
+    return (html || '').replace(/\{\{(.+?)\}\}/g, (match, hidden) => {
+      return `<span class="redacted-text" tabindex="0" role="button" title="Cliquer pour révéler">${hidden}</span>`;
+    });
+  }
+
+  // Délégation d'événement globale : les blocs redacted sont insérés
+  // dynamiquement, donc on écoute au niveau document plutôt que d'attacher
+  // un listener à chaque rendu.
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('.redacted-text');
+    if (target) target.classList.toggle('revealed');
+  });
 
   // Colore automatiquement les mentions "CODE VERT/JAUNE/ORANGE/ROUGE/
   // MAUVE/BLANC/NOIR" dans le HTML déjà rendu — spécifique aux Docs DSE
@@ -2094,6 +2205,11 @@
       return;
     }
     context = result.data;
+
+    if (context.banned) {
+      renderBanScreen(context.banReason);
+      return;
+    }
 
     if (!context.hasAnyAccess) {
       renderNoAccess(context);
