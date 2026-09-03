@@ -42,6 +42,8 @@
     const icons = {
       discord: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.9A18 18 0 0 0 15.9 3.5c-.2.4-.5.9-.6 1.3a16.7 16.7 0 0 0-5 0c-.2-.4-.4-.9-.6-1.3a18 18 0 0 0-4.4 1.4C2.8 8.6 2.1 12.2 2.4 15.8a18.1 18.1 0 0 0 5.5 2.8c.4-.6.8-1.3 1.1-2a11.6 11.6 0 0 1-1.8-.9l.4-.3a12.9 12.9 0 0 0 10.8 0l.4.3c-.6.3-1.2.6-1.8.9.3.7.7 1.3 1.1 2a18 18 0 0 0 5.5-2.8c.4-4.2-.6-7.7-2.3-10.9ZM9.7 13.6c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7Zm4.6 0c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7Z"/></svg>',
       user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.6-3.6 4.6-5.5 7.5-5.5s5.9 1.9 7.5 5.5"/></svg>',
+      department: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M9 21v-6h6v6"/></svg>',
+      admin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="3.5"/><path d="M10.5 13l8-8M15 8l2 2M18 5l2 2"/></svg>',
       logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
       caret: '<svg class="auth-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>',
     };
@@ -80,7 +82,9 @@
         ${icon('caret')}
       </button>
       <div class="auth-dropdown" role="menu">
-        <a href="account.html" role="menuitem">${icon('user')} Mon compte</a>
+        <a href="/site15/account/" role="menuitem">${icon('user')} Mon compte</a>
+        <a href="/site15/rp/" role="menuitem">${icon('department')} Département</a>
+        <div id="auth-admin-slot"></div>
         <hr>
         <button class="danger" id="auth-logout" type="button" role="menuitem">${icon('logout')} Se déconnecter</button>
       </div>
@@ -145,11 +149,9 @@
     }
   }
 
-  // Le lien "Admin" de la nav est masqué par défaut (cf account.html /
-  // index.html / admin.html : <li class="nav-admin-link" style="display:none">).
-  // On ne le révèle que si l'utilisateur a réellement un accès au panel
-  // (déterminé par ses rôles Discord côté serveur, cf adminAuth.js) —
-  // jamais en se fiant à un état côté client.
+  // Le lien "Admin" n'est ajouté au menu déroulant que si l'utilisateur a
+  // réellement un accès au panel (déterminé par ses rôles Discord côté
+  // serveur, cf adminAuth.js) — jamais en se fiant à un état côté client.
   async function revealAdminLinkIfAllowed(token) {
     try {
       const res = await fetch(`${API_BASE}/api/admin/context`, {
@@ -157,10 +159,9 @@
       });
       if (!res.ok) return;
       const context = await res.json();
-      if (context.isAdminAnywhere) {
-        document.querySelectorAll('.nav-admin-link').forEach((el) => {
-          el.style.display = '';
-        });
+      const slot = document.getElementById('auth-admin-slot');
+      if (context.isAdminAnywhere && slot) {
+        slot.innerHTML = `<a href="/site15/admin/" role="menuitem">${icon('admin')} Admin</a>`;
       }
     } catch (err) {
       console.error('Erreur vérification accès admin:', err);
