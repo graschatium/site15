@@ -1951,8 +1951,14 @@
   }
 
   // -----------------------------------------------------------------
-  // Médical — Fiche Médicale (confidentiel)
+  // Médical — Fiche Médicale (confidentiel) : sommaire des patients à
+  // gauche, fiche d'identité/constantes complète + journal de
+  // consultations à droite.
   // -----------------------------------------------------------------
+  const GROUPE_SANGUIN_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Inconnu'];
+  let medRecordsCache = [];
+  let medRecordsSelected = null; // characterName sélectionné, 'new', 'edit:<name>' ou null
+
   async function loadMedicalRecords() {
     const main = document.getElementById('terminal-main');
     main.innerHTML = '<div class="center-msg">Chargement…</div>';
@@ -1966,66 +1972,241 @@
     }
 
     const records = data.records || [];
+    medRecordsCache = records;
 
     document.getElementById('stat-grid').innerHTML = `
       <div class="stat-cell"><div class="stat-value">${records.length}</div><div class="stat-label">Fiches</div></div>
       <div class="stat-cell"><div class="stat-value">CONF</div><div class="stat-label">Accès</div></div>
     `;
     document.getElementById('journal-panel').innerHTML = records.length
-      ? records.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.characterName)}</span></div>`).join('')
+      ? records.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.updatedAt ? new Date(r.updatedAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.characterName)}</span></div>`).join('')
       : '<div class="journal-entry"><span class="journal-text">Aucune fiche.</span></div>';
 
     main.innerHTML = `
-      <div class="record-block">
-        <div class="record-block-head"><h2>Fiche Médicale</h2><span class="count">${records.length}</span></div>
-        <input type="text" id="med-records-search" placeholder="Rechercher un personnage..." style="margin-bottom:14px;">
-        <div id="med-records-list"></div>
-      </div>
-      <div class="subsection">
-        <h3>Ajouter une entrée</h3>
-        <form id="med-record-form">
-          <div class="field-row"><label>Personnage *</label><input type="text" id="med-record-name" required></div>
-          <div class="field-row"><label>Notes médicales</label><textarea id="med-record-content" rows="5"></textarea></div>
-          <button class="btn" type="submit">Enregistrer</button>
-        </form>
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Patients</span><span class="count">${records.length}</span></div>
+          <input type="text" id="med-records-search" placeholder="Rechercher..." style="margin-top:10px;">
+          <button class="btn small" id="med-records-new-btn" type="button" style="width:100%; margin-top:8px;">+ Nouvelle fiche</button>
+          <div class="wiki-toc-list" id="med-records-toc-list"></div>
+        </div>
+        <div class="wiki-article" id="med-records-article"></div>
       </div>
     `;
 
-    function renderList(filtered) {
-      const list = document.getElementById('med-records-list');
-      list.innerHTML = filtered.length
-        ? filtered
-            .map(
-              (r) => `
-        <div class="post-card">
-          <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.characterName)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span></div>
-          <div class="post-card-body">${escapeHtml(r.content || '')}</div>
-        </div>
-      `
-            )
-            .join('')
-        : '<div class="empty-row">Aucune fiche ne correspond.</div>';
-    }
-    renderList(records);
+    renderMedRecordsToc(records);
+    renderMedRecordsArticle();
 
+    document.getElementById('med-records-new-btn').addEventListener('click', () => {
+      medRecordsSelected = 'new';
+      renderMedRecordsToc(medRecordsCache);
+      renderMedRecordsArticle();
+    });
     document.getElementById('med-records-search').addEventListener('input', (e) => {
       const q = e.target.value.trim().toLowerCase();
-      renderList(records.filter((r) => (r.characterName || '').toLowerCase().includes(q)));
+      renderMedRecordsToc(medRecordsCache.filter((r) => `${r.characterName} ${r.nom} ${r.prenom}`.toLowerCase().includes(q)));
+    });
+  }
+
+  function renderMedRecordsToc(records) {
+    const list = document.getElementById('med-records-toc-list');
+    if (!records.length) { list.innerHTML = '<div class="empty-row">Aucune fiche.</div>'; return; }
+    list.innerHTML = records
+      .map(
+        (r) => `
+      <button class="wiki-toc-item${r.characterName === medRecordsSelected ? ' active' : ''}" data-name="${escapeHtml(r.characterName)}" type="button">
+        <span class="wiki-toc-title">${escapeHtml(r.characterName)}</span>
+        <span class="wiki-toc-meta">${escapeHtml([r.prenom, r.nom].filter(Boolean).join(' ') || 'Identité non renseignée')}</span>
+      </button>
+    `
+      )
+      .join('');
+    list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        medRecordsSelected = btn.dataset.name;
+        renderMedRecordsToc(medRecordsCache);
+        renderMedRecordsArticle();
+      });
+    });
+  }
+
+  function medRecordFormHtml(existing) {
+    const v = (key) => (existing ? escapeHtml(existing[key] || '') : '');
+    return `
+      <form id="med-record-form">
+        <div class="field-row"><label>Personnage (identifiant de fiche) *</label><input type="text" id="mr-characterName" required value="${v('characterName')}" ${existing ? 'readonly' : ''}></div>
+        <div class="field-grid">
+          <div class="field-row"><label>Nom</label><input type="text" id="mr-nom" value="${v('nom')}"></div>
+          <div class="field-row"><label>Prénom</label><input type="text" id="mr-prenom" value="${v('prenom')}"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field-row"><label>Emploi / Poste</label><input type="text" id="mr-emploi" value="${v('emploi')}" placeholder="Ex: Agent de 1ère Classe, Sécurité"></div>
+          <div class="field-row"><label>Date de naissance</label><input type="text" id="mr-dateNaissance" value="${v('dateNaissance')}" placeholder="JJ/MM/AAAA"></div>
+        </div>
+        <div class="field-row">
+          <label>Groupe sanguin</label>
+          <select id="mr-groupeSanguin">
+            ${GROUPE_SANGUIN_OPTIONS.map((g) => `<option value="${g}"${existing?.groupeSanguin === g ? ' selected' : ''}>${g}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field-row"><label>Allergies</label><input type="text" id="mr-allergies" value="${v('allergies')}" placeholder="Ex: Pénicilline"></div>
+        <div class="field-row"><label>Antécédents médicaux</label><textarea id="mr-antecedents" rows="3">${v('antecedents')}</textarea></div>
+        <div class="side-panel-title" style="margin-top:18px;">Constantes</div>
+        <div class="field-grid">
+          <div class="field-row"><label>Tension artérielle</label><input type="text" id="mr-tension" value="${v('tension')}" placeholder="Ex: 12/8"></div>
+          <div class="field-row"><label>Fréquence cardiaque</label><input type="text" id="mr-frequenceCardiaque" value="${v('frequenceCardiaque')}" placeholder="Ex: 72 bpm"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field-row"><label>Température</label><input type="text" id="mr-temperature" value="${v('temperature')}" placeholder="Ex: 37.0°C"></div>
+          <div class="field-row"><label>Poids</label><input type="text" id="mr-poids" value="${v('poids')}" placeholder="Ex: 74 kg"></div>
+        </div>
+        <div class="field-row"><label>Taille</label><input type="text" id="mr-taille" value="${v('taille')}" placeholder="Ex: 178 cm"></div>
+        <div style="display:flex; gap:10px; margin-top:6px;">
+          <button class="btn" type="submit">${existing ? 'Enregistrer les modifications' : 'Créer la fiche'}</button>
+          ${existing ? '<button class="btn ghost" type="button" id="mr-cancel-btn">Annuler</button>' : ''}
+        </div>
+      </form>
+    `;
+  }
+
+  function bindMedRecordForm(existing) {
+    document.getElementById('mr-cancel-btn')?.addEventListener('click', () => {
+      medRecordsSelected = existing ? existing.characterName : null;
+      renderMedRecordsArticle();
     });
 
     document.getElementById('med-record-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const characterName = document.getElementById('med-record-name').value.trim();
-      const content = document.getElementById('med-record-content').value.trim();
-      if (!characterName) { showToast('Le nom du personnage est obligatoire.', 'error'); return; }
+      const payload = {
+        characterName: document.getElementById('mr-characterName').value.trim(),
+        nom: document.getElementById('mr-nom').value.trim(),
+        prenom: document.getElementById('mr-prenom').value.trim(),
+        emploi: document.getElementById('mr-emploi').value.trim(),
+        dateNaissance: document.getElementById('mr-dateNaissance').value.trim(),
+        groupeSanguin: document.getElementById('mr-groupeSanguin').value,
+        allergies: document.getElementById('mr-allergies').value.trim(),
+        antecedents: document.getElementById('mr-antecedents').value.trim(),
+        tension: document.getElementById('mr-tension').value.trim(),
+        frequenceCardiaque: document.getElementById('mr-frequenceCardiaque').value.trim(),
+        temperature: document.getElementById('mr-temperature').value.trim(),
+        poids: document.getElementById('mr-poids').value.trim(),
+        taille: document.getElementById('mr-taille').value.trim(),
+      };
+      if (!payload.characterName) { showToast('Le nom du personnage est obligatoire.', 'error'); return; }
       try {
-        await apiFetch('/api/rp/medical-ops/records', { method: 'POST', body: JSON.stringify({ characterName, content }) });
-        showToast('Fiche enregistrée.', 'success');
+        await apiFetch('/api/rp/medical-ops/records', { method: 'POST', body: JSON.stringify(payload) });
+        showToast(existing ? 'Fiche mise à jour.' : 'Fiche créée.', 'success');
+        medRecordsSelected = payload.characterName;
         loadMedicalRecords();
       } catch (err) {
         showToast(`Erreur : ${err.message}`, 'error');
       }
     });
+  }
+
+  function renderMedRecordsArticle() {
+    const article = document.getElementById('med-records-article');
+
+    if (medRecordsSelected === 'new') {
+      article.innerHTML = `<h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">Nouvelle fiche patient</h3>${medRecordFormHtml(null)}`;
+      bindMedRecordForm(null);
+      return;
+    }
+
+    if (typeof medRecordsSelected === 'string' && medRecordsSelected.startsWith('edit:')) {
+      const existing = medRecordsCache.find((r) => r.characterName === medRecordsSelected.slice(5));
+      article.innerHTML = `<h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">Modifier la fiche</h3>${medRecordFormHtml(existing)}`;
+      bindMedRecordForm(existing);
+      return;
+    }
+
+    const record = medRecordsCache.find((r) => r.characterName === medRecordsSelected);
+    if (!record) {
+      article.innerHTML = `<div class="wiki-empty"><div class="wiki-empty-title">Fiche Médicale</div><p>Sélectionne un patient dans le sommaire, ou clique sur "+ Nouvelle fiche".</p></div>`;
+      return;
+    }
+
+    article.innerHTML = `
+      <div class="wiki-article-head"><span class="sci-type-badge">Fiche patient</span></div>
+      <h2 class="wiki-article-title">${escapeHtml(record.characterName)}</h2>
+      <div class="post-card-meta" style="margin-bottom:20px;">${[record.prenom, record.nom].filter(Boolean).map(escapeHtml).join(' ') || 'Identité non renseignée'} — MàJ ${record.updatedAt ? new Date(record.updatedAt).toLocaleDateString('fr-FR') : '—'}</div>
+
+      <div class="access-row"><span>Emploi</span><span>${escapeHtml(record.emploi || '—')}</span></div>
+      <div class="access-row"><span>Naissance</span><span>${escapeHtml(record.dateNaissance || '—')}</span></div>
+      <div class="access-row"><span>Groupe sanguin</span><span>${escapeHtml(record.groupeSanguin || '—')}</span></div>
+      <div class="access-row"><span>Allergies</span><span>${escapeHtml(record.allergies || '—')}</span></div>
+
+      <div class="side-panel-title" style="margin-top:20px;">Constantes</div>
+      <div class="stat-grid">
+        <div class="stat-cell"><div class="stat-value" style="font-size:15px;">${escapeHtml(record.tension || '—')}</div><div class="stat-label">Tension</div></div>
+        <div class="stat-cell"><div class="stat-value" style="font-size:15px;">${escapeHtml(record.frequenceCardiaque || '—')}</div><div class="stat-label">Fréq. cardiaque</div></div>
+        <div class="stat-cell"><div class="stat-value" style="font-size:15px;">${escapeHtml(record.temperature || '—')}</div><div class="stat-label">Température</div></div>
+        <div class="stat-cell"><div class="stat-value" style="font-size:15px;">${escapeHtml(record.poids || '—')}</div><div class="stat-label">Poids</div></div>
+      </div>
+      <div class="access-row" style="margin-top:8px;"><span>Taille</span><span>${escapeHtml(record.taille || '—')}</span></div>
+
+      ${record.antecedents ? `<div class="side-panel-title" style="margin-top:20px;">Antécédents</div><div class="post-card-body">${escapeHtml(record.antecedents)}</div>` : ''}
+
+      <div class="sci-card-actions" style="margin-top:20px;">
+        <button class="btn ghost small" id="mr-edit-btn">Modifier la fiche</button>
+      </div>
+
+      <div class="side-panel-title" style="margin-top:28px;">Journal de consultations</div>
+      <div id="med-record-notes-list"><div class="empty-row">Chargement…</div></div>
+      <div class="subsection" style="margin-top:14px;">
+        <h3>Ajouter une note de consultation</h3>
+        <form id="med-record-note-form">
+          <div class="field-row"><label>Note</label><textarea id="mr-note-content" rows="4" required></textarea></div>
+          <button class="btn" type="submit">Ajouter au journal</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('mr-edit-btn').addEventListener('click', () => {
+      medRecordsSelected = `edit:${record.characterName}`;
+      renderMedRecordsArticle();
+    });
+
+    loadMedRecordNotes(record.characterName);
+
+    document.getElementById('med-record-note-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const content = document.getElementById('mr-note-content').value.trim();
+      if (!content) { showToast('La note ne peut pas être vide.', 'error'); return; }
+      try {
+        await apiFetch(`/api/rp/medical-ops/records/${encodeURIComponent(record.characterName)}/notes`, { method: 'POST', body: JSON.stringify({ content }) });
+        showToast('Note ajoutée.', 'success');
+        loadMedRecordNotes(record.characterName);
+        document.getElementById('mr-note-content').value = '';
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  async function loadMedRecordNotes(characterName) {
+    const list = document.getElementById('med-record-notes-list');
+    if (!list) return;
+    let data;
+    try {
+      data = await apiFetch(`/api/rp/medical-ops/records/${encodeURIComponent(characterName)}/notes`);
+    } catch (err) {
+      list.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    const notes = (data.notes || []).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    list.innerHTML = notes.length
+      ? notes
+          .map(
+            (n) => `
+      <div class="post-card">
+        <div class="post-card-head"><span class="post-card-meta">${escapeHtml(n.authorCharacterName)} — ${n.createdAt ? new Date(n.createdAt).toLocaleString('fr-FR') : ''}</span></div>
+        <div class="post-card-body">${escapeHtml(n.content)}</div>
+      </div>
+    `
+          )
+          .join('')
+      : '<div class="empty-row">Aucune consultation enregistrée.</div>';
   }
 
   // -----------------------------------------------------------------
