@@ -4096,7 +4096,7 @@
     list.innerHTML = records.map((r) => `
       <button class="wiki-toc-item${r.characterName === admRhRecordsSelected ? ' active' : ''}" data-name="${escapeHtml(r.characterName)}" type="button">
         <span class="wiki-toc-title">${escapeHtml(r.characterName)}</span>
-        <span class="wiki-toc-meta">${escapeHtml(r.poste || 'Poste non renseigné')}</span>
+        <span class="wiki-toc-meta">${escapeHtml([r.prenom, r.nom].filter(Boolean).join(' ') || r.grade || 'Fiche incomplète')}</span>
       </button>
     `).join('');
     list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
@@ -4113,13 +4113,53 @@
     return `
       <form id="adm-rh-form">
         <div class="field-row"><label>Personnage (identifiant de fiche) *</label><input type="text" id="rh-characterName" required value="${v('characterName')}" ${existing ? 'readonly' : ''}></div>
+
+        <div class="side-panel-title" style="margin-top:18px;">Profil du personnel</div>
         <div class="field-grid">
-          <div class="field-row"><label>Poste</label><input type="text" id="rh-poste" value="${v('poste')}"></div>
-          <div class="field-row"><label>Date de recrutement</label><input type="text" id="rh-dateRecrutement" value="${v('dateRecrutement')}" placeholder="JJ/MM/AAAA"></div>
+          <div class="field-row"><label>Prénom</label><input type="text" id="rh-prenom" value="${v('prenom')}"></div>
+          <div class="field-row"><label>Nom</label><input type="text" id="rh-nom" value="${v('nom')}"></div>
         </div>
+        <div class="field-grid">
+          <div class="field-row"><label>Âge</label><input type="text" id="rh-age" value="${v('age')}" placeholder="Ex: 32 ans"></div>
+          <div class="field-row"><label>Date de naissance</label><input type="text" id="rh-dateNaissance" value="${v('dateNaissance')}" placeholder="JJ/MM/AAAA"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field-row"><label>Nationalité</label><input type="text" id="rh-nationalite" value="${v('nationalite')}"></div>
+          <div class="field-row"><label>Origine</label><input type="text" id="rh-origine" value="${v('origine')}"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field-row"><label>Département</label><input type="text" id="rh-departement" value="${v('departement')}"></div>
+          <div class="field-row"><label>Grade</label><input type="text" id="rh-grade" value="${v('grade')}"></div>
+        </div>
+        <div class="field-row"><label>Accréditation</label><input type="text" id="rh-accreditation" value="${v('accreditation')}" placeholder="Ex: Niveau 1"></div>
+
+        <div class="side-panel-title" style="margin-top:18px;">Social</div>
+        <div class="field-grid">
+          <div class="field-row"><label>Père</label><input type="text" id="rh-pere" value="${v('pere')}" placeholder="Nom, profession, ou décédé/N.A"></div>
+          <div class="field-row"><label>Mère</label><input type="text" id="rh-mere" value="${v('mere')}" placeholder="Nom, profession, ou décédé/N.A"></div>
+        </div>
+        <div class="field-row"><label>Fraternel</label><input type="text" id="rh-fraternel" value="${v('fraternel')}" placeholder="Nom, profession, ou N.A"></div>
+        <div class="field-row"><label>Époux / Épouse</label><input type="text" id="rh-epoux" value="${v('epoux')}" placeholder="Nom, profession, ou N.A"></div>
+        <div class="field-row"><label>École</label><input type="text" id="rh-ecole" value="${v('ecole')}"></div>
+        <div class="field-row"><label>Parcours professionnel</label><textarea id="rh-parcoursProfessionnel" rows="3">${v('parcoursProfessionnel')}</textarea></div>
+
+        <div class="side-panel-title" style="margin-top:18px;">Apparence physique</div>
+        <div class="field-grid">
+          <div class="field-row"><label>Yeux</label><input type="text" id="rh-yeux" value="${v('yeux')}"></div>
+          <div class="field-row"><label>Cheveux</label><input type="text" id="rh-cheveux" value="${v('cheveux')}"></div>
+        </div>
+        <div class="field-grid">
+          <div class="field-row"><label>Taille</label><input type="text" id="rh-taille" value="${v('taille')}" placeholder="Ex: 180cm"></div>
+          <div class="field-row"><label>Poids</label><input type="text" id="rh-poids" value="${v('poids')}" placeholder="Ex: 80kg"></div>
+        </div>
+        <div class="field-row"><label>Photo (URL)</label><input type="text" id="rh-photoUrl" value="${v('photoUrl')}" placeholder="https://..."></div>
+
+        <div class="side-panel-title" style="margin-top:18px;">Signature & suivi RH</div>
+        <div class="field-row"><label>Représentant de la Fondation</label><input type="text" id="rh-representant" value="${v('representant')}"></div>
         <div class="field-row"><label>Évaluation</label><textarea id="rh-evaluation" rows="3">${v('evaluation')}</textarea></div>
         <div class="field-row"><label>Notes disciplinaires</label><textarea id="rh-notesDisciplinaires" rows="3">${v('notesDisciplinaires')}</textarea></div>
         <div class="field-row"><label>Notes générales</label><textarea id="rh-notes" rows="3">${v('notes')}</textarea></div>
+
         <div style="display:flex; gap:10px;">
           <button class="btn" type="submit">${existing ? 'Enregistrer les modifications' : 'Créer la fiche'}</button>
           ${existing ? '<button class="btn ghost" type="button" id="rh-cancel-btn">Annuler</button>' : ''}
@@ -4128,6 +4168,13 @@
     `;
   }
 
+  const RH_FORM_FIELD_IDS = [
+    'prenom', 'nom', 'age', 'dateNaissance', 'nationalite', 'origine', 'departement', 'grade', 'accreditation',
+    'pere', 'mere', 'fraternel', 'epoux', 'ecole', 'parcoursProfessionnel',
+    'yeux', 'cheveux', 'taille', 'poids', 'photoUrl',
+    'representant', 'evaluation', 'notesDisciplinaires', 'notes',
+  ];
+
   function bindAdmRhForm(existing) {
     document.getElementById('rh-cancel-btn')?.addEventListener('click', () => {
       admRhRecordsSelected = existing ? existing.characterName : null;
@@ -4135,14 +4182,10 @@
     });
     document.getElementById('adm-rh-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const payload = {
-        characterName: document.getElementById('rh-characterName').value.trim(),
-        poste: document.getElementById('rh-poste').value.trim(),
-        dateRecrutement: document.getElementById('rh-dateRecrutement').value.trim(),
-        evaluation: document.getElementById('rh-evaluation').value.trim(),
-        notesDisciplinaires: document.getElementById('rh-notesDisciplinaires').value.trim(),
-        notes: document.getElementById('rh-notes').value.trim(),
-      };
+      const payload = { characterName: document.getElementById('rh-characterName').value.trim() };
+      RH_FORM_FIELD_IDS.forEach((key) => {
+        payload[key] = document.getElementById(`rh-${key}`).value.trim();
+      });
       if (!payload.characterName) { showToast('Le nom du personnage est obligatoire.', 'error'); return; }
       try {
         await apiFetch('/api/rp/admin-ops/rh/records', { method: 'POST', body: JSON.stringify(payload) });
@@ -4177,13 +4220,44 @@
     }
 
     article.innerHTML = `
-      <h2 class="wiki-article-title">${escapeHtml(record.characterName)}</h2>
-      <div class="post-card-meta" style="margin-bottom:20px;">MàJ ${record.updatedAt ? new Date(record.updatedAt).toLocaleDateString('fr-FR') : '—'}</div>
-      <div class="access-row"><span>Poste</span><span>${escapeHtml(record.poste || '—')}</span></div>
-      <div class="access-row"><span>Recrutement</span><span>${escapeHtml(record.dateRecrutement || '—')}</span></div>
+      <div class="wiki-article-head">
+        ${record.photoUrl ? `<img src="${escapeHtml(record.photoUrl)}" alt="" style="width:64px; height:64px; border-radius:3px; object-fit:cover; border:1px solid var(--line); margin-right:14px;">` : ''}
+        <div>
+          <h2 class="wiki-article-title" style="margin-bottom:2px;">${escapeHtml([record.prenom, record.nom].filter(Boolean).join(' ') || record.characterName)}</h2>
+          <div class="post-card-meta">${escapeHtml(record.characterName)} — MàJ ${record.updatedAt ? new Date(record.updatedAt).toLocaleDateString('fr-FR') : '—'}</div>
+        </div>
+      </div>
+
+      <div class="side-panel-title" style="margin-top:20px;">Profil du personnel</div>
+      <div class="access-row"><span>Âge</span><span>${escapeHtml(record.age || '—')}</span></div>
+      <div class="access-row"><span>Naissance</span><span>${escapeHtml(record.dateNaissance || '—')}</span></div>
+      <div class="access-row"><span>Nationalité</span><span>${escapeHtml(record.nationalite || '—')}</span></div>
+      <div class="access-row"><span>Origine</span><span>${escapeHtml(record.origine || '—')}</span></div>
+      <div class="access-row"><span>Département</span><span>${escapeHtml(record.departement || '—')}</span></div>
+      <div class="access-row"><span>Grade</span><span>${escapeHtml(record.grade || '—')}</span></div>
+      <div class="access-row"><span>Accréditation</span><span>${escapeHtml(record.accreditation || '—')}</span></div>
+
+      <div class="side-panel-title" style="margin-top:20px;">Social</div>
+      <div class="access-row"><span>Père</span><span>${escapeHtml(record.pere || '—')}</span></div>
+      <div class="access-row"><span>Mère</span><span>${escapeHtml(record.mere || '—')}</span></div>
+      <div class="access-row"><span>Fraternel</span><span>${escapeHtml(record.fraternel || '—')}</span></div>
+      <div class="access-row"><span>Époux/Épouse</span><span>${escapeHtml(record.epoux || '—')}</span></div>
+      <div class="access-row"><span>École</span><span>${escapeHtml(record.ecole || '—')}</span></div>
+      ${record.parcoursProfessionnel ? `<div class="post-card-body" style="margin-top:8px;">${escapeHtml(record.parcoursProfessionnel)}</div>` : ''}
+
+      <div class="side-panel-title" style="margin-top:20px;">Apparence physique</div>
+      <div class="stat-grid">
+        <div class="stat-cell"><div class="stat-value" style="font-size:14px;">${escapeHtml(record.yeux || '—')}</div><div class="stat-label">Yeux</div></div>
+        <div class="stat-cell"><div class="stat-value" style="font-size:14px;">${escapeHtml(record.cheveux || '—')}</div><div class="stat-label">Cheveux</div></div>
+        <div class="stat-cell"><div class="stat-value" style="font-size:14px;">${escapeHtml(record.taille || '—')}</div><div class="stat-label">Taille</div></div>
+        <div class="stat-cell"><div class="stat-value" style="font-size:14px;">${escapeHtml(record.poids || '—')}</div><div class="stat-label">Poids</div></div>
+      </div>
+
+      ${record.representant ? `<div class="side-panel-title" style="margin-top:20px;">Représentant de la Fondation</div><div class="post-card-body">${escapeHtml(record.representant)}</div>` : ''}
       ${record.evaluation ? `<div class="side-panel-title" style="margin-top:20px;">Évaluation</div><div class="post-card-body">${escapeHtml(record.evaluation)}</div>` : ''}
       ${record.notesDisciplinaires ? `<div class="side-panel-title" style="margin-top:20px;">Notes disciplinaires</div><div class="post-card-body">${escapeHtml(record.notesDisciplinaires)}</div>` : ''}
       ${record.notes ? `<div class="side-panel-title" style="margin-top:20px;">Notes générales</div><div class="post-card-body">${escapeHtml(record.notes)}</div>` : ''}
+
       <div class="sci-card-actions" style="margin-top:24px;">
         <button class="btn ghost small" id="rh-edit-btn">Modifier la fiche</button>
       </div>
