@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<link rel="icon" href="https://graschatium.github.io/site15/ressources/voidline.ico" type="image/x-icon">
 <style>
   :root{
     --void: #08090C;
@@ -393,14 +393,14 @@
 
 <header>
   <div class="wrap nav-inner">
-    <a href="/" class="wordmark">
-      <img src="/ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+    <a href="/site15/" class="wordmark">
+      <img src="/site15/ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
       VOIDLINE STUDIO
     </a>
     <nav>
       <ul>
-        <li><a href="/#top">Accueil</a></li>
-        <li><a href="/postuler/">Postuler</a></li>
+        <li><a href="/site15/#top">Accueil</a></li>
+        <li><a href="/site15/postuler/">Postuler</a></li>
         <li class="auth-menu" id="auth-menu"></li>
       </ul>
     </nav>
@@ -488,6 +488,7 @@
     applications: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.5h8a1 1 0 0 1 1 1V20l-3-2-2 2-2-2-3 2V4.5a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 11.5h6M9 15h3.5"/></svg>',
     permissions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="3.5"/><path d="M10.5 13l8-8M15 8l2 2M18 5l2 2"/></svg>',
     rpbans: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M9 15l6-3.5"/></svg>',
+    status: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>',
   };
 
   const TAB_META = {
@@ -499,6 +500,7 @@
     applications: { title: 'Candidatures', subtitle: 'Candidatures reçues via les formulaires de recrutement.' },
     permissions: { title: 'Permissions', subtitle: 'Droits accordés à chaque rôle du serveur staff.' },
     rpbans: { title: 'Bannis RP', subtitle: "Comptes bannis de l'intranet RP (IRC-15) — n'affecte pas le reste du site." },
+    status: { title: 'Statut', subtitle: "Gestion de la page de statut publique — composants et incidents." },
   };
 
   function renderLoggedOut() {
@@ -506,7 +508,7 @@
       <div class="console-message">
         <div class="console-message-inner">
           <div class="display">Accès restreint</div>
-          <p>Connecte-toi d'abord pour ouvrir la console.<br><br><a href="/account/">Aller à Mon compte</a></p>
+          <p>Connecte-toi d'abord pour ouvrir la console.<br><br><a href="/site15/account/">Aller à Mon compte</a></p>
         </div>
       </div>
     `;
@@ -537,6 +539,7 @@
     if (context.canManageApplications) tabs.push('applications');
     if (context.canManagePermissions) tabs.push('permissions');
     if (context.canManagePermissions) tabs.push('rpbans');
+    if (context.canManagePermissions) tabs.push('status');
 
     const badges = (context.roleLabels && context.roleLabels.length ? context.roleLabels : ['Accès limité'])
       .map((r) => `<span class="clearance-badge">${escapeHtml(r)}</span>`)
@@ -594,6 +597,7 @@
     else if (tabId === 'applications') loadApplicationsTab();
     else if (tabId === 'permissions') loadPermissionsTab();
     else if (tabId === 'rpbans') loadRpBansTab();
+    else if (tabId === 'status') loadStatusTab();
   }
 
   // -----------------------------------------------------------------
@@ -1879,6 +1883,165 @@
   }
 
   // -----------------------------------------------------------------
+  // Statut — gestion des composants et incidents de la page publique
+  // -----------------------------------------------------------------
+  const STATUS_LABELS = {
+    operational: 'Opérationnel',
+    degraded: 'Performances dégradées',
+    partial_outage: 'Panne partielle',
+    major_outage: 'Panne majeure',
+    maintenance: 'Maintenance',
+  };
+  const INCIDENT_STATUS_LABELS = {
+    investigating: 'Enquête en cours',
+    identified: 'Cause identifiée',
+    monitoring: 'Sous surveillance',
+    resolved: 'Résolu',
+  };
+
+  async function loadStatusTab() {
+    const body = document.getElementById('console-body');
+    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/status');
+    } catch (err) {
+      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { components, incidents } = data;
+
+    body.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head">
+          <h2>Composants</h2>
+          <span style="display:flex; align-items:center; gap:10px;">
+            <a href="/statut/" target="_blank" rel="noopener" class="btn ghost small">Voir la page publique ↗</a>
+            <span class="count">${components.length}</span>
+          </span>
+        </div>
+        <table>
+          <thead><tr><th>Composant</th><th>Statut actuel</th><th>Changer</th></tr></thead>
+          <tbody>
+            ${components
+              .map(
+                (c) => `
+              <tr>
+                <td>${escapeHtml(c.name)}</td>
+                <td>${escapeHtml(STATUS_LABELS[c.status] || c.status)}</td>
+                <td>
+                  <select class="status-component-select" data-component-id="${escapeHtml(c.id)}" style="width:auto; padding:6px 26px 6px 10px; font-size:12.5px;">
+                    ${Object.entries(STATUS_LABELS)
+                      .map(([value, label]) => `<option value="${value}"${c.status === value ? ' selected' : ''}>${label}</option>`)
+                      .join('')}
+                  </select>
+                </td>
+              </tr>
+            `
+              )
+              .join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="record-block">
+        <div class="record-block-head"><h2>Incidents</h2><span class="count">${incidents.length}</span></div>
+        <div id="status-incidents-list">
+          ${
+            incidents.length
+              ? incidents
+                  .map((incident) => {
+                    const latest = [...(incident.updates || [])].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))[0];
+                    return `
+                <div class="post-card" data-incident-id="${escapeHtml(incident.id)}">
+                  <div class="post-card-head">
+                    <span class="post-card-title">${escapeHtml(incident.title)}</span>
+                    <span class="post-card-meta">${incident.createdAt ? new Date(incident.createdAt).toLocaleDateString('fr-FR') : ''}</span>
+                  </div>
+                  <div class="post-card-meta" style="margin-bottom:8px;">Statut : ${escapeHtml(INCIDENT_STATUS_LABELS[incident.status] || incident.status)}${latest?.message ? ` — ${escapeHtml(latest.message)}` : ''}</div>
+                  ${
+                    incident.status !== 'resolved'
+                      ? `<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                          <select class="incident-update-status-select" data-incident-id="${escapeHtml(incident.id)}" style="width:auto; padding:6px 26px 6px 10px; font-size:12.5px;">
+                            ${Object.entries(INCIDENT_STATUS_LABELS)
+                              .map(([value, label]) => `<option value="${value}">${label}</option>`)
+                              .join('')}
+                          </select>
+                          <input type="text" class="incident-update-message-input" data-incident-id="${escapeHtml(incident.id)}" placeholder="Message de mise à jour (optionnel)" style="flex:1; min-width:180px; padding:6px 10px; font-size:12.5px;">
+                          <button class="btn small incident-update-btn" data-incident-id="${escapeHtml(incident.id)}">Ajouter la mise à jour</button>
+                        </div>`
+                      : ''
+                  }
+                </div>
+              `;
+                  })
+                  .join('')
+              : '<div class="empty-row">Aucun incident.</div>'
+          }
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Ouvrir un nouvel incident</h3>
+        <form id="status-incident-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="status-incident-title" required></div>
+          <div class="field-row"><label>Description initiale</label><textarea id="status-incident-description" rows="3"></textarea></div>
+          <button class="btn" type="submit">Ouvrir l'incident</button>
+        </form>
+      </div>
+    `;
+
+    body.querySelectorAll('.status-component-select').forEach((sel) => {
+      sel.addEventListener('change', async (e) => {
+        try {
+          await apiFetch(`/api/admin/status/components/${encodeURIComponent(e.target.dataset.componentId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: e.target.value }),
+          });
+          showToast('Statut mis à jour.', 'success');
+          loadStatusTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    body.querySelectorAll('.incident-update-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const incidentId = btn.dataset.incidentId;
+        const statusSelect = body.querySelector(`.incident-update-status-select[data-incident-id="${incidentId}"]`);
+        const messageInput = body.querySelector(`.incident-update-message-input[data-incident-id="${incidentId}"]`);
+        try {
+          await apiFetch(`/api/admin/status/incidents/${encodeURIComponent(incidentId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: statusSelect.value, message: messageInput.value.trim() }),
+          });
+          showToast('Incident mis à jour.', 'success');
+          loadStatusTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('status-incident-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('status-incident-title').value.trim();
+      const description = document.getElementById('status-incident-description').value.trim();
+      if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/admin/status/incidents', { method: 'POST', body: JSON.stringify({ title, description }) });
+        showToast('Incident ouvert.', 'success');
+        loadStatusTab();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
   // Dossier
   // -----------------------------------------------------------------
   const DOSSIER_SANCTION_LABELS = { ban: 'Bannissement', mute: 'Mute', kick: 'Expulsion', warn: 'Avertissement' };
@@ -2086,6 +2249,6 @@
 
   init();
 </script>
-<script src="/assets/auth-menu.js" defer></script>
+<script src="/site15/assets/auth-menu.js" defer></script>
 </body>
 </html>

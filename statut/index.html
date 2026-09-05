@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statut — Voidline Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #0A0B0E;
+    --void-2: #101218;
+    --panel: #14161D;
+    --panel-raised: #191c25;
+    --line: #2A2D38;
+    --line-soft: rgba(255,255,255,0.06);
+    --line-bright: #6E76FF;
+    --line-bright-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #5A5F6E;
+    --good: #4FD895;
+    --warn: #F0A83C;
+    --orange: #F0763C;
+    --bad: #F0525A;
+    --blue: #4FA8F0;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; overflow-x:hidden; position:relative; }
+
+  .field{
+    position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background:
+      radial-gradient(760px 520px at 82% -6%, rgba(110,118,255,0.16), transparent 60%),
+      radial-gradient(600px 460px at -6% 30%, rgba(110,118,255,0.08), transparent 60%),
+      linear-gradient(var(--void), var(--void));
+  }
+  .field::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.028) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.028) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 900px 700px at 70% 0%, black 10%, transparent 72%);
+  }
+
+  ::selection{ background:var(--line-bright); color:var(--void); }
+  a{ color:inherit; text-decoration:none; }
+  .mono{ font-family:'JetBrains Mono', monospace; letter-spacing:0.08em; text-transform:uppercase; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100; padding:22px 0;
+    background:rgba(10,11,14,0.4); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid transparent; transition:border-color .4s ease, background .4s ease;
+  }
+  header.scrolled{ background:rgba(10,11,14,0.78); border-bottom-color:var(--line); }
+  .nav-inner{ display:flex; align-items:center; justify-content:space-between; }
+  .wordmark{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; display:flex; align-items:center; gap:10px; }
+  .wordmark .logo-mark{ width:30px; height:30px; object-fit:contain; }
+  nav ul{ display:flex; align-items:center; gap:36px; list-style:none; }
+  nav a{ font-size:13px; color:var(--ink-dim); transition:color .25s ease; }
+  nav a:hover, nav a:focus-visible{ color:var(--ink); outline:none; }
+
+  .auth-menu{ position:relative; }
+  .auth-login-btn{
+    display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
+    padding:9px 16px; border-radius:3px; border:1px solid var(--line); color:var(--ink); background:transparent;
+    transition:border-color .25s ease, color .25s ease, transform .2s ease;
+  }
+  .auth-login-btn:hover{ border-color:var(--line-bright); color:var(--line-bright); transform:translateY(-1px); }
+  .auth-login-btn svg{ width:14px; height:14px; }
+  .auth-btn{
+    display:flex; align-items:center; gap:9px; cursor:pointer; background:transparent; border:1px solid transparent;
+    padding:5px 10px 5px 6px; border-radius:3px; font-size:13px; color:var(--ink-dim);
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .auth-btn:hover{ color:var(--ink); border-color:var(--line); background:rgba(255,255,255,0.02); }
+  .auth-menu.open .auth-btn{ color:var(--ink); border-color:var(--line); }
+  .auth-avatar{
+    width:26px; height:26px; border-radius:50%; overflow:hidden; flex-shrink:0; background:rgba(110,118,255,0.14);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:11px; color:var(--line-bright);
+  }
+  .auth-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .auth-name{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .auth-caret{ width:11px; height:11px; flex-shrink:0; transition:transform .25s ease; }
+  .auth-menu.open .auth-caret{ transform:rotate(180deg); }
+  .auth-dropdown{
+    position:absolute; top:calc(100% + 12px); right:0; min-width:210px; background:var(--panel-raised);
+    border:1px solid var(--line); border-radius:3px; padding:6px; opacity:0; visibility:hidden; transform:translateY(-8px);
+    transition:opacity .2s ease, transform .2s ease, visibility .2s; box-shadow:0 24px 48px rgba(0,0,0,0.5); z-index:200;
+  }
+  .auth-menu.open .auth-dropdown{ opacity:1; visibility:visible; transform:translateY(0); }
+  .auth-dropdown a, .auth-dropdown button{
+    display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border-radius:2px; font-size:13px;
+    color:var(--ink-dim); background:transparent; border:none; cursor:pointer; text-align:left;
+    transition:background .15s ease, color .15s ease;
+  }
+  .auth-dropdown a:hover, .auth-dropdown button:hover{ background:var(--void-2); color:var(--ink); }
+  .auth-dropdown button.danger:hover{ color:var(--bad); }
+  .auth-dropdown svg{ width:15px; height:15px; flex-shrink:0; }
+  .auth-dropdown hr{ border:none; border-top:1px solid var(--line); margin:6px 2px; }
+
+  main{ padding-top:150px; padding-bottom:100px; min-height:100vh; }
+
+  .content{ max-width:760px; margin:0 auto; padding:0 24px; }
+
+  .banner{
+    display:flex; align-items:center; gap:14px; padding:22px 26px; border-radius:8px; margin-bottom:32px;
+    border:1px solid var(--line);
+  }
+  .banner-icon{ width:34px; height:34px; flex-shrink:0; }
+  .banner-icon svg{ width:100%; height:100%; }
+  .banner-text .title{ font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; }
+  .banner-text .sub{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-faint); margin-top:3px; }
+
+  .banner.operational{ background:rgba(79,216,149,0.08); border-color:rgba(79,216,149,0.3); }
+  .banner.operational .banner-icon{ color:var(--good); }
+  .banner.degraded{ background:rgba(240,168,60,0.08); border-color:rgba(240,168,60,0.3); }
+  .banner.degraded .banner-icon{ color:var(--warn); }
+  .banner.partial_outage{ background:rgba(240,118,60,0.08); border-color:rgba(240,118,60,0.3); }
+  .banner.partial_outage .banner-icon{ color:var(--orange); }
+  .banner.major_outage{ background:rgba(240,82,90,0.08); border-color:rgba(240,82,90,0.3); }
+  .banner.major_outage .banner-icon{ color:var(--bad); }
+  .banner.maintenance{ background:rgba(79,168,240,0.08); border-color:rgba(79,168,240,0.3); }
+  .banner.maintenance .banner-icon{ color:var(--blue); }
+
+  .section-title{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.12em; color:var(--ink-faint);
+    text-transform:uppercase; margin-bottom:14px; padding-left:10px; border-left:2px solid var(--line-bright);
+  }
+
+  .components-card{ background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin-bottom:36px; }
+  .component-row{
+    display:flex; align-items:center; justify-content:space-between; padding:16px 22px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .component-row:last-child{ border-bottom:none; }
+  .component-name{ font-size:14.5px; font-weight:500; }
+  .status-pill{
+    display:inline-flex; align-items:center; gap:7px; font-family:'JetBrains Mono', monospace; font-size:11px;
+    letter-spacing:0.04em; text-transform:uppercase; padding:5px 12px; border-radius:20px;
+  }
+  .status-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .status-pill.operational{ background:rgba(79,216,149,0.1); color:var(--good); }
+  .status-pill.operational .status-dot{ background:var(--good); box-shadow:0 0 6px var(--good); }
+  .status-pill.degraded{ background:rgba(240,168,60,0.1); color:var(--warn); }
+  .status-pill.degraded .status-dot{ background:var(--warn); box-shadow:0 0 6px var(--warn); }
+  .status-pill.partial_outage{ background:rgba(240,118,60,0.1); color:var(--orange); }
+  .status-pill.partial_outage .status-dot{ background:var(--orange); box-shadow:0 0 6px var(--orange); }
+  .status-pill.major_outage{ background:rgba(240,82,90,0.1); color:var(--bad); }
+  .status-pill.major_outage .status-dot{ background:var(--bad); box-shadow:0 0 6px var(--bad); }
+  .status-pill.maintenance{ background:rgba(79,168,240,0.1); color:var(--blue); }
+  .status-pill.maintenance .status-dot{ background:var(--blue); box-shadow:0 0 6px var(--blue); }
+
+  .incident-card{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; }
+  .incident-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+  .incident-title{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; }
+  .incident-date{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+
+  .incident-updates{ display:flex; flex-direction:column; gap:12px; }
+  .incident-update{ padding-left:14px; border-left:2px solid var(--line); }
+  .incident-update-status{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; font-weight:600; margin-bottom:4px; }
+  .incident-update-status.investigating{ color:var(--bad); }
+  .incident-update-status.identified{ color:var(--orange); }
+  .incident-update-status.monitoring{ color:var(--warn); }
+  .incident-update-status.resolved{ color:var(--good); }
+  .incident-update-msg{ font-size:13px; color:var(--ink-dim); line-height:1.6; margin-bottom:3px; }
+  .incident-update-time{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); }
+
+  .empty-incidents{ text-align:center; padding:30px 20px; color:var(--ink-faint); font-size:13px; border:1px dashed var(--line); border-radius:8px; }
+
+  .center-msg{ text-align:center; padding:60px 20px; color:var(--ink-dim); font-size:13.5px; }
+
+  footer{ padding:32px 0; border-top:1px solid var(--line); }
+
+  @media (max-width:700px){
+    main{ padding-top:120px; }
+    .banner{ flex-direction:column; text-align:center; }
+    .component-row{ padding:14px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="field"></div>
+
+<header>
+  <div class="wrap nav-inner">
+    <a href="/" class="wordmark">
+      <img src="/ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+      VOIDLINE STUDIO
+    </a>
+    <nav>
+      <ul>
+        <li><a href="/#top">Accueil</a></li>
+        <li><a href="/postuler/">Postuler</a></li>
+        <li class="auth-menu" id="auth-menu"></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="content" id="content">
+    <div class="center-msg">Chargement du statut…</div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%; align-items:center; flex-wrap:wrap; gap:12px;">
+    <span class="mono">© 2026 Voidline Studio</span>
+    <span style="display:flex; gap:20px;">
+      <a href="/" class="mono">Accueil</a>
+      <a href="/cgu/" class="mono">CGU</a>
+      <a href="/confidentialite/" class="mono">Confidentialité</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+
+  const header = document.querySelector('header');
+  window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 20));
+
+  const content = document.getElementById('content');
+
+  function escapeHtml(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  const STATUS_META = {
+    operational: { label: 'Opérationnel', bannerLabel: 'Tous les systèmes sont opérationnels' },
+    degraded: { label: 'Performances dégradées', bannerLabel: 'Performances dégradées' },
+    partial_outage: { label: 'Panne partielle', bannerLabel: 'Panne partielle en cours' },
+    major_outage: { label: 'Panne majeure', bannerLabel: 'Panne majeure en cours' },
+    maintenance: { label: 'Maintenance', bannerLabel: 'Maintenance en cours' },
+  };
+  const STATUS_ICONS = {
+    operational: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>',
+    degraded: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+    partial_outage: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+    major_outage: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>',
+    maintenance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 1 5.4-5.4l-3 3-2-2z"/></svg>',
+  };
+
+  const STATUS_SEVERITY = { operational: 0, maintenance: 1, degraded: 2, partial_outage: 3, major_outage: 4 };
+
+  const INCIDENT_STATUS_META = {
+    investigating: { label: 'Enquête en cours' },
+    identified: { label: 'Cause identifiée' },
+    monitoring: { label: 'Sous surveillance' },
+    resolved: { label: 'Résolu' },
+  };
+
+  function worstStatus(components) {
+    if (!components.length) return 'operational';
+    return components.reduce((worst, c) => (STATUS_SEVERITY[c.status] > STATUS_SEVERITY[worst] ? c.status : worst), 'operational');
+  }
+
+  async function loadStatus() {
+    let data;
+    try {
+      const res = await fetch(`${API_BASE}/api/status`);
+      if (!res.ok) throw new Error(`Erreur ${res.status}`);
+      data = await res.json();
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Impossible de charger le statut pour l'instant. Réessaie dans un instant.</div>`;
+      return;
+    }
+
+    const { components, incidents } = data;
+    const overall = worstStatus(components);
+    const meta = STATUS_META[overall] || STATUS_META.operational;
+
+    content.innerHTML = `
+      <div class="banner ${overall}">
+        <div class="banner-icon">${STATUS_ICONS[overall]}</div>
+        <div class="banner-text">
+          <div class="title">${escapeHtml(meta.bannerLabel)}</div>
+          <div class="sub">Dernière vérification : ${new Date().toLocaleString('fr-FR')}</div>
+        </div>
+      </div>
+
+      <div class="section-title">Composants</div>
+      <div class="components-card">
+        ${components
+          .map(
+            (c) => `
+          <div class="component-row">
+            <span class="component-name">${escapeHtml(c.name)}</span>
+            <span class="status-pill ${c.status}"><span class="status-dot"></span>${escapeHtml((STATUS_META[c.status] || STATUS_META.operational).label)}</span>
+          </div>
+        `
+          )
+          .join('')}
+      </div>
+
+      <div class="section-title">Historique des incidents</div>
+      ${
+        incidents.length
+          ? incidents.map(incidentCard).join('')
+          : '<div class="empty-incidents">Aucun incident signalé récemment.</div>'
+      }
+    `;
+  }
+
+  function incidentCard(incident) {
+    const sortedUpdates = [...(incident.updates || [])].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    return `
+      <div class="incident-card">
+        <div class="incident-head">
+          <span class="incident-title">${escapeHtml(incident.title)}</span>
+          <span class="incident-date">${incident.createdAt ? new Date(incident.createdAt).toLocaleDateString('fr-FR') : ''}</span>
+        </div>
+        <div class="incident-updates">
+          ${sortedUpdates
+            .map(
+              (u) => `
+            <div class="incident-update">
+              <div class="incident-update-status ${u.status}">${escapeHtml((INCIDENT_STATUS_META[u.status] || {}).label || u.status)}</div>
+              ${u.message ? `<div class="incident-update-msg">${escapeHtml(u.message)}</div>` : ''}
+              <div class="incident-update-time">${u.timestamp ? new Date(u.timestamp).toLocaleString('fr-FR') : ''}</div>
+            </div>
+          `
+            )
+            .join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  loadStatus();
+</script>
+<script src="/assets/auth-menu.js" defer></script>
+
+</body>
+</html>
