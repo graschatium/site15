@@ -177,6 +177,37 @@
 
   .center-msg{ text-align:center; padding:60px 20px; color:var(--ink-dim); font-size:13.5px; }
 
+  .component-updated{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); margin-top:2px; }
+  .component-row{ flex-wrap:wrap; }
+  .component-name-wrap{ display:flex; flex-direction:column; }
+
+  .incidents-toggle-row{ text-align:center; margin-top:6px; }
+  .incidents-toggle-btn{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
+    color:var(--ink-faint); background:none; border:1px solid var(--line); border-radius:20px; padding:7px 18px;
+    cursor:pointer; transition:color .15s ease, border-color .15s ease;
+  }
+  .incidents-toggle-btn:hover{ color:var(--line-bright-2); border-color:var(--line-bright); }
+  .incident-card.resolved-hidden{ display:none; }
+
+  .incident-duration{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--good); margin-top:8px; }
+
+  .last-refresh{ text-align:center; font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); margin-top:24px; }
+
+  .reveal-in{ animation:fadeUp .5s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+
+  .skeleton{ background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .skeleton-banner{ height:78px; margin-bottom:32px; }
+  .skeleton-row{ height:52px; border-bottom:1px solid var(--line-soft); position:relative; overflow:hidden; }
+  .skeleton-row:last-child{ border-bottom:none; }
+  .skeleton::after, .skeleton-row::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+    animation:shimmer 1.6s infinite;
+  }
+  @keyframes shimmer{ from{ transform:translateX(-100%); } to{ transform:translateX(100%); } }
+
   footer{ padding:32px 0; border-top:1px solid var(--line); }
 
   @media (max-width:700px){
@@ -208,7 +239,15 @@
 
 <main>
   <div class="content" id="content">
-    <div class="center-msg">Chargement du statut…</div>
+    <div class="skeleton skeleton-banner"></div>
+    <div class="skeleton" style="height:16px; width:140px; margin-bottom:14px;"></div>
+    <div class="skeleton" style="margin-bottom:36px;">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
   </div>
 </main>
 
@@ -225,16 +264,42 @@
 
 <script>
   const API_BASE = 'https://site15-bot.onrender.com';
+  const REFRESH_INTERVAL_MS = 30000;
 
   const header = document.querySelector('header');
   window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 20));
 
   const content = document.getElementById('content');
+  let showAllResolved = false;
+  let lastRenderedHash = null;
 
   function escapeHtml(s) {
     return (s ?? '').toString().replace(/[&<>"']/g, (c) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     }[c]));
+  }
+
+  function relativeTime(timestamp) {
+    if (!timestamp) return '—';
+    const diffMs = Date.now() - timestamp;
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1) return "à l'instant";
+    if (min < 60) return `il y a ${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 24) return `il y a ${h} h`;
+    const d = Math.floor(h / 24);
+    return `il y a ${d} j`;
+  }
+
+  function formatDuration(ms) {
+    if (ms < 60000) return '< 1 min';
+    const min = Math.floor(ms / 60000);
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    const remMin = min % 60;
+    if (h < 24) return remMin ? `${h} h ${remMin} min` : `${h} h`;
+    const d = Math.floor(h / 24);
+    return `${d} j`;
   }
 
   const STATUS_META = {
@@ -266,37 +331,56 @@
     return components.reduce((worst, c) => (STATUS_SEVERITY[c.status] > STATUS_SEVERITY[worst] ? c.status : worst), 'operational');
   }
 
-  async function loadStatus() {
+  async function loadStatus(isBackgroundRefresh) {
     let data;
     try {
       const res = await fetch(`${API_BASE}/api/status`);
       if (!res.ok) throw new Error(`Erreur ${res.status}`);
       data = await res.json();
     } catch (err) {
-      content.innerHTML = `<div class="center-msg">Impossible de charger le statut pour l'instant. Réessaie dans un instant.</div>`;
+      if (!isBackgroundRefresh) {
+        content.innerHTML = `<div class="center-msg">Impossible de charger le statut pour l'instant. Réessaie dans un instant.</div>`;
+      }
       return;
     }
+
+    const hash = JSON.stringify(data);
+    if (isBackgroundRefresh && hash === lastRenderedHash) {
+      // Rien n'a changé : on met juste à jour l'heure de vérification, sans
+      // re-render complet (évite tout flash visuel inutile).
+      const refreshEl = document.getElementById('last-refresh-time');
+      if (refreshEl) refreshEl.textContent = new Date().toLocaleTimeString('fr-FR');
+      return;
+    }
+    lastRenderedHash = hash;
 
     const { components, incidents } = data;
     const overall = worstStatus(components);
     const meta = STATUS_META[overall] || STATUS_META.operational;
 
+    const activeIncidents = incidents.filter((i) => i.status !== 'resolved');
+    const resolvedIncidents = incidents.filter((i) => i.status === 'resolved');
+    const RESOLVED_PREVIEW_COUNT = 3;
+
     content.innerHTML = `
-      <div class="banner ${overall}">
+      <div class="banner ${overall} reveal-in">
         <div class="banner-icon">${STATUS_ICONS[overall]}</div>
         <div class="banner-text">
           <div class="title">${escapeHtml(meta.bannerLabel)}</div>
-          <div class="sub">Dernière vérification : ${new Date().toLocaleString('fr-FR')}</div>
+          <div class="sub">Vérifié à <span id="last-refresh-time">${new Date().toLocaleTimeString('fr-FR')}</span> — actualisation automatique toutes les 30s</div>
         </div>
       </div>
 
-      <div class="section-title">Composants</div>
-      <div class="components-card">
+      <div class="section-title reveal-in">Composants</div>
+      <div class="components-card reveal-in">
         ${components
           .map(
             (c) => `
           <div class="component-row">
-            <span class="component-name">${escapeHtml(c.name)}</span>
+            <div class="component-name-wrap">
+              <span class="component-name">${escapeHtml(c.name)}</span>
+              <span class="component-updated">Mis à jour ${relativeTime(c.updatedAt)}</span>
+            </div>
             <span class="status-pill ${c.status}"><span class="status-dot"></span>${escapeHtml((STATUS_META[c.status] || STATUS_META.operational).label)}</span>
           </div>
         `
@@ -304,19 +388,42 @@
           .join('')}
       </div>
 
-      <div class="section-title">Historique des incidents</div>
+      <div class="section-title reveal-in">Incidents en cours</div>
+      <div id="active-incidents" class="reveal-in">
+        ${activeIncidents.length ? activeIncidents.map((i) => incidentCard(i, false)).join('') : '<div class="empty-incidents">Aucun incident en cours.</div>'}
+      </div>
+
+      <div class="section-title reveal-in" style="margin-top:28px;">Historique</div>
+      <div id="resolved-incidents" class="reveal-in">
+        ${
+          resolvedIncidents.length
+            ? resolvedIncidents.map((i, idx) => incidentCard(i, idx >= RESOLVED_PREVIEW_COUNT && !showAllResolved)).join('')
+            : '<div class="empty-incidents">Aucun incident résolu à afficher.</div>'
+        }
+      </div>
       ${
-        incidents.length
-          ? incidents.map(incidentCard).join('')
-          : '<div class="empty-incidents">Aucun incident signalé récemment.</div>'
+        resolvedIncidents.length > RESOLVED_PREVIEW_COUNT
+          ? `<div class="incidents-toggle-row"><button class="incidents-toggle-btn" id="toggle-resolved-btn">${showAllResolved ? 'Afficher moins' : `Afficher ${resolvedIncidents.length - RESOLVED_PREVIEW_COUNT} de plus`}</button></div>`
+          : ''
       }
+
+      <div class="last-refresh">Page mise à jour automatiquement — pas besoin de recharger</div>
     `;
+
+    document.getElementById('toggle-resolved-btn')?.addEventListener('click', () => {
+      showAllResolved = !showAllResolved;
+      lastRenderedHash = null;
+      loadStatus(false);
+    });
   }
 
-  function incidentCard(incident) {
+  function incidentCard(incident, hidden) {
     const sortedUpdates = [...(incident.updates || [])].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    const oldestTimestamp = incident.createdAt;
+    const resolvedTimestamp = incident.status === 'resolved' ? incident.resolvedAt : null;
+
     return `
-      <div class="incident-card">
+      <div class="incident-card${hidden ? ' resolved-hidden' : ''}">
         <div class="incident-head">
           <span class="incident-title">${escapeHtml(incident.title)}</span>
           <span class="incident-date">${incident.createdAt ? new Date(incident.createdAt).toLocaleDateString('fr-FR') : ''}</span>
@@ -334,11 +441,13 @@
             )
             .join('')}
         </div>
+        ${resolvedTimestamp && oldestTimestamp ? `<div class="incident-duration">✓ Résolu en ${formatDuration(resolvedTimestamp - oldestTimestamp)}</div>` : ''}
       </div>
     `;
   }
 
-  loadStatus();
+  loadStatus(false);
+  setInterval(() => loadStatus(true), REFRESH_INTERVAL_MS);
 </script>
 <script src="/assets/auth-menu.js" defer></script>
 
