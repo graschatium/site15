@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Politique de Confidentialité — Voidline Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #0A0B0E;
+    --void-2: #101218;
+    --panel: #14161D;
+    --panel-raised: #191c25;
+    --line: #2A2D38;
+    --line-soft: rgba(255,255,255,0.06);
+    --line-bright: #6E76FF;
+    --line-bright-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #5A5F6E;
+    --good: #4FD895;
+    --warn: #F0A83C;
+    --bad: #F0525A;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+    position:relative;
+    line-height:1.65;
+  }
+
+  .field{
+    position:fixed; inset:0; z-index:-2; pointer-events:none;
+    background:
+      radial-gradient(760px 520px at 82% -6%, rgba(110,118,255,0.16), transparent 60%),
+      radial-gradient(600px 460px at -6% 30%, rgba(110,118,255,0.08), transparent 60%),
+      linear-gradient(var(--void), var(--void));
+  }
+  .field::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.028) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.028) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 900px 700px at 70% 0%, black 10%, transparent 72%);
+  }
+
+  ::selection{ background:var(--line-bright); color:var(--void); }
+  a{ color:inherit; text-decoration:none; }
+  .mono{ font-family:'JetBrains Mono', monospace; letter-spacing:0.08em; text-transform:uppercase; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100; padding:22px 0;
+    background:rgba(10,11,14,0.4); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid transparent; transition:border-color .4s ease, background .4s ease;
+  }
+  header.scrolled{ background:rgba(10,11,14,0.78); border-bottom-color:var(--line); }
+  .nav-inner{ display:flex; align-items:center; justify-content:space-between; }
+  .wordmark{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; display:flex; align-items:center; gap:10px; }
+  .wordmark .logo-mark{ width:30px; height:30px; object-fit:contain; }
+  nav ul{ display:flex; align-items:center; gap:36px; list-style:none; }
+  nav a{ font-size:13px; color:var(--ink-dim); transition:color .25s ease; }
+  nav a:hover, nav a:focus-visible{ color:var(--ink); outline:none; }
+  nav a.current{ color:var(--ink); }
+
+  .auth-menu{ position:relative; }
+  .auth-login-btn{
+    display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
+    padding:9px 16px; border-radius:3px; border:1px solid var(--line); color:var(--ink); background:transparent;
+    transition:border-color .25s ease, color .25s ease, transform .2s ease;
+  }
+  .auth-login-btn:hover{ border-color:var(--line-bright); color:var(--line-bright); transform:translateY(-1px); }
+  .auth-login-btn svg{ width:14px; height:14px; }
+  .auth-btn{
+    display:flex; align-items:center; gap:9px; cursor:pointer; background:transparent; border:1px solid transparent;
+    padding:5px 10px 5px 6px; border-radius:3px; font-size:13px; color:var(--ink-dim);
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+  }
+  .auth-btn:hover{ color:var(--ink); border-color:var(--line); background:rgba(255,255,255,0.02); }
+  .auth-menu.open .auth-btn{ color:var(--ink); border-color:var(--line); }
+  .auth-avatar{
+    width:26px; height:26px; border-radius:50%; overflow:hidden; flex-shrink:0; background:rgba(110,118,255,0.14);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:11px; color:var(--line-bright);
+  }
+  .auth-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .auth-name{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .auth-caret{ width:11px; height:11px; flex-shrink:0; transition:transform .25s ease; }
+  .auth-menu.open .auth-caret{ transform:rotate(180deg); }
+  .auth-dropdown{
+    position:absolute; top:calc(100% + 12px); right:0; min-width:210px; background:var(--panel-raised);
+    border:1px solid var(--line); border-radius:3px; padding:6px; opacity:0; visibility:hidden; transform:translateY(-8px);
+    transition:opacity .2s ease, transform .2s ease, visibility .2s; box-shadow:0 24px 48px rgba(0,0,0,0.5); z-index:200;
+  }
+  .auth-menu.open .auth-dropdown{ opacity:1; visibility:visible; transform:translateY(0); }
+  .auth-dropdown a, .auth-dropdown button{
+    display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border-radius:2px; font-size:13px;
+    color:var(--ink-dim); background:transparent; border:none; cursor:pointer; text-align:left;
+    transition:background .15s ease, color .15s ease;
+  }
+  .auth-dropdown a:hover, .auth-dropdown button:hover{ background:var(--void-2); color:var(--ink); }
+  .auth-dropdown button.danger:hover{ color:var(--bad); }
+  .auth-dropdown svg{ width:15px; height:15px; flex-shrink:0; }
+  .auth-dropdown hr{ border:none; border-top:1px solid var(--line); margin:6px 2px; }
+
+  main{ padding-top:150px; padding-bottom:100px; min-height:100vh; }
+
+  .page-head{ max-width:760px; margin:0 auto 44px; text-align:center; padding:0 24px; }
+  .page-head .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.14em; color:var(--line-bright-2); text-transform:uppercase; }
+  .page-head h1{ font-family:'Space Grotesk', sans-serif; font-size:clamp(28px, 4vw, 38px); font-weight:600; letter-spacing:-0.01em; margin:12px 0 10px; }
+  .page-head p{ color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:12.5px; }
+
+  .legal-card{ max-width:840px; margin:0 auto; padding:0 24px; }
+  .legal-card .card-inner{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px; overflow:hidden;
+    box-shadow:0 40px 90px -40px rgba(0,0,0,0.6);
+  }
+
+  .doc-ref{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.1em; color:var(--ink-faint);
+    text-transform:uppercase; padding:14px 32px; display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--line); background:var(--void-2);
+  }
+  .doc-ref span:first-child{ display:flex; align-items:center; gap:8px; }
+  .doc-ref .dot{ width:6px; height:6px; border-radius:50%; background:var(--line-bright); box-shadow:0 0 8px var(--line-bright); }
+
+  .toc{ padding:24px 32px 20px; border-bottom:1px solid var(--line); }
+  .toc .label{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.14em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:12px; }
+  .toc-links{ display:flex; flex-wrap:wrap; gap:6px 4px; font-size:13px; }
+  .toc-links a{ color:var(--ink-dim); padding:3px 4px; }
+  .toc-links a:hover{ color:var(--line-bright-2); }
+  .toc-links .sep{ color:var(--ink-faint); }
+
+  section.article{ padding:30px 32px; border-bottom:1px solid var(--line); scroll-margin-top:24px; }
+  section.article:last-of-type{ border-bottom:none; }
+
+  .num-badge{
+    display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;
+    background:var(--line-bright); color:var(--void); font-family:'JetBrains Mono', monospace; font-weight:700;
+    font-size:11.5px; border-radius:3px; margin-bottom:14px; box-shadow:0 0 16px rgba(110,118,255,0.4);
+  }
+  h2{ font-family:'Space Grotesk', sans-serif; font-size:16.5px; font-weight:600; margin:0 0 14px; color:var(--ink); }
+  p, li{ color:var(--ink-dim); font-size:14px; }
+  p{ margin:0 0 12px; }
+  ul{ padding-left:20px; margin:0 0 12px; }
+  li{ margin-bottom:6px; }
+  strong{ color:var(--ink); font-weight:600; }
+  a{ color:var(--line-bright-2); }
+  a:hover{ text-decoration:underline; }
+
+  .data-block{
+    background:var(--void-2); border:1px solid var(--line); border-left:3px solid var(--line-bright);
+    border-radius:4px; padding:14px 16px; margin:14px 0;
+  }
+  .data-block .tag{
+    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--line-bright-2); letter-spacing:0.08em;
+    text-transform:uppercase; display:block; margin-bottom:8px;
+  }
+  .data-block ul{ margin-bottom:0; }
+
+  table{ width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px; margin:14px 0; border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  th, td{ text-align:left; padding:10px 14px; border-bottom:1px solid var(--line-soft); }
+  thead th{ background:var(--void-2); color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; font-weight:500; }
+  tbody tr:last-child td{ border-bottom:none; }
+  td{ color:var(--ink-dim); }
+
+  footer{ padding:32px 0; border-top:1px solid var(--line); }
+
+  @media (max-width:700px){
+    main{ padding-top:120px; }
+    section.article{ padding:24px 20px; }
+    .toc, .doc-ref{ padding-left:20px; padding-right:20px; }
+    table{ font-size:12.5px; }
+    th, td{ padding:8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="field"></div>
+
+<header>
+  <div class="wrap nav-inner">
+    <a href="/" class="wordmark">
+      <img src="/ressources/voidline-logo-white.png" class="logo-mark" alt="" aria-hidden="true" />
+      VOIDLINE STUDIO
+    </a>
+    <nav>
+      <ul>
+        <li><a href="/#top">Accueil</a></li>
+        <li><a href="/postuler/">Postuler</a></li>
+        <li class="auth-menu" id="auth-menu"></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="page-head">
+    <span class="eyebrow mono">Légal</span>
+    <h1>Politique de Confidentialité</h1>
+    <p>Version applicable à compter du 29 juillet 2026</p>
+  </div>
+
+  <div class="legal-card">
+    <div class="card-inner">
+
+      <div class="doc-ref">
+        <span><span class="dot"></span> Réf. SITE-15/CONF</span>
+        <span>Rév. 2026-07-29</span>
+      </div>
+
+      <div class="toc">
+        <div class="label mono">Sommaire</div>
+        <div class="toc-links">
+          <a href="#preambule">1. Préambule</a><span class="sep">·</span>
+          <a href="#responsable">2. Responsable du traitement</a><span class="sep">·</span>
+          <a href="#donnees">3. Données collectées</a><span class="sep">·</span>
+          <a href="#finalites">4. Finalités</a><span class="sep">·</span>
+          <a href="#base-legale">5. Base légale</a><span class="sep">·</span>
+          <a href="#destinataires">6. Destinataires &amp; sous-traitants</a><span class="sep">·</span>
+          <a href="#transferts">7. Transferts hors UE</a><span class="sep">·</span>
+          <a href="#conservation">8. Durée de conservation</a><span class="sep">·</span>
+          <a href="#securite">9. Sécurité</a><span class="sep">·</span>
+          <a href="#cookies">10. Cookies &amp; traceurs</a><span class="sep">·</span>
+          <a href="#droits">11. Vos droits</a><span class="sep">·</span>
+          <a href="#modification">12. Modification</a><span class="sep">·</span>
+          <a href="#contact">13. Contact</a>
+        </div>
+      </div>
+
+      <section class="article" id="preambule">
+        <span class="num-badge">1</span>
+        <h2>Préambule</h2>
+        <p>La présente Politique de Confidentialité décrit la manière dont la communauté SITE-15 (ci-après « le Projet ») collecte, utilise et protège les données à caractère personnel des utilisateurs dans le cadre de l'utilisation du site web, de l'intranet, du serveur Roblox et du serveur Discord officiel (ci-après « les Services »).</p>
+        <p>Elle complète les <a href="/cgu/">Conditions Générales d'Utilisation</a> et doit être lue conjointement avec celles-ci.</p>
+      </section>
+
+      <section class="article" id="responsable">
+        <span class="num-badge">2</span>
+        <h2>Responsable du traitement</h2>
+        <p>Le traitement des données décrit dans la présente politique est réalisé sous la responsabilité de l'équipe de coordination du Projet SITE-15, développé et animé par <strong>© Voidline Studio</strong>, joignable via le serveur Discord officiel (voir section Contact). Le Projet n'étant pas une société commerciale, ce traitement est réalisé dans le cadre associatif et bénévole de l'animation de la communauté.</p>
+      </section>
+
+      <section class="article" id="donnees">
+        <span class="num-badge">3</span>
+        <h2>Données collectées</h2>
+        <p>Dans le cadre du fonctionnement des Services, les catégories de données suivantes peuvent être collectées :</p>
+        <div class="data-block">
+          <span class="tag">Identification</span>
+          <ul>
+            <li>Nom d'utilisateur et identifiant unique Discord ;</li>
+            <li>Nom d'utilisateur et identifiant unique Roblox ;</li>
+            <li>Rôle(s) et grade(s) attribués au sein de la communauté.</li>
+          </ul>
+        </div>
+        <div class="data-block">
+          <span class="tag">Roleplay &amp; modération</span>
+          <ul>
+            <li>Dossiers de personnage, évaluations et fiches de suivi ;</li>
+            <li>Rapports d'incidents et directives internes ;</li>
+            <li>Historique de modération (avertissements, sanctions, système BJI/RH).</li>
+          </ul>
+        </div>
+        <div class="data-block">
+          <span class="tag">Journaux techniques</span>
+          <ul>
+            <li>Journaux d'action et webhooks de modération ;</li>
+            <li>Horodatages de connexion aux outils internes (intranet, panneau d'administration).</li>
+          </ul>
+        </div>
+        <p>Aucune donnée bancaire ou de paiement n'est collectée par le Projet.</p>
+      </section>
+
+      <section class="article" id="finalites">
+        <span class="num-badge">4</span>
+        <h2>Finalités du traitement</h2>
+        <p>Les données collectées sont utilisées exclusivement aux fins suivantes :</p>
+        <ul>
+          <li>authentification et gestion des accès aux différents Services ;</li>
+          <li>attribution et suivi des rôles, grades et fonctions au sein du roleplay ;</li>
+          <li>suivi de la modération et traçabilité des sanctions, dans un souci d'équité entre les membres ;</li>
+          <li>maintien de la sécurité et prévention des abus (exploits, comptes multiples, harcèlement).</li>
+        </ul>
+        <p>Les données ne sont en aucun cas utilisées à des fins commerciales, publicitaires ou de profilage.</p>
+      </section>
+
+      <section class="article" id="base-legale">
+        <span class="num-badge">5</span>
+        <h2>Base légale</h2>
+        <p>Le traitement des données repose sur les bases légales suivantes :</p>
+        <ul>
+          <li><strong>L'exécution des CGU</strong> acceptées par l'utilisateur lors de son inscription aux Services ;</li>
+          <li><strong>L'intérêt légitime</strong> du Projet à assurer la sécurité, la modération et le bon fonctionnement de la communauté ;</li>
+          <li><strong>Le consentement</strong>, lorsque l'utilisateur choisit volontairement de renseigner des informations complémentaires (ex. contenu d'un dossier de personnage).</li>
+        </ul>
+      </section>
+
+      <section class="article" id="destinataires">
+        <span class="num-badge">6</span>
+        <h2>Destinataires et sous-traitants</h2>
+        <p>Les données sont accessibles uniquement aux membres de l'équipe de coordination et de modération habilités, dans la limite de leurs fonctions respectives. Le Projet a recours aux prestataires tiers suivants pour l'hébergement et le fonctionnement technique des Services :</p>
+        <table>
+          <thead><tr><th>Prestataire</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td>Firebase (Google)</td><td>Hébergement et stockage des données du roleplay, de l'intranet et des outils de modération</td></tr>
+            <tr><td>Discord Inc.</td><td>Authentification, communication et gestion des rôles communautaires</td></tr>
+            <tr><td>Roblox Corporation</td><td>Hébergement du serveur de jeu et des interactions en jeu</td></tr>
+          </tbody>
+        </table>
+        <p>Ces prestataires disposent de leurs propres politiques de confidentialité, que l'utilisateur est invité à consulter directement. Le Projet ne vend ni ne loue aucune donnée à des tiers.</p>
+      </section>
+
+      <section class="article" id="transferts">
+        <span class="num-badge">7</span>
+        <h2>Transferts hors Union Européenne</h2>
+        <p>Les prestataires mentionnés ci-dessus (Firebase, Discord, Roblox) peuvent héberger des données en dehors de l'Union Européenne, notamment aux États-Unis. Ces prestataires s'appuient sur des mécanismes de transfert encadrés par la réglementation applicable (clauses contractuelles types ou équivalent). Le Projet ne procède lui-même à aucun transfert additionnel de données vers des tiers non mentionnés dans la présente politique.</p>
+      </section>
+
+      <section class="article" id="conservation">
+        <span class="num-badge">8</span>
+        <h2>Durée de conservation</h2>
+        <p>Les données sont conservées pendant la durée de participation active de l'utilisateur aux Services. Les données liées à un historique de modération (sanctions, rapports BJI/RH) peuvent être conservées au-delà de cette période, pour une durée raisonnable, à des fins de traçabilité et de prévention de la récidive. Un utilisateur peut demander la suppression anticipée de ses données dans les conditions décrites à la section « Vos droits ».</p>
+      </section>
+
+      <section class="article" id="securite">
+        <span class="num-badge">9</span>
+        <h2>Sécurité des données</h2>
+        <p>L'équipe du Projet met en œuvre des mesures raisonnables pour protéger les données contre les accès non autorisés, la perte ou l'altération, notamment via la restriction des accès aux outils internes selon le rôle de chaque membre de l'équipe. Toutefois, aucun système n'étant infaillible, le Projet ne peut garantir une sécurité absolue et invite les utilisateurs à signaler toute faille ou incident suspecté via la section Contact.</p>
+      </section>
+
+      <section class="article" id="cookies">
+        <span class="num-badge">10</span>
+        <h2>Cookies et traceurs</h2>
+        <p>Le site web et l'intranet SITE-15 n'utilisent pas de cookies publicitaires ou de traceurs à des fins de suivi commercial. Des éléments techniques strictement nécessaires au fonctionnement des outils (ex. maintien de session sur l'intranet, via localStorage) peuvent être utilisés ; ils ne sont pas partagés avec des tiers à des fins publicitaires.</p>
+      </section>
+
+      <section class="article" id="droits">
+        <span class="num-badge">11</span>
+        <h2>Vos droits</h2>
+        <p>Conformément à la réglementation applicable en matière de protection des données personnelles (RGPD), tout utilisateur dispose des droits suivants sur les données le concernant :</p>
+        <ul>
+          <li><strong>Droit d'accès</strong> : obtenir la confirmation que ses données sont traitées et en obtenir une copie ;</li>
+          <li><strong>Droit de rectification</strong> : corriger des données inexactes ou incomplètes ;</li>
+          <li><strong>Droit à l'effacement</strong> : demander la suppression de ses données, sous réserve des obligations de conservation liées à la modération ;</li>
+          <li><strong>Droit d'opposition</strong> : s'opposer, pour motif légitime, à un traitement particulier ;</li>
+          <li><strong>Droit à la limitation du traitement</strong> : demander la suspension temporaire du traitement de ses données, notamment en cas de contestation de leur exactitude ou de leur licéité ;</li>
+          <li><strong>Droit à la portabilité des données</strong> : recevoir les données qu'il a fournies dans un format structuré et couramment utilisé, ou en demander la transmission directe à un autre responsable de traitement, lorsque cela est techniquement possible.</li>
+        </ul>
+        <p>Ces droits peuvent être exercés en contactant l'équipe de coordination via le serveur Discord officiel (voir section Contact). Une réponse sera apportée dans un délai raisonnable. Sur le site, tu peux aussi délier ton compte Roblox à tout moment depuis <a href="/account/">Mon compte</a>.</p>
+      </section>
+
+      <section class="article" id="modification">
+        <span class="num-badge">12</span>
+        <h2>Modification de la politique</h2>
+        <p>La présente Politique de Confidentialité peut être modifiée à tout moment afin de refléter l'évolution des Services ou de la réglementation applicable. Toute modification substantielle fera l'objet d'une annonce sur le serveur Discord officiel. La poursuite de l'utilisation des Services après modification vaut acceptation de la nouvelle version.</p>
+      </section>
+
+      <section class="article" id="contact">
+        <span class="num-badge">13</span>
+        <h2>Contact</h2>
+        <p>Pour toute question relative à la présente politique ou à l'exercice de vos droits sur vos données personnelles, vous pouvez contacter l'équipe de coordination du Projet via le serveur Discord officiel de SITE-15.</p>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%; align-items:center; flex-wrap:wrap; gap:12px;">
+    <span class="mono">© 2026 Voidline Studio</span>
+    <span style="display:flex; gap:20px;">
+      <a href="/" class="mono">Accueil</a>
+      <a href="/cgu/" class="mono">CGU</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  const header = document.querySelector('header');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 20);
+  });
+</script>
+<script src="/assets/auth-menu.js" defer></script>
+
+</body>
+</html>
