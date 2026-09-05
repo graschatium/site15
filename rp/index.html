@@ -663,6 +663,8 @@
     brain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4.5a2.5 2.5 0 0 0-2.5 2.5v.3A2.7 2.7 0 0 0 5 9.7v1.6a2.7 2.7 0 0 0 1.5 2.4v.3a3 3 0 0 0 3 3h1v-9.5A2.5 2.5 0 0 0 9 4.5z"/><path d="M15 4.5a2.5 2.5 0 0 1 2.5 2.5v.3a2.7 2.7 0 0 1 1.5 2.4v1.6a2.7 2.7 0 0 1-1.5 2.4v.3a3 3 0 0 1-3 3h-1v-9.5a2.5 2.5 0 0 1 1.5-2.5z"/></svg>',
     scalpel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4L9 15"/><path d="M9 15L4 20l1.5-4.5z"/><path d="M15 4l5 5"/></svg>',
     dna: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3c0 5 10 6 10 11 0 5-10 6-10 11M17 3c0 5-10 6-10 11 0 5 10 6 10 11"/><path d="M8 8h8M8 16h8"/></svg>',
+    document: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3M9 9h6M9 13h6M9 17h4"/></svg>',
+    atom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.5"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(120 12 12)"/></svg>',
   };
 
   function renderLoggedOut() {
@@ -879,6 +881,15 @@
       tabs.push({ id: 'med-div-chi', label: 'CHI', icon: 'scalpel' });
       tabs.push({ id: 'med-div-bio', label: 'BIO', icon: 'dna' });
     }
+    if (deptId === SCIENCE_DEPT_ID) {
+      tabs.push({ id: 'sci-pcs', label: 'Rapport PCS', icon: 'document' });
+      tabs.push({ id: 'sci-experience', label: 'Rapport Expérience', icon: 'atom' });
+      tabs.push({ id: 'sci-div-dtma', label: 'DTMA', icon: 'flask' });
+      tabs.push({ id: 'sci-div-tci', label: 'TCI', icon: 'brain' });
+      tabs.push({ id: 'sci-div-bmzb', label: 'BMZB', icon: 'dna' });
+      tabs.push({ id: 'sci-div-mad', label: 'MAD', icon: 'alertTriangle' });
+      tabs.push({ id: 'sci-div-tpsp', label: 'TPSP', icon: 'badge' });
+    }
     if (deptId === SECURITY_DEPT_ID) {
       tabs.push({ id: 'sec-reports', label: 'Rapport', icon: 'shield' });
       tabs.push({ id: 'sec-zc', label: 'Supervision ZC', icon: 'camera' });
@@ -977,6 +988,13 @@
     else if (tabId === 'med-div-psy') loadMedicalDivision('PSY');
     else if (tabId === 'med-div-chi') loadMedicalDivision('CHI');
     else if (tabId === 'med-div-bio') loadMedicalDivision('BIO');
+    else if (tabId === 'sci-pcs') loadSciencePcsReports();
+    else if (tabId === 'sci-experience') loadScienceExperienceReports();
+    else if (tabId === 'sci-div-dtma') loadScienceDivisionReports('DTMA');
+    else if (tabId === 'sci-div-tci') loadScienceDivisionReports('TCI');
+    else if (tabId === 'sci-div-bmzb') loadScienceDivisionReports('BMZB');
+    else if (tabId === 'sci-div-mad') loadScienceDivisionReports('MAD');
+    else if (tabId === 'sci-div-tpsp') loadScienceDivisionReports('TPSP');
   }
 
   // -----------------------------------------------------------------
@@ -2990,6 +3008,240 @@
         await apiFetch('/api/rp/medical-ops/ppa', { method: 'POST', body: JSON.stringify({ targetCharacterName, result, content: contentVal }) });
         showToast('Examen soumis.', 'success');
         loadPpaExams();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Scientifique — Rapport PCS (champs structurés)
+  // -----------------------------------------------------------------
+  async function loadSciencePcsReports() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/science-ops/pcs');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const reports = data.reports || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${reports.length}</div><div class="stat-label">Rapports</div></div>
+      <div class="stat-cell"><div class="stat-value">PCS</div><div class="stat-label">Module</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = reports.length
+      ? reports.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.matriculeScp)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun rapport.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rapports PCS</h2><span class="count">${reports.length}</span></div>
+        ${
+          reports.length
+            ? reports
+                .map(
+                  (r) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.matriculeScp)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.date ? escapeHtml(r.date) : (r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : '')}</span></div>
+            <div class="post-card-meta" style="margin-bottom:6px;">Sécurité : ${r.agentsSecurite} — Scientifiques : ${r.scientifiques} — Classe-D : ${r.classeD}</div>
+            <div class="post-card-body">${escapeHtml(r.notes || '')}</div>
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucun rapport PCS enregistré.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Établir un rapport PCS</h3>
+        <form id="sci-pcs-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Matricule SCP *</label><input type="text" id="pcs-matricule" required placeholder="Ex: SCP-1547"></div>
+            <div class="field-row"><label>Date</label><input type="text" id="pcs-date" placeholder="JJ/MM/AAAA"></div>
+          </div>
+          <div class="field-grid">
+            <div class="field-row"><label>Agents de sécurité</label><input type="number" id="pcs-agents" min="0" value="0"></div>
+            <div class="field-row"><label>Scientifiques</label><input type="number" id="pcs-scientifiques" min="0" value="0"></div>
+            <div class="field-row"><label>Sujets Classe-D</label><input type="number" id="pcs-classed" min="0" value="0"></div>
+          </div>
+          <div class="field-row"><label>Notes (déroulement, résultat, incident)</label><textarea id="pcs-notes" rows="5"></textarea></div>
+          <button class="btn" type="submit">Établir le rapport</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('sci-pcs-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const matriculeScp = document.getElementById('pcs-matricule').value.trim();
+      const date = document.getElementById('pcs-date').value.trim();
+      const agentsSecurite = document.getElementById('pcs-agents').value;
+      const scientifiques = document.getElementById('pcs-scientifiques').value;
+      const classeD = document.getElementById('pcs-classed').value;
+      const notes = document.getElementById('pcs-notes').value.trim();
+      if (!matriculeScp) { showToast('Le matricule SCP est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/science-ops/pcs', { method: 'POST', body: JSON.stringify({ matriculeScp, date, agentsSecurite, scientifiques, classeD, notes }) });
+        showToast('Rapport établi.', 'success');
+        loadSciencePcsReports();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Scientifique — Rapport Expérience (champs structurés)
+  // -----------------------------------------------------------------
+  async function loadScienceExperienceReports() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/science-ops/experience');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const reports = data.reports || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${reports.length}</div><div class="stat-label">Rapports</div></div>
+      <div class="stat-cell"><div class="stat-value">EXP</div><div class="stat-label">Module</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = reports.length
+      ? reports.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.matriculeScp)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun rapport.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rapports d'Expérience</h2><span class="count">${reports.length}</span></div>
+        ${
+          reports.length
+            ? reports
+                .map(
+                  (r) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.matriculeScp)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.date ? escapeHtml(r.date) : (r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : '')}</span></div>
+            <div class="post-card-meta" style="margin-bottom:6px;">Objectif : ${escapeHtml(r.objectif || '—')} — Scientifiques : ${r.scientifiques} — Classe-D : ${r.classeD}</div>
+            <div class="post-card-body">${escapeHtml(r.resultats || '')}</div>
+            ${r.incidents ? `<div class="post-card-meta" style="margin-top:6px; color:var(--bad);">Incidents : ${escapeHtml(r.incidents)}</div>` : ''}
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucun rapport d\'expérience enregistré.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Établir un rapport d'expérience</h3>
+        <form id="sci-experience-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Matricule SCP *</label><input type="text" id="exp-matricule" required placeholder="Ex: SCP-1547"></div>
+            <div class="field-row"><label>Date</label><input type="text" id="exp-date" placeholder="JJ/MM/AAAA"></div>
+          </div>
+          <div class="field-row"><label>Objectif de l'expérience</label><input type="text" id="exp-objectif"></div>
+          <div class="field-grid">
+            <div class="field-row"><label>Scientifiques</label><input type="number" id="exp-scientifiques" min="0" value="0"></div>
+            <div class="field-row"><label>Sujets Classe-D</label><input type="number" id="exp-classed" min="0" value="0"></div>
+          </div>
+          <div class="field-row"><label>Résultats / Observations</label><textarea id="exp-resultats" rows="4"></textarea></div>
+          <div class="field-row"><label>Incidents (le cas échéant)</label><textarea id="exp-incidents" rows="3"></textarea></div>
+          <button class="btn" type="submit">Établir le rapport</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('sci-experience-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const matriculeScp = document.getElementById('exp-matricule').value.trim();
+      const date = document.getElementById('exp-date').value.trim();
+      const objectif = document.getElementById('exp-objectif').value.trim();
+      const scientifiques = document.getElementById('exp-scientifiques').value;
+      const classeD = document.getElementById('exp-classed').value;
+      const resultats = document.getElementById('exp-resultats').value.trim();
+      const incidents = document.getElementById('exp-incidents').value.trim();
+      if (!matriculeScp) { showToast('Le matricule SCP est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/science-ops/experience', { method: 'POST', body: JSON.stringify({ matriculeScp, date, objectif, scientifiques, classeD, resultats, incidents }) });
+        showToast('Rapport établi.', 'success');
+        loadScienceExperienceReports();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Scientifique — Rapports par division (DTMA/TCI/BMZB/MAD/TPSP) —
+  // confidentiel, réservé à la division (lecture ET écriture).
+  // -----------------------------------------------------------------
+  async function loadScienceDivisionReports(division) {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch(`/api/rp/science-ops/division/${division}/reports`);
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const reports = data.reports || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${reports.length}</div><div class="stat-label">Rapports</div></div>
+      <div class="stat-cell"><div class="stat-value">${escapeHtml(division)}</div><div class="stat-label">Division</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = reports.length
+      ? reports.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.title)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun rapport.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rapports ${escapeHtml(division)}</h2><span class="count">${reports.length}</span></div>
+        ${
+          reports.length
+            ? reports
+                .map(
+                  (r) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.title)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : ''}</span></div>
+            <div class="post-card-body">${escapeHtml(r.content || '')}</div>
+          </div>
+        `
+                )
+                .join('')
+            : `<div class="empty-row">Aucun rapport ${escapeHtml(division)} enregistré.</div>`
+        }
+      </div>
+      <div class="subsection">
+        <h3>Rédiger un rapport ${escapeHtml(division)}</h3>
+        <form id="sci-div-report-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="sci-div-report-title" required></div>
+          <div class="field-row"><label>Contenu</label><textarea id="sci-div-report-content" rows="6"></textarea></div>
+          <button class="btn" type="submit">Publier</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('sci-div-report-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('sci-div-report-title').value.trim();
+      const content = document.getElementById('sci-div-report-content').value.trim();
+      if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch(`/api/rp/science-ops/division/${division}/reports`, { method: 'POST', body: JSON.stringify({ title, content }) });
+        showToast('Rapport publié.', 'success');
+        loadScienceDivisionReports(division);
       } catch (err) {
         showToast(`Erreur : ${err.message}`, 'error');
       }
