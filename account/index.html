@@ -224,6 +224,9 @@
   .roblox-unlinked p{ font-size:13px; color:var(--ink-dim); line-height:1.6; margin-bottom:14px; }
   .roblox-linked-actions{ display:flex; gap:8px; margin-top:12px; }
   .roblox-linked-actions .btn{ padding:8px 12px; font-size:12px; }
+  .roblox-legal-notice{ font-size:11.5px; color:var(--ink-faint); line-height:1.6; margin-bottom:12px; }
+  .roblox-legal-notice a{ color:var(--line-bright); text-decoration:underline; }
+  .roblox-legal-sub{ font-size:11.5px; color:var(--ink-faint); line-height:1.6; margin-top:10px; }
 
   .profile-actions{ margin-top:24px; display:flex; flex-direction:column; gap:10px; }
   .profile-actions .btn{ width:100%; justify-content:center; }
@@ -441,8 +444,16 @@
       ? `<img src="${escapeHtml(discord.avatar)}" alt="">`
       : escapeHtml((discord.username || '?')[0].toUpperCase());
 
+    const robloxLegalNotice = `
+      <p class="roblox-legal-notice">En liant votre compte Roblox, vous acceptez la <a href="/confidentialite/">Politique de confidentialité</a> et les <a href="/cgu/">Conditions Générales d'Utilisation</a> de Voidline Studio.</p>
+    `;
+    const robloxLegalSub = `
+      <p class="roblox-legal-sub">La liaison permet d'accéder à ton profil RP et aux fonctionnalités de l'intranet Site-15.</p>
+    `;
+
     const robloxBlock = roblox
       ? `
+        ${robloxLegalNotice}
         <div class="roblox-linked">
           <span class="dot"></span>
           <span>${escapeHtml(roblox.username)}</span>
@@ -452,11 +463,14 @@
           <button class="btn btn-ghost" id="change-roblox-btn">${icon('link')} Changer de compte</button>
           <button class="btn btn-danger" id="unlink-roblox-btn">${icon('unlink')} Délier</button>
         </div>
+        ${robloxLegalSub}
       `
       : `
         <div class="roblox-unlinked">
           <p>Aucun compte Roblox lié pour l'instant.</p>
+          ${robloxLegalNotice}
           <button class="btn btn-solid" id="link-roblox-btn">${icon('link')} Lier mon compte Roblox</button>
+          ${robloxLegalSub}
         </div>
       `;
 
