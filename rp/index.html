@@ -629,6 +629,7 @@
   let context = null;
   const MEDICAL_DEPT_ID = 'medical';
   const SCIENCE_DEPT_ID = 'scientifique_mmqbrd32f2z7';
+  const ADMIN_DEPT_ID = 'administratif_mmqbmvq8ikle';
   const SECURITY_DEPT_ID = 'security';
 
   const DEPT_CODES = {
@@ -665,6 +666,10 @@
     dna: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3c0 5 10 6 10 11 0 5-10 6-10 11M17 3c0 5-10 6-10 11 0 5 10 6 10 11"/><path d="M8 8h8M8 16h8"/></svg>',
     document: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3M9 9h6M9 13h6M9 17h4"/></svg>',
     atom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.5"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(120 12 12)"/></svg>',
+    gavel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6"/><path d="M8 10l6 6"/><path d="M4 14l6 6"/><path d="M17 7l3-3"/><path d="M4 20h9"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>',
+    mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3M9 21h6"/></svg>',
+    briefcase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="18" height="12" rx="2"/><path d="M8 7.5V5.5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg>',
   };
 
   function renderLoggedOut() {
@@ -890,6 +895,14 @@
       tabs.push({ id: 'sci-div-mad', label: 'MAD', icon: 'alertTriangle' });
       tabs.push({ id: 'sci-div-tpsp', label: 'TPSP', icon: 'badge' });
     }
+    if (deptId === ADMIN_DEPT_ID) {
+      tabs.push({ id: 'adm-documents', label: 'Docs DA', icon: 'document' });
+      tabs.push({ id: 'adm-incidents', label: 'Rapport Incident', icon: 'alertTriangle' });
+      tabs.push({ id: 'adm-depositions', label: 'Rapport Déposition', icon: 'mic' });
+      tabs.push({ id: 'adm-observations', label: 'Rapport Observation', icon: 'eye' });
+      tabs.push({ id: 'adm-div-bji', label: 'BJI', icon: 'gavel' });
+      tabs.push({ id: 'adm-div-rh', label: 'RH', icon: 'briefcase' });
+    }
     if (deptId === SECURITY_DEPT_ID) {
       tabs.push({ id: 'sec-reports', label: 'Rapport', icon: 'shield' });
       tabs.push({ id: 'sec-zc', label: 'Supervision ZC', icon: 'camera' });
@@ -995,6 +1008,12 @@
     else if (tabId === 'sci-div-bmzb') loadScienceDivisionReports('BMZB');
     else if (tabId === 'sci-div-mad') loadScienceDivisionReports('MAD');
     else if (tabId === 'sci-div-tpsp') loadScienceDivisionReports('TPSP');
+    else if (tabId === 'adm-documents') loadAdminDocuments();
+    else if (tabId === 'adm-incidents') loadAdminIncidents();
+    else if (tabId === 'adm-depositions') loadAdminDepositions();
+    else if (tabId === 'adm-observations') loadAdminObservations();
+    else if (tabId === 'adm-div-bji') loadAdminBjiShell();
+    else if (tabId === 'adm-div-rh') loadAdminRhShell();
   }
 
   // -----------------------------------------------------------------
@@ -3245,6 +3264,933 @@
       } catch (err) {
         showToast(`Erreur : ${err.message}`, 'error');
       }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Administratif — Docs DA (FIM peut lire, wiki sommaire+article)
+  // -----------------------------------------------------------------
+  let admDocsSelectedId = null;
+  let admDocsCache = [];
+
+  async function loadAdminDocuments() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/documents');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const { documents, canManage } = data;
+    admDocsCache = documents;
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${documents.length}</div><div class="stat-label">Documents</div></div>
+      <div class="stat-cell"><div class="stat-value">${canManage ? 'OUI' : 'NON'}</div><div class="stat-label">Autorisé</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = documents.length
+      ? documents.slice(0, 4).map((d) => `<div class="journal-entry"><span class="journal-time">${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(d.title)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun document.</span></div>';
+
+    main.innerHTML = `
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Docs DA</span><span class="count">${documents.length}</span></div>
+          ${canManage ? '<button class="btn small" id="adm-doc-new-btn" type="button" style="width:100%; margin-top:10px;">+ Nouveau document</button>' : ''}
+          <div class="wiki-toc-list" id="adm-doc-toc-list"></div>
+        </div>
+        <div class="wiki-article" id="adm-doc-article"></div>
+      </div>
+    `;
+    renderAdmDocToc(canManage);
+    renderAdmDocArticle(canManage);
+    document.getElementById('adm-doc-new-btn')?.addEventListener('click', () => {
+      admDocsSelectedId = 'new';
+      renderAdmDocToc(canManage);
+      renderAdmDocArticle(canManage);
+    });
+  }
+
+  function renderAdmDocToc(canManage) {
+    const list = document.getElementById('adm-doc-toc-list');
+    if (!admDocsCache.length) { list.innerHTML = '<div class="empty-row">Aucun document.</div>'; return; }
+    list.innerHTML = admDocsCache
+      .map((d) => `
+      <button class="wiki-toc-item${d.id === admDocsSelectedId ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
+        <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
+        <span class="wiki-toc-meta">${escapeHtml(d.authorCharacterName)}</span>
+      </button>
+    `)
+      .join('');
+    list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        admDocsSelectedId = btn.dataset.docId;
+        renderAdmDocToc(canManage);
+        renderAdmDocArticle(canManage);
+      });
+    });
+  }
+
+  function renderAdmDocArticle(canManage) {
+    const article = document.getElementById('adm-doc-article');
+    if (admDocsSelectedId === 'new' || (typeof admDocsSelectedId === 'string' && admDocsSelectedId.startsWith('edit:'))) {
+      const isEdit = admDocsSelectedId.startsWith('edit:');
+      const editingDoc = isEdit ? admDocsCache.find((d) => d.id === admDocsSelectedId.slice(5)) : null;
+      article.innerHTML = `
+        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">${isEdit ? 'Modifier' : 'Nouveau document'}</h3>
+        <form id="adm-doc-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="adm-doc-title" required value="${isEdit ? escapeHtml(editingDoc.title) : ''}"></div>
+          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="adm-doc-content" rows="12" required>${isEdit ? escapeHtml(editingDoc.content) : ''}</textarea></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" type="submit">${isEdit ? 'Enregistrer' : 'Publier'}</button>
+            ${isEdit ? '<button class="btn ghost" type="button" id="adm-doc-cancel-btn">Annuler</button>' : ''}
+          </div>
+        </form>
+      `;
+      document.getElementById('adm-doc-cancel-btn')?.addEventListener('click', () => {
+        admDocsSelectedId = isEdit ? editingDoc.id : null;
+        renderAdmDocArticle(canManage);
+      });
+      document.getElementById('adm-doc-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('adm-doc-title').value.trim();
+        const content = document.getElementById('adm-doc-content').value.trim();
+        if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
+        try {
+          if (isEdit) {
+            await apiFetch(`/api/rp/admin-ops/documents/${encodeURIComponent(editingDoc.id)}`, { method: 'PATCH', body: JSON.stringify({ title, content }) });
+            showToast('Document modifié.', 'success');
+            admDocsSelectedId = editingDoc.id;
+          } else {
+            await apiFetch('/api/rp/admin-ops/documents', { method: 'POST', body: JSON.stringify({ title, content }) });
+            showToast('Document publié.', 'success');
+            admDocsSelectedId = null;
+          }
+          loadAdminDocuments();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      return;
+    }
+
+    const doc = admDocsCache.find((d) => d.id === admDocsSelectedId);
+    if (!doc) {
+      article.innerHTML = `<div class="wiki-empty"><div class="wiki-empty-title">Docs DA</div><p>Sélectionne un document${canManage ? ', ou clique sur "+ Nouveau document".' : '.'}</p></div>`;
+      return;
+    }
+    article.innerHTML = `
+      <h2 class="wiki-article-title">${escapeHtml(doc.title)}</h2>
+      <div class="post-card-meta" style="margin-bottom:20px;">${escapeHtml(doc.authorCharacterName)} — ${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
+      <div class="sci-body-rendered">${renderMarkdown(doc.content)}</div>
+      ${canManage ? `<div class="sci-card-actions" style="margin-top:24px;"><button class="btn ghost small" id="adm-doc-edit-btn">Modifier</button><button class="btn danger small" id="adm-doc-delete-btn">Supprimer</button></div>` : ''}
+    `;
+    document.getElementById('adm-doc-edit-btn')?.addEventListener('click', () => {
+      admDocsSelectedId = `edit:${doc.id}`;
+      renderAdmDocArticle(canManage);
+    });
+    document.getElementById('adm-doc-delete-btn')?.addEventListener('click', async () => {
+      if (!confirm('Supprimer ce document ?')) return;
+      try {
+        await apiFetch(`/api/rp/admin-ops/documents/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+        showToast('Document supprimé.', 'success');
+        admDocsSelectedId = null;
+        loadAdminDocuments();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Administratif — Rapport Incident
+  // -----------------------------------------------------------------
+  async function loadAdminIncidents() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/incidents');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const reports = data.reports || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${reports.length}</div><div class="stat-label">Rapports</div></div>
+      <div class="stat-cell"><div class="stat-value">INC</div><div class="stat-label">Module</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = reports.length
+      ? reports.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.titre)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun rapport.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rapports d'incident</h2><span class="count">${reports.length}</span></div>
+        ${
+          reports.length
+            ? reports.map((r) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.titre)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : ''}</span></div>
+            ${r.lieu ? `<div class="post-card-meta" style="margin-bottom:6px;">Lieu : ${escapeHtml(r.lieu)}</div>` : ''}
+            <div class="post-card-body">${escapeHtml(r.description || '')}</div>
+          </div>
+        `).join('')
+            : '<div class="empty-row">Aucun incident enregistré.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Signaler un incident</h3>
+        <form id="adm-incident-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Titre *</label><input type="text" id="inc-titre" required></div>
+            <div class="field-row"><label>Lieu</label><input type="text" id="inc-lieu"></div>
+          </div>
+          <div class="field-row"><label>Description</label><textarea id="inc-description" rows="5"></textarea></div>
+          <button class="btn" type="submit">Signaler</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('adm-incident-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const titre = document.getElementById('inc-titre').value.trim();
+      const lieu = document.getElementById('inc-lieu').value.trim();
+      const description = document.getElementById('inc-description').value.trim();
+      if (!titre) { showToast('Le titre est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/incidents', { method: 'POST', body: JSON.stringify({ titre, lieu, description }) });
+        showToast('Incident signalé.', 'success');
+        loadAdminIncidents();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Administratif — Rapport Déposition
+  // -----------------------------------------------------------------
+  async function loadAdminDepositions() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/depositions');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const reports = data.reports || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${reports.length}</div><div class="stat-label">Dépositions</div></div>
+      <div class="stat-cell"><div class="stat-value">DEP</div><div class="stat-label">Module</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = reports.length
+      ? reports.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.deposant)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune déposition.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rapports de déposition</h2><span class="count">${reports.length}</span></div>
+        ${
+          reports.length
+            ? reports.map((r) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.deposant)}</span><span class="post-card-meta">Recueilli par ${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : ''}</span></div>
+            ${r.personnageConcerne ? `<div class="post-card-meta" style="margin-bottom:6px;">Concerne : ${escapeHtml(r.personnageConcerne)}</div>` : ''}
+            <div class="post-card-body">${escapeHtml(r.declaration || '')}</div>
+          </div>
+        `).join('')
+            : '<div class="empty-row">Aucune déposition enregistrée.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Recueillir une déposition</h3>
+        <form id="adm-deposition-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Déposant *</label><input type="text" id="dep-deposant" required></div>
+            <div class="field-row"><label>Personnage concerné</label><input type="text" id="dep-concerne"></div>
+          </div>
+          <div class="field-row"><label>Déclaration</label><textarea id="dep-declaration" rows="6"></textarea></div>
+          <button class="btn" type="submit">Enregistrer la déposition</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('adm-deposition-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const deposant = document.getElementById('dep-deposant').value.trim();
+      const personnageConcerne = document.getElementById('dep-concerne').value.trim();
+      const declaration = document.getElementById('dep-declaration').value.trim();
+      if (!deposant) { showToast('Le déposant est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/depositions', { method: 'POST', body: JSON.stringify({ deposant, personnageConcerne, declaration }) });
+        showToast('Déposition enregistrée.', 'success');
+        loadAdminDepositions();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Administratif — Rapport Observation
+  // -----------------------------------------------------------------
+  async function loadAdminObservations() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/observations');
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const reports = data.reports || [];
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${reports.length}</div><div class="stat-label">Observations</div></div>
+      <div class="stat-cell"><div class="stat-value">OBS</div><div class="stat-label">Module</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = reports.length
+      ? reports.slice(0, 4).map((r) => `<div class="journal-entry"><span class="journal-time">${r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : ''}</span><span class="journal-text">${escapeHtml(r.personnageObserve)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucune observation.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Rapports d'observation</h2><span class="count">${reports.length}</span></div>
+        ${
+          reports.length
+            ? reports.map((r) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.personnageObserve)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : ''}</span></div>
+            ${r.zone ? `<div class="post-card-meta" style="margin-bottom:6px;">Zone : ${escapeHtml(r.zone)}</div>` : ''}
+            <div class="post-card-body">${escapeHtml(r.notes || '')}</div>
+          </div>
+        `).join('')
+            : '<div class="empty-row">Aucune observation enregistrée.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Consigner une observation</h3>
+        <form id="adm-observation-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Personnage observé *</label><input type="text" id="obs-personnage" required></div>
+            <div class="field-row"><label>Zone / lieu</label><input type="text" id="obs-zone"></div>
+          </div>
+          <div class="field-row"><label>Notes d'observation</label><textarea id="obs-notes" rows="5"></textarea></div>
+          <button class="btn" type="submit">Consigner</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('adm-observation-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const personnageObserve = document.getElementById('obs-personnage').value.trim();
+      const zone = document.getElementById('obs-zone').value.trim();
+      const notes = document.getElementById('obs-notes').value.trim();
+      if (!personnageObserve) { showToast('Le personnage observé est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/observations', { method: 'POST', body: JSON.stringify({ personnageObserve, zone, notes }) });
+        showToast('Observation consignée.', 'success');
+        loadAdminObservations();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Administratif — BJI (confidentiel) : Docs / Dossiers / Casier
+  // -----------------------------------------------------------------
+  const admBjiSubTab = { current: 'docs' };
+  let admBjiDocsSelected = null;
+  let admBjiDocsCache = [];
+
+  function loadAdminBjiShell() {
+    const main = document.getElementById('terminal-main');
+    const subTabs = [
+      { id: 'docs', label: 'Docs BJI' },
+      { id: 'dossiers', label: 'Dossier BJI' },
+      { id: 'casier', label: 'Casier judiciaire' },
+    ];
+    main.innerHTML = `
+      <div class="med-subnav">
+        ${subTabs.map((t) => `<button class="med-subnav-btn${admBjiSubTab.current === t.id ? ' active' : ''}" data-sub="${t.id}" type="button">${t.label}</button>`).join('')}
+      </div>
+      <div id="adm-bji-content"></div>
+    `;
+    main.querySelectorAll('.med-subnav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        admBjiSubTab.current = btn.dataset.sub;
+        loadAdminBjiShell();
+      });
+    });
+
+    if (admBjiSubTab.current === 'docs') loadAdminBjiDocs();
+    else if (admBjiSubTab.current === 'dossiers') loadAdminBjiDossiers();
+    else if (admBjiSubTab.current === 'casier') loadAdminBjiCasier();
+  }
+
+  async function loadAdminBjiDocs() {
+    const content = document.getElementById('adm-bji-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/division/BJI/docs');
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    admBjiDocsCache = data.docs || [];
+    content.innerHTML = `
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Docs BJI</span><span class="count">${admBjiDocsCache.length}</span></div>
+          <button class="btn small" id="adm-bji-doc-new-btn" type="button" style="width:100%; margin-top:10px;">+ Nouveau document</button>
+          <div class="wiki-toc-list" id="adm-bji-doc-toc-list"></div>
+        </div>
+        <div class="wiki-article" id="adm-bji-doc-article"></div>
+      </div>
+    `;
+    renderAdmBjiDocToc();
+    renderAdmBjiDocArticle();
+    document.getElementById('adm-bji-doc-new-btn').addEventListener('click', () => {
+      admBjiDocsSelected = 'new';
+      renderAdmBjiDocToc();
+      renderAdmBjiDocArticle();
+    });
+  }
+
+  function renderAdmBjiDocToc() {
+    const list = document.getElementById('adm-bji-doc-toc-list');
+    if (!admBjiDocsCache.length) { list.innerHTML = '<div class="empty-row">Aucun document.</div>'; return; }
+    list.innerHTML = admBjiDocsCache.map((d) => `
+      <button class="wiki-toc-item${d.id === admBjiDocsSelected ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
+        <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
+        <span class="wiki-toc-meta">${escapeHtml(d.authorCharacterName)}</span>
+      </button>
+    `).join('');
+    list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        admBjiDocsSelected = btn.dataset.docId;
+        renderAdmBjiDocToc();
+        renderAdmBjiDocArticle();
+      });
+    });
+  }
+
+  function renderAdmBjiDocArticle() {
+    const article = document.getElementById('adm-bji-doc-article');
+    if (admBjiDocsSelected === 'new' || (typeof admBjiDocsSelected === 'string' && admBjiDocsSelected.startsWith('edit:'))) {
+      const isEdit = admBjiDocsSelected.startsWith('edit:');
+      const editingDoc = isEdit ? admBjiDocsCache.find((d) => d.id === admBjiDocsSelected.slice(5)) : null;
+      article.innerHTML = `
+        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">${isEdit ? 'Modifier' : 'Nouveau document'}</h3>
+        <form id="adm-bji-doc-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="adm-bji-doc-title" required value="${isEdit ? escapeHtml(editingDoc.title) : ''}"></div>
+          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="adm-bji-doc-content" rows="12" required>${isEdit ? escapeHtml(editingDoc.content) : ''}</textarea></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" type="submit">${isEdit ? 'Enregistrer' : 'Publier'}</button>
+            ${isEdit ? '<button class="btn ghost" type="button" id="adm-bji-doc-cancel-btn">Annuler</button>' : ''}
+          </div>
+        </form>
+      `;
+      document.getElementById('adm-bji-doc-cancel-btn')?.addEventListener('click', () => {
+        admBjiDocsSelected = isEdit ? editingDoc.id : null;
+        renderAdmBjiDocArticle();
+      });
+      document.getElementById('adm-bji-doc-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('adm-bji-doc-title').value.trim();
+        const content = document.getElementById('adm-bji-doc-content').value.trim();
+        if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
+        try {
+          if (isEdit) {
+            await apiFetch(`/api/rp/admin-ops/division/BJI/docs/${encodeURIComponent(editingDoc.id)}`, { method: 'PATCH', body: JSON.stringify({ title, content }) });
+            showToast('Document modifié.', 'success');
+            admBjiDocsSelected = editingDoc.id;
+          } else {
+            await apiFetch('/api/rp/admin-ops/division/BJI/docs', { method: 'POST', body: JSON.stringify({ title, content }) });
+            showToast('Document publié.', 'success');
+            admBjiDocsSelected = null;
+          }
+          loadAdminBjiDocs();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      return;
+    }
+
+    const doc = admBjiDocsCache.find((d) => d.id === admBjiDocsSelected);
+    if (!doc) {
+      article.innerHTML = `<div class="wiki-empty"><div class="wiki-empty-title">Docs BJI</div><p>Sélectionne un document, ou clique sur "+ Nouveau document".</p></div>`;
+      return;
+    }
+    article.innerHTML = `
+      <h2 class="wiki-article-title">${escapeHtml(doc.title)}</h2>
+      <div class="post-card-meta" style="margin-bottom:20px;">${escapeHtml(doc.authorCharacterName)} — ${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
+      <div class="sci-body-rendered">${renderMarkdown(doc.content)}</div>
+      <div class="sci-card-actions" style="margin-top:24px;">
+        <button class="btn ghost small" id="adm-bji-doc-edit-btn">Modifier</button>
+        <button class="btn danger small" id="adm-bji-doc-delete-btn">Supprimer</button>
+      </div>
+    `;
+    document.getElementById('adm-bji-doc-edit-btn').addEventListener('click', () => {
+      admBjiDocsSelected = `edit:${doc.id}`;
+      renderAdmBjiDocArticle();
+    });
+    document.getElementById('adm-bji-doc-delete-btn').addEventListener('click', async () => {
+      if (!confirm('Supprimer ce document ?')) return;
+      try {
+        await apiFetch(`/api/rp/admin-ops/division/BJI/docs/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+        showToast('Document supprimé.', 'success');
+        admBjiDocsSelected = null;
+        loadAdminBjiDocs();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  async function loadAdminBjiDossiers() {
+    const content = document.getElementById('adm-bji-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/bji/dossiers');
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const dossiers = data.dossiers || [];
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Dossiers BJI</h2><span class="count">${dossiers.length}</span></div>
+        ${
+          dossiers.length
+            ? dossiers.map((d) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(d.subject)}</span><span class="post-card-meta">${escapeHtml(d.authorCharacterName)} — ${d.createdAt ? new Date(d.createdAt).toLocaleDateString('fr-FR') : ''}</span></div>
+            <div class="post-card-body">${escapeHtml(d.content || '')}</div>
+          </div>
+        `).join('')
+            : '<div class="empty-row">Aucun dossier ouvert.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Ouvrir un dossier</h3>
+        <form id="adm-bji-dossier-form">
+          <div class="field-row"><label>Sujet de l'enquête *</label><input type="text" id="bji-subject" required placeholder="Personnage, affaire, incident..."></div>
+          <div class="field-row"><label>Contenu</label><textarea id="bji-content" rows="6"></textarea></div>
+          <button class="btn" type="submit">Ouvrir le dossier</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('adm-bji-dossier-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const subject = document.getElementById('bji-subject').value.trim();
+      const contentVal = document.getElementById('bji-content').value.trim();
+      if (!subject) { showToast('Le sujet est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/bji/dossiers', { method: 'POST', body: JSON.stringify({ subject, content: contentVal }) });
+        showToast('Dossier ouvert.', 'success');
+        loadAdminBjiDossiers();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  async function loadAdminBjiCasier() {
+    const content = document.getElementById('adm-bji-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/bji/casier');
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const records = data.records || [];
+
+    function renderList(filtered) {
+      const list = document.getElementById('adm-casier-list');
+      list.innerHTML = filtered.length
+        ? filtered.map((r) => `
+        <div class="post-card">
+          <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.characterName)}</span><span class="post-card-meta">${escapeHtml(r.authorCharacterName)} — ${r.date ? escapeHtml(r.date) : (r.createdAt ? new Date(r.createdAt).toLocaleDateString('fr-FR') : '')}</span></div>
+          <div class="post-card-meta" style="margin-bottom:6px;">Verdict : ${escapeHtml(r.verdict || '—')} — Peine : ${escapeHtml(r.peine || '—')}</div>
+          <div class="post-card-body">${escapeHtml(r.natureDelit || '')}</div>
+        </div>
+      `).join('')
+        : '<div class="empty-row">Aucune entrée ne correspond.</div>';
+    }
+
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Casier judiciaire</h2><span class="count">${records.length}</span></div>
+        <input type="text" id="adm-casier-search" placeholder="Rechercher un personnage..." style="margin-bottom:14px;">
+        <div id="adm-casier-list"></div>
+      </div>
+      <div class="subsection">
+        <h3>Ajouter une entrée au casier</h3>
+        <form id="adm-casier-form">
+          <div class="field-grid">
+            <div class="field-row"><label>Personnage *</label><input type="text" id="cas-name" required></div>
+            <div class="field-row"><label>Date</label><input type="text" id="cas-date" placeholder="JJ/MM/AAAA"></div>
+          </div>
+          <div class="field-row"><label>Nature du délit/crime</label><input type="text" id="cas-nature"></div>
+          <div class="field-grid">
+            <div class="field-row"><label>Verdict</label><input type="text" id="cas-verdict"></div>
+            <div class="field-row"><label>Peine</label><input type="text" id="cas-peine"></div>
+          </div>
+          <button class="btn" type="submit">Ajouter</button>
+        </form>
+      </div>
+    `;
+    renderList(records);
+
+    document.getElementById('adm-casier-search').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      renderList(records.filter((r) => (r.characterName || '').toLowerCase().includes(q)));
+    });
+
+    document.getElementById('adm-casier-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const characterName = document.getElementById('cas-name').value.trim();
+      const date = document.getElementById('cas-date').value.trim();
+      const natureDelit = document.getElementById('cas-nature').value.trim();
+      const verdict = document.getElementById('cas-verdict').value.trim();
+      const peine = document.getElementById('cas-peine').value.trim();
+      if (!characterName) { showToast('Le nom du personnage est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/bji/casier', { method: 'POST', body: JSON.stringify({ characterName, date, natureDelit, verdict, peine }) });
+        showToast('Entrée ajoutée.', 'success');
+        loadAdminBjiCasier();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------
+  // Administratif — RH (confidentiel) : Docs RH / Fiche RH
+  // -----------------------------------------------------------------
+  const admRhSubTab = { current: 'docs' };
+  let admRhDocsSelected = null;
+  let admRhDocsCache = [];
+
+  function loadAdminRhShell() {
+    const main = document.getElementById('terminal-main');
+    const subTabs = [
+      { id: 'docs', label: 'Docs RH' },
+      { id: 'fiches', label: 'Fiche RH' },
+    ];
+    main.innerHTML = `
+      <div class="med-subnav">
+        ${subTabs.map((t) => `<button class="med-subnav-btn${admRhSubTab.current === t.id ? ' active' : ''}" data-sub="${t.id}" type="button">${t.label}</button>`).join('')}
+      </div>
+      <div id="adm-rh-content"></div>
+    `;
+    main.querySelectorAll('.med-subnav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        admRhSubTab.current = btn.dataset.sub;
+        loadAdminRhShell();
+      });
+    });
+
+    if (admRhSubTab.current === 'docs') loadAdminRhDocs();
+    else if (admRhSubTab.current === 'fiches') loadAdminRhRecords();
+  }
+
+  async function loadAdminRhDocs() {
+    const content = document.getElementById('adm-rh-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/division/RH/docs');
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    admRhDocsCache = data.docs || [];
+    content.innerHTML = `
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Docs RH</span><span class="count">${admRhDocsCache.length}</span></div>
+          <button class="btn small" id="adm-rh-doc-new-btn" type="button" style="width:100%; margin-top:10px;">+ Nouveau document</button>
+          <div class="wiki-toc-list" id="adm-rh-doc-toc-list"></div>
+        </div>
+        <div class="wiki-article" id="adm-rh-doc-article"></div>
+      </div>
+    `;
+    renderAdmRhDocToc();
+    renderAdmRhDocArticle();
+    document.getElementById('adm-rh-doc-new-btn').addEventListener('click', () => {
+      admRhDocsSelected = 'new';
+      renderAdmRhDocToc();
+      renderAdmRhDocArticle();
+    });
+  }
+
+  function renderAdmRhDocToc() {
+    const list = document.getElementById('adm-rh-doc-toc-list');
+    if (!admRhDocsCache.length) { list.innerHTML = '<div class="empty-row">Aucun document.</div>'; return; }
+    list.innerHTML = admRhDocsCache.map((d) => `
+      <button class="wiki-toc-item${d.id === admRhDocsSelected ? ' active' : ''}" data-doc-id="${escapeHtml(d.id)}" type="button">
+        <span class="wiki-toc-title">${escapeHtml(d.title)}</span>
+        <span class="wiki-toc-meta">${escapeHtml(d.authorCharacterName)}</span>
+      </button>
+    `).join('');
+    list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        admRhDocsSelected = btn.dataset.docId;
+        renderAdmRhDocToc();
+        renderAdmRhDocArticle();
+      });
+    });
+  }
+
+  function renderAdmRhDocArticle() {
+    const article = document.getElementById('adm-rh-doc-article');
+    if (admRhDocsSelected === 'new' || (typeof admRhDocsSelected === 'string' && admRhDocsSelected.startsWith('edit:'))) {
+      const isEdit = admRhDocsSelected.startsWith('edit:');
+      const editingDoc = isEdit ? admRhDocsCache.find((d) => d.id === admRhDocsSelected.slice(5)) : null;
+      article.innerHTML = `
+        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">${isEdit ? 'Modifier' : 'Nouveau document'}</h3>
+        <form id="adm-rh-doc-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="adm-rh-doc-title" required value="${isEdit ? escapeHtml(editingDoc.title) : ''}"></div>
+          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="adm-rh-doc-content" rows="12" required>${isEdit ? escapeHtml(editingDoc.content) : ''}</textarea></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn" type="submit">${isEdit ? 'Enregistrer' : 'Publier'}</button>
+            ${isEdit ? '<button class="btn ghost" type="button" id="adm-rh-doc-cancel-btn">Annuler</button>' : ''}
+          </div>
+        </form>
+      `;
+      document.getElementById('adm-rh-doc-cancel-btn')?.addEventListener('click', () => {
+        admRhDocsSelected = isEdit ? editingDoc.id : null;
+        renderAdmRhDocArticle();
+      });
+      document.getElementById('adm-rh-doc-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('adm-rh-doc-title').value.trim();
+        const content = document.getElementById('adm-rh-doc-content').value.trim();
+        if (!title || !content) { showToast('Titre et contenu sont obligatoires.', 'error'); return; }
+        try {
+          if (isEdit) {
+            await apiFetch(`/api/rp/admin-ops/division/RH/docs/${encodeURIComponent(editingDoc.id)}`, { method: 'PATCH', body: JSON.stringify({ title, content }) });
+            showToast('Document modifié.', 'success');
+            admRhDocsSelected = editingDoc.id;
+          } else {
+            await apiFetch('/api/rp/admin-ops/division/RH/docs', { method: 'POST', body: JSON.stringify({ title, content }) });
+            showToast('Document publié.', 'success');
+            admRhDocsSelected = null;
+          }
+          loadAdminRhDocs();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      return;
+    }
+
+    const doc = admRhDocsCache.find((d) => d.id === admRhDocsSelected);
+    if (!doc) {
+      article.innerHTML = `<div class="wiki-empty"><div class="wiki-empty-title">Docs RH</div><p>Sélectionne un document, ou clique sur "+ Nouveau document".</p></div>`;
+      return;
+    }
+    article.innerHTML = `
+      <h2 class="wiki-article-title">${escapeHtml(doc.title)}</h2>
+      <div class="post-card-meta" style="margin-bottom:20px;">${escapeHtml(doc.authorCharacterName)} — ${doc.createdAt ? new Date(doc.createdAt).toLocaleDateString('fr-FR') : ''}</div>
+      <div class="sci-body-rendered">${renderMarkdown(doc.content)}</div>
+      <div class="sci-card-actions" style="margin-top:24px;">
+        <button class="btn ghost small" id="adm-rh-doc-edit-btn">Modifier</button>
+        <button class="btn danger small" id="adm-rh-doc-delete-btn">Supprimer</button>
+      </div>
+    `;
+    document.getElementById('adm-rh-doc-edit-btn').addEventListener('click', () => {
+      admRhDocsSelected = `edit:${doc.id}`;
+      renderAdmRhDocArticle();
+    });
+    document.getElementById('adm-rh-doc-delete-btn').addEventListener('click', async () => {
+      if (!confirm('Supprimer ce document ?')) return;
+      try {
+        await apiFetch(`/api/rp/admin-ops/division/RH/docs/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+        showToast('Document supprimé.', 'success');
+        admRhDocsSelected = null;
+        loadAdminRhDocs();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  let admRhRecordsCache = [];
+  let admRhRecordsSelected = null;
+
+  async function loadAdminRhRecords() {
+    const content = document.getElementById('adm-rh-content');
+    content.innerHTML = '<div class="center-msg">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/rh/records');
+    } catch (err) {
+      content.innerHTML = `<div class="center-msg">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    admRhRecordsCache = data.records || [];
+    content.innerHTML = `
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Personnel</span><span class="count">${admRhRecordsCache.length}</span></div>
+          <input type="text" id="adm-rh-search" placeholder="Rechercher..." style="margin-top:10px;">
+          <button class="btn small" id="adm-rh-new-btn" type="button" style="width:100%; margin-top:8px;">+ Nouvelle fiche</button>
+          <div class="wiki-toc-list" id="adm-rh-toc-list"></div>
+        </div>
+        <div class="wiki-article" id="adm-rh-article"></div>
+      </div>
+    `;
+    renderAdmRhToc(admRhRecordsCache);
+    renderAdmRhArticle();
+
+    document.getElementById('adm-rh-new-btn').addEventListener('click', () => {
+      admRhRecordsSelected = 'new';
+      renderAdmRhToc(admRhRecordsCache);
+      renderAdmRhArticle();
+    });
+    document.getElementById('adm-rh-search').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      renderAdmRhToc(admRhRecordsCache.filter((r) => (r.characterName || '').toLowerCase().includes(q)));
+    });
+  }
+
+  function renderAdmRhToc(records) {
+    const list = document.getElementById('adm-rh-toc-list');
+    if (!records.length) { list.innerHTML = '<div class="empty-row">Aucune fiche.</div>'; return; }
+    list.innerHTML = records.map((r) => `
+      <button class="wiki-toc-item${r.characterName === admRhRecordsSelected ? ' active' : ''}" data-name="${escapeHtml(r.characterName)}" type="button">
+        <span class="wiki-toc-title">${escapeHtml(r.characterName)}</span>
+        <span class="wiki-toc-meta">${escapeHtml(r.poste || 'Poste non renseigné')}</span>
+      </button>
+    `).join('');
+    list.querySelectorAll('.wiki-toc-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        admRhRecordsSelected = btn.dataset.name;
+        renderAdmRhToc(admRhRecordsCache);
+        renderAdmRhArticle();
+      });
+    });
+  }
+
+  function admRhFormHtml(existing) {
+    const v = (key) => (existing ? escapeHtml(existing[key] || '') : '');
+    return `
+      <form id="adm-rh-form">
+        <div class="field-row"><label>Personnage (identifiant de fiche) *</label><input type="text" id="rh-characterName" required value="${v('characterName')}" ${existing ? 'readonly' : ''}></div>
+        <div class="field-grid">
+          <div class="field-row"><label>Poste</label><input type="text" id="rh-poste" value="${v('poste')}"></div>
+          <div class="field-row"><label>Date de recrutement</label><input type="text" id="rh-dateRecrutement" value="${v('dateRecrutement')}" placeholder="JJ/MM/AAAA"></div>
+        </div>
+        <div class="field-row"><label>Évaluation</label><textarea id="rh-evaluation" rows="3">${v('evaluation')}</textarea></div>
+        <div class="field-row"><label>Notes disciplinaires</label><textarea id="rh-notesDisciplinaires" rows="3">${v('notesDisciplinaires')}</textarea></div>
+        <div class="field-row"><label>Notes générales</label><textarea id="rh-notes" rows="3">${v('notes')}</textarea></div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" type="submit">${existing ? 'Enregistrer les modifications' : 'Créer la fiche'}</button>
+          ${existing ? '<button class="btn ghost" type="button" id="rh-cancel-btn">Annuler</button>' : ''}
+        </div>
+      </form>
+    `;
+  }
+
+  function bindAdmRhForm(existing) {
+    document.getElementById('rh-cancel-btn')?.addEventListener('click', () => {
+      admRhRecordsSelected = existing ? existing.characterName : null;
+      renderAdmRhArticle();
+    });
+    document.getElementById('adm-rh-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        characterName: document.getElementById('rh-characterName').value.trim(),
+        poste: document.getElementById('rh-poste').value.trim(),
+        dateRecrutement: document.getElementById('rh-dateRecrutement').value.trim(),
+        evaluation: document.getElementById('rh-evaluation').value.trim(),
+        notesDisciplinaires: document.getElementById('rh-notesDisciplinaires').value.trim(),
+        notes: document.getElementById('rh-notes').value.trim(),
+      };
+      if (!payload.characterName) { showToast('Le nom du personnage est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/rh/records', { method: 'POST', body: JSON.stringify(payload) });
+        showToast(existing ? 'Fiche mise à jour.' : 'Fiche créée.', 'success');
+        admRhRecordsSelected = payload.characterName;
+        loadAdminRhRecords();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  function renderAdmRhArticle() {
+    const article = document.getElementById('adm-rh-article');
+
+    if (admRhRecordsSelected === 'new') {
+      article.innerHTML = `<h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">Nouvelle fiche RH</h3>${admRhFormHtml(null)}`;
+      bindAdmRhForm(null);
+      return;
+    }
+    if (typeof admRhRecordsSelected === 'string' && admRhRecordsSelected.startsWith('edit:')) {
+      const existing = admRhRecordsCache.find((r) => r.characterName === admRhRecordsSelected.slice(5));
+      article.innerHTML = `<h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">Modifier la fiche</h3>${admRhFormHtml(existing)}`;
+      bindAdmRhForm(existing);
+      return;
+    }
+
+    const record = admRhRecordsCache.find((r) => r.characterName === admRhRecordsSelected);
+    if (!record) {
+      article.innerHTML = `<div class="wiki-empty"><div class="wiki-empty-title">Fiche RH</div><p>Sélectionne un membre du personnel, ou clique sur "+ Nouvelle fiche".</p></div>`;
+      return;
+    }
+
+    article.innerHTML = `
+      <h2 class="wiki-article-title">${escapeHtml(record.characterName)}</h2>
+      <div class="post-card-meta" style="margin-bottom:20px;">MàJ ${record.updatedAt ? new Date(record.updatedAt).toLocaleDateString('fr-FR') : '—'}</div>
+      <div class="access-row"><span>Poste</span><span>${escapeHtml(record.poste || '—')}</span></div>
+      <div class="access-row"><span>Recrutement</span><span>${escapeHtml(record.dateRecrutement || '—')}</span></div>
+      ${record.evaluation ? `<div class="side-panel-title" style="margin-top:20px;">Évaluation</div><div class="post-card-body">${escapeHtml(record.evaluation)}</div>` : ''}
+      ${record.notesDisciplinaires ? `<div class="side-panel-title" style="margin-top:20px;">Notes disciplinaires</div><div class="post-card-body">${escapeHtml(record.notesDisciplinaires)}</div>` : ''}
+      ${record.notes ? `<div class="side-panel-title" style="margin-top:20px;">Notes générales</div><div class="post-card-body">${escapeHtml(record.notes)}</div>` : ''}
+      <div class="sci-card-actions" style="margin-top:24px;">
+        <button class="btn ghost small" id="rh-edit-btn">Modifier la fiche</button>
+      </div>
+    `;
+    document.getElementById('rh-edit-btn').addEventListener('click', () => {
+      admRhRecordsSelected = `edit:${record.characterName}`;
+      renderAdmRhArticle();
     });
   }
 
