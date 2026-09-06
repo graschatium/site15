@@ -1899,13 +1899,20 @@
     resolved: 'Résolu',
   };
 
+  const RP_MAINTENANCE_DEPTS = [
+    { id: 'security', name: 'Sécurité' },
+    { id: 'medical', name: 'Médical' },
+    { id: 'scientifique_mmqbrd32f2z7', name: 'Scientifique' },
+    { id: 'administratif_mmqbmvq8ikle', name: 'Administratif' },
+  ];
+
   async function loadStatusTab() {
     const body = document.getElementById('console-body');
     body.innerHTML = '<div class="center-msg">Chargement…</div>';
 
-    let data;
+    let data, maintenance;
     try {
-      data = await apiFetch('/api/status');
+      [data, maintenance] = await Promise.all([apiFetch('/api/status'), apiFetch('/api/admin/rp-maintenance')]);
     } catch (err) {
       body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
       return;
@@ -1914,6 +1921,34 @@
     const { components, incidents } = data;
 
     body.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head">
+          <h2>Maintenance intranet RP</h2>
+          <span class="count">${maintenance.global ? 'GLOBAL ACTIF' : 'OK'}</span>
+        </div>
+        <table style="margin-bottom:16px;">
+          <thead><tr><th>Portée</th><th>Statut</th><th>Basculer</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Global</strong> (coupe tout l'intranet RP)</td>
+              <td>${maintenance.global ? '🟠 En maintenance' : '🟢 Normal'}</td>
+              <td><button class="btn ${maintenance.global ? 'ghost' : 'danger'} small maintenance-global-toggle" data-active="${maintenance.global ? '0' : '1'}">${maintenance.global ? 'Désactiver' : 'Activer'}</button></td>
+            </tr>
+            ${RP_MAINTENANCE_DEPTS.map((d) => {
+              const active = !!maintenance.departments[d.id];
+              return `
+              <tr>
+                <td>${escapeHtml(d.name)}</td>
+                <td>${active ? '🟠 En maintenance' : '🟢 Normal'}</td>
+                <td><button class="btn ${active ? 'ghost' : 'danger'} small maintenance-dept-toggle" data-dept-id="${escapeHtml(d.id)}" data-active="${active ? '0' : '1'}">${active ? 'Désactiver' : 'Activer'}</button></td>
+              </tr>
+            `;
+            }).join('')}
+          </tbody>
+        </table>
+        <p style="font-size:12px; color:var(--ink-faint);">En maintenance globale, l'intranet entier affiche un écran de maintenance. En maintenance par département, seul ce département est bloqué — les autres restent accessibles.</p>
+      </div>
+
       <div class="record-block">
         <div class="record-block-head">
           <h2>Composants</h2>
@@ -1992,6 +2027,33 @@
         </form>
       </div>
     `;
+
+    body.querySelector('.maintenance-global-toggle')?.addEventListener('click', async (e) => {
+      const active = e.target.dataset.active === '1';
+      try {
+        await apiFetch('/api/admin/rp-maintenance/global', { method: 'PATCH', body: JSON.stringify({ active }) });
+        showToast(active ? 'Maintenance globale activée.' : 'Maintenance globale désactivée.', 'success');
+        loadStatusTab();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+
+    body.querySelectorAll('.maintenance-dept-toggle').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const active = btn.dataset.active === '1';
+        try {
+          await apiFetch(`/api/admin/rp-maintenance/${encodeURIComponent(btn.dataset.deptId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ active }),
+          });
+          showToast(active ? 'Maintenance activée pour ce département.' : 'Maintenance désactivée pour ce département.', 'success');
+          loadStatusTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
 
     body.querySelectorAll('.status-component-select').forEach((sel) => {
       sel.addEventListener('change', async (e) => {

@@ -718,6 +718,28 @@
     mainRoot.innerHTML = `<div class="center-screen"><div class="console-message-inner"><p>${escapeHtml(message)}</p></div></div>`;
   }
 
+  // Écran de maintenance — global (tout l'intranet coupé) ou pour un
+  // département précis. Toujours contournable en revenant au menu si ce
+  // n'est que le département qui est en maintenance (pas le global).
+  function renderMaintenanceScreen(deptName) {
+    mainRoot.innerHTML = `
+      <div class="ban-screen">
+        <img class="boot-watermark" src="/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
+        <div class="ban-content">
+          <div class="ban-icon" style="color:var(--warn);">${ICONS.info}</div>
+          <div class="ban-title" style="color:var(--warn);">MAINTENANCE EN COURS</div>
+          <p class="ban-text">${deptName ? `L'intranet <strong>${escapeHtml(deptName)}</strong> est actuellement en maintenance.` : "L'intranet RP (IRC-15) est actuellement en maintenance."} Réessaie un peu plus tard.</p>
+          <div style="display:flex; gap:10px; justify-content:center; margin-top:20px; flex-wrap:wrap;">
+            <a href="https://voidline-studio.com/statut/" target="_blank" rel="noopener" class="btn ghost small" style="text-decoration:none;">Voir la page de statut</a>
+            <a href="https://dsc.gg/site15" target="_blank" rel="noopener" class="btn small" style="text-decoration:none;">Rejoindre le Discord</a>
+          </div>
+          ${deptName ? `<div style="margin-top:18px;"><button class="terminal-breadcrumb" id="maintenance-back-btn" style="margin:0 auto;">${ICONS.back} RETOUR AU MENU</button></div>` : ''}
+        </div>
+      </div>
+    `;
+    document.getElementById('maintenance-back-btn')?.addEventListener('click', renderTopChoice);
+  }
+
   // -----------------------------------------------------------------
   // Écran de sélection — un accès = UN département choisi, jamais
   // plusieurs affichés en même temps. Un accès "propre" (perso actif) et
@@ -807,6 +829,11 @@
   }
 
   function enterTerminal(deptId) {
+    if (context.maintenance?.departments?.[deptId]) {
+      const deptMeta = context.depts.find((d) => d.deptId === deptId);
+      renderMaintenanceScreen(deptMeta?.name || deptId);
+      return;
+    }
     renderTerminalShell(deptId);
   }
 
@@ -4679,6 +4706,11 @@
 
     if (context.banned) {
       renderBanScreen(context.banReason);
+      return;
+    }
+
+    if (context.maintenance?.global) {
+      renderMaintenanceScreen(null);
       return;
     }
 
