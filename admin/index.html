@@ -1890,6 +1890,7 @@
     degraded: 'Performances dégradées',
     partial_outage: 'Panne partielle',
     major_outage: 'Panne majeure',
+    offline: 'Hors ligne',
     maintenance: 'Maintenance',
   };
   const INCIDENT_STATUS_LABELS = {
@@ -1897,6 +1898,11 @@
     identified: 'Cause identifiée',
     monitoring: 'Sous surveillance',
     resolved: 'Résolu',
+  };
+  const MAINTENANCE_ANNOUNCEMENT_STATUS_LABELS = {
+    scheduled: 'Planifiée',
+    in_progress: 'En cours',
+    completed: 'Terminée',
   };
 
   const RP_MAINTENANCE_DEPTS = [
@@ -1918,7 +1924,7 @@
       return;
     }
 
-    const { components, incidents } = data;
+    const { components, incidents, maintenanceAnnouncements } = data;
 
     body.innerHTML = `
       <div class="record-block">
@@ -1996,6 +2002,9 @@
                     <span class="post-card-meta">${incident.createdAt ? new Date(incident.createdAt).toLocaleDateString('fr-FR') : ''}</span>
                   </div>
                   <div class="post-card-meta" style="margin-bottom:8px;">Statut : ${escapeHtml(INCIDENT_STATUS_LABELS[incident.status] || incident.status)}${latest?.message ? ` — ${escapeHtml(latest.message)}` : ''}</div>
+                  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
+                    <button class="btn danger small incident-delete-btn" data-incident-id="${escapeHtml(incident.id)}">Supprimer l'incident</button>
+                  </div>
                   ${
                     incident.status !== 'resolved'
                       ? `<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -2015,6 +2024,47 @@
                   .join('')
               : '<div class="empty-row">Aucun incident.</div>'
           }
+        </div>
+      </div>
+
+      <div class="record-block">
+        <div class="record-block-head"><h2>Annonces de maintenance planifiée</h2><span class="count">${(maintenanceAnnouncements || []).length}</span></div>
+        <div id="status-maintenance-list">
+          ${
+            (maintenanceAnnouncements || []).length
+              ? maintenanceAnnouncements
+                  .map(
+                    (m) => `
+              <div class="post-card" data-maintenance-id="${escapeHtml(m.id)}">
+                <div class="post-card-head">
+                  <span class="post-card-title">${escapeHtml(m.title)}</span>
+                  <span class="post-card-meta">${m.createdAt ? new Date(m.createdAt).toLocaleDateString('fr-FR') : ''}</span>
+                </div>
+                ${m.scheduledFor ? `<div class="post-card-meta" style="margin-bottom:6px;">Prévue : ${escapeHtml(m.scheduledFor)}</div>` : ''}
+                <div class="post-card-body">${escapeHtml(m.message || '')}</div>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+                  <select class="maintenance-status-select" data-maintenance-id="${escapeHtml(m.id)}" style="width:auto; padding:6px 26px 6px 10px; font-size:12.5px;">
+                    ${Object.entries(MAINTENANCE_ANNOUNCEMENT_STATUS_LABELS)
+                      .map(([value, label]) => `<option value="${value}"${m.status === value ? ' selected' : ''}>${label}</option>`)
+                      .join('')}
+                  </select>
+                  <button class="btn danger small maintenance-delete-btn" data-maintenance-id="${escapeHtml(m.id)}">Supprimer</button>
+                </div>
+              </div>
+            `
+                  )
+                  .join('')
+              : '<div class="empty-row">Aucune annonce de maintenance.</div>'
+          }
+        </div>
+        <div class="subsection">
+          <h3>Nouvelle annonce de maintenance</h3>
+          <form id="status-maintenance-form">
+            <div class="field-row"><label>Titre *</label><input type="text" id="status-maintenance-title" required></div>
+            <div class="field-row"><label>Prévue pour (optionnel)</label><input type="text" id="status-maintenance-scheduled" placeholder="Ex: 15/09/2026 22h-00h"></div>
+            <div class="field-row"><label>Message</label><textarea id="status-maintenance-message" rows="3"></textarea></div>
+            <button class="btn" type="submit">Publier l'annonce</button>
+          </form>
         </div>
       </div>
 
@@ -2096,6 +2146,62 @@
       try {
         await apiFetch('/api/admin/status/incidents', { method: 'POST', body: JSON.stringify({ title, description }) });
         showToast('Incident ouvert.', 'success');
+        loadStatusTab();
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+
+    body.querySelectorAll('.incident-delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer définitivement cet incident ?')) return;
+        try {
+          await apiFetch(`/api/admin/status/incidents/${encodeURIComponent(btn.dataset.incidentId)}`, { method: 'DELETE' });
+          showToast('Incident supprimé.', 'success');
+          loadStatusTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    body.querySelectorAll('.maintenance-status-select').forEach((sel) => {
+      sel.addEventListener('change', async (e) => {
+        try {
+          await apiFetch(`/api/admin/status/maintenance/${encodeURIComponent(e.target.dataset.maintenanceId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: e.target.value }),
+          });
+          showToast('Annonce mise à jour.', 'success');
+          loadStatusTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    body.querySelectorAll('.maintenance-delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer cette annonce de maintenance ?')) return;
+        try {
+          await apiFetch(`/api/admin/status/maintenance/${encodeURIComponent(btn.dataset.maintenanceId)}`, { method: 'DELETE' });
+          showToast('Annonce supprimée.', 'success');
+          loadStatusTab();
+        } catch (err) {
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
+
+    document.getElementById('status-maintenance-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('status-maintenance-title').value.trim();
+      const scheduledFor = document.getElementById('status-maintenance-scheduled').value.trim();
+      const message = document.getElementById('status-maintenance-message').value.trim();
+      if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
+      try {
+        await apiFetch('/api/admin/status/maintenance', { method: 'POST', body: JSON.stringify({ title, scheduledFor, message }) });
+        showToast('Annonce publiée.', 'success');
         loadStatusTab();
       } catch (err) {
         showToast(`Erreur : ${err.message}`, 'error');

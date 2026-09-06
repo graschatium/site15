@@ -131,6 +131,8 @@
   .banner.partial_outage .banner-icon{ color:var(--orange); }
   .banner.major_outage{ background:rgba(240,82,90,0.08); border-color:rgba(240,82,90,0.3); }
   .banner.major_outage .banner-icon{ color:var(--bad); }
+  .banner.offline{ background:rgba(140,20,25,0.14); border-color:rgba(240,82,90,0.45); }
+  .banner.offline .banner-icon{ color:#8c1419; }
   .banner.maintenance{ background:rgba(79,168,240,0.08); border-color:rgba(79,168,240,0.3); }
   .banner.maintenance .banner-icon{ color:var(--blue); }
 
@@ -159,8 +161,23 @@
   .status-pill.partial_outage .status-dot{ background:var(--orange); box-shadow:0 0 6px var(--orange); }
   .status-pill.major_outage{ background:rgba(240,82,90,0.1); color:var(--bad); }
   .status-pill.major_outage .status-dot{ background:var(--bad); box-shadow:0 0 6px var(--bad); }
+  .status-pill.offline{ background:rgba(140,20,25,0.18); color:#e8737a; }
+  .status-pill.offline .status-dot{ background:#8c1419; box-shadow:0 0 6px #8c1419; }
   .status-pill.maintenance{ background:rgba(79,168,240,0.1); color:var(--blue); }
   .status-pill.maintenance .status-dot{ background:var(--blue); box-shadow:0 0 6px var(--blue); }
+
+  .maintenance-card{
+    background:rgba(79,168,240,0.06); border:1px solid rgba(79,168,240,0.3); border-radius:8px;
+    padding:18px 22px; margin-bottom:14px;
+  }
+  .maintenance-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+  .maintenance-title{ font-family:'Space Grotesk', sans-serif; font-size:14.5px; font-weight:600; color:var(--blue); }
+  .maintenance-when{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+  .maintenance-msg{ font-size:13px; color:var(--ink-dim); line-height:1.6; }
+  .maintenance-status-tag{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.04em; text-transform:uppercase;
+    color:var(--blue); margin-top:8px; display:inline-block;
+  }
 
   .incident-card{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:20px 22px; margin-bottom:14px; }
   .incident-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
@@ -312,6 +329,7 @@
     degraded: { label: 'Performances dégradées', bannerLabel: 'Performances dégradées' },
     partial_outage: { label: 'Panne partielle', bannerLabel: 'Panne partielle en cours' },
     major_outage: { label: 'Panne majeure', bannerLabel: 'Panne majeure en cours' },
+    offline: { label: 'Hors ligne', bannerLabel: 'Service hors ligne' },
     maintenance: { label: 'Maintenance', bannerLabel: 'Maintenance en cours' },
   };
   const STATUS_ICONS = {
@@ -319,10 +337,11 @@
     degraded: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
     partial_outage: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L2.5 17a2 2 0 0 0 1.7 3h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
     major_outage: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>',
+    offline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M6.3 6.3a9 9 0 1 0 11.4 0"/></svg>',
     maintenance: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4l-6 6a2 2 0 0 0 2.8 2.8l6-6a4 4 0 0 1 5.4-5.4l-3 3-2-2z"/></svg>',
   };
 
-  const STATUS_SEVERITY = { operational: 0, maintenance: 1, degraded: 2, partial_outage: 3, major_outage: 4 };
+  const STATUS_SEVERITY = { operational: 0, maintenance: 1, degraded: 2, partial_outage: 3, major_outage: 4, offline: 5 };
 
   const INCIDENT_STATUS_META = {
     investigating: { label: 'Enquête en cours' },
@@ -359,13 +378,14 @@
     }
     lastRenderedHash = hash;
 
-    const { components, incidents } = data;
+    const { components, incidents, maintenanceAnnouncements } = data;
     const overall = worstStatus(components);
     const meta = STATUS_META[overall] || STATUS_META.operational;
 
     const activeIncidents = incidents.filter((i) => i.status !== 'resolved');
     const resolvedIncidents = incidents.filter((i) => i.status === 'resolved');
     const RESOLVED_PREVIEW_COUNT = 3;
+    const activeMaintenance = (maintenanceAnnouncements || []).filter((m) => m.status !== 'completed');
 
     content.innerHTML = `
       <div class="banner ${overall} reveal-in">
@@ -375,6 +395,15 @@
           <div class="sub">Vérifié à <span id="last-refresh-time">${new Date().toLocaleTimeString('fr-FR')}</span> — actualisation automatique toutes les 30s</div>
         </div>
       </div>
+
+      ${
+        activeMaintenance.length
+          ? `<div class="section-title reveal-in">Maintenance planifiée</div>
+             <div class="reveal-in" style="margin-bottom:32px;">
+               ${activeMaintenance.map(maintenanceAnnouncementCard).join('')}
+             </div>`
+          : ''
+      }
 
       <div class="section-title reveal-in">Composants</div>
       <div class="components-card reveal-in">
@@ -420,6 +449,21 @@
       lastRenderedHash = null;
       loadStatus(false);
     });
+  }
+
+  const MAINTENANCE_STATUS_LABELS = { scheduled: 'Planifiée', in_progress: 'En cours', completed: 'Terminée' };
+
+  function maintenanceAnnouncementCard(m) {
+    return `
+      <div class="maintenance-card">
+        <div class="maintenance-head">
+          <span class="maintenance-title">${escapeHtml(m.title)}</span>
+          ${m.scheduledFor ? `<span class="maintenance-when">${escapeHtml(m.scheduledFor)}</span>` : ''}
+        </div>
+        ${m.message ? `<div class="maintenance-msg">${escapeHtml(m.message)}</div>` : ''}
+        <span class="maintenance-status-tag">${escapeHtml(MAINTENANCE_STATUS_LABELS[m.status] || m.status)}</span>
+      </div>
+    `;
   }
 
   function incidentCard(incident, hidden) {
