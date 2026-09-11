@@ -301,6 +301,9 @@
   .status-actif{ background:rgba(79,216,149,0.12); color:var(--good); }
   .status-inactif{ background:rgba(240,168,60,0.12); color:var(--warn); }
   .status-archivé{ background:rgba(240,82,90,0.12); color:var(--bad); }
+  .sev-minor{ background:rgba(240,168,60,0.12); color:var(--warn); }
+  .sev-major{ background:rgba(240,118,60,0.12); color:#F0763C; }
+  .sev-critical{ background:rgba(240,82,90,0.12); color:var(--bad); }
 
   .subsection{
     margin-top:28px; padding:22px 22px 24px; border:1px solid var(--line); border-radius:10px; background:var(--panel);
@@ -1899,6 +1902,8 @@
     monitoring: 'Sous surveillance',
     resolved: 'Résolu',
   };
+  const INCIDENT_SEVERITY_LABELS = { minor: 'Mineur', major: 'Majeur', critical: 'Critique' };
+  const INCIDENT_SEVERITY_CLASSES = { minor: 'sev-minor', major: 'sev-major', critical: 'sev-critical' };
   const MAINTENANCE_ANNOUNCEMENT_STATUS_LABELS = {
     scheduled: 'Planifiée',
     in_progress: 'En cours',
@@ -2001,6 +2006,14 @@
                     <span class="post-card-title">${escapeHtml(incident.title)}</span>
                     <span class="post-card-meta">${incident.createdAt ? new Date(incident.createdAt).toLocaleDateString('fr-FR') : ''}</span>
                   </div>
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                    <span class="status-pill ${INCIDENT_SEVERITY_CLASSES[incident.severity] || 'sev-minor'}">${escapeHtml(INCIDENT_SEVERITY_LABELS[incident.severity] || 'Mineur')}</span>
+                  </div>
+                  ${
+                    (incident.affectedComponents || []).length
+                      ? `<div class="post-card-meta" style="margin-bottom:6px;">Composants : ${incident.affectedComponents.map((id) => escapeHtml(components.find((c) => c.id === id)?.name || id)).join(', ')}</div>`
+                      : ''
+                  }
                   <div class="post-card-meta" style="margin-bottom:8px;">Statut : ${escapeHtml(INCIDENT_STATUS_LABELS[incident.status] || incident.status)}${latest?.message ? ` — ${escapeHtml(latest.message)}` : ''}</div>
                   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px;">
                     <button class="btn danger small incident-delete-btn" data-incident-id="${escapeHtml(incident.id)}">Supprimer l'incident</button>
@@ -2072,6 +2085,27 @@
         <h3>Ouvrir un nouvel incident</h3>
         <form id="status-incident-form">
           <div class="field-row"><label>Titre *</label><input type="text" id="status-incident-title" required></div>
+          <div class="field-row">
+            <label>Gravité</label>
+            <select id="status-incident-severity">
+              ${Object.entries(INCIDENT_SEVERITY_LABELS).map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-row">
+            <label>Composants affectés</label>
+            <div style="display:flex; flex-wrap:wrap; gap:6px 16px; padding:6px 0;">
+              ${components
+                .map(
+                  (c) => `
+                <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:400; text-transform:none; letter-spacing:normal; color:var(--ink-dim);">
+                  <input type="checkbox" class="status-incident-component-checkbox" value="${escapeHtml(c.id)}" style="width:auto;">
+                  ${escapeHtml(c.name)}
+                </label>
+              `
+                )
+                .join('')}
+            </div>
+          </div>
           <div class="field-row"><label>Description initiale</label><textarea id="status-incident-description" rows="3"></textarea></div>
           <button class="btn" type="submit">Ouvrir l'incident</button>
         </form>
@@ -2142,9 +2176,11 @@
       e.preventDefault();
       const title = document.getElementById('status-incident-title').value.trim();
       const description = document.getElementById('status-incident-description').value.trim();
+      const severity = document.getElementById('status-incident-severity').value;
+      const affectedComponents = Array.from(body.querySelectorAll('.status-incident-component-checkbox:checked')).map((el) => el.value);
       if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
       try {
-        await apiFetch('/api/admin/status/incidents', { method: 'POST', body: JSON.stringify({ title, description }) });
+        await apiFetch('/api/admin/status/incidents', { method: 'POST', body: JSON.stringify({ title, description, severity, affectedComponents }) });
         showToast('Incident ouvert.', 'success');
         loadStatusTab();
       } catch (err) {
