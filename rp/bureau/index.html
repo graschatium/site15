@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bureau — Administratif — SITE-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #0A0B0E;
+    --void-2: #101218;
+    --panel: #14161D;
+    --panel-raised: #191c25;
+    --line: #2A2D38;
+    --line-soft: rgba(255,255,255,0.06);
+    --accent: #6E76FF;
+    --line-bright: #6E76FF;
+    --line-bright-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #5A5F6E;
+    --good: #4FD895;
+    --warn: #F0A83C;
+    --bad: #F0525A;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html, body{ height:100%; }
+  body{
+    background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; overflow:hidden;
+  }
+  a{ color:inherit; text-decoration:none; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .topbar{
+    height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+    background:var(--void-2); border-bottom:1px solid var(--line);
+  }
+  .topbar-left{ display:flex; align-items:center; gap:10px; }
+  .back-link{
+    display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-dim); padding:6px 10px;
+    border-radius:5px; border:1px solid var(--line); transition:color .15s ease, border-color .15s ease;
+  }
+  .back-link:hover{ color:var(--ink); border-color:var(--line-bright); }
+  .back-link svg{ width:14px; height:14px; }
+  .topbar-title{ font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; }
+  .topbar-status{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+
+  .center-msg{ display:flex; align-items:center; justify-content:center; height:calc(100vh - 48px); color:var(--ink-dim); font-size:14px; text-align:center; padding:20px; }
+
+  /* ---- Bureau (faux OS SCP) ---- */
+  .desktop-shell{
+    position:relative; width:100%; height:calc(100vh - 48px); overflow:hidden; user-select:none;
+    background:
+      radial-gradient(ellipse 1100px 600px at 70% -10%, rgba(110,118,255,0.08), transparent 60%),
+      linear-gradient(160deg, #0c0d11, #06070a 70%);
+  }
+  .desktop-shell::before{
+    content:''; position:absolute; inset:0; pointer-events:none; opacity:0.04;
+    background-image:
+      linear-gradient(to right, #fff 1px, transparent 1px),
+      linear-gradient(to bottom, #fff 1px, transparent 1px);
+    background-size:40px 40px;
+  }
+  .desktop-watermark{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:420px; opacity:0.035;
+    pointer-events:none; filter:grayscale(1);
+  }
+  .desktop-icons{ position:absolute; top:24px; left:24px; display:flex; flex-direction:column; gap:18px; z-index:1; }
+  .desktop-icon{
+    width:82px; display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer;
+    padding:8px 4px; border-radius:6px; text-align:center;
+  }
+  .desktop-icon:hover{ background:rgba(255,255,255,0.06); }
+  .desktop-icon-glyph{
+    width:44px; height:44px; border-radius:9px; background:var(--accent); display:flex; align-items:center;
+    justify-content:center; color:#fff; box-shadow:0 6px 16px rgba(110,118,255,0.35);
+  }
+  .desktop-icon-glyph svg{ width:24px; height:24px; }
+  .desktop-icon-label{ font-size:11.5px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.8); line-height:1.3; }
+
+  .desktop-window{
+    position:absolute; min-width:340px; min-height:240px; background:var(--panel); border:1px solid var(--line);
+    border-radius:8px; box-shadow:0 24px 60px rgba(0,0,0,0.55); display:flex; flex-direction:column; overflow:hidden;
+  }
+  .desktop-window.focused{ border-color:var(--accent); }
+  .desktop-window-titlebar{
+    display:flex; align-items:center; justify-content:space-between; padding:0 8px 0 14px; height:38px;
+    background:linear-gradient(180deg, #1c1f29, #14161d); border-bottom:1px solid var(--line); cursor:move; flex-shrink:0;
+  }
+  .desktop-window-title{ font-family:'Space Grotesk', sans-serif; font-size:12.5px; font-weight:600; color:var(--ink); }
+  .desktop-window-controls{ display:flex; gap:6px; }
+  .desktop-window-btn{
+    width:22px; height:22px; border-radius:4px; border:none; background:transparent; color:var(--ink-faint);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px;
+  }
+  .desktop-window-btn:hover{ background:rgba(255,255,255,0.08); color:var(--ink); }
+  .desktop-window-btn.close:hover{ background:var(--bad); color:#fff; }
+  .desktop-window-body{ flex:1; overflow-y:auto; padding:20px; }
+  .desktop-window-resize{ position:absolute; bottom:0; right:0; width:16px; height:16px; cursor:nwse-resize; }
+  .desktop-window-resize::after{
+    content:''; position:absolute; bottom:4px; right:4px; width:7px; height:7px;
+    border-right:2px solid var(--line-bright); border-bottom:2px solid var(--line-bright);
+  }
+
+  .desktop-taskbar{
+    position:absolute; bottom:0; left:0; right:0; height:44px; background:rgba(12,13,17,0.9);
+    backdrop-filter:blur(6px); border-top:1px solid var(--line); display:flex; align-items:center;
+    gap:8px; padding:0 14px; z-index:50;
+  }
+  .desktop-start-btn{
+    display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:5px; background:var(--accent);
+    color:#fff; font-size:11.5px; font-weight:600; font-family:'JetBrains Mono', monospace;
+  }
+  .desktop-taskbar-item{
+    display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:5px; background:var(--void-2);
+    border:1px solid var(--line); color:var(--ink-dim); font-size:11.5px; cursor:pointer;
+  }
+  .desktop-taskbar-item.active{ border-color:var(--accent); color:var(--ink); }
+  .desktop-clock{ margin-left:auto; font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-faint); }
+
+  /* ---- Éléments réutilisés du panel (formulaires, tableaux, cartes) ---- */
+  .med-subnav{ display:flex; gap:4px; margin-bottom:16px; border-bottom:1px solid var(--line); }
+  .med-subnav-btn{
+    padding:9px 14px; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
+    color:var(--ink-faint); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent;
+  }
+  .med-subnav-btn.active{ color:var(--line-bright-2); border-bottom-color:var(--accent); }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th, td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line-soft); }
+  th{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint); }
+  input, select, textarea{
+    width:100%; background:var(--void-2); border:1px solid var(--line); border-radius:5px; padding:8px 10px;
+    color:var(--ink); font-family:'Inter', sans-serif; font-size:13px;
+  }
+  .field-row{ margin-bottom:12px; }
+  .field-row label{ display:block; font-size:11.5px; color:var(--ink-faint); margin-bottom:5px; font-family:'JetBrains Mono', monospace; letter-spacing:0.03em; text-transform:uppercase; }
+  .btn{
+    padding:9px 16px; border-radius:5px; border:1px solid var(--line); background:var(--accent); color:#fff;
+    font-size:12.5px; font-weight:600; cursor:pointer;
+  }
+  .btn.small{ padding:6px 12px; font-size:12px; }
+  .btn.danger{ background:var(--bad); }
+  .record-block{ margin-bottom:20px; }
+  .record-block-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .record-block-head h2{ font-family:'Space Grotesk', sans-serif; font-size:14px; }
+  .count{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+  .post-card{ background:var(--void-2); border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:8px; }
+  .post-card-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .post-card-title{ font-weight:600; font-size:13px; }
+  .post-card-meta{ font-size:11.5px; color:var(--ink-faint); }
+  .post-card-body{ font-size:12.5px; color:var(--ink-dim); }
+  .empty-row{ color:var(--ink-faint); font-size:12.5px; padding:12px 0; }
+  .subsection{ margin-top:20px; padding:16px; border:1px solid var(--line); border-radius:8px; background:var(--void-2); }
+  .subsection h3{ font-family:'Space Grotesk', sans-serif; font-size:13px; margin-bottom:12px; }
+  .status-pill{ display:inline-block; padding:3px 10px; border-radius:20px; font-size:10.5px; font-family:'JetBrains Mono', monospace; text-transform:uppercase; }
+  .status-actif{ background:rgba(79,216,149,0.12); color:var(--good); }
+  .status-inactif{ background:rgba(240,168,60,0.12); color:var(--warn); }
+  .status-archivé{ background:rgba(240,82,90,0.12); color:var(--bad); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="/rp/" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à l'intranet
+    </a>
+    <span class="topbar-title">Bureau — Administratif</span>
+  </div>
+  <span class="topbar-status mono" id="topbar-status">SCP-OS v3.11</span>
+</div>
+
+<div id="page-root">
+  <div class="center-msg">Chargement…</div>
+</div>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+  const TOKEN_KEY = 'vs_token';
+  const ADMIN_DEPT_ID = 'administratif_mmqbmvq8ikle';
+
+  (function captureTokenFromUrl() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    }
+  })();
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY); }
+
+  function escapeHtml(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  async function apiFetch(path, options = {}) {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+    if (res.status === 204) return null;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    return data;
+  }
+
+  function showToast(message) {
+    // Pas de système de toast sur cette page indépendante — simple alerte discrète en console + alert natif en cas d'erreur bloquante.
+    console.log(message);
+  }
+
+  const pageRoot = document.getElementById('page-root');
+
+  // ---------------------------------------------------------------------
+  // Contrôle d'accès : nécessite un personnage actif Administratif.
+  // ---------------------------------------------------------------------
+  async function checkAccessAndInit() {
+    if (!getToken()) {
+      pageRoot.innerHTML = '<div class="center-msg">Connecte-toi depuis le site avant d\'accéder au Bureau.</div>';
+      return;
+    }
+
+    let context;
+    try {
+      context = await apiFetch('/api/rp/context');
+    } catch (err) {
+      pageRoot.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    if (context.banned) {
+      pageRoot.innerHTML = '<div class="center-msg">Accès révoqué.</div>';
+      return;
+    }
+
+    const isAdmin = (context.characters || []).some((c) => c.deptId === ADMIN_DEPT_ID);
+    if (!isAdmin) {
+      pageRoot.innerHTML = '<div class="center-msg">Accès refusé — le Bureau est réservé au personnel actif du département Administratif.</div>';
+      return;
+    }
+
+    loadDesktop();
+  }
+
+  // ---------------------------------------------------------------------
+  // Gestionnaire de fenêtres
+  // ---------------------------------------------------------------------
+  let desktopWindows = [];
+  let desktopZCounter = 10;
+  let desktopClockInterval = null;
+  let activeDragWindow = null;
+  let activeResizeWindow = null;
+
+  document.addEventListener('mousemove', (e) => {
+    if (activeDragWindow) {
+      const win = desktopWindows.find((w) => w.id === activeDragWindow.winId);
+      if (win) {
+        win.x = e.clientX - activeDragWindow.offsetX;
+        win.y = e.clientY - activeDragWindow.offsetY;
+        updateDesktopWindowGeometry(win);
+      }
+    }
+    if (activeResizeWindow) {
+      const win = desktopWindows.find((w) => w.id === activeResizeWindow.winId);
+      if (win) {
+        win.width = Math.max(340, activeResizeWindow.startW + (e.clientX - activeResizeWindow.startX));
+        win.height = Math.max(240, activeResizeWindow.startH + (e.clientY - activeResizeWindow.startY));
+        updateDesktopWindowGeometry(win);
+      }
+    }
+  });
+  document.addEventListener('mouseup', () => {
+    activeDragWindow = null;
+    activeResizeWindow = null;
+  });
+
+  function updateDesktopWindowGeometry(win) {
+    const el = document.getElementById(`desktop-window-${win.id}`);
+    if (!el) return;
+    el.style.left = `${win.x}px`;
+    el.style.top = `${win.y}px`;
+    el.style.width = `${win.width}px`;
+    el.style.height = `${win.height}px`;
+  }
+
+  function focusDesktopWindow(id) {
+    desktopZCounter += 1;
+    const win = desktopWindows.find((w) => w.id === id);
+    if (!win) return;
+    win.zIndex = desktopZCounter;
+    win.minimized = false;
+    document.querySelectorAll('.desktop-window').forEach((el) => el.classList.remove('focused'));
+    const el = document.getElementById(`desktop-window-${id}`);
+    if (el) {
+      el.style.zIndex = win.zIndex;
+      el.style.display = 'flex';
+      el.classList.add('focused');
+    }
+    renderDesktopTaskbar();
+  }
+
+  function closeDesktopWindow(id) {
+    desktopWindows = desktopWindows.filter((w) => w.id !== id);
+    const el = document.getElementById(`desktop-window-${id}`);
+    if (el) el.remove();
+    renderDesktopTaskbar();
+  }
+
+  function minimizeDesktopWindow(id) {
+    const win = desktopWindows.find((w) => w.id === id);
+    if (!win) return;
+    win.minimized = true;
+    const el = document.getElementById(`desktop-window-${id}`);
+    if (el) el.style.display = 'none';
+    renderDesktopTaskbar();
+  }
+
+  function renderDesktopTaskbar() {
+    const bar = document.getElementById('desktop-taskbar-items');
+    if (!bar) return;
+    bar.innerHTML = desktopWindows
+      .map((w) => `<button class="desktop-taskbar-item${!w.minimized ? ' active' : ''}" data-win-id="${w.id}">${escapeHtml(w.title)}</button>`)
+      .join('');
+    bar.querySelectorAll('.desktop-taskbar-item').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.winId;
+        const win = desktopWindows.find((w) => w.id === id);
+        if (win && !win.minimized) minimizeDesktopWindow(id);
+        else focusDesktopWindow(id);
+      });
+    });
+  }
+
+  function openDesktopWindow(appId, title, bodyHtml, onMount) {
+    const existing = desktopWindows.find((w) => w.appId === appId);
+    if (existing) {
+      focusDesktopWindow(existing.id);
+      return;
+    }
+
+    const id = `${appId}-${Date.now()}`;
+    const win = {
+      id, appId, title,
+      x: 60 + desktopWindows.length * 24,
+      y: 40 + desktopWindows.length * 24,
+      width: 620, height: 460,
+      zIndex: (desktopZCounter += 1),
+      minimized: false,
+    };
+    desktopWindows.push(win);
+
+    const layer = document.getElementById('desktop-windows-layer');
+    const winEl = document.createElement('div');
+    winEl.className = 'desktop-window focused';
+    winEl.id = `desktop-window-${id}`;
+    winEl.style.left = `${win.x}px`;
+    winEl.style.top = `${win.y}px`;
+    winEl.style.width = `${win.width}px`;
+    winEl.style.height = `${win.height}px`;
+    winEl.style.zIndex = win.zIndex;
+    winEl.innerHTML = `
+      <div class="desktop-window-titlebar" data-win-id="${id}">
+        <span class="desktop-window-title">${escapeHtml(title)}</span>
+        <div class="desktop-window-controls">
+          <button class="desktop-window-btn minimize-btn" data-win-id="${id}">–</button>
+          <button class="desktop-window-btn close close-btn" data-win-id="${id}">×</button>
+        </div>
+      </div>
+      <div class="desktop-window-body" id="desktop-window-body-${id}">${bodyHtml}</div>
+      <div class="desktop-window-resize" data-win-id="${id}"></div>
+    `;
+    layer.appendChild(winEl);
+
+    winEl.addEventListener('mousedown', () => focusDesktopWindow(id));
+
+    const titlebar = winEl.querySelector('.desktop-window-titlebar');
+    titlebar.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.desktop-window-btn')) return;
+      activeDragWindow = { winId: id, offsetX: e.clientX - win.x, offsetY: e.clientY - win.y };
+      focusDesktopWindow(id);
+      e.preventDefault();
+    });
+
+    winEl.querySelector('.minimize-btn').addEventListener('click', () => minimizeDesktopWindow(id));
+    winEl.querySelector('.close-btn').addEventListener('click', () => closeDesktopWindow(id));
+
+    winEl.querySelector('.desktop-window-resize').addEventListener('mousedown', (e) => {
+      activeResizeWindow = { winId: id, startX: e.clientX, startY: e.clientY, startW: win.width, startH: win.height };
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    renderDesktopTaskbar();
+    if (onMount) onMount(id);
+  }
+
+  const ICON_DOCUMENT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3M9 9h6M9 13h6M9 17h4"/></svg>';
+  const ICON_MONITOR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>';
+
+  function loadDesktop() {
+    desktopWindows = [];
+    pageRoot.innerHTML = `
+      <div class="desktop-shell" id="desktop-shell">
+        <img class="desktop-watermark" src="/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
+        <div class="desktop-icons">
+          <div class="desktop-icon" id="icon-budget">
+            <div class="desktop-icon-glyph">${ICON_DOCUMENT}</div>
+            <span class="desktop-icon-label">Budget<br>Départemental</span>
+          </div>
+        </div>
+        <div class="desktop-windows-layer" id="desktop-windows-layer"></div>
+        <div class="desktop-taskbar">
+          <div class="desktop-start-btn">${ICON_MONITOR} SCP-OS</div>
+          <div id="desktop-taskbar-items" style="display:flex; gap:8px;"></div>
+          <span class="desktop-clock" id="desktop-clock"></span>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('icon-budget').addEventListener('dblclick', openBudgetApp);
+
+    function updateClock() {
+      const el = document.getElementById('desktop-clock');
+      if (el) el.textContent = new Date().toLocaleTimeString('fr-FR');
+    }
+    updateClock();
+    if (desktopClockInterval) clearInterval(desktopClockInterval);
+    desktopClockInterval = setInterval(updateClock, 1000);
+  }
+
+  // ---------------------------------------------------------------------
+  // App : Budget départemental
+  // ---------------------------------------------------------------------
+  const BUDGET_DEPTS_LABELS = {
+    security: 'Sécurité',
+    medical: 'Médical',
+    scientifique_mmqbrd32f2z7: 'Scientifique',
+    administratif_mmqbmvq8ikle: 'Administratif',
+  };
+  let budgetSubTab = 'allocations';
+
+  function openBudgetApp() {
+    openDesktopWindow('budget', 'Budget Départemental', '<div class="center-msg" style="height:auto; padding:20px 0;">Chargement…</div>', (winId) => {
+      renderBudgetApp(winId);
+    });
+  }
+
+  async function renderBudgetApp(winId) {
+    const body = document.getElementById(`desktop-window-body-${winId}`);
+    if (!body) return;
+    body.innerHTML = `
+      <div class="med-subnav">
+        <button class="med-subnav-btn${budgetSubTab === 'allocations' ? ' active' : ''}" data-sub="allocations" type="button">Allocations</button>
+        <button class="med-subnav-btn${budgetSubTab === 'requests' ? ' active' : ''}" data-sub="requests" type="button">Demandes</button>
+      </div>
+      <div id="budget-content-${winId}"></div>
+    `;
+    body.querySelectorAll('.med-subnav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        budgetSubTab = btn.dataset.sub;
+        renderBudgetApp(winId);
+      });
+    });
+
+    if (budgetSubTab === 'allocations') loadBudgetAllocations(winId);
+    else loadBudgetRequests(winId);
+  }
+
+  async function loadBudgetAllocations(winId) {
+    const content = document.getElementById(`budget-content-${winId}`);
+    if (!content) return;
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/budget/allocations');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const allocations = data.allocations || [];
+    content.innerHTML = `
+      <table>
+        <thead><tr><th>Département</th><th>Budget alloué</th><th></th></tr></thead>
+        <tbody>
+          ${allocations
+            .map(
+              (a) => `
+            <tr>
+              <td>${escapeHtml(a.deptName)}</td>
+              <td><input type="number" class="budget-alloc-input" data-dept-id="${escapeHtml(a.deptId)}" value="${a.allocatedAmount}" style="width:120px;"></td>
+              <td><button class="btn small budget-alloc-save-btn" data-dept-id="${escapeHtml(a.deptId)}">Enregistrer</button></td>
+            </tr>
+          `
+            )
+            .join('')}
+        </tbody>
+      </table>
+    `;
+
+    content.querySelectorAll('.budget-alloc-save-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const deptId = btn.dataset.deptId;
+        const input = content.querySelector(`.budget-alloc-input[data-dept-id="${deptId}"]`);
+        try {
+          await apiFetch(`/api/rp/admin-ops/budget/allocations/${encodeURIComponent(deptId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ amount: input.value }),
+          });
+          showToast('Allocation mise à jour.');
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+  }
+
+  async function loadBudgetRequests(winId) {
+    const content = document.getElementById(`budget-content-${winId}`);
+    if (!content) return;
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/budget/requests');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const requests = data.requests || [];
+    const STATUS_LABELS_BUDGET = { pending: 'En attente', approved: 'Approuvée', rejected: 'Refusée' };
+
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Demandes</h2><span class="count">${requests.length}</span></div>
+        ${
+          requests.length
+            ? requests
+                .map(
+                  (r) => `
+          <div class="post-card">
+            <div class="post-card-head">
+              <span class="post-card-title">${escapeHtml(r.title)}</span>
+              <span class="status-pill ${r.status === 'approved' ? 'status-actif' : r.status === 'rejected' ? 'status-archivé' : 'status-inactif'}">${escapeHtml(STATUS_LABELS_BUDGET[r.status] || r.status)}</span>
+            </div>
+            <div class="post-card-meta" style="margin-bottom:6px;">${escapeHtml(r.deptName)} — ${r.amount} — ${escapeHtml(r.authorCharacterName)}</div>
+            <div class="post-card-body">${escapeHtml(r.justification || '')}</div>
+            ${r.resolutionNote ? `<div class="post-card-meta" style="margin-top:6px;">Note : ${escapeHtml(r.resolutionNote)}</div>` : ''}
+            ${
+              r.status === 'pending'
+                ? `<div style="display:flex; gap:8px; margin-top:10px;">
+                    <button class="btn small budget-approve-btn" data-request-id="${escapeHtml(r.id)}">Approuver</button>
+                    <button class="btn danger small budget-reject-btn" data-request-id="${escapeHtml(r.id)}">Refuser</button>
+                  </div>`
+                : ''
+            }
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucune demande.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Nouvelle demande</h3>
+        <form id="budget-request-form-${winId}">
+          <div class="field-row">
+            <label>Département</label>
+            <select id="budget-request-dept-${winId}">
+              ${Object.entries(BUDGET_DEPTS_LABELS).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-row"><label>Titre *</label><input type="text" id="budget-request-title-${winId}" required></div>
+          <div class="field-row"><label>Montant</label><input type="number" id="budget-request-amount-${winId}"></div>
+          <div class="field-row"><label>Justification</label><textarea id="budget-request-justification-${winId}" rows="3"></textarea></div>
+          <button class="btn" type="submit">Soumettre la demande</button>
+        </form>
+      </div>
+    `;
+
+    content.querySelectorAll('.budget-approve-btn, .budget-reject-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const status = btn.classList.contains('budget-approve-btn') ? 'approved' : 'rejected';
+        try {
+          await apiFetch(`/api/rp/admin-ops/budget/requests/${encodeURIComponent(btn.dataset.requestId)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status }),
+          });
+          showToast(status === 'approved' ? 'Demande approuvée.' : 'Demande refusée.');
+          loadBudgetRequests(winId);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+
+    document.getElementById(`budget-request-form-${winId}`).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const deptId = document.getElementById(`budget-request-dept-${winId}`).value;
+      const deptName = BUDGET_DEPTS_LABELS[deptId];
+      const title = document.getElementById(`budget-request-title-${winId}`).value.trim();
+      const amount = document.getElementById(`budget-request-amount-${winId}`).value;
+      const justification = document.getElementById(`budget-request-justification-${winId}`).value.trim();
+      if (!title) { alert('Le titre est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/budget/requests', { method: 'POST', body: JSON.stringify({ deptId, deptName, title, amount, justification }) });
+        showToast('Demande soumise.');
+        loadBudgetRequests(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  checkAccessAndInit();
+</script>
+
+</body>
+</html>

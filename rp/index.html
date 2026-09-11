@@ -520,6 +520,7 @@
   .med-subnav-btn:hover{ color:var(--ink-dim); }
   .med-subnav-btn.active{ color:var(--accent-2); border-bottom-color:var(--accent); }
 
+
   .dse-code-badge{ font-weight:700; letter-spacing:0.02em; }
 
   .redacted-text{
@@ -665,6 +666,7 @@
     scalpel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4L9 15"/><path d="M9 15L4 20l1.5-4.5z"/><path d="M15 4l5 5"/></svg>',
     dna: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3c0 5 10 6 10 11 0 5-10 6-10 11M17 3c0 5-10 6-10 11 0 5 10 6 10 11"/><path d="M8 8h8M8 16h8"/></svg>',
     document: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l3 3v15H6z"/><path d="M15 3v3h3M9 9h6M9 13h6M9 17h4"/></svg>',
+    monitor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>',
     atom: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.5"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(120 12 12)"/></svg>',
     gavel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6"/><path d="M8 10l6 6"/><path d="M4 14l6 6"/><path d="M17 7l3-3"/><path d="M4 20h9"/></svg>',
     eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>',
@@ -929,6 +931,7 @@
       tabs.push({ id: 'adm-observations', label: 'Rapport Observation', icon: 'eye' });
       tabs.push({ id: 'adm-div-bji', label: 'BJI', icon: 'gavel' });
       tabs.push({ id: 'adm-div-rh', label: 'RH', icon: 'briefcase' });
+      tabs.push({ id: 'adm-desktop', label: 'Bureau', icon: 'monitor' });
     }
     if (deptId === SECURITY_DEPT_ID) {
       tabs.push({ id: 'sec-reports', label: 'Rapport', icon: 'shield' });
@@ -1041,6 +1044,7 @@
     else if (tabId === 'adm-observations') loadAdminObservations();
     else if (tabId === 'adm-div-bji') loadAdminBjiShell();
     else if (tabId === 'adm-div-rh') loadAdminRhShell();
+    else if (tabId === 'adm-desktop') loadAdminDesktop();
   }
 
   // -----------------------------------------------------------------
@@ -4294,6 +4298,27 @@
       renderAdmRhArticle();
     });
   }
+
+  // -----------------------------------------------------------------
+  // Administratif — Bureau (faux OS SCP) : page indépendante, ouverte
+  // dans un nouvel onglet. Ce "tab" ne fait que rediriger.
+  // -----------------------------------------------------------------
+  function loadAdminDesktop() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = `
+      <div class="record-block" style="text-align:center; padding:48px 24px;">
+        <h2 style="margin-bottom:10px;">Bureau Administratif</h2>
+        <p style="color:var(--ink-dim); font-size:13px; margin-bottom:24px; max-width:420px; margin-left:auto; margin-right:auto;">
+          Le Bureau s'ouvre dans son propre environnement (fenêtres, icônes, applications dédiées).
+        </p>
+        <button class="btn" id="open-bureau-btn">Ouvrir le Bureau ↗</button>
+      </div>
+    `;
+    document.getElementById('open-bureau-btn').addEventListener('click', () => {
+      window.open(`/rp/bureau/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
+    });
+  }
+
 
   // -----------------------------------------------------------------
   // Archives — fiches SCP rédigées par le département Scientifique,
