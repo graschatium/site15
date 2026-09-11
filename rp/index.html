@@ -252,11 +252,12 @@
   }
 
   .selector-card{
-    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    display:flex; flex-direction:column; gap:12px;
     background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:20px 22px;
     cursor:pointer; transition:border-color .2s ease, transform .15s ease, background .2s ease;
   }
   .selector-card:hover{ border-color:var(--accent); transform:translateY(-1px); background:var(--panel-raised); }
+  .selector-card-row{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
   .selector-card-left{ display:flex; align-items:center; gap:16px; }
   .selector-card-icon{
     width:42px; height:42px; border-radius:3px; background:var(--accent-soft); border:1px solid rgba(110,118,255,0.25);
@@ -271,6 +272,11 @@
   }
   .selector-card-arrow{ color:var(--ink-faint); flex-shrink:0; }
   .selector-card-arrow svg{ width:18px; height:18px; }
+  .selector-admin-override{
+    display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:11px;
+    letter-spacing:0.02em; color:var(--accent-2); padding-top:10px; border-top:1px dashed var(--line); cursor:pointer;
+  }
+  .selector-admin-override input[type="checkbox"]{ width:14px; height:14px; accent-color:var(--accent); cursor:pointer; }
 
   /* ---------- Terminal départemental ---------- */
   .terminal-screen{ padding:0 0 80px; }
@@ -618,6 +624,7 @@
       headers: {
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
         Authorization: `Bearer ${token}`,
+        ...(adminOverrideDeptId ? { 'X-Admin-Override-Dept': adminOverrideDeptId } : {}),
         ...(options.headers || {}),
       },
     });
@@ -628,6 +635,7 @@
   }
 
   let context = null;
+  let adminOverrideDeptId = null; // redemandé à chaque entrée de département, jamais persisté
   const MEDICAL_DEPT_ID = 'medical';
   const SCIENCE_DEPT_ID = 'scientifique_mmqbrd32f2z7';
   const ADMIN_DEPT_ID = 'administratif_mmqbmvq8ikle';
@@ -765,7 +773,11 @@
             <div class="topchoice-desc">${
               primaryCharacter
                 ? `Identifié en tant que <strong>${escapeHtml(primaryCharacter.name)}</strong>. Lancer la connexion départementale.`
-                : 'Accès en lecture via ton statut FIM. Lancer la connexion départementale.'
+                : context.isFIM
+                ? 'Accès en lecture via ton statut FIM. Lancer la connexion départementale.'
+                : context.canUseAdminOverride
+                ? 'Aucun personnage actif — mode administrateur disponible au choix du département.'
+                : 'Lancer la connexion départementale.'
             }</div>
           </button>
           <button class="topchoice-card" id="topchoice-archives" type="button">
@@ -788,6 +800,7 @@
   }
 
   function renderSelector() {
+    adminOverrideDeptId = null; // toujours redemandé, jamais reporté d'une sélection précédente
     const cards = context.depts.map((d) => {
       const character = context.characters.find((c) => c.deptId === d.deptId);
       const isFimOnly = !character && context.isFIM;
@@ -807,15 +820,25 @@
             .map(
               (c) => `
             <div class="selector-card" data-dept-id="${escapeHtml(c.deptId)}">
-              <div class="selector-card-left">
-                <div class="selector-card-icon">${ICONS.building}</div>
-                <div>
-                  <div class="selector-card-title">${escapeHtml(c.name)}</div>
-                  <div class="selector-card-sub">${c.character ? `${escapeHtml(c.character.name)} — ${escapeHtml(c.character.rank || 'Grade non précisé')}` : 'Accès en lecture'}</div>
+              <div class="selector-card-row">
+                <div class="selector-card-left">
+                  <div class="selector-card-icon">${ICONS.building}</div>
+                  <div>
+                    <div class="selector-card-title">${escapeHtml(c.name)}</div>
+                    <div class="selector-card-sub">${c.character ? `${escapeHtml(c.character.name)} — ${escapeHtml(c.character.rank || 'Grade non précisé')}` : 'Aucun personnage'}</div>
+                  </div>
                 </div>
+                ${c.isFimOnly ? '<span class="selector-card-badge">FIM</span>' : ''}
+                <span class="selector-card-arrow">${ICONS.arrow}</span>
               </div>
-              ${c.isFimOnly ? '<span class="selector-card-badge">FIM</span>' : ''}
-              <span class="selector-card-arrow">${ICONS.arrow}</span>
+              ${
+                context.canUseAdminOverride
+                  ? `<label class="selector-admin-override" onclick="event.stopPropagation();">
+                      <input type="checkbox" class="selector-admin-override-checkbox" data-dept-id="${escapeHtml(c.deptId)}">
+                      Utiliser les perms administrateur ?
+                    </label>`
+                  : ''
+              }
             </div>
           `
             )
@@ -824,13 +847,35 @@
       </div>
     `;
 
-    document.getElementById('back-to-topchoice').addEventListener('click', renderTopChoice);
+    document.getElementById('back-to-topchoice').addEventListener('click', () => {
+      adminOverrideDeptId = null;
+      renderTopChoice();
+    });
     mainRoot.querySelectorAll('.selector-card').forEach((card) => {
-      card.addEventListener('click', () => enterTerminal(card.dataset.deptId));
+      card.addEventListener('click', () => {
+        const deptId = card.dataset.deptId;
+        const checkbox = card.querySelector('.selector-admin-override-checkbox');
+        adminOverrideDeptId = checkbox && checkbox.checked ? deptId : null;
+        enterTerminal(deptId);
+      });
     });
   }
 
-  function enterTerminal(deptId) {
+  async function enterTerminal(deptId) {
+    // Si le mode admin vient d'être activé pour ce département, on
+    // recharge le contexte AVEC l'en-tête d'override actif, pour que le
+    // personnage synthétique "Mode Administrateur" apparaisse bien dans
+    // context.characters (sinon l'en-tête du terminal resterait vide,
+    // puisque le premier chargement de contexte a eu lieu avant le choix).
+    if (adminOverrideDeptId === deptId) {
+      try {
+        context = await apiFetch('/api/rp/context');
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+        return;
+      }
+    }
+
     if (context.maintenance?.departments?.[deptId]) {
       const deptMeta = context.depts.find((d) => d.deptId === deptId);
       renderMaintenanceScreen(deptMeta?.name || deptId);
