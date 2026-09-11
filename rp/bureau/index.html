@@ -345,7 +345,7 @@
     });
   }
 
-  function openDesktopWindow(appId, title, bodyHtml, onMount) {
+  function openDesktopWindow(appId, title, bodyHtml, onMount, size) {
     const existing = desktopWindows.find((w) => w.appId === appId);
     if (existing) {
       focusDesktopWindow(existing.id);
@@ -357,7 +357,7 @@
       id, appId, title,
       x: 60 + desktopWindows.length * 24,
       y: 40 + desktopWindows.length * 24,
-      width: 620, height: 460,
+      width: (size && size.width) || 620, height: (size && size.height) || 460,
       zIndex: (desktopZCounter += 1),
       minimized: false,
     };
@@ -484,18 +484,30 @@
   let budgetSubTab = 'allocations';
 
   function openBudgetApp() {
-    openDesktopWindow('budget', 'Budget Départemental', '<div class="center-msg" style="height:auto; padding:20px 0;">Chargement…</div>', (winId) => {
-      renderBudgetApp(winId);
-    });
+    openDesktopWindow(
+      'budget',
+      'Budget Départemental',
+      '<div class="center-msg" style="height:auto; padding:20px 0;">Chargement…</div>',
+      (winId) => renderBudgetApp(winId),
+      { width: 820, height: 560 }
+    );
   }
 
   async function renderBudgetApp(winId) {
     const body = document.getElementById(`desktop-window-body-${winId}`);
     if (!body) return;
+    const TABS = [
+      { id: 'allocations', label: 'Allocations' },
+      { id: 'requests', label: 'Demandes' },
+      { id: 'orders', label: 'Bons de commande' },
+      { id: 'catalog', label: 'Catalogue' },
+      { id: 'stock', label: 'Stock' },
+      { id: 'invoices', label: 'Factures' },
+      { id: 'log', label: 'Journal' },
+    ];
     body.innerHTML = `
-      <div class="med-subnav">
-        <button class="med-subnav-btn${budgetSubTab === 'allocations' ? ' active' : ''}" data-sub="allocations" type="button">Allocations</button>
-        <button class="med-subnav-btn${budgetSubTab === 'requests' ? ' active' : ''}" data-sub="requests" type="button">Demandes</button>
+      <div class="med-subnav" style="flex-wrap:wrap;">
+        ${TABS.map((t) => `<button class="med-subnav-btn${budgetSubTab === t.id ? ' active' : ''}" data-sub="${t.id}" type="button">${t.label}</button>`).join('')}
       </div>
       <div id="budget-content-${winId}"></div>
     `;
@@ -507,7 +519,12 @@
     });
 
     if (budgetSubTab === 'allocations') loadBudgetAllocations(winId);
-    else loadBudgetRequests(winId);
+    else if (budgetSubTab === 'requests') loadBudgetRequests(winId);
+    else if (budgetSubTab === 'orders') loadBudgetOrders(winId);
+    else if (budgetSubTab === 'catalog') loadBudgetCatalog(winId);
+    else if (budgetSubTab === 'stock') loadBudgetStock(winId);
+    else if (budgetSubTab === 'invoices') loadBudgetInvoices(winId);
+    else if (budgetSubTab === 'log') loadBudgetLogTab(winId);
   }
 
   async function loadBudgetAllocations(winId) {
@@ -526,14 +543,15 @@
     const allocations = data.allocations || [];
     content.innerHTML = `
       <table>
-        <thead><tr><th>Département</th><th>Budget alloué</th><th></th></tr></thead>
+        <thead><tr><th>Département</th><th>Trésorerie</th><th>Raison</th><th></th></tr></thead>
         <tbody>
           ${allocations
             .map(
               (a) => `
             <tr>
               <td>${escapeHtml(a.deptName)}</td>
-              <td><input type="number" class="budget-alloc-input" data-dept-id="${escapeHtml(a.deptId)}" value="${a.allocatedAmount}" style="width:120px;"></td>
+              <td><input type="number" class="budget-alloc-input" data-dept-id="${escapeHtml(a.deptId)}" value="${a.allocatedAmount}" style="width:110px;"></td>
+              <td><input type="text" class="budget-alloc-reason" data-dept-id="${escapeHtml(a.deptId)}" placeholder="Optionnel" style="width:140px;"></td>
               <td><button class="btn small budget-alloc-save-btn" data-dept-id="${escapeHtml(a.deptId)}">Enregistrer</button></td>
             </tr>
           `
@@ -547,12 +565,14 @@
       btn.addEventListener('click', async () => {
         const deptId = btn.dataset.deptId;
         const input = content.querySelector(`.budget-alloc-input[data-dept-id="${deptId}"]`);
+        const reasonInput = content.querySelector(`.budget-alloc-reason[data-dept-id="${deptId}"]`);
         try {
           await apiFetch(`/api/rp/admin-ops/budget/allocations/${encodeURIComponent(deptId)}`, {
             method: 'PATCH',
-            body: JSON.stringify({ amount: input.value }),
+            body: JSON.stringify({ amount: input.value, reason: reasonInput.value.trim() }),
           });
-          showToast('Allocation mise à jour.');
+          showToast('Trésorerie mise à jour.');
+          loadBudgetAllocations(winId);
         } catch (err) {
           alert(`Erreur : ${err.message}`);
         }
@@ -656,6 +676,396 @@
         alert(`Erreur : ${err.message}`);
       }
     });
+  }
+
+  // ---- Catalogue d'objets ----
+  async function loadBudgetCatalog(winId) {
+    const content = document.getElementById(`budget-content-${winId}`);
+    if (!content) return;
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/budget/catalog');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const items = data.items || [];
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Catalogue</h2><span class="count">${items.length}</span></div>
+        ${
+          items.length
+            ? `<table>
+                <thead><tr><th>Nom</th><th>Catégorie</th><th>Prix</th><th></th></tr></thead>
+                <tbody>
+                  ${items
+                    .map(
+                      (it) => `
+                    <tr>
+                      <td>${escapeHtml(it.name)}</td>
+                      <td>${escapeHtml(it.category || '—')}</td>
+                      <td>${it.price}</td>
+                      <td><button class="btn danger small budget-catalog-delete-btn" data-item-id="${escapeHtml(it.id)}">Retirer</button></td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun objet dans le catalogue.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Ajouter un objet</h3>
+        <form id="budget-catalog-form-${winId}">
+          <div class="field-row"><label>Nom *</label><input type="text" id="budget-catalog-name-${winId}" required></div>
+          <div class="field-row"><label>Catégorie</label><input type="text" id="budget-catalog-category-${winId}" placeholder="Ex: Équipement, Fourniture..."></div>
+          <div class="field-row"><label>Prix</label><input type="number" id="budget-catalog-price-${winId}"></div>
+          <button class="btn" type="submit">Ajouter au catalogue</button>
+        </form>
+      </div>
+    `;
+
+    content.querySelectorAll('.budget-catalog-delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/admin-ops/budget/catalog/${encodeURIComponent(btn.dataset.itemId)}`, { method: 'DELETE' });
+          showToast('Objet retiré.');
+          loadBudgetCatalog(winId);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+
+    document.getElementById(`budget-catalog-form-${winId}`).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById(`budget-catalog-name-${winId}`).value.trim();
+      const category = document.getElementById(`budget-catalog-category-${winId}`).value.trim();
+      const price = document.getElementById(`budget-catalog-price-${winId}`).value;
+      if (!name) { alert('Le nom est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/budget/catalog', { method: 'POST', body: JSON.stringify({ name, category, price }) });
+        showToast('Objet ajouté au catalogue.');
+        loadBudgetCatalog(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // ---- Bons de commande ----
+  async function loadBudgetOrders(winId) {
+    const content = document.getElementById(`budget-content-${winId}`);
+    if (!content) return;
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let ordersData, catalogData;
+    try {
+      [ordersData, catalogData] = await Promise.all([
+        apiFetch('/api/rp/admin-ops/budget/orders'),
+        apiFetch('/api/rp/admin-ops/budget/catalog'),
+      ]);
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const orders = ordersData.orders || [];
+    const catalogItems = catalogData.items || [];
+    const ORDER_STATUS_LABELS = { pending: 'En attente', validated: 'Validée', cancelled: 'Annulée' };
+
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Bons de commande</h2><span class="count">${orders.length}</span></div>
+        ${
+          orders.length
+            ? orders
+                .map(
+                  (o) => `
+          <div class="post-card">
+            <div class="post-card-head">
+              <span class="post-card-title">${escapeHtml(o.itemName)} ×${o.quantity}</span>
+              <span class="status-pill ${o.status === 'validated' ? 'status-actif' : o.status === 'cancelled' ? 'status-archivé' : 'status-inactif'}">${escapeHtml(ORDER_STATUS_LABELS[o.status] || o.status)}</span>
+            </div>
+            <div class="post-card-meta">${escapeHtml(o.deptName)} — Total : ${o.totalCost} — ${escapeHtml(o.authorCharacterName)}</div>
+            ${
+              o.status === 'pending'
+                ? `<div style="margin-top:8px;"><button class="btn small budget-order-validate-btn" data-order-id="${escapeHtml(o.id)}">Valider la réception</button></div>`
+                : o.status === 'validated'
+                ? `<div style="margin-top:8px;"><button class="btn danger small budget-order-cancel-btn" data-order-id="${escapeHtml(o.id)}">Annuler et rembourser</button></div>`
+                : ''
+            }
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucun bon de commande.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Nouveau bon de commande</h3>
+        <form id="budget-order-form-${winId}">
+          <div class="field-row">
+            <label>Département</label>
+            <select id="budget-order-dept-${winId}">
+              ${Object.entries(BUDGET_DEPTS_LABELS).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-row">
+            <label>Objet du catalogue *</label>
+            <select id="budget-order-item-${winId}" required>
+              ${catalogItems.map((it) => `<option value="${it.id}">${escapeHtml(it.name)} (${it.price})</option>`).join('') || '<option value="">Aucun objet au catalogue</option>'}
+            </select>
+          </div>
+          <div class="field-row"><label>Quantité</label><input type="number" id="budget-order-quantity-${winId}" value="1" min="1"></div>
+          <button class="btn" type="submit">Soumettre le bon de commande</button>
+        </form>
+      </div>
+    `;
+
+    content.querySelectorAll('.budget-order-validate-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/admin-ops/budget/orders/${encodeURIComponent(btn.dataset.orderId)}/validate`, { method: 'PATCH' });
+          showToast('Commande validée, stock et budget mis à jour.');
+          loadBudgetOrders(winId);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+    content.querySelectorAll('.budget-order-cancel-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Annuler cette commande et rembourser le département ?')) return;
+        try {
+          await apiFetch(`/api/rp/admin-ops/budget/orders/${encodeURIComponent(btn.dataset.orderId)}/cancel`, { method: 'PATCH' });
+          showToast('Commande annulée, remboursement effectué.');
+          loadBudgetOrders(winId);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+
+    document.getElementById(`budget-order-form-${winId}`).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const deptId = document.getElementById(`budget-order-dept-${winId}`).value;
+      const deptName = BUDGET_DEPTS_LABELS[deptId];
+      const itemId = document.getElementById(`budget-order-item-${winId}`).value;
+      const quantity = document.getElementById(`budget-order-quantity-${winId}`).value;
+      if (!itemId) { alert('Sélectionne un objet du catalogue.'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/budget/orders', { method: 'POST', body: JSON.stringify({ deptId, deptName, itemId, quantity }) });
+        showToast('Bon de commande soumis.');
+        loadBudgetOrders(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // ---- Stock par département ----
+  async function loadBudgetStock(winId) {
+    const content = document.getElementById(`budget-content-${winId}`);
+    if (!content) return;
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let stockData, catalogData;
+    try {
+      [stockData, catalogData] = await Promise.all([
+        apiFetch('/api/rp/admin-ops/budget/stock'),
+        apiFetch('/api/rp/admin-ops/budget/catalog'),
+      ]);
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const stock = stockData.stock || [];
+    const catalogItems = catalogData.items || [];
+
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Stock par département</h2><span class="count">${stock.length}</span></div>
+        ${
+          stock.length
+            ? `<table>
+                <thead><tr><th>Département</th><th>Objet</th><th>Quantité</th></tr></thead>
+                <tbody>
+                  ${stock.map((s) => `<tr><td>${escapeHtml(s.deptName)}</td><td>${escapeHtml(s.itemName)}</td><td>${s.quantity}</td></tr>`).join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun stock enregistré.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Ajouter directement au stock</h3>
+        <form id="budget-stock-form-${winId}">
+          <div class="field-row">
+            <label>Département</label>
+            <select id="budget-stock-dept-${winId}">
+              ${Object.entries(BUDGET_DEPTS_LABELS).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-row">
+            <label>Objet du catalogue *</label>
+            <select id="budget-stock-item-${winId}" required>
+              ${catalogItems.map((it) => `<option value="${it.id}">${escapeHtml(it.name)}</option>`).join('') || '<option value="">Aucun objet au catalogue</option>'}
+            </select>
+          </div>
+          <div class="field-row"><label>Quantité</label><input type="number" id="budget-stock-quantity-${winId}" value="1" min="1"></div>
+          <button class="btn" type="submit">Ajouter au stock</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById(`budget-stock-form-${winId}`).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const deptId = document.getElementById(`budget-stock-dept-${winId}`).value;
+      const deptName = BUDGET_DEPTS_LABELS[deptId];
+      const itemSelect = document.getElementById(`budget-stock-item-${winId}`);
+      const itemId = itemSelect.value;
+      const itemName = itemSelect.options[itemSelect.selectedIndex]?.textContent || '';
+      const quantity = document.getElementById(`budget-stock-quantity-${winId}`).value;
+      if (!itemId) { alert('Sélectionne un objet du catalogue.'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/budget/stock', { method: 'POST', body: JSON.stringify({ deptId, deptName, itemId, itemName, quantity }) });
+        showToast('Stock mis à jour.');
+        loadBudgetStock(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // ---- Factures ----
+  async function loadBudgetInvoices(winId) {
+    const content = document.getElementById(`budget-content-${winId}`);
+    if (!content) return;
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/budget/invoices');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const invoices = data.invoices || [];
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Factures</h2><span class="count">${invoices.length}</span></div>
+        ${
+          invoices.length
+            ? invoices
+                .map(
+                  (inv) => `
+          <div class="post-card">
+            <div class="post-card-head">
+              <span class="post-card-title">${escapeHtml(inv.title)}</span>
+              <button class="btn danger small budget-invoice-delete-btn" data-invoice-id="${escapeHtml(inv.id)}">Supprimer</button>
+            </div>
+            <div class="post-card-meta">${escapeHtml(inv.deptName || '—')} — Montant : ${inv.amount}${inv.date ? ` — ${escapeHtml(inv.date)}` : ''}</div>
+            ${inv.notes ? `<div class="post-card-body">${escapeHtml(inv.notes)}</div>` : ''}
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucune facture enregistrée.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Enregistrer une facture</h3>
+        <form id="budget-invoice-form-${winId}">
+          <div class="field-row">
+            <label>Département</label>
+            <select id="budget-invoice-dept-${winId}">
+              ${Object.entries(BUDGET_DEPTS_LABELS).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-row"><label>Titre *</label><input type="text" id="budget-invoice-title-${winId}" required></div>
+          <div class="field-row"><label>Montant</label><input type="number" id="budget-invoice-amount-${winId}"></div>
+          <div class="field-row"><label>Date</label><input type="text" id="budget-invoice-date-${winId}" placeholder="JJ/MM/AAAA"></div>
+          <div class="field-row"><label>Notes</label><textarea id="budget-invoice-notes-${winId}" rows="2"></textarea></div>
+          <button class="btn" type="submit">Enregistrer</button>
+        </form>
+      </div>
+    `;
+
+    content.querySelectorAll('.budget-invoice-delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/admin-ops/budget/invoices/${encodeURIComponent(btn.dataset.invoiceId)}`, { method: 'DELETE' });
+          showToast('Facture supprimée.');
+          loadBudgetInvoices(winId);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+
+    document.getElementById(`budget-invoice-form-${winId}`).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const deptId = document.getElementById(`budget-invoice-dept-${winId}`).value;
+      const deptName = BUDGET_DEPTS_LABELS[deptId];
+      const title = document.getElementById(`budget-invoice-title-${winId}`).value.trim();
+      const amount = document.getElementById(`budget-invoice-amount-${winId}`).value;
+      const date = document.getElementById(`budget-invoice-date-${winId}`).value.trim();
+      const notes = document.getElementById(`budget-invoice-notes-${winId}`).value.trim();
+      if (!title) { alert('Le titre est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/budget/invoices', { method: 'POST', body: JSON.stringify({ deptId, deptName, title, amount, date, notes }) });
+        showToast('Facture enregistrée.');
+        loadBudgetInvoices(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // ---- Journal de trésorerie (lecture seule) ----
+  async function loadBudgetLogTab(winId) {
+    const content = document.getElementById(`budget-content-${winId}`);
+    if (!content) return;
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/budget/log');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const log = data.log || [];
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Journal des mouvements</h2><span class="count">${log.length}</span></div>
+        ${
+          log.length
+            ? log
+                .map(
+                  (l) => `
+          <div class="post-card">
+            <div class="post-card-head">
+              <span class="post-card-title" style="font-size:12.5px;">${escapeHtml(l.deptName)}</span>
+              <span class="post-card-meta">${l.createdAt ? new Date(l.createdAt).toLocaleString('fr-FR') : ''}</span>
+            </div>
+            <div class="post-card-meta" style="margin-bottom:4px; color:${l.amount >= 0 ? 'var(--good)' : 'var(--bad)'};">${l.amount >= 0 ? '+' : ''}${l.amount}</div>
+            <div class="post-card-body">${escapeHtml(l.reason)} — ${escapeHtml(l.authorCharacterName)}</div>
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucun mouvement enregistré.</div>'
+        }
+      </div>
+    `;
   }
 
   // ---------------------------------------------------------------------
