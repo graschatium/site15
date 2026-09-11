@@ -541,18 +541,24 @@
     }
 
     const allocations = data.allocations || [];
+    const canEdit = !!data.canEdit;
     content.innerHTML = `
+      ${!canEdit ? '<div class="empty-row" style="margin-bottom:10px;">Lecture seule — réservé au Bureau des Finances et Comptabilité pour modification.</div>' : ''}
       <table>
-        <thead><tr><th>Département</th><th>Trésorerie</th><th>Raison</th><th></th></tr></thead>
+        <thead><tr><th>Département</th><th>Trésorerie</th>${canEdit ? '<th>Raison</th><th></th>' : ''}</tr></thead>
         <tbody>
           ${allocations
             .map(
               (a) => `
             <tr>
               <td>${escapeHtml(a.deptName)}</td>
-              <td><input type="number" class="budget-alloc-input" data-dept-id="${escapeHtml(a.deptId)}" value="${a.allocatedAmount}" style="width:110px;"></td>
-              <td><input type="text" class="budget-alloc-reason" data-dept-id="${escapeHtml(a.deptId)}" placeholder="Optionnel" style="width:140px;"></td>
-              <td><button class="btn small budget-alloc-save-btn" data-dept-id="${escapeHtml(a.deptId)}">Enregistrer</button></td>
+              ${
+                canEdit
+                  ? `<td><input type="number" class="budget-alloc-input" data-dept-id="${escapeHtml(a.deptId)}" value="${a.allocatedAmount}" style="width:110px;"></td>
+                     <td><input type="text" class="budget-alloc-reason" data-dept-id="${escapeHtml(a.deptId)}" placeholder="Optionnel" style="width:140px;"></td>
+                     <td><button class="btn small budget-alloc-save-btn" data-dept-id="${escapeHtml(a.deptId)}">Enregistrer</button></td>`
+                  : `<td>${a.allocatedAmount}</td>`
+              }
             </tr>
           `
             )
@@ -887,6 +893,7 @@
 
     const stock = stockData.stock || [];
     const catalogItems = catalogData.items || [];
+    const canAdd = !!stockData.canAdd;
 
     content.innerHTML = `
       <div class="record-block">
@@ -902,28 +909,32 @@
             : '<div class="empty-row">Aucun stock enregistré.</div>'
         }
       </div>
-      <div class="subsection">
-        <h3>Ajouter directement au stock</h3>
-        <form id="budget-stock-form-${winId}">
-          <div class="field-row">
-            <label>Département</label>
-            <select id="budget-stock-dept-${winId}">
-              ${Object.entries(BUDGET_DEPTS_LABELS).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
-            </select>
-          </div>
-          <div class="field-row">
-            <label>Objet du catalogue *</label>
-            <select id="budget-stock-item-${winId}" required>
-              ${catalogItems.map((it) => `<option value="${it.id}">${escapeHtml(it.name)}</option>`).join('') || '<option value="">Aucun objet au catalogue</option>'}
-            </select>
-          </div>
-          <div class="field-row"><label>Quantité</label><input type="number" id="budget-stock-quantity-${winId}" value="1" min="1"></div>
-          <button class="btn" type="submit">Ajouter au stock</button>
-        </form>
-      </div>
+      ${
+        canAdd
+          ? `<div class="subsection">
+              <h3>Ajouter directement au stock</h3>
+              <form id="budget-stock-form-${winId}">
+                <div class="field-row">
+                  <label>Département</label>
+                  <select id="budget-stock-dept-${winId}">
+                    ${Object.entries(BUDGET_DEPTS_LABELS).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field-row">
+                  <label>Objet du catalogue *</label>
+                  <select id="budget-stock-item-${winId}" required>
+                    ${catalogItems.map((it) => `<option value="${it.id}">${escapeHtml(it.name)}</option>`).join('') || '<option value="">Aucun objet au catalogue</option>'}
+                  </select>
+                </div>
+                <div class="field-row"><label>Quantité</label><input type="number" id="budget-stock-quantity-${winId}" value="1" min="1"></div>
+                <button class="btn" type="submit">Ajouter au stock</button>
+              </form>
+            </div>`
+          : '<div class="empty-row">L\'ajout direct au stock est réservé au Directeur de l\'installation.</div>'
+      }
     `;
 
-    document.getElementById(`budget-stock-form-${winId}`).addEventListener('submit', async (e) => {
+    document.getElementById(`budget-stock-form-${winId}`)?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const deptId = document.getElementById(`budget-stock-dept-${winId}`).value;
       const deptName = BUDGET_DEPTS_LABELS[deptId];
