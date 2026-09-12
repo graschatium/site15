@@ -1680,7 +1680,7 @@
         ${
           configured.length
             ? `<table>
-                <thead><tr><th>Rôle</th><th>Rosters</th><th>Sanctions</th><th>Absences</th><th>Animation</th><th>Candidatures</th><th></th></tr></thead>
+                <thead><tr><th>Rôle</th><th>Rosters</th><th>Sanctions</th><th>Absences</th><th>Animation</th><th>Candidatures</th><th>Accès RP complet</th><th></th></tr></thead>
                 <tbody>
                   ${configured
                     .map(
@@ -1698,6 +1698,7 @@
                       <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="absences" ${p.absences ? 'checked' : ''}></td>
                       <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="animations" ${p.animations ? 'checked' : ''}></td>
                       <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="applications" ${p.applications ? 'checked' : ''}></td>
+                      <td><input type="checkbox" class="perm-check" data-role-id="${escapeHtml(p.roleId)}" data-field="rpFullAccess" ${p.rpFullAccess ? 'checked' : ''}></td>
                       <td>
                         <button class="btn small save-permission-btn" data-role-id="${escapeHtml(p.roleId)}" data-label="${escapeHtml(p.label || p.roleId)}">Enregistrer</button>
                         <button class="btn danger small remove-permission-btn" data-role-id="${escapeHtml(p.roleId)}">Retirer</button>
@@ -1734,6 +1735,7 @@
             <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-absences"> Absences</label>
             <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-animations"> Animation</label>
             <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--ink);"><input type="checkbox" id="new-role-applications"> Candidatures</label>
+            <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--accent-2);"><input type="checkbox" id="new-role-rpfullaccess"> Accès RP complet</label>
           </div>
         </div>
         <button class="btn" id="add-role-permission-btn" type="button">Ajouter</button>
@@ -1747,11 +1749,12 @@
       const absences = row.querySelector('[data-field="absences"]').checked;
       const animations = row.querySelector('[data-field="animations"]').checked;
       const applications = row.querySelector('[data-field="applications"]').checked;
+      const rpFullAccess = row.querySelector('[data-field="rpFullAccess"]').checked;
 
       try {
         await apiFetch(`/api/admin/permissions/${encodeURIComponent(roleId)}`, {
           method: 'PUT',
-          body: JSON.stringify({ label, rosters, sanctions, absences, animations, applications }),
+          body: JSON.stringify({ label, rosters, sanctions, absences, animations, applications, rpFullAccess }),
         });
         showToast('Permissions enregistrées.', 'success');
       } catch (err) {
@@ -1789,11 +1792,12 @@
       const absences = document.getElementById('new-role-absences').checked;
       const animations = document.getElementById('new-role-animations').checked;
       const applications = document.getElementById('new-role-applications').checked;
+      const rpFullAccess = document.getElementById('new-role-rpfullaccess').checked;
 
       try {
         await apiFetch(`/api/admin/permissions/${encodeURIComponent(roleId)}`, {
           method: 'PUT',
-          body: JSON.stringify({ label, rosters, sanctions, absences, animations, applications }),
+          body: JSON.stringify({ label, rosters, sanctions, absences, animations, applications, rpFullAccess }),
         });
         showToast('Rôle ajouté.', 'success');
         loadPermissionsTab();
