@@ -232,6 +232,7 @@
   }
 
   let adminOverrideActive = false; // redemandé à chaque chargement de page, jamais persisté
+  let pageContext = null; // rempli par checkAccessAndInit, relu par les applis (RH/BJI) pour proposer le Mode Administrateur au cas par cas
 
   async function apiFetch(path, options = {}) {
     const token = getToken();
@@ -268,26 +269,25 @@
       return;
     }
 
-    let context;
     try {
-      context = await apiFetch('/api/rp/context');
+      pageContext = await apiFetch('/api/rp/context');
     } catch (err) {
       pageRoot.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
       return;
     }
 
-    if (context.banned) {
+    if (pageContext.banned) {
       pageRoot.innerHTML = '<div class="center-msg">Accès révoqué.</div>';
       return;
     }
 
-    const isAdmin = (context.characters || []).some((c) => c.deptId === ADMIN_DEPT_ID);
+    const isAdmin = (pageContext.characters || []).some((c) => c.deptId === ADMIN_DEPT_ID);
     if (isAdmin) {
       loadDesktop();
       return;
     }
 
-    if (context.canUseAdminOverride) {
+    if (pageContext.canUseAdminOverride) {
       pageRoot.innerHTML = `
         <div class="center-msg" style="flex-direction:column; gap:16px;">
           <p>Aucun personnage actif dans Administratif.</p>
@@ -307,7 +307,7 @@
         adminOverrideActive = true;
         pageRoot.innerHTML = '<div class="center-msg">Chargement…</div>';
         try {
-          context = await apiFetch('/api/rp/context');
+          pageContext = await apiFetch('/api/rp/context');
         } catch (err) {
           pageRoot.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
           return;
@@ -1451,6 +1451,33 @@ Tape "help" pour la liste des commandes.
   let rhRecordsSelected = null;
   let rhRecordsCache = [];
 
+  // Invite inline le Mode Administrateur quand un module division-gated
+  // (RH/BJI) refuse l'accès à quelqu'un qui a un vrai personnage
+  // Administratif (donc déjà passé la porte du Bureau) mais pas la bonne
+  // division — cas où la case d'entrée du Bureau n'a jamais été proposée
+  // puisque l'accès général au Bureau, lui, était déjà valide.
+  function renderDivisionOverridePrompt(container, retryFn) {
+    if (adminOverrideActive || !pageContext?.canUseAdminOverride) {
+      container.innerHTML = '<div class="empty-row">Accès refusé — réservé à la division concernée.</div>';
+      return;
+    }
+    container.innerHTML = `
+      <div class="empty-row" style="display:flex; flex-direction:column; align-items:flex-start; gap:10px;">
+        <span>Accès refusé pour ce module — pas la bonne division.</span>
+        <label style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--accent-2); cursor:pointer;">
+          <input type="checkbox" id="division-override-checkbox">
+          Utiliser les perms administrateur ?
+        </label>
+        <button class="btn small" id="division-override-btn">Réessayer</button>
+      </div>
+    `;
+    document.getElementById('division-override-btn').addEventListener('click', () => {
+      const checked = document.getElementById('division-override-checkbox').checked;
+      if (checked) adminOverrideActive = true;
+      retryFn();
+    });
+  }
+
   function openRhApp() {
     openDesktopWindow('rh', 'Ressources Humaines', '<div class="empty-row">Chargement…</div>', (winId) => renderRhApp(winId), { width: 780, height: 560 });
   }
@@ -1492,7 +1519,7 @@ Tape "help" pour la liste des commandes.
         apiFetch('/api/rp/admin-ops/rh/records'),
       ]);
     } catch (err) {
-      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      renderDivisionOverridePrompt(content, () => loadRhAccueil(winId));
       return;
     }
     content.innerHTML = `
@@ -1514,7 +1541,7 @@ Tape "help" pour la liste des commandes.
     try {
       data = await apiFetch('/api/rp/admin-ops/division/RH/docs');
     } catch (err) {
-      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      renderDivisionOverridePrompt(content, () => loadRhDocsSection(winId));
       return;
     }
     rhDocsCache = data.docs || [];
@@ -1615,7 +1642,7 @@ Tape "help" pour la liste des commandes.
     try {
       data = await apiFetch('/api/rp/admin-ops/rh/records');
     } catch (err) {
-      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      renderDivisionOverridePrompt(content, () => loadRhPersonnelSection(winId));
       return;
     }
     rhRecordsCache = data.records || [];
@@ -1760,7 +1787,7 @@ Tape "help" pour la liste des commandes.
     try {
       data = await apiFetch('/api/rp/admin-ops/division/BJI/docs');
     } catch (err) {
-      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      renderDivisionOverridePrompt(content, () => loadBjiDocs(winId));
       return;
     }
     bjiDocsCache = data.docs || [];
@@ -1861,7 +1888,7 @@ Tape "help" pour la liste des commandes.
     try {
       data = await apiFetch('/api/rp/admin-ops/bji/dossiers');
     } catch (err) {
-      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      renderDivisionOverridePrompt(content, () => loadBjiDossiers(winId));
       return;
     }
     const dossiers = data.dossiers || [];
@@ -1904,7 +1931,7 @@ Tape "help" pour la liste des commandes.
     try {
       data = await apiFetch('/api/rp/admin-ops/bji/casier');
     } catch (err) {
-      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      renderDivisionOverridePrompt(content, () => loadBjiCasier(winId));
       return;
     }
     const records = data.records || [];
