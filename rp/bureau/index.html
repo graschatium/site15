@@ -231,6 +231,8 @@
     }[c]));
   }
 
+  let adminOverrideActive = false; // redemandé à chaque chargement de page, jamais persisté
+
   async function apiFetch(path, options = {}) {
     const token = getToken();
     const res = await fetch(`${API_BASE}${path}`, {
@@ -238,6 +240,7 @@
       headers: {
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
         Authorization: `Bearer ${token}`,
+        ...(adminOverrideActive ? { 'X-Admin-Override-Dept': ADMIN_DEPT_ID } : {}),
         ...(options.headers || {}),
       },
     });
@@ -255,7 +258,9 @@
   const pageRoot = document.getElementById('page-root');
 
   // ---------------------------------------------------------------------
-  // Contrôle d'accès : nécessite un personnage actif Administratif.
+  // Contrôle d'accès : nécessite un personnage actif Administratif, ou le
+  // Mode Administrateur (canManagePermissions / rpFullAccess côté staff),
+  // via la même case à cocher opt-in que le reste de l'intranet RP.
   // ---------------------------------------------------------------------
   async function checkAccessAndInit() {
     if (!getToken()) {
@@ -277,12 +282,42 @@
     }
 
     const isAdmin = (context.characters || []).some((c) => c.deptId === ADMIN_DEPT_ID);
-    if (!isAdmin) {
-      pageRoot.innerHTML = '<div class="center-msg">Accès refusé — le Bureau est réservé au personnel actif du département Administratif.</div>';
+    if (isAdmin) {
+      loadDesktop();
       return;
     }
 
-    loadDesktop();
+    if (context.canUseAdminOverride) {
+      pageRoot.innerHTML = `
+        <div class="center-msg" style="flex-direction:column; gap:16px;">
+          <p>Aucun personnage actif dans Administratif.</p>
+          <label style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--accent-2); cursor:pointer;">
+            <input type="checkbox" id="bureau-admin-override-checkbox" style="width:16px; height:16px; accent-color:var(--accent); cursor:pointer;">
+            Utiliser les perms administrateur ?
+          </label>
+          <button class="btn" id="bureau-admin-override-enter" style="width:auto; padding:9px 20px;">Entrer</button>
+        </div>
+      `;
+      document.getElementById('bureau-admin-override-enter').addEventListener('click', async () => {
+        const checked = document.getElementById('bureau-admin-override-checkbox').checked;
+        if (!checked) {
+          pageRoot.innerHTML = '<div class="center-msg">Accès refusé — le Bureau est réservé au personnel actif du département Administratif.</div>';
+          return;
+        }
+        adminOverrideActive = true;
+        pageRoot.innerHTML = '<div class="center-msg">Chargement…</div>';
+        try {
+          context = await apiFetch('/api/rp/context');
+        } catch (err) {
+          pageRoot.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+          return;
+        }
+        loadDesktop();
+      });
+      return;
+    }
+
+    pageRoot.innerHTML = '<div class="center-msg">Accès refusé — le Bureau est réservé au personnel actif du département Administratif.</div>';
   }
 
   // ---------------------------------------------------------------------
