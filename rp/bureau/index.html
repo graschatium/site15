@@ -160,6 +160,35 @@
   .status-actif{ background:rgba(79,216,149,0.12); color:var(--good); }
   .status-inactif{ background:rgba(240,168,60,0.12); color:var(--warn); }
   .status-archivé{ background:rgba(240,82,90,0.12); color:var(--bad); }
+
+  /* ---- App RH : rendu façon mini site web interne ---- */
+  .rh-site{ display:flex; flex-direction:column; height:100%; margin:-20px; }
+  .rh-site-nav{
+    display:flex; align-items:center; justify-content:space-between; padding:14px 20px;
+    background:var(--void-2); border-bottom:1px solid var(--line); flex-shrink:0;
+  }
+  .rh-site-brand{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:14px; color:var(--ink); }
+  .rh-site-links{ display:flex; gap:4px; }
+  .rh-nav-link{
+    padding:7px 14px; border-radius:5px; border:none; background:transparent; color:var(--ink-faint);
+    font-size:12.5px; cursor:pointer; font-family:'Inter', sans-serif;
+  }
+  .rh-nav-link:hover{ color:var(--ink); }
+  .rh-nav-link.active{ background:var(--accent); color:#fff; }
+  .rh-site-content{ flex:1; overflow-y:auto; padding:24px; }
+  .rh-hero{
+    text-align:center; padding:36px 20px; border-radius:8px; margin-bottom:20px;
+    background:radial-gradient(ellipse 500px 200px at 50% 0%, rgba(110,118,255,0.12), transparent 70%);
+    border:1px solid var(--line);
+  }
+  .rh-hero h2{ font-family:'Space Grotesk', sans-serif; font-size:22px; margin-bottom:8px; }
+  .rh-hero p{ color:var(--ink-dim); font-size:13px; max-width:420px; margin:0 auto; }
+  .rh-stats-row{ display:flex; gap:12px; margin-top:22px; justify-content:center; }
+  .rh-stat-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px 20px; text-align:center; min-width:110px;
+  }
+  .rh-stat-value{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; color:var(--accent-2); }
+  .rh-stat-label{ font-size:10.5px; color:var(--ink-faint); font-family:'JetBrains Mono', monospace; text-transform:uppercase; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -415,6 +444,8 @@
   const ICON_FOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5a1.5 1.5 0 0 1 1.5-1.5H10l2 2h7.5A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/></svg>';
   const ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6 7l1 13.5h10L18 7"/><path d="M10 11v6M14 11v6"/></svg>';
   const ICON_TERMINAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l4 3-4 3"/><path d="M13 15h4"/></svg>';
+  const ICON_RH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M15.5 13c2.8 0.3 5 2.4 5 5.2"/></svg>';
+  const ICON_BJI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6"/><path d="M8 10l6 6"/><path d="M4 14l6 6"/><path d="M17 7l3-3"/><path d="M4 20h9"/></svg>';
 
   function loadDesktop() {
     desktopWindows = [];
@@ -446,6 +477,14 @@
             <div class="desktop-icon-glyph" style="background:#0A0B0E; border:1px solid var(--line);">${ICON_TERMINAL}</div>
             <span class="desktop-icon-label">Terminal</span>
           </div>
+          <div class="desktop-icon" id="icon-rh">
+            <div class="desktop-icon-glyph" style="background:#6E76FF;">${ICON_RH}</div>
+            <span class="desktop-icon-label">Ressources<br>Humaines</span>
+          </div>
+          <div class="desktop-icon" id="icon-bji">
+            <div class="desktop-icon-glyph" style="background:#F0525A;">${ICON_BJI}</div>
+            <span class="desktop-icon-label">BJI</span>
+          </div>
         </div>
         <div class="desktop-windows-layer" id="desktop-windows-layer"></div>
         <div class="desktop-taskbar">
@@ -461,6 +500,8 @@
     document.getElementById('icon-calculator').addEventListener('dblclick', openCalculatorApp);
     document.getElementById('icon-explorer').addEventListener('dblclick', openExplorerApp);
     document.getElementById('icon-trash').addEventListener('dblclick', openTrashApp);
+    document.getElementById('icon-rh').addEventListener('dblclick', openRhApp);
+    document.getElementById('icon-bji').addEventListener('dblclick', openBjiApp);
     document.getElementById('icon-terminal').addEventListener('dblclick', openTerminalApp);
 
     function updateClock() {
@@ -1362,6 +1403,526 @@ Tape "help" pour la liste des commandes.
     });
 
     input.focus();
+  }
+
+  // ---------------------------------------------------------------------
+  // App : Ressources Humaines — rendu façon mini site web interne (navbar
+  // + pages), réutilise les MÊMES endpoints déjà protégés côté serveur
+  // (division RH) que l'onglet RH classique de l'intranet.
+  // ---------------------------------------------------------------------
+  let rhAppSection = 'accueil';
+  let rhDocsSelected = null;
+  let rhDocsCache = [];
+  let rhRecordsSelected = null;
+  let rhRecordsCache = [];
+
+  function openRhApp() {
+    openDesktopWindow('rh', 'Ressources Humaines', '<div class="empty-row">Chargement…</div>', (winId) => renderRhApp(winId), { width: 780, height: 560 });
+  }
+
+  function renderRhApp(winId) {
+    const body = document.getElementById(`desktop-window-body-${winId}`);
+    body.innerHTML = `
+      <div class="rh-site">
+        <div class="rh-site-nav">
+          <div class="rh-site-brand">RH — SITE-15</div>
+          <div class="rh-site-links">
+            <button class="rh-nav-link${rhAppSection === 'accueil' ? ' active' : ''}" data-section="accueil">Accueil</button>
+            <button class="rh-nav-link${rhAppSection === 'docs' ? ' active' : ''}" data-section="docs">Documentation</button>
+            <button class="rh-nav-link${rhAppSection === 'personnel' ? ' active' : ''}" data-section="personnel">Personnel</button>
+          </div>
+        </div>
+        <div class="rh-site-content" id="rh-content-${winId}"></div>
+      </div>
+    `;
+    body.querySelectorAll('.rh-nav-link').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        rhAppSection = btn.dataset.section;
+        renderRhApp(winId);
+      });
+    });
+
+    if (rhAppSection === 'accueil') loadRhAccueil(winId);
+    else if (rhAppSection === 'docs') loadRhDocsSection(winId);
+    else loadRhPersonnelSection(winId);
+  }
+
+  async function loadRhAccueil(winId) {
+    const content = document.getElementById(`rh-content-${winId}`);
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+    let docsData, recordsData;
+    try {
+      [docsData, recordsData] = await Promise.all([
+        apiFetch('/api/rp/admin-ops/division/RH/docs'),
+        apiFetch('/api/rp/admin-ops/rh/records'),
+      ]);
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    content.innerHTML = `
+      <div class="rh-hero">
+        <h2>Portail Ressources Humaines</h2>
+        <p>Gestion documentaire et suivi du personnel du département Administratif.</p>
+        <div class="rh-stats-row">
+          <div class="rh-stat-card"><div class="rh-stat-value">${(docsData.docs || []).length}</div><div class="rh-stat-label">Documents</div></div>
+          <div class="rh-stat-card"><div class="rh-stat-value">${(recordsData.records || []).length}</div><div class="rh-stat-label">Fiches</div></div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function loadRhDocsSection(winId) {
+    const content = document.getElementById(`rh-content-${winId}`);
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/division/RH/docs');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    rhDocsCache = data.docs || [];
+    content.innerHTML = `
+      <div style="display:flex; gap:16px;">
+        <div style="width:200px; flex-shrink:0;">
+          <button class="btn small" id="rh-doc-new-${winId}" style="width:100%; margin-bottom:10px;">+ Nouveau document</button>
+          <div id="rh-doc-toc-${winId}"></div>
+        </div>
+        <div id="rh-doc-article-${winId}" style="flex:1; overflow-y:auto;"></div>
+      </div>
+    `;
+    renderRhDocToc(winId);
+    renderRhDocArticle(winId);
+    document.getElementById(`rh-doc-new-${winId}`).addEventListener('click', () => {
+      rhDocsSelected = 'new';
+      renderRhDocToc(winId);
+      renderRhDocArticle(winId);
+    });
+  }
+
+  function renderRhDocToc(winId) {
+    const toc = document.getElementById(`rh-doc-toc-${winId}`);
+    if (!rhDocsCache.length) { toc.innerHTML = '<div class="empty-row">Aucun document.</div>'; return; }
+    toc.innerHTML = rhDocsCache
+      .map((d) => `<div class="post-card" data-doc-id="${escapeHtml(d.id)}" style="cursor:pointer; padding:8px 10px; margin-bottom:6px;${rhDocsSelected === d.id ? ' border-color:var(--accent);' : ''}"><div style="font-size:12px; font-weight:600;">${escapeHtml(d.title)}</div></div>`)
+      .join('');
+    toc.querySelectorAll('[data-doc-id]').forEach((el) => {
+      el.addEventListener('click', () => {
+        rhDocsSelected = el.dataset.docId;
+        renderRhDocToc(winId);
+        renderRhDocArticle(winId);
+      });
+    });
+  }
+
+  function renderRhDocArticle(winId) {
+    const article = document.getElementById(`rh-doc-article-${winId}`);
+    if (rhDocsSelected === 'new' || (typeof rhDocsSelected === 'string' && rhDocsSelected.startsWith('edit:'))) {
+      const isEdit = rhDocsSelected.startsWith('edit:');
+      const editing = isEdit ? rhDocsCache.find((d) => d.id === rhDocsSelected.slice(5)) : null;
+      article.innerHTML = `
+        <form id="rh-doc-form-${winId}">
+          <div class="field-row"><label>Titre *</label><input type="text" id="rh-doc-title-${winId}" required value="${isEdit ? escapeHtml(editing.title) : ''}"></div>
+          <div class="field-row"><label>Contenu</label><textarea id="rh-doc-content-${winId}" rows="10">${isEdit ? escapeHtml(editing.content) : ''}</textarea></div>
+          <button class="btn small" type="submit">${isEdit ? 'Enregistrer' : 'Publier'}</button>
+        </form>
+      `;
+      document.getElementById(`rh-doc-form-${winId}`).addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById(`rh-doc-title-${winId}`).value.trim();
+        const contentVal = document.getElementById(`rh-doc-content-${winId}`).value.trim();
+        if (!title || !contentVal) { alert('Titre et contenu obligatoires.'); return; }
+        try {
+          if (isEdit) {
+            await apiFetch(`/api/rp/admin-ops/division/RH/docs/${encodeURIComponent(editing.id)}`, { method: 'PATCH', body: JSON.stringify({ title, content: contentVal }) });
+          } else {
+            await apiFetch('/api/rp/admin-ops/division/RH/docs', { method: 'POST', body: JSON.stringify({ title, content: contentVal }) });
+          }
+          rhDocsSelected = null;
+          loadRhDocsSection(winId);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+      return;
+    }
+    const doc = rhDocsCache.find((d) => d.id === rhDocsSelected);
+    if (!doc) { article.innerHTML = '<div class="empty-row">Sélectionne un document.</div>'; return; }
+    article.innerHTML = `
+      <h3 style="font-family:'Space Grotesk', sans-serif; margin-bottom:10px;">${escapeHtml(doc.title)}</h3>
+      <div style="white-space:pre-wrap; font-size:13px; color:var(--ink-dim); line-height:1.6;">${escapeHtml(doc.content)}</div>
+      <div style="margin-top:16px; display:flex; gap:8px;">
+        <button class="btn small" id="rh-doc-edit-${winId}">Modifier</button>
+        <button class="btn danger small" id="rh-doc-delete-${winId}">Supprimer</button>
+      </div>
+    `;
+    document.getElementById(`rh-doc-edit-${winId}`).addEventListener('click', () => {
+      rhDocsSelected = `edit:${doc.id}`;
+      renderRhDocArticle(winId);
+    });
+    document.getElementById(`rh-doc-delete-${winId}`).addEventListener('click', async () => {
+      if (!confirm('Supprimer ce document ?')) return;
+      try {
+        await apiFetch(`/api/rp/admin-ops/division/RH/docs/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+        rhDocsSelected = null;
+        loadRhDocsSection(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  async function loadRhPersonnelSection(winId) {
+    const content = document.getElementById(`rh-content-${winId}`);
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/rh/records');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    rhRecordsCache = data.records || [];
+    content.innerHTML = `
+      <div style="display:flex; gap:16px;">
+        <div style="width:200px; flex-shrink:0;">
+          <input type="text" id="rh-p-search-${winId}" placeholder="Rechercher..." style="margin-bottom:8px;">
+          <button class="btn small" id="rh-p-new-${winId}" style="width:100%; margin-bottom:10px;">+ Nouvelle fiche</button>
+          <div id="rh-p-toc-${winId}"></div>
+        </div>
+        <div id="rh-p-article-${winId}" style="flex:1; overflow-y:auto;"></div>
+      </div>
+    `;
+    renderRhPersonnelToc(winId, rhRecordsCache);
+    renderRhPersonnelArticle(winId);
+    document.getElementById(`rh-p-new-${winId}`).addEventListener('click', () => {
+      rhRecordsSelected = 'new';
+      renderRhPersonnelToc(winId, rhRecordsCache);
+      renderRhPersonnelArticle(winId);
+    });
+    document.getElementById(`rh-p-search-${winId}`).addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      renderRhPersonnelToc(winId, rhRecordsCache.filter((r) => (r.characterName || '').toLowerCase().includes(q)));
+    });
+  }
+
+  function renderRhPersonnelToc(winId, records) {
+    const toc = document.getElementById(`rh-p-toc-${winId}`);
+    if (!records.length) { toc.innerHTML = '<div class="empty-row">Aucune fiche.</div>'; return; }
+    toc.innerHTML = records
+      .map((r) => `<div class="post-card" data-name="${escapeHtml(r.characterName)}" style="cursor:pointer; padding:8px 10px; margin-bottom:6px;"><div style="font-size:12px; font-weight:600;">${escapeHtml(r.characterName)}</div><div style="font-size:11px; color:var(--ink-faint);">${escapeHtml([r.prenom, r.nom].filter(Boolean).join(' ') || r.grade || '')}</div></div>`)
+      .join('');
+    toc.querySelectorAll('[data-name]').forEach((el) => {
+      el.addEventListener('click', () => {
+        rhRecordsSelected = el.dataset.name;
+        renderRhPersonnelToc(winId, rhRecordsCache);
+        renderRhPersonnelArticle(winId);
+      });
+    });
+  }
+
+  function renderRhPersonnelArticle(winId) {
+    const article = document.getElementById(`rh-p-article-${winId}`);
+    if (rhRecordsSelected === 'new' || (typeof rhRecordsSelected === 'string' && rhRecordsSelected.startsWith('edit:'))) {
+      const isEdit = rhRecordsSelected.startsWith('edit:');
+      const existing = isEdit ? rhRecordsCache.find((r) => r.characterName === rhRecordsSelected.slice(5)) : null;
+      const v = (k) => (existing ? escapeHtml(existing[k] || '') : '');
+      article.innerHTML = `
+        <form id="rh-p-form-${winId}">
+          <div class="field-row"><label>Personnage *</label><input type="text" id="rh-p-characterName-${winId}" required value="${existing ? escapeHtml(existing.characterName) : ''}" ${existing ? 'readonly' : ''}></div>
+          <div class="field-grid">
+            <div class="field-row"><label>Prénom</label><input type="text" id="rh-p-prenom-${winId}" value="${v('prenom')}"></div>
+            <div class="field-row"><label>Nom</label><input type="text" id="rh-p-nom-${winId}" value="${v('nom')}"></div>
+          </div>
+          <div class="field-grid">
+            <div class="field-row"><label>Poste / Grade</label><input type="text" id="rh-p-grade-${winId}" value="${v('grade')}"></div>
+            <div class="field-row"><label>Département</label><input type="text" id="rh-p-departement-${winId}" value="${v('departement')}"></div>
+          </div>
+          <div class="field-row"><label>Évaluation</label><textarea id="rh-p-evaluation-${winId}" rows="3">${v('evaluation')}</textarea></div>
+          <div class="field-row"><label>Notes disciplinaires</label><textarea id="rh-p-notesDisciplinaires-${winId}" rows="2">${v('notesDisciplinaires')}</textarea></div>
+          <p style="font-size:11px; color:var(--ink-faint); margin-bottom:10px;">Pour les autres champs (état civil, apparence...), utilise la fiche complète dans l'onglet RH de l'intranet.</p>
+          <button class="btn small" type="submit">${isEdit ? 'Enregistrer' : 'Créer la fiche'}</button>
+        </form>
+      `;
+      document.getElementById(`rh-p-form-${winId}`).addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = { characterName: document.getElementById(`rh-p-characterName-${winId}`).value.trim() };
+        ['prenom', 'nom', 'grade', 'departement', 'evaluation', 'notesDisciplinaires'].forEach((k) => {
+          payload[k] = document.getElementById(`rh-p-${k}-${winId}`).value.trim();
+        });
+        if (!payload.characterName) { alert('Le nom du personnage est obligatoire.'); return; }
+        try {
+          await apiFetch('/api/rp/admin-ops/rh/records', { method: 'POST', body: JSON.stringify(payload) });
+          rhRecordsSelected = payload.characterName;
+          loadRhPersonnelSection(winId);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+      return;
+    }
+
+    const record = rhRecordsCache.find((r) => r.characterName === rhRecordsSelected);
+    if (!record) { article.innerHTML = '<div class="empty-row">Sélectionne un membre du personnel.</div>'; return; }
+    article.innerHTML = `
+      <h3 style="font-family:'Space Grotesk', sans-serif; margin-bottom:4px;">${escapeHtml([record.prenom, record.nom].filter(Boolean).join(' ') || record.characterName)}</h3>
+      <div style="font-size:11px; color:var(--ink-faint); margin-bottom:14px;">${escapeHtml(record.characterName)}</div>
+      <table>
+        <tr><td>Poste</td><td>${escapeHtml(record.grade || '—')}</td></tr>
+        <tr><td>Département</td><td>${escapeHtml(record.departement || '—')}</td></tr>
+      </table>
+      ${record.evaluation ? `<div style="margin-top:12px; font-size:13px;"><strong>Évaluation</strong><br>${escapeHtml(record.evaluation)}</div>` : ''}
+      ${record.notesDisciplinaires ? `<div style="margin-top:12px; font-size:13px;"><strong>Notes disciplinaires</strong><br>${escapeHtml(record.notesDisciplinaires)}</div>` : ''}
+      <button class="btn small" id="rh-p-edit-${winId}" style="margin-top:14px;">Modifier</button>
+    `;
+    document.getElementById(`rh-p-edit-${winId}`).addEventListener('click', () => {
+      rhRecordsSelected = `edit:${record.characterName}`;
+      renderRhPersonnelArticle(winId);
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // App : BJI — même style à onglets que l'app Budget, réutilise les
+  // endpoints déjà protégés côté serveur (division BJI).
+  // ---------------------------------------------------------------------
+  let bjiSubTab = 'docs';
+  let bjiDocsSelected = null;
+  let bjiDocsCache = [];
+
+  function openBjiApp() {
+    openDesktopWindow('bji', 'Bureau BJI', '<div class="empty-row">Chargement…</div>', (winId) => renderBjiApp(winId), { width: 780, height: 540 });
+  }
+
+  function renderBjiApp(winId) {
+    const body = document.getElementById(`desktop-window-body-${winId}`);
+    const TABS = [
+      { id: 'docs', label: 'Docs BJI' },
+      { id: 'dossiers', label: 'Dossier BJI' },
+      { id: 'casier', label: 'Casier judiciaire' },
+    ];
+    body.innerHTML = `
+      <div class="med-subnav">
+        ${TABS.map((t) => `<button class="med-subnav-btn${bjiSubTab === t.id ? ' active' : ''}" data-sub="${t.id}" type="button">${t.label}</button>`).join('')}
+      </div>
+      <div id="bji-content-${winId}"></div>
+    `;
+    body.querySelectorAll('.med-subnav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        bjiSubTab = btn.dataset.sub;
+        renderBjiApp(winId);
+      });
+    });
+    if (bjiSubTab === 'docs') loadBjiDocs(winId);
+    else if (bjiSubTab === 'dossiers') loadBjiDossiers(winId);
+    else loadBjiCasier(winId);
+  }
+
+  async function loadBjiDocs(winId) {
+    const content = document.getElementById(`bji-content-${winId}`);
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/division/BJI/docs');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    bjiDocsCache = data.docs || [];
+    content.innerHTML = `
+      <div style="display:flex; gap:16px;">
+        <div style="width:200px; flex-shrink:0;">
+          <button class="btn small" id="bji-doc-new-${winId}" style="width:100%; margin-bottom:10px;">+ Nouveau document</button>
+          <div id="bji-doc-toc-${winId}"></div>
+        </div>
+        <div id="bji-doc-article-${winId}" style="flex:1; overflow-y:auto;"></div>
+      </div>
+    `;
+    renderBjiDocToc(winId);
+    renderBjiDocArticle(winId);
+    document.getElementById(`bji-doc-new-${winId}`).addEventListener('click', () => {
+      bjiDocsSelected = 'new';
+      renderBjiDocToc(winId);
+      renderBjiDocArticle(winId);
+    });
+  }
+
+  function renderBjiDocToc(winId) {
+    const toc = document.getElementById(`bji-doc-toc-${winId}`);
+    if (!bjiDocsCache.length) { toc.innerHTML = '<div class="empty-row">Aucun document.</div>'; return; }
+    toc.innerHTML = bjiDocsCache
+      .map((d) => `<div class="post-card" data-doc-id="${escapeHtml(d.id)}" style="cursor:pointer; padding:8px 10px; margin-bottom:6px;"><div style="font-size:12px; font-weight:600;">${escapeHtml(d.title)}</div></div>`)
+      .join('');
+    toc.querySelectorAll('[data-doc-id]').forEach((el) => {
+      el.addEventListener('click', () => {
+        bjiDocsSelected = el.dataset.docId;
+        renderBjiDocToc(winId);
+        renderBjiDocArticle(winId);
+      });
+    });
+  }
+
+  function renderBjiDocArticle(winId) {
+    const article = document.getElementById(`bji-doc-article-${winId}`);
+    if (bjiDocsSelected === 'new' || (typeof bjiDocsSelected === 'string' && bjiDocsSelected.startsWith('edit:'))) {
+      const isEdit = bjiDocsSelected.startsWith('edit:');
+      const editing = isEdit ? bjiDocsCache.find((d) => d.id === bjiDocsSelected.slice(5)) : null;
+      article.innerHTML = `
+        <form id="bji-doc-form-${winId}">
+          <div class="field-row"><label>Titre *</label><input type="text" id="bji-doc-title-${winId}" required value="${isEdit ? escapeHtml(editing.title) : ''}"></div>
+          <div class="field-row"><label>Contenu</label><textarea id="bji-doc-content-${winId}" rows="10">${isEdit ? escapeHtml(editing.content) : ''}</textarea></div>
+          <button class="btn small" type="submit">${isEdit ? 'Enregistrer' : 'Publier'}</button>
+        </form>
+      `;
+      document.getElementById(`bji-doc-form-${winId}`).addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById(`bji-doc-title-${winId}`).value.trim();
+        const contentVal = document.getElementById(`bji-doc-content-${winId}`).value.trim();
+        if (!title || !contentVal) { alert('Titre et contenu obligatoires.'); return; }
+        try {
+          if (isEdit) {
+            await apiFetch(`/api/rp/admin-ops/division/BJI/docs/${encodeURIComponent(editing.id)}`, { method: 'PATCH', body: JSON.stringify({ title, content: contentVal }) });
+          } else {
+            await apiFetch('/api/rp/admin-ops/division/BJI/docs', { method: 'POST', body: JSON.stringify({ title, content: contentVal }) });
+          }
+          bjiDocsSelected = null;
+          loadBjiDocs(winId);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+      return;
+    }
+    const doc = bjiDocsCache.find((d) => d.id === bjiDocsSelected);
+    if (!doc) { article.innerHTML = '<div class="empty-row">Sélectionne un document.</div>'; return; }
+    article.innerHTML = `
+      <h3 style="font-family:'Space Grotesk', sans-serif; margin-bottom:10px;">${escapeHtml(doc.title)}</h3>
+      <div style="white-space:pre-wrap; font-size:13px; color:var(--ink-dim); line-height:1.6;">${escapeHtml(doc.content)}</div>
+      <div style="margin-top:16px; display:flex; gap:8px;">
+        <button class="btn small" id="bji-doc-edit-${winId}">Modifier</button>
+        <button class="btn danger small" id="bji-doc-delete-${winId}">Supprimer</button>
+      </div>
+    `;
+    document.getElementById(`bji-doc-edit-${winId}`).addEventListener('click', () => {
+      bjiDocsSelected = `edit:${doc.id}`;
+      renderBjiDocArticle(winId);
+    });
+    document.getElementById(`bji-doc-delete-${winId}`).addEventListener('click', async () => {
+      if (!confirm('Supprimer ce document ?')) return;
+      try {
+        await apiFetch(`/api/rp/admin-ops/division/BJI/docs/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+        bjiDocsSelected = null;
+        loadBjiDocs(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  async function loadBjiDossiers(winId) {
+    const content = document.getElementById(`bji-content-${winId}`);
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/bji/dossiers');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    const dossiers = data.dossiers || [];
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Dossiers</h2><span class="count">${dossiers.length}</span></div>
+        ${
+          dossiers.length
+            ? dossiers.map((d) => `<div class="post-card"><div class="post-card-head"><span class="post-card-title">${escapeHtml(d.subject)}</span><span class="post-card-meta">${escapeHtml(d.authorCharacterName)}</span></div><div class="post-card-body">${escapeHtml(d.content || '')}</div></div>`).join('')
+            : '<div class="empty-row">Aucun dossier.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Ouvrir un dossier</h3>
+        <form id="bji-dossier-form-${winId}">
+          <div class="field-row"><label>Sujet *</label><input type="text" id="bji-dossier-subject-${winId}" required></div>
+          <div class="field-row"><label>Contenu</label><textarea id="bji-dossier-content-${winId}" rows="5"></textarea></div>
+          <button class="btn small" type="submit">Ouvrir</button>
+        </form>
+      </div>
+    `;
+    document.getElementById(`bji-dossier-form-${winId}`).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const subject = document.getElementById(`bji-dossier-subject-${winId}`).value.trim();
+      const contentVal = document.getElementById(`bji-dossier-content-${winId}`).value.trim();
+      if (!subject) { alert('Le sujet est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/bji/dossiers', { method: 'POST', body: JSON.stringify({ subject, content: contentVal }) });
+        loadBjiDossiers(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  async function loadBjiCasier(winId) {
+    const content = document.getElementById(`bji-content-${winId}`);
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+    let data;
+    try {
+      data = await apiFetch('/api/rp/admin-ops/bji/casier');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Accès refusé ou erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    const records = data.records || [];
+    content.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Casier judiciaire</h2><span class="count">${records.length}</span></div>
+        ${
+          records.length
+            ? records
+                .map(
+                  (r) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(r.characterName)}</span><span class="post-card-meta">${escapeHtml(r.date || '')}</span></div>
+            <div class="post-card-meta">Verdict : ${escapeHtml(r.verdict || '—')} — Peine : ${escapeHtml(r.peine || '—')}</div>
+            <div class="post-card-body">${escapeHtml(r.natureDelit || '')}</div>
+          </div>
+        `
+                )
+                .join('')
+            : '<div class="empty-row">Aucune entrée.</div>'
+        }
+      </div>
+      <div class="subsection">
+        <h3>Ajouter une entrée</h3>
+        <form id="bji-casier-form-${winId}">
+          <div class="field-grid">
+            <div class="field-row"><label>Personnage *</label><input type="text" id="bji-casier-name-${winId}" required></div>
+            <div class="field-row"><label>Date</label><input type="text" id="bji-casier-date-${winId}" placeholder="JJ/MM/AAAA"></div>
+          </div>
+          <div class="field-row"><label>Nature du délit</label><input type="text" id="bji-casier-nature-${winId}"></div>
+          <div class="field-grid">
+            <div class="field-row"><label>Verdict</label><input type="text" id="bji-casier-verdict-${winId}"></div>
+            <div class="field-row"><label>Peine</label><input type="text" id="bji-casier-peine-${winId}"></div>
+          </div>
+          <button class="btn small" type="submit">Ajouter</button>
+        </form>
+      </div>
+    `;
+    document.getElementById(`bji-casier-form-${winId}`).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const characterName = document.getElementById(`bji-casier-name-${winId}`).value.trim();
+      const date = document.getElementById(`bji-casier-date-${winId}`).value.trim();
+      const natureDelit = document.getElementById(`bji-casier-nature-${winId}`).value.trim();
+      const verdict = document.getElementById(`bji-casier-verdict-${winId}`).value.trim();
+      const peine = document.getElementById(`bji-casier-peine-${winId}`).value.trim();
+      if (!characterName) { alert('Le personnage est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/admin-ops/bji/casier', { method: 'POST', body: JSON.stringify({ characterName, date, natureDelit, verdict, peine }) });
+        loadBjiCasier(winId);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
   }
 
   checkAccessAndInit();
