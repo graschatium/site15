@@ -205,6 +205,40 @@
     font-family:'Space Grotesk', sans-serif; font-size:12.5px; line-height:1.5; padding:0; margin-top:6px;
   }
   .sticky-note-text::placeholder{ color:rgba(10,11,14,0.4); }
+
+  /* ---- Sélecteur SCP façon clipboard ---- */
+  .clipboard-trigger{
+    display:flex; align-items:center; justify-content:space-between; width:100%; text-align:left;
+    background:var(--void-2); border:1px solid var(--line); border-radius:5px; padding:9px 11px;
+    color:var(--ink); font-family:'Inter', sans-serif; font-size:13px; cursor:pointer;
+  }
+  .clipboard-trigger:hover{ border-color:var(--line-bright); }
+  .clipboard-trigger svg{ width:14px; height:14px; color:var(--ink-faint); flex-shrink:0; }
+
+  .clipboard-panel{
+    position:relative; margin-top:8px; background:#1c1e26; border:1px solid var(--line); border-radius:6px;
+    padding:16px 10px 10px; box-shadow:0 16px 40px rgba(0,0,0,0.5);
+  }
+  .clipboard-panel::before{
+    content:''; position:absolute; top:-9px; left:50%; transform:translateX(-50%);
+    width:64px; height:16px; background:#3a3d4a; border-radius:4px; border:1px solid var(--line);
+  }
+  .clipboard-search{ margin-bottom:10px; }
+  .clipboard-list{ max-height:220px; overflow-y:auto; padding-right:4px; }
+  .clipboard-free-option{
+    display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:4px; cursor:pointer;
+    font-size:12.5px; color:var(--ink-dim); border:1px dashed var(--line); margin-bottom:10px;
+  }
+  .clipboard-free-option:hover{ border-color:var(--line-bright); color:var(--ink); }
+  .clipboard-group-label{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+    padding:6px 10px 4px; margin-top:4px;
+  }
+  .clipboard-item{
+    padding:7px 10px; border-radius:4px; cursor:pointer; font-size:12.5px; color:var(--ink-dim);
+  }
+  .clipboard-item:hover{ background:rgba(255,255,255,0.05); color:var(--ink); }
+  .clipboard-empty{ padding:10px; font-size:12px; color:var(--ink-faint); text-align:center; }
 </style>
 </head>
 <body>
@@ -380,14 +414,21 @@
         <div class="scope-panel">
           <div class="scope-panel-title">Nouvel examen</div>
           <form id="scope-form">
-            <div class="field-grid">
-              <div class="field-row"><label>Désignation de l'échantillon *</label><input type="text" id="scope-designation" required placeholder="Ex: SCP-1547 — fragment A"></div>
-              <div class="field-row">
-                <label>Type</label>
-                <select id="scope-type">
-                  ${Object.entries(SAMPLE_TYPES).map(([id, t]) => `<option value="${id}">${t.label}</option>`).join('')}
-                </select>
-              </div>
+            <div class="field-row">
+              <label>Échantillon *</label>
+              <button type="button" class="clipboard-trigger" id="scp-picker-trigger">
+                <span id="scp-picker-label">📋 Choisir un SCP dans le wiki…</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div id="scp-picker-panel" style="display:none;"></div>
+              <input type="text" id="scope-designation-free" style="display:none; margin-top:8px;" placeholder="Désignation libre (échantillon inconnu du wiki)">
+              <input type="hidden" id="scope-designation" required>
+            </div>
+            <div class="field-row">
+              <label>Type</label>
+              <select id="scope-type">
+                ${Object.entries(SAMPLE_TYPES).map(([id, t]) => `<option value="${id}">${t.label}</option>`).join('')}
+              </select>
             </div>
             <button class="btn" type="submit" id="scope-examine-btn">Examiner</button>
           </form>
@@ -429,7 +470,116 @@
     document.getElementById('scope-add-note-btn').addEventListener('click', () => addStickyNote());
     renderStickyNotes();
 
+    initScpPicker();
+
     loadScopeLog();
+  }
+
+  // ---------------------------------------------------------------------
+  // Sélecteur SCP façon clipboard — tire les vraies fiches du wiki
+  // (Archives Scientifique), groupées par classification. Option "Libre /
+  // Inconnu" en secours pour un échantillon absent du wiki.
+  // ---------------------------------------------------------------------
+  let selectedScpId = null; // null = mode libre/manuel
+  let wikiScpEntries = [];
+
+  const CLASSIFICATION_META = {
+    safe: { label: 'Sûr', color: 'var(--good)' },
+    euclid: { label: 'Euclide', color: 'var(--warn)' },
+    keter: { label: 'Keter', color: 'var(--bad)' },
+  };
+
+  async function initScpPicker() {
+    const trigger = document.getElementById('scp-picker-trigger');
+    const panel = document.getElementById('scp-picker-panel');
+    const freeInput = document.getElementById('scope-designation-free');
+    const hiddenInput = document.getElementById('scope-designation');
+
+    try {
+      const data = await apiFetch('/api/rp/science/publications');
+      wikiScpEntries = (data.publications || []).filter((p) => p.docType === 'objet');
+    } catch (err) {
+      wikiScpEntries = [];
+    }
+
+    function selectFree() {
+      selectedScpId = null;
+      document.getElementById('scp-picker-label').textContent = '🔓 Échantillon libre / inconnu';
+      freeInput.style.display = 'block';
+      freeInput.focus();
+      hiddenInput.value = freeInput.value;
+      panel.style.display = 'none';
+    }
+
+    function selectScp(entry) {
+      selectedScpId = entry.id;
+      document.getElementById('scp-picker-label').textContent = `📋 ${entry.title}`;
+      freeInput.style.display = 'none';
+      hiddenInput.value = entry.title;
+      panel.style.display = 'none';
+    }
+
+    function renderPanel(filterText) {
+      const q = (filterText || '').toLowerCase();
+      const groups = { safe: [], euclid: [], keter: [] };
+      wikiScpEntries.forEach((entry) => {
+        if (entry.classification && groups[entry.classification] && entry.title.toLowerCase().includes(q)) {
+          groups[entry.classification].push(entry);
+        }
+      });
+
+      const groupsHtml = Object.entries(groups)
+        .map(([key, entries]) => {
+          if (!entries.length) return '';
+          const meta = CLASSIFICATION_META[key];
+          return `
+            <div class="clipboard-group-label" style="color:${meta.color};">${meta.label}</div>
+            ${entries.map((e) => `<div class="clipboard-item" data-scp-id="${e.id}">${escapeHtml(e.title)}</div>`).join('')}
+          `;
+        })
+        .join('');
+
+      panel.innerHTML = `
+        <div class="clipboard-panel">
+          <input type="text" class="clipboard-search" id="clipboard-search-input" placeholder="Rechercher un SCP..." value="${escapeHtml(filterText || '')}">
+          <div class="clipboard-free-option" id="clipboard-free-option">🔓 Échantillon libre / inconnu (non répertorié)</div>
+          <div class="clipboard-list">
+            ${groupsHtml || '<div class="clipboard-empty">Aucun SCP trouvé dans le wiki.</div>'}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('clipboard-free-option').addEventListener('click', selectFree);
+      panel.querySelectorAll('.clipboard-item').forEach((el) => {
+        el.addEventListener('click', () => {
+          const entry = wikiScpEntries.find((e) => e.id === el.dataset.scpId);
+          if (entry) selectScp(entry);
+        });
+      });
+
+      const searchInput = document.getElementById('clipboard-search-input');
+      searchInput.addEventListener('input', () => renderPanel(searchInput.value));
+      // Garde le focus sur la recherche à chaque re-render du panneau,
+      // sinon taper une lettre le referme à chaque frappe.
+      searchInput.focus();
+      searchInput.selectionStart = searchInput.selectionEnd = searchInput.value.length;
+    }
+
+    trigger.addEventListener('click', () => {
+      const isOpen = panel.style.display !== 'none';
+      panel.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) renderPanel('');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!panel.contains(e.target) && e.target !== trigger && !trigger.contains(e.target)) {
+        panel.style.display = 'none';
+      }
+    });
+
+    freeInput.addEventListener('input', () => {
+      hiddenInput.value = freeInput.value;
+    });
   }
 
   // Génère la graticule (anneaux + graduations radiales) une seule fois —
@@ -450,15 +600,31 @@
   // Regénère une texture "cellulaire" (petits amas translucides) à chaque
   // examen, pour que le spécimen ait un aspect granuleux/organique plutôt
   // qu'une simple tache lisse — purement décoratif.
-  function buildSpecimenCells(color) {
+  // Petit générateur pseudo-aléatoire à graine (LCG) — permet de faire
+  // apparaître TOUJOURS le même motif de cellules pour un même SCP précis
+  // (graine = son id de fiche wiki), plutôt qu'un aspect différent à
+  // chaque examen. Sans graine (échantillon libre), reste aléatoire.
+  function seededRandom(seedStr) {
+    let s = 0;
+    for (let i = 0; i < seedStr.length; i += 1) {
+      s = (s * 31 + seedStr.charCodeAt(i)) >>> 0;
+    }
+    return function next() {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+  }
+
+  function buildSpecimenCells(color, seed) {
     const container = document.getElementById('scope-cells');
+    const rand = seed ? seededRandom(seed) : Math.random;
     let html = '';
-    const count = 10 + Math.floor(Math.random() * 8);
+    const count = 10 + Math.floor(rand() * 8);
     for (let i = 0; i < count; i += 1) {
-      const size = 8 + Math.random() * 22;
-      const x = 20 + Math.random() * 110;
-      const y = 20 + Math.random() * 110;
-      const opacity = (0.15 + Math.random() * 0.35).toFixed(2);
+      const size = 8 + rand() * 22;
+      const x = 20 + rand() * 110;
+      const y = 20 + rand() * 110;
+      const opacity = (0.15 + rand() * 0.35).toFixed(2);
       html += `<div class="scope-cell" style="width:${size}px; height:${size}px; left:${x}px; top:${y}px; background:${color}; opacity:${opacity};"></div>`;
     }
     container.innerHTML = html;
@@ -494,7 +660,10 @@
 
   function runExamination() {
     const designation = document.getElementById('scope-designation').value.trim();
-    if (!designation) return;
+    if (!designation) {
+      alert('Choisis un SCP dans le wiki, ou saisis une désignation libre.');
+      return;
+    }
 
     const type = document.getElementById('scope-type').value;
     const color = (SAMPLE_TYPES[type] || SAMPLE_TYPES.inconnu).color;
@@ -512,7 +681,7 @@
     const blob = document.getElementById('scope-specimen-blob');
     blob.style.background = `radial-gradient(circle at 35% 35%, ${color}dd, ${color}55 60%, transparent 90%)`;
     blob.style.boxShadow = `0 0 40px ${color}55`;
-    buildSpecimenCells(color);
+    buildSpecimenCells(color, selectedScpId);
 
     setTimeout(() => {
       document.getElementById('scope-specimen').classList.add('visible');
@@ -554,6 +723,12 @@
       document.getElementById('scope-brightness').value = 50;
       document.getElementById('scope-focus').value = 50;
       updateScopeVisuals();
+
+      // Remet le sélecteur SCP à zéro.
+      selectedScpId = null;
+      document.getElementById('scp-picker-label').textContent = '📋 Choisir un SCP dans le wiki…';
+      document.getElementById('scope-designation-free').style.display = 'none';
+      document.getElementById('scope-designation-free').value = '';
 
       loadScopeLog();
     } catch (err) {
