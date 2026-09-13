@@ -986,6 +986,7 @@
       tabs.push({ id: 'sec-reinforcement', label: 'Renfort', icon: 'radio' });
       tabs.push({ id: 'sec-docs', label: 'Docs DSE', icon: 'folder' });
       tabs.push({ id: 'sec-service', label: 'Service', icon: 'badge' });
+      tabs.push({ id: 'sec-card-reader', label: 'Lecteur de carte', icon: 'monitor' });
     }
 
     mainRoot.innerHTML = `
@@ -1092,6 +1093,7 @@
     else if (tabId === 'adm-div-rh') loadAdminRhShell();
     else if (tabId === 'adm-desktop') loadAdminDesktop();
     else if (tabId === 'doctoscp') loadDoctoscpLauncher();
+    else if (tabId === 'sec-card-reader') loadCardReaderLauncher();
   }
 
   // -----------------------------------------------------------------
@@ -4379,6 +4381,22 @@
     `;
     document.getElementById('open-doctoscp-btn').addEventListener('click', () => {
       window.open(`/rp/doctoscp/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
+    });
+  }
+
+  function loadCardReaderLauncher() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = `
+      <div class="record-block" style="text-align:center; padding:48px 24px;">
+        <h2 style="margin-bottom:10px;">Lecteur de carte</h2>
+        <p style="color:var(--ink-dim); font-size:13px; margin-bottom:24px; max-width:420px; margin-left:auto; margin-right:auto;">
+          Vérification d'accréditation d'un agent. S'ouvre dans son propre environnement.
+        </p>
+        <button class="btn" id="open-card-reader-btn">Ouvrir le Lecteur de carte ↗</button>
+      </div>
+    `;
+    document.getElementById('open-card-reader-btn').addEventListener('click', () => {
+      window.open(`/rp/lecteur-carte/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
     });
   }
 
