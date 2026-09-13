@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Document introuvable — SITE-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #08090C;
+    --void-2: #0D0F14;
+    --panel: #12141B;
+    --panel-raised: #171922;
+    --line: #23262F;
+    --line-soft: rgba(255,255,255,0.06);
+    --accent: #6E76FF;
+    --accent-soft: rgba(110,118,255,0.10);
+    --accent-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #565B6B;
+    --bad: #F0525A;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html, body{ height:100%; }
+  body{
+    background:var(--void); color:var(--ink); font-family:'Inter', sans-serif;
+    display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  body::before{
+    content:''; position:absolute; inset:0; pointer-events:none; opacity:0.035;
+    background-image:
+      linear-gradient(to right, #fff 1px, transparent 1px),
+      linear-gradient(to bottom, #fff 1px, transparent 1px);
+    background-size:44px 44px;
+  }
+  body::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse 900px 600px at 50% 40%, rgba(110,118,255,0.08), transparent 65%);
+  }
+
+  .logo-watermark{
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:520px; opacity:0.03;
+    pointer-events:none; filter:grayscale(1);
+  }
+
+  .wrap{ position:relative; z-index:1; text-align:center; padding:20px; max-width:520px; }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--accent-2); margin-bottom:18px; display:block;
+  }
+
+  .code{
+    font-family:'Space Grotesk', sans-serif; font-size:120px; font-weight:700; line-height:1; letter-spacing:-0.02em;
+    color:var(--ink); margin-bottom:6px; position:relative;
+    text-shadow:0 0 60px rgba(110,118,255,0.35);
+  }
+  .code span{ color:var(--accent); }
+
+  h1{ font-family:'Space Grotesk', sans-serif; font-size:20px; font-weight:600; margin-bottom:12px; }
+  p{ color:var(--ink-dim); font-size:13.5px; line-height:1.7; margin-bottom:30px; }
+  .mono{ font-family:'JetBrains Mono', monospace; color:var(--ink-faint); }
+
+  .terminal-line{
+    font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--bad); background:var(--panel);
+    border:1px solid var(--line); border-radius:6px; padding:12px 16px; margin-bottom:30px; text-align:left;
+  }
+  .terminal-line .prompt{ color:var(--accent-2); }
+
+  .actions{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .btn{
+    padding:11px 22px; border-radius:6px; border:1px solid var(--line); background:var(--accent); color:#fff;
+    font-size:13px; font-weight:600; cursor:pointer; transition:filter .15s ease;
+  }
+  .btn:hover{ filter:brightness(1.1); }
+  .btn.ghost{ background:var(--void-2); color:var(--ink-dim); }
+  .btn.ghost:hover{ color:var(--ink); border-color:var(--accent); }
+</style>
+</head>
+<body>
+
+<img class="logo-watermark" src="/ressources/voidline-logo-white.png" alt="" aria-hidden="true">
+
+<div class="wrap">
+  <span class="eyebrow">SITE-15 // Erreur d'accès</span>
+  <div class="code">4<span>0</span>4</div>
+  <h1>Document introuvable</h1>
+  <p>La page demandée n'existe pas, a été déplacée, ou son accès a été révoqué par la Fondation.</p>
+
+  <div class="terminal-line">
+    <span class="prompt">site-15:~$</span> access <span class="mono">[REQUESTED_PATH]</span><br>
+    &gt; Erreur 404 — Ressource introuvable dans les archives.
+  </div>
+
+  <div class="actions">
+    <a href="/" class="btn">Retour à l'accueil</a>
+    <a href="/statut/" class="btn ghost">Voir le statut du site</a>
+  </div>
+</div>
+
+</body>
+</html>
