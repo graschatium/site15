@@ -52,16 +52,37 @@
 
   .center-msg{ display:flex; align-items:center; justify-content:center; height:calc(100vh - 48px); color:var(--ink-dim); font-size:14px; text-align:center; padding:20px; }
 
+  .mode-toggle-btn{
+    padding:6px 12px; border-radius:6px; border:1px solid var(--line); background:var(--void); color:var(--ink-faint);
+    font-size:11px; cursor:pointer; font-family:'JetBrains Mono', monospace;
+  }
+  .mode-toggle-btn:hover{ color:var(--ink); }
+  .mode-toggle-btn.active{ color:var(--accent-2); border-color:var(--accent); }
+
+  /* ---- Thème veille de nuit ---- */
+  body.night-mode{ --void:#030304; --void-2:#060708; --panel:#0a0b0d; --line:#1a0e0e; --accent:#8a2f2f; --accent-2:#c14545; --ink:#c9b9b9; }
+  body.night-mode .badge-card.level-4::before, body.night-mode .badge-card.level-3::before{ background:#c14545; }
+
   .reader-page{
     height:calc(100vh - 48px); overflow-y:auto; padding:36px 20px;
     background:radial-gradient(ellipse 900px 500px at 50% -10%, rgba(110,118,255,0.06), transparent 60%);
   }
   .reader-columns{ display:flex; gap:24px; justify-content:center; align-items:flex-start; flex-wrap:wrap; max-width:1000px; margin:0 auto; }
+  .checkpoint-lower-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:1000px; margin:24px auto 0; }
+  @media (max-width: 800px){ .checkpoint-lower-grid{ grid-template-columns:1fr; } }
+  .checkpoint-hint{ font-size:10.5px; color:var(--ink-faint); margin-top:10px; line-height:1.5; }
 
   .history-panel{ width:280px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; }
   .history-head{ display:flex; justify-content:space-between; align-items:center; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; margin-bottom:12px; }
   .device-toolbar{ display:flex; gap:8px; margin-top:10px; }
   .device-toolbar .btn{ flex:1; }
+  .favoris-row{ margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
+  .favoris-label{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px; }
+  .favori-chip{ display:flex; align-items:center; justify-content:space-between; background:var(--void-2); border:1px solid var(--line); border-radius:6px; padding:6px 10px; margin-bottom:6px; font-size:12px; }
+  .favori-chip span{ cursor:pointer; }
+  .favori-chip span:hover{ color:var(--accent-2); }
+  .favori-chip button{ background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:13px; }
+  .favori-chip button:hover{ color:var(--bad); }
   .history-item{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line-soft); gap:8px; }
   .history-filters{ display:flex; gap:6px; margin-bottom:12px; }
   .history-filters select{ font-size:11px; padding:6px 8px; }
@@ -256,7 +277,11 @@
     </a>
     <span class="topbar-title">Lecteur de carte — Sécurité</span>
   </div>
-  <span class="topbar-status mono" id="topbar-status">CARD-READER v1.0</span>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <button class="mode-toggle-btn" id="mode-toggle-btn" style="display:none;">🚧 Mode Checkpoint</button>
+    <button class="mode-toggle-btn" id="night-toggle-btn">🌙 Veille de nuit</button>
+    <span class="topbar-status mono" id="topbar-status">CARD-READER v1.0</span>
+  </div>
 </div>
 
 <div id="page-root">
@@ -306,6 +331,65 @@
   }
 
   const pageRoot = document.getElementById('page-root');
+
+  // Thème "veille de nuit" — persiste entre les visites (localStorage).
+  const NIGHT_MODE_KEY = 'card_reader_night_mode';
+  if (localStorage.getItem(NIGHT_MODE_KEY) === '1') {
+    document.body.classList.add('night-mode');
+    document.getElementById('night-toggle-btn').classList.add('active');
+  }
+  document.getElementById('night-toggle-btn').addEventListener('click', () => {
+    const active = document.body.classList.toggle('night-mode');
+    document.getElementById('night-toggle-btn').classList.toggle('active', active);
+    localStorage.setItem(NIGHT_MODE_KEY, active ? '1' : '0');
+  });
+
+  let readerMode = 'normal'; // 'normal' | 'checkpoint'
+
+  // Raccourcis clavier 1-4 (0 = aucun) pour le niveau requis — actif
+  // seulement en Mode Normal et hors frappe dans le champ de recherche.
+  document.addEventListener('keydown', (e) => {
+    if (readerMode !== 'normal') return;
+    if (document.activeElement && document.activeElement.id === 'card-query') return;
+    const select = document.getElementById('required-level');
+    if (!select) return;
+    if (e.key >= '1' && e.key <= '4') select.value = e.key;
+    else if (e.key === '0') select.value = '';
+  });
+
+  // ---- Favoris (localStorage, par navigateur) ----
+  const FAVORIS_KEY = 'card_reader_favoris';
+  function getFavoris() {
+    try { return JSON.parse(localStorage.getItem(FAVORIS_KEY) || '[]'); } catch (err) { return []; }
+  }
+  function addFavori(name) {
+    const list = getFavoris();
+    if (!list.includes(name)) list.push(name);
+    localStorage.setItem(FAVORIS_KEY, JSON.stringify(list));
+    renderFavoris();
+  }
+  function removeFavori(name) {
+    localStorage.setItem(FAVORIS_KEY, JSON.stringify(getFavoris().filter((n) => n !== name)));
+    renderFavoris();
+  }
+  function renderFavoris() {
+    const box = document.getElementById('favoris-list');
+    if (!box) return;
+    const list = getFavoris();
+    box.innerHTML = list.length
+      ? list.map((n) => `<div class="favori-chip"><span data-scan-favori="${escapeHtml(n)}">${escapeHtml(n)}</span><button data-remove-favori="${escapeHtml(n)}">×</button></div>`).join('')
+      : '<div class="empty-row" style="padding:6px 0;">Aucun favori.</div>';
+    box.querySelectorAll('[data-scan-favori]').forEach((el) => {
+      el.addEventListener('click', () => {
+        document.getElementById('card-query').value = el.dataset.scanFavori;
+        document.getElementById('scan-btn').click();
+      });
+    });
+    box.querySelectorAll('[data-remove-favori]').forEach((el) => {
+      el.addEventListener('click', () => removeFavori(el.dataset.removeFavori));
+    });
+  }
+
 
   async function checkAccessAndInit() {
     if (!getToken()) {
@@ -373,6 +457,12 @@
   let historyCache = [];
 
   function loadReader() {
+    readerMode = 'normal';
+    document.getElementById('mode-toggle-btn').style.display = 'inline-block';
+    document.getElementById('mode-toggle-btn').textContent = '🚧 Mode Checkpoint';
+    document.getElementById('mode-toggle-btn').classList.remove('active');
+    document.getElementById('mode-toggle-btn').onclick = () => loadCheckpointMode();
+
     pageRoot.innerHTML = `
       <div class="reader-page">
         <div class="reader-columns">
@@ -387,7 +477,7 @@
             <div class="physical-card" id="physical-card"></div>
             <div class="field-row"><label>Nom ou pseudo à scanner</label><input type="text" id="card-query" placeholder="ex: C.FLANDEU"></div>
             <div class="field-row">
-              <label>Niveau requis (contrôle d'accès)</label>
+              <label>Niveau requis <span style="color:var(--ink-faint); text-transform:none;">(touches 1-4, 0 = aucun)</span></label>
               <select id="required-level">
                 <option value="">Aucun — juste consulter</option>
                 <option value="1">Niveau 1</option>
@@ -404,6 +494,12 @@
             <div class="device-toolbar">
               <button class="btn small ghost" id="batch-scan-btn" type="button">📋 Scan par lot</button>
               <button class="btn small ghost" id="blacklist-btn" type="button">🚩 Liste noire</button>
+            </div>
+
+            <div class="favoris-row">
+              <div class="favoris-label">⭐ Favoris</div>
+              <div id="favoris-list"></div>
+              <button class="btn small ghost" id="add-favori-btn" type="button" style="width:100%; margin-top:6px;">+ Épingler ce nom</button>
             </div>
           </div>
 
@@ -434,6 +530,13 @@
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
     btn.addEventListener('click', runScan);
 
+    renderFavoris();
+    document.getElementById('add-favori-btn').addEventListener('click', () => {
+      const name = input.value.trim();
+      if (!name) { alert('Tape un nom dans le champ avant de l\'épingler.'); return; }
+      addFavori(name);
+    });
+
     document.getElementById('batch-scan-btn').addEventListener('click', openBatchScanModal);
     document.getElementById('blacklist-btn').addEventListener('click', openBlacklistModal);
     document.getElementById('export-history-btn').addEventListener('click', exportHistoryCsv);
@@ -453,6 +556,233 @@
     document.getElementById('history-filter-result').addEventListener('change', renderHistory);
 
     loadHistory();
+  }
+
+  // =======================================================================
+  // Mode Checkpoint — entrée/sortie par secteur avec timer, autorisations
+  // sectorielles, journal de fouilles.
+  // =======================================================================
+  const SECTOR_SUGGESTIONS = ['Zone Confinement Légère', 'Zone Confinement Lourde', 'Secteur Recherche', 'Secteur Administratif', 'Zone Résidentielle', 'Salle de Contrôle'];
+  let currentSector = '';
+
+  function loadCheckpointMode() {
+    readerMode = 'checkpoint';
+    document.getElementById('mode-toggle-btn').textContent = '🔍 Mode Normal';
+    document.getElementById('mode-toggle-btn').classList.add('active');
+    document.getElementById('mode-toggle-btn').onclick = () => loadReader();
+
+    pageRoot.innerHTML = `
+      <div class="reader-page">
+        <div class="reader-columns">
+          <div class="device">
+            <div class="device-label">MODE CHECKPOINT — PC doté d'un lecteur de carte</div>
+            <div class="field-row">
+              <label>Secteur contrôlé</label>
+              <input type="text" id="checkpoint-sector" list="sector-suggestions" placeholder="ex: Zone Confinement Lourde" value="${escapeHtml(currentSector)}">
+              <datalist id="sector-suggestions">
+                ${SECTOR_SUGGESTIONS.map((s) => `<option value="${escapeHtml(s)}">`).join('')}
+              </datalist>
+            </div>
+            <div class="scan-slot">
+              <div class="scan-slot-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h4M6 14h8"/></svg></div>
+              <div class="scan-line" id="scan-line"></div>
+            </div>
+            <div class="field-row"><label>Nom ou pseudo</label><input type="text" id="checkpoint-query" placeholder="ex: C.FLANDEU"></div>
+            <button class="btn" id="checkpoint-scan-btn">🚧 Scanner (entrée / sortie)</button>
+            <p class="checkpoint-hint">Le système détecte automatiquement s'il s'agit d'une entrée ou d'une sortie.</p>
+          </div>
+
+          <div class="results-wrap" id="checkpoint-results"></div>
+
+          <div class="history-panel">
+            <div class="history-head"><span>Actuellement dans le secteur</span></div>
+            <div id="inside-list"><div class="empty-row">Renseigne un secteur.</div></div>
+          </div>
+        </div>
+
+        <div class="checkpoint-lower-grid">
+          <div class="history-panel">
+            <div class="history-head"><span>Autorisations sectorielles</span></div>
+            <form id="sector-auth-form">
+              <div class="field-row"><label>Pseudo</label><input type="text" id="auth-username" placeholder="Pseudo Roblox"></div>
+              <div class="field-row"><label>Secteurs autorisés (séparés par virgule)</label><input type="text" id="auth-sectors" placeholder="Zone Confinement Lourde, Secteur Recherche"></div>
+              <button class="btn small" type="submit">Enregistrer</button>
+            </form>
+          </div>
+
+          <div class="history-panel">
+            <div class="history-head"><span>Fouilles</span></div>
+            <form id="search-form">
+              <div class="field-grid">
+                <div class="field-row"><label>Pseudo</label><input type="text" id="search-username" required></div>
+                <div class="field-row"><label>Équipe</label><input type="text" id="search-team"></div>
+              </div>
+              <div class="field-row"><label>Objets trouvés (séparés par virgule)</label><input type="text" id="search-items" placeholder="L4 Keycard, Couteau"></div>
+              <button class="btn small" type="submit">Consigner la fouille</button>
+            </form>
+            <div id="searches-list" style="margin-top:12px;"><div class="empty-row">Chargement…</div></div>
+            <p class="checkpoint-hint">🔧 Le détecteur automatique sera branché sur cette même route plus tard (script externe).</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const sectorInput = document.getElementById('checkpoint-sector');
+    const queryInput = document.getElementById('checkpoint-query');
+    const scanBtn = document.getElementById('checkpoint-scan-btn');
+
+    sectorInput.addEventListener('change', () => {
+      currentSector = sectorInput.value.trim();
+      loadInsideList();
+    });
+    queryInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') scanBtn.click(); });
+    scanBtn.addEventListener('click', runCheckpointScan);
+
+    document.getElementById('sector-auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('auth-username').value.trim();
+      const sectors = document.getElementById('auth-sectors').value.split(',').map((s) => s.trim()).filter(Boolean);
+      if (!username) { alert('Le pseudo est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/security/sector-auth', { method: 'POST', body: JSON.stringify({ username, sectors }) });
+        alert('Autorisations enregistrées.');
+        document.getElementById('sector-auth-form').reset();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    document.getElementById('search-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('search-username').value.trim();
+      const team = document.getElementById('search-team').value.trim();
+      const items = document.getElementById('search-items').value.split(',').map((s) => s.trim()).filter(Boolean);
+      if (!username) { alert('Le pseudo est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/security/searches', { method: 'POST', body: JSON.stringify({ username, team, items }) });
+        document.getElementById('search-form').reset();
+        loadSearchesList();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    currentSector = sectorInput.value.trim();
+    loadInsideList();
+    loadSearchesList();
+  }
+
+  async function runCheckpointScan() {
+    const username = document.getElementById('checkpoint-query').value.trim();
+    const sector = document.getElementById('checkpoint-sector').value.trim();
+    const results = document.getElementById('checkpoint-results');
+    if (!username) { results.innerHTML = '<div class="empty-row">Saisis un nom ou pseudo.</div>'; return; }
+    if (!sector) { results.innerHTML = '<div class="empty-row">Renseigne d\'abord le secteur contrôlé.</div>'; return; }
+
+    const scanLine = document.getElementById('scan-line');
+    scanLine.classList.remove('scanning');
+    void scanLine.offsetWidth;
+    scanLine.classList.add('scanning');
+    playScanBeep();
+    results.innerHTML = '<div class="empty-row">Traitement…</div>';
+
+    // On cherche d'abord le nom RP réel + pseudo exact via card-check
+    // (accepte un nom partiel), pour associer le bon nom affiché au log.
+    let name = username;
+    try {
+      const lookup = await apiFetch(`/api/rp/security/card-check?query=${encodeURIComponent(username)}`);
+      if ((lookup.matches || []).length === 1) name = lookup.matches[0].name;
+    } catch (err) {
+      // best-effort — on continue même si la recherche du nom échoue
+    }
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/security/checkpoint/scan', {
+        method: 'POST',
+        body: JSON.stringify({ username, name, sector }),
+      });
+    } catch (err) {
+      results.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    if (data.type === 'entry') {
+      playGrantedChime(false);
+      results.innerHTML = `
+        <div class="access-result granted">
+          <div class="access-result-icon">→</div>
+          <div class="access-result-label">ENTRÉE ENREGISTRÉE</div>
+          <div class="access-result-sub">${escapeHtml(name)} — ${escapeHtml(sector)}</div>
+          ${!data.authorized ? `<div class="suspicious-warning">⚠ Non autorisé pour ce secteur</div>` : ''}
+        </div>
+      `;
+    } else {
+      const durationStr = formatDuration(data.duration);
+      playScanBeep();
+      results.innerHTML = `
+        <div class="access-result granted">
+          <div class="access-result-icon">←</div>
+          <div class="access-result-label">SORTIE ENREGISTRÉE</div>
+          <div class="access-result-sub">${escapeHtml(name)} — ${escapeHtml(sector)}</div>
+          <div class="access-result-sub" style="margin-top:6px;">Durée sur place : <strong>${durationStr}</strong></div>
+        </div>
+      `;
+    }
+
+    loadInsideList();
+  }
+
+  function formatDuration(ms) {
+    if (!ms || ms < 0) return '—';
+    const totalMinutes = Math.floor(ms / 60000);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return h > 0 ? `${h}h ${m}min` : `${m}min`;
+  }
+
+  async function loadInsideList() {
+    const box = document.getElementById('inside-list');
+    if (!currentSector) { box.innerHTML = '<div class="empty-row">Renseigne un secteur.</div>'; return; }
+    box.innerHTML = '<div class="empty-row">Chargement…</div>';
+    try {
+      const data = await apiFetch(`/api/rp/security/checkpoint/inside?sector=${encodeURIComponent(currentSector)}`);
+      const inside = data.inside || [];
+      box.innerHTML = inside.length
+        ? inside.map((e) => `<div class="post-card"><div class="post-card-title" style="font-size:12.5px;">${escapeHtml(e.name || e.username)}</div><div class="post-card-meta">Entré à ${new Date(e.entryTime).toLocaleTimeString('fr-FR')} — <span id="live-timer-${escapeHtml(e.id)}"></span></div></div>`).join('')
+        : '<div class="empty-row">Personne actuellement dans ce secteur.</div>';
+
+      inside.forEach((e) => {
+        const el = document.getElementById(`live-timer-${e.id}`);
+        if (el) el.textContent = formatDuration(Date.now() - e.entryTime);
+      });
+    } catch (err) {
+      box.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function loadSearchesList() {
+    const box = document.getElementById('searches-list');
+    try {
+      const data = await apiFetch('/api/rp/security/searches');
+      const searches = data.searches || [];
+      box.innerHTML = searches.length
+        ? searches
+            .slice(0, 8)
+            .map(
+              (s) => `
+          <div class="post-card">
+            <div class="post-card-title" style="font-size:12.5px;">${escapeHtml(s.username)}${s.team ? ` — ${escapeHtml(s.team)}` : ''}</div>
+            <div class="post-card-body" style="margin-top:4px;">${(s.items || []).length ? escapeHtml(s.items.join(', ')) : 'Rien trouvé'}</div>
+            <div class="post-card-meta" style="margin-top:4px;">${new Date(s.createdAt).toLocaleString('fr-FR')} — par ${escapeHtml(s.foundBy)}</div>
+          </div>
+        `
+            )
+            .join('')
+        : '<div class="empty-row">Aucune fouille consignée.</div>';
+    } catch (err) {
+      box.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+    }
   }
 
   async function loadHistory() {
