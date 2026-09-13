@@ -14,18 +14,22 @@
     --void-2: #101218;
     --panel: #14161D;
     --panel-raised: #191c25;
-    --line: #2A2D38;
+    --sidebar: #0D0F14;
+    --line: #24262F;
     --line-soft: rgba(255,255,255,0.06);
     --accent: #2FAE7A;
     --accent-2: #4FD895;
+    --accent-soft: rgba(47,174,122,0.12);
     --line-bright: #2FAE7A;
     --line-bright-2: #4FD895;
-    --ink: #ECEDF1;
+    --ink: #F2F3F5;
     --ink-dim: #9297A8;
     --ink-faint: #5A5F6E;
     --good: #4FD895;
     --warn: #F0A83C;
     --bad: #F0525A;
+    --blue: #4FA8F0;
+    --purple: #A78BFA;
   }
 
   *{ margin:0; padding:0; box-sizing:border-box; }
@@ -36,75 +40,142 @@
   *::-webkit-scrollbar-thumb:hover{ background:#4a4d5e; }
 
   html, body{ height:100%; }
-  body{ background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; overflow:hidden; }
+  body{ background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; overflow:hidden; -webkit-font-smoothing:antialiased; }
   a{ color:inherit; text-decoration:none; }
   .mono{ font-family:'JetBrains Mono', monospace; }
 
-  .topbar{
-    height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 18px;
-    background:var(--void-2); border-bottom:1px solid var(--line);
-  }
-  .topbar-left{ display:flex; align-items:center; gap:10px; }
-  .back-link{
-    display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-dim); padding:6px 10px;
-    border-radius:5px; border:1px solid var(--line); transition:color .15s ease, border-color .15s ease;
-  }
-  .back-link:hover{ color:var(--ink); border-color:var(--line-bright); }
-  .back-link svg{ width:14px; height:14px; }
-  .topbar-title{ font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; }
-  .topbar-status{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+  .center-msg{ display:flex; align-items:center; justify-content:center; height:100vh; color:var(--ink-dim); font-size:14px; text-align:center; padding:20px; }
 
-  .center-msg{ display:flex; align-items:center; justify-content:center; height:calc(100vh - 48px); color:var(--ink-dim); font-size:14px; text-align:center; padding:20px; }
+  /* ---------------------------------------------------------------- */
+  /* Coquille app : sidebar fixe + zone de contenu avec en-tête         */
+  /* ---------------------------------------------------------------- */
+  .app-shell{ height:100vh; display:flex; }
 
-  .doctoscp-page{ height:calc(100vh - 48px); display:flex; flex-direction:column; }
-  .doctoscp-tabs{
-    display:flex; gap:2px; padding:0 20px; background:var(--void-2); border-bottom:1px solid var(--line);
-    overflow-x:auto; flex-shrink:0;
+  .app-sidebar{
+    width:236px; flex-shrink:0; background:var(--sidebar); border-right:1px solid var(--line);
+    display:flex; flex-direction:column; padding:20px 14px;
   }
-  .doctoscp-tab-btn{
-    padding:12px 16px; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.03em;
-    color:var(--ink-faint); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent;
-    white-space:nowrap; display:flex; align-items:center; gap:6px;
+  .app-brand{ display:flex; align-items:center; gap:10px; padding:0 8px 22px; margin-bottom:14px; border-bottom:1px solid var(--line-soft); }
+  .app-brand-icon{
+    width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, var(--accent), #1f7a56);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 4px 14px rgba(47,174,122,0.35);
   }
-  .doctoscp-tab-btn:hover{ color:var(--ink-dim); }
-  .doctoscp-tab-btn.active{ color:var(--accent-2); border-bottom-color:var(--accent); }
-  .doctoscp-content{ flex:1; overflow-y:auto; padding:24px; }
+  .app-brand-icon svg{ width:19px; height:19px; color:#fff; }
+  .app-brand-text{ display:flex; flex-direction:column; }
+  .app-brand-title{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:700; letter-spacing:-0.01em; }
+  .app-brand-sub{ font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--ink-faint); letter-spacing:0.06em; }
 
-  .dsc-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; max-width:1200px; }
-  .dsc-panel{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px; }
-  .dsc-panel h2{ font-family:'Space Grotesk', sans-serif; font-size:14px; margin-bottom:12px; }
-  .dsc-two-col{ display:grid; grid-template-columns:1.3fr 1fr; gap:20px; max-width:1200px; align-items:start; }
-  @media (max-width: 900px){ .dsc-two-col{ grid-template-columns:1fr; } }
+  .app-back{
+    display:flex; align-items:center; gap:8px; padding:9px 10px; margin-bottom:16px; border-radius:8px;
+    font-size:12px; color:var(--ink-faint); border:1px solid var(--line); transition:all .15s ease;
+  }
+  .app-back:hover{ color:var(--ink); border-color:var(--line-bright); background:var(--panel); }
+  .app-back svg{ width:13px; height:13px; }
 
-  .field-row{ margin-bottom:12px; }
-  .field-row label{ display:block; font-size:11.5px; color:var(--ink-faint); margin-bottom:5px; font-family:'JetBrains Mono', monospace; letter-spacing:0.03em; text-transform:uppercase; }
+  .app-nav{ display:flex; flex-direction:column; gap:2px; flex:1; }
+  .app-nav-label{
+    font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--ink-faint); padding:10px 10px 6px;
+  }
+  .app-nav-btn{
+    display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:8px; border:none; background:none;
+    color:var(--ink-dim); font-size:13px; font-weight:500; cursor:pointer; text-align:left; width:100%;
+    transition:all .12s ease; position:relative;
+  }
+  .app-nav-btn svg{ width:17px; height:17px; flex-shrink:0; opacity:0.85; }
+  .app-nav-btn:hover{ background:var(--panel); color:var(--ink); }
+  .app-nav-btn.active{ background:var(--accent-soft); color:var(--accent-2); font-weight:600; }
+  .app-nav-btn.active svg{ opacity:1; }
+  .app-nav-badge{
+    margin-left:auto; background:var(--bad); color:#fff; font-family:'JetBrains Mono', monospace; font-size:9.5px;
+    font-weight:700; padding:1px 6px; border-radius:20px; min-width:16px; text-align:center;
+  }
+
+  .app-sidebar-footer{
+    display:flex; align-items:center; gap:10px; padding:10px; margin-top:10px; border-top:1px solid var(--line-soft);
+  }
+  .app-user-avatar{
+    width:30px; height:30px; border-radius:50%; background:var(--panel-raised); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:12px; color:var(--accent-2); flex-shrink:0;
+  }
+  .app-user-name{ font-size:12px; font-weight:600; }
+  .app-user-role{ font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--ink-faint); }
+
+  .app-main{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .app-header{
+    height:64px; flex-shrink:0; display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; border-bottom:1px solid var(--line); background:var(--void);
+  }
+  .app-header-title{ font-family:'Space Grotesk', sans-serif; font-size:19px; font-weight:700; }
+  .app-header-sub{ font-size:12px; color:var(--ink-faint); margin-top:2px; }
+  .app-header-status{
+    display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint);
+  }
+  .app-header-status .dot{ width:6px; height:6px; border-radius:50%; background:var(--good); box-shadow:0 0 6px var(--good); }
+
+  .app-content{ flex:1; overflow-y:auto; padding:28px; }
+
+  /* ---------------------------------------------------------------- */
+  /* Cartes / composants                                               */
+  /* ---------------------------------------------------------------- */
+  .dsc-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; max-width:1240px; margin-bottom:20px; }
+  .dsc-panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.02) inset, 0 8px 24px rgba(0,0,0,0.18);
+  }
+  .dsc-panel h2{ font-family:'Space Grotesk', sans-serif; font-size:14.5px; font-weight:600; margin-bottom:14px; }
+  .dsc-two-col{ display:grid; grid-template-columns:1.4fr 1fr; gap:22px; max-width:1240px; align-items:start; }
+  @media (max-width: 980px){ .dsc-two-col{ grid-template-columns:1fr; } }
+
+  /* Cartes stats avec badge icône coloré */
+  .dsc-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; max-width:1240px; margin-bottom:22px; }
+  .dsc-kpi-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px;
+    display:flex; align-items:center; gap:14px; box-shadow:0 8px 24px rgba(0,0,0,0.18);
+  }
+  .dsc-kpi-icon{
+    width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .dsc-kpi-icon svg{ width:21px; height:21px; }
+  .dsc-kpi-value{ font-family:'Space Grotesk', sans-serif; font-size:24px; font-weight:700; line-height:1; }
+  .dsc-kpi-label{ font-size:11.5px; color:var(--ink-faint); margin-top:4px; }
+
+  .field-row{ margin-bottom:13px; }
+  .field-row label{ display:block; font-size:11px; color:var(--ink-faint); margin-bottom:6px; font-family:'JetBrains Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; }
   input, select, textarea{
-    width:100%; background:var(--void-2); border:1px solid var(--line); border-radius:5px; padding:9px 11px;
-    color:var(--ink); font-family:'Inter', sans-serif; font-size:13px;
+    width:100%; background:var(--void-2); border:1px solid var(--line); border-radius:7px; padding:10px 12px;
+    color:var(--ink); font-family:'Inter', sans-serif; font-size:13px; transition:border-color .12s ease;
   }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent); }
   .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .btn{
-    padding:9px 16px; border-radius:5px; border:1px solid var(--line); background:var(--accent); color:#fff;
-    font-size:12.5px; font-weight:600; cursor:pointer;
+    padding:10px 18px; border-radius:7px; border:1px solid transparent; background:var(--accent); color:#fff;
+    font-size:12.5px; font-weight:600; cursor:pointer; transition:filter .12s ease;
   }
-  .btn.small{ padding:6px 12px; font-size:11.5px; }
+  .btn:hover{ filter:brightness(1.08); }
+  .btn.small{ padding:7px 13px; font-size:11.5px; }
   .btn.ghost{ background:var(--void-2); color:var(--ink-dim); border:1px solid var(--line); }
   .btn.danger{ background:var(--bad); }
   .btn:disabled{ opacity:0.5; cursor:not-allowed; }
 
-  .post-card{ background:var(--void-2); border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:8px; }
+  .post-card{
+    background:var(--void-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:10px;
+    transition:border-color .12s ease;
+  }
+  .post-card:hover{ border-color:#333644; }
   .post-card-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:10px; }
-  .post-card-title{ font-weight:600; font-size:13px; }
+  .post-card-title{ font-weight:600; font-size:13.5px; }
   .post-card-meta{ font-size:11.5px; color:var(--ink-faint); }
-  .post-card-body{ font-size:12.5px; color:var(--ink-dim); white-space:pre-wrap; }
-  .empty-row{ color:var(--ink-faint); font-size:12.5px; padding:12px 0; text-align:center; }
-  .record-block-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-  .record-block-head h2{ font-family:'Space Grotesk', sans-serif; font-size:14px; }
-  .count{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+  .post-card-body{ font-size:12.5px; color:var(--ink-dim); white-space:pre-wrap; line-height:1.5; }
+  .empty-row{ color:var(--ink-faint); font-size:12.5px; padding:20px 0; text-align:center; }
+  .record-block-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .record-block-head h2{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:700; }
+  .count{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); background:var(--void-2); padding:2px 8px; border-radius:20px; border:1px solid var(--line); }
 
   .status-pill{
-    display:inline-block; padding:3px 10px; border-radius:20px; font-size:10.5px; font-family:'JetBrains Mono', monospace;
-    text-transform:uppercase; letter-spacing:0.04em;
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:10px; font-family:'JetBrains Mono', monospace;
+    text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
   }
   .status-good{ background:rgba(79,216,149,0.12); color:var(--good); }
   .status-warn{ background:rgba(240,168,60,0.12); color:var(--warn); }
@@ -113,38 +184,28 @@
 
   .dsc-doctor-card{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .dsc-avatar{
-    width:36px; height:36px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center;
-    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13px; color:#fff; flex-shrink:0;
+    width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg, var(--accent), #1f7a56);
+    display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:13px; color:#fff; flex-shrink:0;
   }
 
-  .dsc-stat-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line-soft); font-size:12px; }
+  .dsc-stat-row{ display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px; }
   .dsc-stat-row:last-child{ border-bottom:none; }
   .dsc-stat-label{ color:var(--ink-faint); }
   .dsc-stat-value{ color:var(--ink); font-weight:600; }
 
   .dsc-thread-item{
-    display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-radius:6px; cursor:pointer;
-    border:1px solid transparent;
+    display:flex; justify-content:space-between; align-items:center; padding:11px 12px; border-radius:8px; cursor:pointer;
+    border:1px solid transparent; transition:all .12s ease;
   }
   .dsc-thread-item:hover{ background:var(--void-2); }
-  .dsc-thread-item.active{ background:var(--void-2); border-color:var(--accent); }
-  .dsc-chat-bubble{ max-width:75%; padding:8px 12px; border-radius:10px; margin-bottom:8px; font-size:12.5px; }
-  .dsc-chat-bubble.mine{ background:var(--accent); color:#fff; margin-left:auto; }
-  .dsc-chat-bubble.theirs{ background:var(--void-2); border:1px solid var(--line); }
+  .dsc-thread-item.active{ background:var(--accent-soft); border-color:var(--accent); }
+  .dsc-chat-bubble{ max-width:75%; padding:9px 13px; border-radius:12px; margin-bottom:9px; font-size:12.5px; line-height:1.45; }
+  .dsc-chat-bubble.mine{ background:var(--accent); color:#fff; margin-left:auto; border-bottom-right-radius:3px; }
+  .dsc-chat-bubble.theirs{ background:var(--void-2); border:1px solid var(--line); border-bottom-left-radius:3px; }
 </style>
 </head>
 <body>
-
-<div class="topbar">
-  <div class="topbar-left">
-    <a href="/rp/" class="back-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg>
-      Retour à l'intranet
-    </a>
-    <span class="topbar-title">DoctoSCP — Médical</span>
-  </div>
-  <span class="topbar-status mono" id="topbar-status">DOCTOSCP v1.0</span>
-</div>
 
 <div id="page-root">
   <div class="center-msg">Chargement…</div>
@@ -193,6 +254,7 @@
   }
 
   const pageRoot = document.getElementById('page-root');
+
   let myCharacterName = '';
 
   // ---------------------------------------------------------------------
@@ -264,35 +326,120 @@
   // =======================================================================
   // Coquille à onglets
   // =======================================================================
+  const NAV_ICONS = {
+    accueil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+    rdv: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+    medecins: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v4a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V3"/><path d="M7 8v3a5 5 0 0 0 10 0V8"/><path d="M12 16v4"/><circle cx="12" cy="21" r="1"/></svg>',
+    dossier: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>',
+    messagerie: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-11.9 7.8L3 21l1.7-6.1A8.5 8.5 0 1 1 21 11.5z"/></svg>',
+    urgences: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+    quarantaine: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6z"/></svg>',
+    certificats: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M9 12.5 7 21l5-3 5 3-2-8.5"/></svg>',
+  };
   const TABS = [
-    { id: 'accueil', label: '🏠 Accueil' },
-    { id: 'rdv', label: '📅 Rendez-vous' },
-    { id: 'medecins', label: '👨‍⚕️ Médecins' },
-    { id: 'dossier', label: '📁 Dossier médical' },
-    { id: 'messagerie', label: '💬 Messagerie' },
-    { id: 'urgences', label: '🚨 Urgences' },
-    { id: 'quarantaine', label: '🔒 Quarantaine' },
-    { id: 'certificats', label: '📜 Certificats' },
+    { id: 'accueil', label: 'Accueil' },
+    { id: 'rdv', label: 'Rendez-vous' },
+    { id: 'medecins', label: 'Médecins' },
+    { id: 'dossier', label: 'Dossier médical' },
+    { id: 'messagerie', label: 'Messagerie' },
+    { id: 'urgences', label: 'Urgences' },
+    { id: 'quarantaine', label: 'Quarantaine' },
+    { id: 'certificats', label: 'Certificats' },
   ];
+  const TAB_SUBTITLES = {
+    accueil: "Vue d'ensemble de votre activité",
+    rdv: 'Prise de rendez-vous et suivi',
+    medecins: 'Annuaire des professionnels disponibles',
+    dossier: 'Historique médical centralisé',
+    messagerie: 'Téléconsultation et échanges',
+    urgences: 'Signalement et prise en charge',
+    quarantaine: 'Isolement et suivi des sujets',
+    certificats: "Certificats d'aptitude au service",
+  };
   let currentTab = 'accueil';
 
   function loadDoctoscp() {
+    const initials = myCharacterName
+      .split(/[\s.]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join('')
+      .toUpperCase() || '?';
+
     pageRoot.innerHTML = `
-      <div class="doctoscp-page">
-        <div class="doctoscp-tabs">
-          ${TABS.map((t) => `<button class="doctoscp-tab-btn${t.id === currentTab ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
+      <div class="app-shell">
+        <div class="app-sidebar">
+          <div class="app-brand">
+            <div class="app-brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v8M8 12h8"/><rect x="3" y="3" width="18" height="18" rx="4"/></svg></div>
+            <div class="app-brand-text">
+              <span class="app-brand-title">DoctoSCP</span>
+              <span class="app-brand-sub">SITE-15 // MÉDICAL</span>
+            </div>
+          </div>
+          <a href="/rp/" class="app-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg>
+            Retour à l'intranet
+          </a>
+          <div class="app-nav-label">Navigation</div>
+          <div class="app-nav" id="app-nav">
+            ${TABS.map((t) => `
+              <button class="app-nav-btn${t.id === currentTab ? ' active' : ''}" data-tab="${t.id}">
+                ${NAV_ICONS[t.id]}
+                <span>${t.label}</span>
+                ${t.id === 'urgences' ? '<span class="app-nav-badge" id="urgence-badge" style="display:none;"></span>' : ''}
+              </button>
+            `).join('')}
+          </div>
+          <div class="app-sidebar-footer">
+            <div class="app-user-avatar">${escapeHtml(initials)}</div>
+            <div>
+              <div class="app-user-name">${escapeHtml(myCharacterName)}</div>
+              <div class="app-user-role">Personnel Médical</div>
+            </div>
+          </div>
         </div>
-        <div class="doctoscp-content" id="doctoscp-content"></div>
+
+        <div class="app-main">
+          <div class="app-header">
+            <div>
+              <div class="app-header-title" id="app-header-title">Accueil</div>
+              <div class="app-header-sub" id="app-header-sub">${TAB_SUBTITLES.accueil}</div>
+            </div>
+            <div class="app-header-status"><span class="dot"></span> Système en ligne</div>
+          </div>
+          <div class="app-content" id="doctoscp-content"></div>
+        </div>
       </div>
     `;
-    document.querySelectorAll('.doctoscp-tab-btn').forEach((btn) => {
+    document.querySelectorAll('.app-nav-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         currentTab = btn.dataset.tab;
-        document.querySelectorAll('.doctoscp-tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === currentTab));
+        document.querySelectorAll('.app-nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === currentTab));
+        document.getElementById('app-header-title').textContent = TABS.find((t) => t.id === currentTab).label;
+        document.getElementById('app-header-sub').textContent = TAB_SUBTITLES[currentTab];
         renderTab(currentTab);
       });
     });
     renderTab(currentTab);
+    refreshUrgenceBadge();
+  }
+
+  async function refreshUrgenceBadge() {
+    try {
+      const data = await apiFetch('/api/rp/doctoscp/emergencies');
+      const openCount = (data.emergencies || []).filter((e) => e.status === 'open').length;
+      const badge = document.getElementById('urgence-badge');
+      if (!badge) return;
+      if (openCount > 0) {
+        badge.textContent = openCount;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    } catch (err) {
+      // silencieux — le badge est un bonus, pas critique
+    }
   }
 
   function renderTab(tabId) {
@@ -332,16 +479,24 @@
     const activeQuarantines = (quarantines.quarantines || []).filter((q) => !q.endedAt);
 
     content.innerHTML = `
+      <div class="dsc-kpi-grid">
+        <div class="dsc-kpi-card">
+          <div class="dsc-kpi-icon" style="background:rgba(79,168,240,0.12); color:var(--blue);">${NAV_ICONS.rdv}</div>
+          <div><div class="dsc-kpi-value">${myAppointments.length}</div><div class="dsc-kpi-label">Rendez-vous à venir</div></div>
+        </div>
+        <div class="dsc-kpi-card">
+          <div class="dsc-kpi-icon" style="background:${openEmergencies.length ? 'rgba(240,82,90,0.12)' : 'rgba(79,216,149,0.12)'}; color:${openEmergencies.length ? 'var(--bad)' : 'var(--good)'};">${NAV_ICONS.urgences}</div>
+          <div><div class="dsc-kpi-value">${openEmergencies.length}</div><div class="dsc-kpi-label">Urgences en cours</div></div>
+        </div>
+        <div class="dsc-kpi-card">
+          <div class="dsc-kpi-icon" style="background:${activeQuarantines.length ? 'rgba(240,168,60,0.12)' : 'rgba(79,216,149,0.12)'}; color:${activeQuarantines.length ? 'var(--warn)' : 'var(--good)'};">${NAV_ICONS.quarantaine}</div>
+          <div><div class="dsc-kpi-value">${activeQuarantines.length}</div><div class="dsc-kpi-label">Quarantaines actives</div></div>
+        </div>
+      </div>
+
       <div class="dsc-grid">
         <div class="dsc-panel">
-          <h2>👋 Bienvenue, ${escapeHtml(myCharacterName)}</h2>
-          <div class="dsc-stat-row"><span class="dsc-stat-label">Mes rendez-vous à venir</span><span class="dsc-stat-value">${myAppointments.length}</span></div>
-          <div class="dsc-stat-row"><span class="dsc-stat-label">Urgences en cours</span><span class="dsc-stat-value" style="color:${openEmergencies.length ? 'var(--bad)' : 'var(--good)'};">${openEmergencies.length}</span></div>
-          <div class="dsc-stat-row"><span class="dsc-stat-label">Quarantaines actives</span><span class="dsc-stat-value" style="color:${activeQuarantines.length ? 'var(--warn)' : 'var(--good)'};">${activeQuarantines.length}</span></div>
-        </div>
-
-        <div class="dsc-panel">
-          <h2>🚨 Urgences ouvertes</h2>
+          <h2>Urgences ouvertes</h2>
           ${
             openEmergencies.length
               ? openEmergencies
@@ -353,7 +508,7 @@
         </div>
 
         <div class="dsc-panel">
-          <h2>📅 Mes prochains rendez-vous</h2>
+          <h2>Mes prochains rendez-vous</h2>
           ${
             myAppointments.length
               ? myAppointments
