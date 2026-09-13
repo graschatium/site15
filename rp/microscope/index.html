@@ -381,68 +381,88 @@
   function loadScope() {
     pageRoot.innerHTML = `
       <div class="scope-page">
-        <div class="scope-viewport" id="scope-viewport">
-          <div class="scope-crosshair"></div>
-          <div class="scope-graticule" id="scope-graticule"></div>
-          <div class="scope-specimen" id="scope-specimen">
-            <div class="scope-specimen-zoom-wrap" id="scope-specimen-zoom-wrap">
-              <div class="scope-specimen-blob" id="scope-specimen-blob"></div>
-              <div id="scope-cells"></div>
-            </div>
-          </div>
-          <div class="scope-idle-label" id="scope-idle-label">Aucun échantillon en cours d'examen</div>
-          <div class="scope-scan-line" id="scope-scan-line"></div>
-          <div class="scope-chromatic-edge"></div>
-          <div class="scope-glass-sheen"></div>
-        </div>
+        <div class="scope-columns">
 
-        <div class="scope-controls">
-          <div class="scope-control-row">
-            <label>Grossissement <span id="scope-zoom-value">100x</span></label>
-            <input type="range" id="scope-zoom" min="10" max="1000" step="10" value="100">
-          </div>
-          <div class="scope-control-row">
-            <label>Réglage de lumière <span id="scope-brightness-value">50%</span></label>
-            <input type="range" id="scope-brightness" min="0" max="100" value="50">
-          </div>
-          <div class="scope-control-row">
-            <label>Concentration de lumière <span id="scope-focus-value">50%</span></label>
-            <input type="range" id="scope-focus" min="0" max="100" value="50">
-          </div>
-        </div>
-
-        <div class="scope-panel">
-          <div class="scope-panel-title">Nouvel examen</div>
-          <form id="scope-form">
-            <div class="field-row">
-              <label>Échantillon *</label>
+          <div class="scope-col-left">
+            <div class="scope-panel compact">
+              <div class="scope-panel-title">Échantillon</div>
               <button type="button" class="clipboard-trigger" id="scp-picker-trigger">
-                <span id="scp-picker-label">📋 Choisir un SCP dans le wiki…</span>
+                <span id="scp-picker-label">📋 Choisir un SCP…</span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9l6 6 6-6"/></svg>
               </button>
               <div id="scp-picker-panel" style="display:none;"></div>
-              <input type="text" id="scope-designation-free" style="display:none; margin-top:8px;" placeholder="Désignation libre (échantillon inconnu du wiki)">
+              <input type="text" id="scope-designation-free" style="display:none; margin-top:8px;" placeholder="Désignation libre (inconnu)">
               <input type="hidden" id="scope-designation" required>
             </div>
-            <div class="field-row">
-              <label>Type</label>
-              <select id="scope-type">
-                ${Object.entries(SAMPLE_TYPES).map(([id, t]) => `<option value="${id}">${t.label}</option>`).join('')}
-              </select>
+
+            <div class="scope-notes">
+              <div class="scope-notes-head">
+                <h2>Notes</h2>
+                <button class="btn ghost small" id="scope-add-note-btn" type="button">+ Note</button>
+              </div>
+              <div class="scope-notes-board" id="scope-notes-board"></div>
             </div>
-            <button class="btn" type="submit" id="scope-examine-btn">Examiner</button>
-          </form>
 
-          <div id="scope-results" style="margin-top:18px; display:none;">
-            <div class="field-row"><label>Observations</label><textarea id="scope-observations" rows="5" placeholder="Consigne tes observations après examen..."></textarea></div>
-            <button class="btn" id="scope-save-btn" type="button">Enregistrer l'examen</button>
+            <div class="scope-log">
+              <div class="scope-log-head"><h2>Journal des examens</h2><span class="count" id="scope-log-count">0</span></div>
+              <div id="scope-log-list"><div class="empty-row">Chargement…</div></div>
+            </div>
           </div>
-        </div>
 
-        <div class="scope-log">
-          <div class="scope-log-head"><h2>Journal des examens</h2><span class="count" id="scope-log-count">0</span></div>
-          <div id="scope-log-list"><div class="empty-row">Chargement…</div></div>
+          <div class="scope-col-middle">
+            <div class="scope-viewport" id="scope-viewport">
+              <div class="scope-crosshair"></div>
+              <div class="scope-graticule" id="scope-graticule"></div>
+              <div class="scope-specimen" id="scope-specimen">
+                <div class="scope-specimen-zoom-wrap" id="scope-specimen-zoom-wrap">
+                  <div class="scope-specimen-blob" id="scope-specimen-blob"></div>
+                  <div id="scope-cells"></div>
+                </div>
+              </div>
+              <div class="scope-idle-label" id="scope-idle-label">Aucun échantillon en cours d'examen</div>
+              <div class="scope-scan-line" id="scope-scan-line"></div>
+              <div class="scope-chromatic-edge"></div>
+              <div class="scope-glass-sheen"></div>
+            </div>
+
+            <div class="scope-panel">
+              <form id="scope-form">
+                <div class="field-row">
+                  <label>Type</label>
+                  <select id="scope-type">
+                    ${Object.entries(SAMPLE_TYPES).map(([id, t]) => `<option value="${id}">${t.label}</option>`).join('')}
+                  </select>
+                </div>
+                <button class="btn" type="submit" id="scope-examine-btn">Examiner</button>
+              </form>
+
+              <div id="scope-results" style="margin-top:18px; display:none;">
+                <div class="field-row"><label>Observations</label><textarea id="scope-observations" rows="4" placeholder="Consigne tes observations après examen..."></textarea></div>
+                <button class="btn" id="scope-save-btn" type="button">Enregistrer l'examen</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="scope-col-right">
+            <div class="scope-panel-title">Réglages</div>
+            <div class="scope-controls">
+              <div class="scope-control-row">
+                <label>Grossissement <span id="scope-zoom-value">100x</span></label>
+                <input type="range" id="scope-zoom" min="10" max="1000" step="10" value="100">
+              </div>
+              <div class="scope-control-row">
+                <label>Réglage de lumière <span id="scope-brightness-value">50%</span></label>
+                <input type="range" id="scope-brightness" min="0" max="100" value="50">
+              </div>
+              <div class="scope-control-row">
+                <label>Concentration de lumière <span id="scope-focus-value">50%</span></label>
+                <input type="range" id="scope-focus" min="0" max="100" value="50">
+              </div>
+            </div>
+          </div>
+
         </div>
+      </div>
 
         <div class="scope-notes">
           <div class="scope-notes-head">
