@@ -528,6 +528,22 @@
 
               <div id="scope-results" style="margin-top:18px; display:none;">
                 <div class="field-row"><label>Observations</label><textarea id="scope-observations" rows="4" placeholder="Consigne tes observations après examen..."></textarea></div>
+                <div class="field-row"><label>Synthèse de l'examen</label><textarea id="scope-synthese" rows="2" placeholder="Résumé de la conclusion..."></textarea></div>
+                <div class="field-row">
+                  <label>Statut de l'échantillon</label>
+                  <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
+                    <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--ink); cursor:pointer;">
+                      <input type="radio" name="scope-statut" value="aucune_anomalie" style="width:auto;"> Aucune anomalie détectée
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--ink); cursor:pointer;">
+                      <input type="radio" name="scope-statut" value="necessite_suivi" style="width:auto;"> Nécessite un suivi
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--ink); cursor:pointer;">
+                      <input type="radio" name="scope-statut" value="interet_prioritaire" style="width:auto;"> Sujet d'intérêt prioritaire
+                    </label>
+                  </div>
+                </div>
+                <div class="field-row"><label>Commentaires complémentaires</label><textarea id="scope-commentaires" rows="2" placeholder="Optionnel..."></textarea></div>
                 <button class="btn" id="scope-save-btn" type="button">Enregistrer l'examen</button>
               </div>
             </div>
@@ -983,6 +999,10 @@
     const designation = document.getElementById('scope-designation').value.trim();
     const type = document.getElementById('scope-type').value;
     const observations = document.getElementById('scope-observations').value.trim();
+    const synthese = document.getElementById('scope-synthese').value.trim();
+    const commentaires = document.getElementById('scope-commentaires').value.trim();
+    const statutInput = document.querySelector('input[name="scope-statut"]:checked');
+    const statut = statutInput ? statutInput.value : null;
 
     if (!designation) { alert("La désignation de l'échantillon est obligatoire."); return; }
 
@@ -1004,13 +1024,16 @@
     try {
       await apiFetch('/api/rp/science-ops/microscope', {
         method: 'POST',
-        body: JSON.stringify({ sampleDesignation: designation, sampleType: type, observations, snapshot }),
+        body: JSON.stringify({ sampleDesignation: designation, sampleType: type, observations, snapshot, synthese, statut, commentaires }),
       });
 
       // Reset de l'interface pour le prochain examen
       document.getElementById('scope-form').reset();
       document.getElementById('scope-results').style.display = 'none';
       document.getElementById('scope-observations').value = '';
+      document.getElementById('scope-synthese').value = '';
+      document.getElementById('scope-commentaires').value = '';
+      document.querySelectorAll('input[name="scope-statut"]').forEach((r) => { r.checked = false; });
       document.getElementById('scope-specimen').classList.remove('visible');
       document.getElementById('scope-idle-label').style.display = 'flex';
       currentSpecimenReady = false;
@@ -1221,6 +1244,8 @@
         <div class="row"><span class="label">Examiné par :</span> ${escapeHtml(e.authorCharacterName)}</div>
         <div class="row"><span class="label">Date :</span> ${escapeHtml(date)}</div>
         <div class="obs"><strong>OBSERVATIONS</strong><br><br>${escapeHtml(e.observations || 'Aucune observation notée.')}</div>
+        ${e.synthese ? `<div class="obs"><strong>SYNTHÈSE</strong><br><br>${escapeHtml(e.synthese)}</div>` : ''}
+        ${e.commentaires ? `<div class="obs"><strong>COMMENTAIRES</strong><br><br>${escapeHtml(e.commentaires)}</div>` : ''}
       </body></html>
     `);
     win.document.close();
@@ -1236,6 +1261,8 @@
     const typeMeta = SAMPLE_TYPES[e.sampleType] || SAMPLE_TYPES.inconnu;
     const date = e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : 'Date inconnue';
 
+    const STATUS_LABELS = { aucune_anomalie: 'Aucune anomalie détectée', necessite_suivi: 'Nécessite un suivi', interet_prioritaire: "Sujet d'intérêt prioritaire" };
+
     const sheet = [
       '═══════════════════════════════',
       'FICHE D\'EXAMEN MICROSCOPIQUE',
@@ -1248,6 +1275,9 @@
       'OBSERVATIONS',
       '------------',
       e.observations || 'Aucune observation notée.',
+      ...(e.synthese ? ['', 'SYNTHÈSE', '--------', e.synthese] : []),
+      ...(e.statut ? ['', `Statut : ${STATUS_LABELS[e.statut] || e.statut}`] : []),
+      ...(e.commentaires ? ['', 'COMMENTAIRES', '------------', e.commentaires] : []),
       '═══════════════════════════════',
     ].join('\n');
 
