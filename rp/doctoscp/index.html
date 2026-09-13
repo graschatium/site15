@@ -1235,6 +1235,7 @@
               </div>
               <div class="post-card-meta">Délivré par ${escapeHtml(c.issuedBy)} — ${c.createdAt ? new Date(c.createdAt).toLocaleDateString('fr-FR') : ''}</div>
               ${c.notes ? `<div class="post-card-body" style="margin-top:6px;">${escapeHtml(c.notes)}</div>` : ''}
+              <button class="btn danger small" style="margin-top:8px;" data-cert-id="${escapeHtml(c.id)}">Révoquer</button>
             </div>
           `;
                   })
@@ -1258,6 +1259,18 @@
         </div>
       </div>
     `;
+
+    content.querySelectorAll('[data-cert-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Révoquer ce certificat ?')) return;
+        try {
+          await apiFetch(`/api/rp/doctoscp/certificates/${encodeURIComponent(btn.dataset.certId)}`, { method: 'DELETE' });
+          loadCertificatsTab();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
 
     document.getElementById('dsc-cert-form').addEventListener('submit', async (e) => {
       e.preventDefault();
