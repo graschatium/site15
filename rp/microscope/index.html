@@ -443,6 +443,7 @@
 
             <div class="scope-log">
               <div class="scope-log-head"><h2>Journal des examens</h2><span class="count" id="scope-log-count">0</span></div>
+              <input type="text" id="scope-log-search" placeholder="Rechercher (échantillon, observations)..." style="margin-bottom:10px;">
               <div id="scope-log-list"><div class="empty-row">Chargement…</div></div>
             </div>
           </div>
@@ -521,6 +522,8 @@
     renderStickyNotes();
 
     initScpPicker();
+
+    document.getElementById('scope-log-search').addEventListener('input', (e) => renderScopeLog(e.target.value));
 
     loadScopeLog();
   }
@@ -851,12 +854,29 @@
 
     document.getElementById('scope-log-count').textContent = scopeExaminations.length;
 
+    renderScopeLog(document.getElementById('scope-log-search').value);
+  }
+
+  function renderScopeLog(filterText) {
+    const list = document.getElementById('scope-log-list');
+    const q = (filterText || '').trim().toLowerCase();
+
+    const filtered = q
+      ? scopeExaminations.filter(
+          (e) => (e.sampleDesignation || '').toLowerCase().includes(q) || (e.observations || '').toLowerCase().includes(q)
+        )
+      : scopeExaminations;
+
     if (!scopeExaminations.length) {
       list.innerHTML = '<div class="empty-row">Aucun examen enregistré.</div>';
       return;
     }
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-row">Aucun résultat pour cette recherche.</div>';
+      return;
+    }
 
-    list.innerHTML = scopeExaminations
+    list.innerHTML = filtered
       .map((e) => {
         const typeMeta = SAMPLE_TYPES[e.sampleType] || SAMPLE_TYPES.inconnu;
         return `
@@ -866,18 +886,58 @@
           <span class="post-card-meta">${escapeHtml(e.authorCharacterName)} — ${e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : ''}</span>
         </div>
         <div class="post-card-body">${escapeHtml(e.observations || 'Aucune observation notée.')}</div>
-        <button class="btn ghost small" style="margin-top:8px;" data-examination-id="${escapeHtml(e.id)}">📄 Créer un rapport d'expérience</button>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="report">📄 Rapport d'expérience</button>
+          <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="copy">📋 Copier la fiche</button>
+        </div>
       </div>
     `;
       })
       .join('');
 
-    list.querySelectorAll('[data-examination-id]').forEach((btn) => {
+    list.querySelectorAll('[data-action="report"]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const examination = scopeExaminations.find((e) => e.id === btn.dataset.examinationId);
         if (examination) openExperienceReportModal(examination);
       });
     });
+
+    list.querySelectorAll('[data-action="copy"]').forEach((btn) => {
+      btn.addEventListener('click', () => copyExaminationSheet(btn.dataset.examinationId, btn));
+    });
+  }
+
+  // Formate un examen en fiche texte propre, prête à coller dans un rapport
+  // officiel ou un message Discord.
+  function copyExaminationSheet(examinationId, btn) {
+    const e = scopeExaminations.find((x) => x.id === examinationId);
+    if (!e) return;
+    const typeMeta = SAMPLE_TYPES[e.sampleType] || SAMPLE_TYPES.inconnu;
+    const date = e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : 'Date inconnue';
+
+    const sheet = [
+      '═══════════════════════════════',
+      'FICHE D\'EXAMEN MICROSCOPIQUE',
+      '═══════════════════════════════',
+      `Échantillon : ${e.sampleDesignation}`,
+      `Type : ${typeMeta.label}`,
+      `Examiné par : ${e.authorCharacterName}`,
+      `Date : ${date}`,
+      '',
+      'OBSERVATIONS',
+      '------------',
+      e.observations || 'Aucune observation notée.',
+      '═══════════════════════════════',
+    ].join('\n');
+
+    navigator.clipboard
+      .writeText(sheet)
+      .then(() => {
+        const original = btn.textContent;
+        btn.textContent = '✓ Copié !';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      })
+      .catch(() => alert('Impossible de copier — copie manuelle nécessaire.'));
   }
 
   // ---------------------------------------------------------------------
@@ -1016,22 +1076,18 @@
   // ---------------------------------------------------------------------
   let ambientAudioCtx = null;
   let ambientNodes = null;
+  let ambientWantsPlaying = true; // activé par défaut, comme demandé
 
-  function toggleAmbientSound() {
-    const btn = document.getElementById('scope-ambient-btn');
-
-    if (ambientNodes) {
-      ambientNodes.osc1.stop();
-      ambientNodes.osc2.stop();
-      ambientNodes = null;
-      btn.classList.remove('active');
-      btn.textContent = '🔊 Ambiance';
-      return;
-    }
+  function startAmbientSound() {
+    if (ambientNodes) return; // déjà en cours
 
     if (!ambientAudioCtx) {
       ambientAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
+    // Les navigateurs démarrent un AudioContext en "suspended" tant qu'il
+    // n'y a pas eu d'interaction utilisateur — resume() est sans effet
+    // s'il est déjà "running", donc sûr à appeler à chaque tentative.
+    ambientAudioCtx.resume();
 
     const gain = ambientAudioCtx.createGain();
     gain.gain.value = 0.025; // très discret, ambiance de fond seulement
@@ -1051,9 +1107,43 @@
     osc2.start();
 
     ambientNodes = { osc1, osc2, gain };
+    const btn = document.getElementById('scope-ambient-btn');
     btn.classList.add('active');
     btn.textContent = '🔇 Ambiance';
   }
+
+  function stopAmbientSound() {
+    if (!ambientNodes) return;
+    ambientNodes.osc1.stop();
+    ambientNodes.osc2.stop();
+    ambientNodes = null;
+    const btn = document.getElementById('scope-ambient-btn');
+    btn.classList.remove('active');
+    btn.textContent = '🔊 Ambiance';
+  }
+
+  function toggleAmbientSound() {
+    if (ambientNodes) {
+      ambientWantsPlaying = false;
+      stopAmbientSound();
+    } else {
+      ambientWantsPlaying = true;
+      startAmbientSound();
+    }
+  }
+
+  // Activé par défaut : le bouton l'affiche tout de suite comme actif, et
+  // le son démarre réellement dès la toute première interaction sur la
+  // page (clic, touche...), contournement standard du blocage autoplay.
+  document.getElementById('scope-ambient-btn').classList.add('active');
+  document.getElementById('scope-ambient-btn').textContent = '🔇 Ambiance';
+  function primeAmbientOnFirstInteraction() {
+    if (ambientWantsPlaying) startAmbientSound();
+    document.removeEventListener('click', primeAmbientOnFirstInteraction);
+    document.removeEventListener('keydown', primeAmbientOnFirstInteraction);
+  }
+  document.addEventListener('click', primeAmbientOnFirstInteraction);
+  document.addEventListener('keydown', primeAmbientOnFirstInteraction);
 
   document.getElementById('scope-ambient-btn').addEventListener('click', toggleAmbientSound);
 
