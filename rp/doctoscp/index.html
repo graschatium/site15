@@ -552,6 +552,7 @@
       <div class="dsc-two-col">
         <div>
           <div class="record-block-head"><h2>Tous les rendez-vous</h2><span class="count">${appointments.length}</span></div>
+          <input type="text" id="dsc-rdv-search" placeholder="Rechercher (patient, médecin)..." style="margin-bottom:12px;">
           <div id="dsc-rdv-list">
             ${
               appointments.length
@@ -559,7 +560,7 @@
                     .map((a) => {
                       const meta = STATUS_META[a.status] || STATUS_META.confirmed;
                       return `
-                <div class="post-card">
+                <div class="post-card" data-search="${escapeHtml((a.patientCharacterName + ' ' + a.doctorName).toLowerCase())}">
                   <div class="post-card-head">
                     <span class="post-card-title">${escapeHtml(a.patientCharacterName)} → ${escapeHtml(a.doctorName)}</span>
                     <span class="status-pill ${meta.cls}">${meta.label}</span>
@@ -568,7 +569,9 @@
                   ${a.reason ? `<div class="post-card-body" style="margin-top:6px;">${escapeHtml(a.reason)}</div>` : ''}
                   ${
                     a.status === 'confirmed'
-                      ? `<div style="display:flex; gap:8px; margin-top:8px;">
+                      ? `<div id="dsc-rdv-edit-${escapeHtml(a.id)}"></div>
+                        <div style="display:flex; gap:8px; margin-top:8px;">
+                          <button class="btn ghost small" data-action="reschedule" data-appt-id="${escapeHtml(a.id)}" data-date="${escapeHtml(a.date)}" data-time="${escapeHtml(a.time)}">Reprogrammer</button>
                           <button class="btn small" data-appt-id="${escapeHtml(a.id)}" data-status="completed">Marquer terminé</button>
                           <button class="btn danger small" data-appt-id="${escapeHtml(a.id)}" data-status="cancelled">Annuler</button>
                         </div>`
@@ -612,7 +615,7 @@
       </div>
     `;
 
-    content.querySelectorAll('[data-appt-id]').forEach((btn) => {
+    content.querySelectorAll('[data-status]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         try {
           await apiFetch(`/api/rp/doctoscp/appointments/${encodeURIComponent(btn.dataset.apptId)}/status`, {
@@ -623,6 +626,40 @@
         } catch (err) {
           alert(`Erreur : ${err.message}`);
         }
+      });
+    });
+
+    content.querySelectorAll('[data-action="reschedule"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(`dsc-rdv-edit-${btn.dataset.apptId}`);
+        target.innerHTML = `
+          <div style="display:flex; gap:8px; margin-top:8px; align-items:flex-end;">
+            <div class="field-row" style="margin:0; flex:1;"><label>Nouvelle date</label><input type="text" class="dsc-reschedule-date" value="${escapeHtml(btn.dataset.date)}"></div>
+            <div class="field-row" style="margin:0; flex:1;"><label>Nouvelle heure</label><input type="text" class="dsc-reschedule-time" value="${escapeHtml(btn.dataset.time)}"></div>
+            <button class="btn small" data-confirm-reschedule="${escapeHtml(btn.dataset.apptId)}" style="flex-shrink:0;">Valider</button>
+          </div>
+        `;
+        target.querySelector('[data-confirm-reschedule]').addEventListener('click', async () => {
+          const date = target.querySelector('.dsc-reschedule-date').value.trim();
+          const time = target.querySelector('.dsc-reschedule-time').value.trim();
+          try {
+            await apiFetch(`/api/rp/doctoscp/appointments/${encodeURIComponent(btn.dataset.apptId)}/reschedule`, {
+              method: 'PATCH',
+              body: JSON.stringify({ date, time }),
+            });
+            loadRdvTab();
+          } catch (err) {
+            alert(`Erreur : ${err.message}`);
+          }
+        });
+      });
+    });
+
+    const rdvSearch = document.getElementById('dsc-rdv-search');
+    rdvSearch.addEventListener('input', () => {
+      const q = rdvSearch.value.trim().toLowerCase();
+      document.querySelectorAll('#dsc-rdv-list [data-search]').forEach((card) => {
+        card.style.display = card.dataset.search.includes(q) ? '' : 'none';
       });
     });
 
@@ -831,12 +868,21 @@
 
     const record = data.record;
     const entries = record.entries || [];
+    const filterType = document.getElementById('dsc-record-filter')?.value || '';
+    const visibleEntries = filterType ? entries.filter((e) => e.type === filterType) : entries;
 
     view.innerHTML = `
-      <div class="record-block-head"><h2>Dossier — ${escapeHtml(record.patientCharacterName)}</h2><span class="count">${entries.length}</span></div>
+      <div class="record-block-head">
+        <h2>Dossier — ${escapeHtml(record.patientCharacterName)}</h2>
+        <span class="count">${visibleEntries.length}/${entries.length}</span>
+      </div>
+      <select id="dsc-record-filter" style="margin-bottom:12px;">
+        <option value="">Toutes les entrées</option>
+        ${Object.entries(RECORD_TYPE_META).map(([id, m]) => `<option value="${id}"${filterType === id ? ' selected' : ''}>${m.label} uniquement</option>`).join('')}
+      </select>
       ${
-        entries.length
-          ? entries
+        visibleEntries.length
+          ? visibleEntries
               .map((e) => {
                 const meta = RECORD_TYPE_META[e.type] || RECORD_TYPE_META.consultation;
                 return `
@@ -846,6 +892,7 @@
               <span class="post-card-meta">${escapeHtml(e.authorCharacterName)} — ${e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : ''}</span>
             </div>
             <div class="post-card-body">${escapeHtml(e.content)}</div>
+            <button class="btn danger small" style="margin-top:8px;" data-entry-id="${escapeHtml(e.id)}">Supprimer</button>
           </div>
         `;
               })
@@ -866,6 +913,20 @@
         </form>
       </div>
     `;
+
+    document.getElementById('dsc-record-filter').addEventListener('change', () => openPatientRecord(patientName));
+
+    view.querySelectorAll('[data-entry-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer cette entrée du dossier ?')) return;
+        try {
+          await apiFetch(`/api/rp/doctoscp/records/${encodeURIComponent(patientName)}/${encodeURIComponent(btn.dataset.entryId)}`, { method: 'DELETE' });
+          openPatientRecord(patientName);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
 
     document.getElementById('dsc-record-form').addEventListener('submit', async (e) => {
       e.preventDefault();
