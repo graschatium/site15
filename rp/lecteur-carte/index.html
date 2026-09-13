@@ -641,6 +641,30 @@
     renderBadgeDetails(agent);
   }
 
+  // Calcule les indicateurs de la section "Journal de checkpoint" à partir
+  // de l'historique déjà en cache — passages, dernier passage, fouille
+  // aléatoire (tirage à chaque affichage, ~15% de chance), et un niveau de
+  // vigilance recommandé dérivé du profil (sanctions, accréditation, EIT).
+  function computeCheckpointStats(agent) {
+    const passages = historyCache.filter((s) => s.scannedUsername === agent.username);
+    const passageCount = passages.length || 'N/A';
+    const lastPassage = passages.length ? new Date(passages[0].createdAt).toLocaleString('fr-FR') : 'N/A';
+    const searchFlag = Math.random() < 0.15;
+
+    let vigilanceLabel = 'Normale';
+    let vigilanceColor = 'var(--good)';
+    const isSensitive = (agent.division || '').toUpperCase().includes('EIT') || agent.accreditation >= 3;
+    if (agent.sanctionCount > 0) {
+      vigilanceLabel = 'Maximale';
+      vigilanceColor = 'var(--bad)';
+    } else if (isSensitive) {
+      vigilanceLabel = 'Renforcée';
+      vigilanceColor = 'var(--warn)';
+    }
+
+    return { passageCount, lastPassage, searchFlag, vigilanceLabel, vigilanceColor };
+  }
+
   function renderBadgeDetails(agent) {
     const results = document.getElementById('results-wrap');
     const meta = ACCRED_META[agent.accreditation] || ACCRED_META[0];
@@ -650,6 +674,7 @@
       ? `<img src="${escapeHtml(agent.avatarUrl)}" alt="" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
       : escapeHtml((agent.name || '?')[0]);
     const todayDenials = countTodayDenials(agent.username);
+    const checkpointStats = computeCheckpointStats(agent);
 
     results.innerHTML = `
       <div class="badge-card level-${agent.accreditation}">
@@ -683,11 +708,25 @@
           ${agent.registeredDate ? `<div class="badge-detail-row"><span class="badge-detail-label">Enregistré le</span><span class="badge-detail-value">${escapeHtml(agent.registeredDate)}</span></div>` : ''}
         </div>
 
-        ${agent.command ? `
         <div class="dossier-section">
-          <div class="dossier-section-title">Commande associée</div>
-          <div class="dossier-command">${escapeHtml(agent.command)}</div>
-        </div>` : ''}
+          <div class="dossier-section-title">Journal de checkpoint</div>
+          <div class="badge-detail-row">
+            <span class="badge-detail-label">Passages enregistrés</span>
+            <span class="badge-detail-value">${checkpointStats.passageCount || 'N/A'}</span>
+          </div>
+          <div class="badge-detail-row">
+            <span class="badge-detail-label">Dernier passage</span>
+            <span class="badge-detail-value">${checkpointStats.lastPassage || 'N/A'}</span>
+          </div>
+          <div class="badge-detail-row">
+            <span class="badge-detail-label">Fouille aléatoire</span>
+            <span class="badge-detail-value" style="color:${checkpointStats.searchFlag ? 'var(--warn)' : 'var(--ink-faint)'};">${checkpointStats.searchFlag ? '⚠ Fouille recommandée' : 'N/A'}</span>
+          </div>
+          <div class="badge-detail-row">
+            <span class="badge-detail-label">Vigilance recommandée</span>
+            <span class="badge-detail-value" style="color:${checkpointStats.vigilanceColor};">${checkpointStats.vigilanceLabel}</span>
+          </div>
+        </div>
 
         <div class="dossier-section">
           <div class="dossier-section-title">Antécédents</div>
@@ -778,4 +817,4 @@
 </script>
 
 </body>
-</html> 
+</html>

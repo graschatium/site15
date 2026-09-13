@@ -785,6 +785,16 @@
             <div class="topchoice-title">Archives Fondationnaires</div>
             <div class="topchoice-desc">Fiches d'objets publiées par le département Scientifique. Aucun personnage requis pour consulter.</div>
           </button>
+          <button class="topchoice-card" id="topchoice-directory" type="button">
+            <div class="topchoice-eyebrow">${ICONS.info} Transversal</div>
+            <div class="topchoice-title">Annuaire</div>
+            <div class="topchoice-desc">Trombinoscope de tout le personnel actif + état du site en direct.</div>
+          </button>
+          <button class="topchoice-card" id="topchoice-messages" type="button">
+            <div class="topchoice-eyebrow">${ICONS.info} Transversal</div>
+            <div class="topchoice-title">Messagerie interne</div>
+            <div class="topchoice-desc">Envoie et reçois des messages avec n'importe quel personnage actif.</div>
+          </button>
         </div>
       </div>
     `;
@@ -797,6 +807,12 @@
       }
     });
     document.getElementById('topchoice-archives').addEventListener('click', renderArchivesShell);
+    document.getElementById('topchoice-directory').addEventListener('click', () => {
+      window.open(`/rp/annuaire/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
+    });
+    document.getElementById('topchoice-messages').addEventListener('click', () => {
+      window.open(`/rp/messagerie/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
+    });
   }
 
   function renderSelector() {
