@@ -10,27 +10,27 @@
 <link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
 <style>
   :root{
-    --void: #08090C;
-    --void-2: #0D0F14;
-    --panel: #12141B;
-    --panel-raised: #171922;
-    --line: #23262F;
-    --line-soft: rgba(255,255,255,0.06);
-    --accent: #6E76FF;
-    --accent-soft: rgba(110,118,255,0.10);
-    --accent-2: #A78BFA;
-    --ink: #ECEDF1;
-    --ink-dim: #9297A8;
-    --ink-faint: #565B6B;
-    --good: #4FD895;
-    --warn: #F0A83C;
-    --bad: #F0525A;
+    --void: #0B0F09;
+    --void-2: #10150C;
+    --panel: #161C10;
+    --panel-raised: #1D2415;
+    --line: #3A4527;
+    --line-soft: rgba(196,212,106,0.07);
+    --accent: #8A9A3F;
+    --accent-soft: rgba(138,154,63,0.14);
+    --accent-2: #C4D46A;
+    --ink: #D8DCC4;
+    --ink-dim: #9AA582;
+    --ink-faint: #5C6648;
+    --good: #7FB347;
+    --warn: #D4A02C;
+    --bad: #C23C2C;
   }
   *{ margin:0; padding:0; box-sizing:border-box; }
-  *{ scrollbar-width:thin; scrollbar-color:#3a3d4a var(--void-2); }
+  *{ scrollbar-width:thin; scrollbar-color:#3a4527 var(--void-2); }
   *::-webkit-scrollbar{ width:8px; height:8px; }
   *::-webkit-scrollbar-track{ background:var(--void-2); }
-  *::-webkit-scrollbar-thumb{ background:#3a3d4a; border-radius:4px; }
+  *::-webkit-scrollbar-thumb{ background:#3a4527; border-radius:2px; }
   html, body{ height:100%; }
   body{ background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; overflow:hidden; }
   a{ color:inherit; text-decoration:none; }
@@ -68,11 +68,14 @@
     background:radial-gradient(ellipse 900px 500px at 50% -10%, rgba(110,118,255,0.06), transparent 60%);
   }
   .reader-columns{ display:flex; gap:24px; justify-content:center; align-items:flex-start; flex-wrap:wrap; max-width:1000px; margin:0 auto; }
-  .checkpoint-lower-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:1000px; margin:24px auto 0; }
+  .checkpoint-top-grid{ display:grid; grid-template-columns:1.1fr 1fr 1fr; gap:20px; max-width:1180px; margin:0 auto; align-items:start; }
+  .checkpoint-results-col{ width:100% !important; max-width:none !important; }
+  @media (max-width: 900px){ .checkpoint-top-grid{ grid-template-columns:1fr; } }
+  .checkpoint-lower-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:1180px; margin:24px auto 0; }
   @media (max-width: 800px){ .checkpoint-lower-grid{ grid-template-columns:1fr; } }
   .checkpoint-hint{ font-size:10.5px; color:var(--ink-faint); margin-top:10px; line-height:1.5; }
 
-  .history-panel{ width:280px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; }
+  .history-panel{ width:280px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:18px; }
   .history-head{ display:flex; justify-content:space-between; align-items:center; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; margin-bottom:12px; }
   .device-toolbar{ display:flex; gap:8px; margin-top:10px; }
   .device-toolbar .btn{ flex:1; }
@@ -92,7 +95,7 @@
   .history-result{ font-family:'JetBrains Mono', monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; flex-shrink:0; }
 
   .access-result{
-    width:360px; max-width:100%; border-radius:14px; padding:36px 20px; text-align:center;
+    width:360px; max-width:100%; border-radius:3px; padding:36px 20px; text-align:center;
     animation:accessPulse 0.4s ease;
   }
   .access-result.granted{ background:rgba(79,216,149,0.1); border:2px solid var(--good); }
@@ -118,7 +121,7 @@
 
   /* ---- Le boîtier du lecteur ---- */
   .device{
-    width:360px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    width:360px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:3px;
     padding:26px; box-shadow:0 30px 70px rgba(0,0,0,0.5);
   }
   .device-label{
@@ -126,9 +129,14 @@
     color:var(--ink-faint); text-align:center; margin-bottom:16px;
   }
   .scan-slot{
-    position:relative; height:64px; border-radius:8px; background:var(--void); border:1px solid var(--line);
+    position:relative; height:64px; border-radius:2px; background:var(--void); border:1px solid var(--line);
     overflow:hidden; margin-bottom:20px; display:flex; align-items:center; justify-content:center;
   }
+  .scan-slot::before, .scan-slot::after{
+    content:''; position:absolute; width:10px; height:10px; pointer-events:none; z-index:2;
+  }
+  .scan-slot::before{ top:4px; left:4px; border-top:2px solid var(--accent-2); border-left:2px solid var(--accent-2); }
+  .scan-slot::after{ bottom:4px; right:4px; border-bottom:2px solid var(--accent-2); border-right:2px solid var(--accent-2); }
   .scan-slot-icon{ color:var(--ink-faint); }
   .scan-slot-icon svg{ width:26px; height:26px; }
   .scan-line{
@@ -159,13 +167,13 @@
   .field-row{ margin-bottom:14px; }
   .field-row label{ display:block; font-size:11px; color:var(--ink-faint); margin-bottom:6px; font-family:'JetBrains Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; }
   input, select{
-    width:100%; background:var(--void-2); border:1px solid var(--line); border-radius:7px; padding:10px 12px;
+    width:100%; background:var(--void-2); border:1px solid var(--line); border-radius:2px; padding:10px 12px;
     color:var(--ink); font-family:'JetBrains Mono', monospace; font-size:13px; text-align:center; letter-spacing:0.03em;
   }
   input:focus, select:focus{ outline:none; border-color:var(--accent); }
   select option{ background:var(--void-2); color:var(--ink); }
   .btn{
-    width:100%; padding:11px 18px; border-radius:7px; border:none; background:var(--accent); color:#fff;
+    width:100%; padding:11px 18px; border-radius:2px; border:none; background:var(--accent); color:#fff;
     font-size:13px; font-weight:600; cursor:pointer;
   }
   .btn:disabled{ opacity:0.5; cursor:not-allowed; }
@@ -173,8 +181,10 @@
   /* ---- Résultats ---- */
   .results-wrap{ width:360px; max-width:100%; display:flex; flex-direction:column; gap:12px; }
   .results-wrap:empty{ display:none; }
+  .checkpoint-results-col:empty{ display:flex !important; align-items:center; justify-content:center; min-height:120px; }
+  .checkpoint-results-col:empty::before{ content:'En attente d\'un scan…'; color:var(--ink-faint); font-size:12px; }
   .badge-card{
-    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; position:relative; overflow:hidden;
+    background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:20px; position:relative; overflow:hidden;
   }
   .badge-card::before{
     content:''; position:absolute; top:0; left:0; right:0; height:5px;
@@ -240,7 +250,7 @@
     position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:100;
   }
   .reader-modal{
-    width:420px; max-width:90vw; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px;
+    width:420px; max-width:90vw; background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:22px;
     box-shadow:0 30px 70px rgba(0,0,0,0.6);
   }
   .reader-modal h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; margin-bottom:16px; }
@@ -573,8 +583,8 @@
 
     pageRoot.innerHTML = `
       <div class="reader-page">
-        <div class="reader-columns">
-          <div class="device">
+        <div class="checkpoint-top-grid">
+          <div class="device" style="width:100%;">
             <div class="device-label">MODE CHECKPOINT — PC doté d'un lecteur de carte</div>
             <div class="field-row">
               <label>Secteur contrôlé</label>
@@ -592,16 +602,16 @@
             <p class="checkpoint-hint">Le système détecte automatiquement s'il s'agit d'une entrée ou d'une sortie.</p>
           </div>
 
-          <div class="results-wrap" id="checkpoint-results"></div>
+          <div class="results-wrap checkpoint-results-col" id="checkpoint-results"></div>
 
-          <div class="history-panel">
+          <div class="history-panel" style="width:100%;">
             <div class="history-head"><span>Actuellement dans le secteur</span></div>
             <div id="inside-list"><div class="empty-row">Renseigne un secteur.</div></div>
           </div>
         </div>
 
         <div class="checkpoint-lower-grid">
-          <div class="history-panel">
+          <div class="history-panel" style="width:100%;">
             <div class="history-head"><span>Autorisations sectorielles</span></div>
             <form id="sector-auth-form">
               <div class="field-row"><label>Pseudo</label><input type="text" id="auth-username" placeholder="Pseudo Roblox"></div>
@@ -610,7 +620,7 @@
             </form>
           </div>
 
-          <div class="history-panel">
+          <div class="history-panel" style="width:100%;">
             <div class="history-head"><span>Fouilles</span></div>
             <form id="search-form">
               <div class="field-grid">
