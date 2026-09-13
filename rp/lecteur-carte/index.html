@@ -61,6 +61,8 @@
   .history-panel{ width:280px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; }
   .history-head{ font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; margin-bottom:12px; }
   .history-item{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line-soft); gap:8px; }
+  .history-filters{ display:flex; gap:6px; margin-bottom:12px; }
+  .history-filters select{ font-size:11px; padding:6px 8px; }
   .history-item:last-child{ border-bottom:none; }
   .history-name{ font-size:12px; font-weight:600; }
   .history-meta{ font-size:10.5px; color:var(--ink-faint); }
@@ -81,6 +83,15 @@
   .access-result.granted .access-result-label{ color:var(--good); }
   .access-result.denied .access-result-label{ color:var(--bad); }
   .access-result-sub{ font-size:12.5px; color:var(--ink-dim); }
+  .access-result.suspicious{ animation:accessPulse 0.4s ease, suspiciousShake 0.5s ease 0.4s 2; }
+  @keyframes suspiciousShake{
+    0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-10px); } 40%{ transform:translateX(10px); }
+    60%{ transform:translateX(-7px); } 80%{ transform:translateX(7px); }
+  }
+  .suspicious-warning{
+    margin-top:14px; padding:8px 12px; border-radius:6px; background:rgba(240,82,90,0.15); border:1px solid var(--bad);
+    color:var(--bad); font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:600;
+  }
 
   /* ---- Le boîtier du lecteur ---- */
   .device{
@@ -105,6 +116,22 @@
   @keyframes scanSweep{
     0%{ left:-5%; opacity:0; } 10%{ opacity:1; } 90%{ opacity:1; } 100%{ left:105%; opacity:0; }
   }
+
+  /* ---- Carte physique qui apparaît après le scan ---- */
+  .physical-card{
+    width:100%; background:linear-gradient(135deg, #1c1f2e, #12141b); border:1px solid var(--accent); border-radius:8px;
+    padding:0 14px; box-shadow:0 14px 30px rgba(0,0,0,0.4); overflow:hidden;
+    max-height:0; opacity:0; margin-bottom:0; transition:max-height .5s ease, opacity .4s ease, padding .5s ease, margin .5s ease;
+  }
+  .physical-card.ejecting{ max-height:90px; opacity:1; padding:12px 14px; margin-bottom:16px; }
+  .card-visual-brand{ font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:0.12em; color:var(--accent-2); margin-bottom:6px; }
+  .card-visual-name{ font-family:'Space Grotesk', sans-serif; font-size:14px; font-weight:700; color:var(--ink); }
+  .card-visual-dept{ font-size:10.5px; color:var(--ink-faint); margin-top:3px; }
+
+  .quick-scan-toggle{
+    display:flex; align-items:center; gap:8px; font-size:11px; color:var(--ink-dim); margin-bottom:14px; cursor:pointer;
+  }
+  .quick-scan-toggle input{ width:auto; }
 
   .field-row{ margin-bottom:14px; }
   .field-row label{ display:block; font-size:11px; color:var(--ink-faint); margin-bottom:6px; font-family:'JetBrains Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; }
@@ -135,6 +162,26 @@
   .badge-card.level-3::before{ background:#4FA8F0; }
   .badge-card.level-4::before{ background:var(--accent-2); }
 
+  .dossier-stamp{
+    position:absolute; top:14px; right:-30px; transform:rotate(35deg); background:rgba(240,82,90,0.15);
+    border:1px solid var(--bad); color:var(--bad); font-family:'JetBrains Mono', monospace; font-size:9px;
+    letter-spacing:0.1em; padding:2px 34px; opacity:0.75;
+  }
+  .dossier-header{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--ink-faint); margin-bottom:16px; padding-bottom:10px; border-bottom:1px dashed var(--line);
+  }
+  .dossier-section{ margin-top:18px; padding-top:14px; border-top:1px solid var(--line-soft); }
+  .dossier-section:first-of-type{ margin-top:16px; }
+  .dossier-section-title{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--accent-2); margin-bottom:10px;
+  }
+  .dossier-command{
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-dim); background:var(--void-2);
+    border:1px solid var(--line); border-radius:6px; padding:10px 12px; white-space:pre-wrap; line-height:1.5;
+  }
+
   .badge-head{ display:flex; align-items:center; gap:14px; margin-bottom:16px; }
   .badge-avatar{
     width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -153,6 +200,23 @@
 
   .badge-detail-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line-soft); font-size:12px; }
   .badge-detail-row:last-child{ border-bottom:none; }
+  .repeat-warning{
+    margin:12px 0; padding:8px 12px; border-radius:6px; background:rgba(240,168,60,0.12); border:1px solid var(--warn);
+    color:var(--warn); font-size:11.5px; font-weight:600;
+  }
+  .badge-actions{ display:flex; gap:8px; margin-top:16px; }
+  .btn.small{ padding:8px 12px; font-size:11.5px; width:auto; }
+  .btn.ghost{ background:var(--void-2); color:var(--ink-dim); border:1px solid var(--line); }
+
+  .reader-modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:100;
+  }
+  .reader-modal{
+    width:420px; max-width:90vw; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px;
+    box-shadow:0 30px 70px rgba(0,0,0,0.6);
+  }
+  .reader-modal h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; margin-bottom:16px; }
+  .reader-modal-actions{ display:flex; gap:10px; margin-top:16px; }
   .badge-detail-label{ color:var(--ink-faint); }
   .badge-detail-value{ font-family:'JetBrains Mono', monospace; }
 
@@ -292,6 +356,11 @@
     4: { label: 'Niveau 4', color: 'var(--accent-2)' },
   };
 
+  let consecutiveDenials = 0;
+  let lastScannedUsername = null;
+  let quickScanMode = false;
+  let historyCache = [];
+
   function loadReader() {
     pageRoot.innerHTML = `
       <div class="reader-page">
@@ -304,6 +373,7 @@
               </div>
               <div class="scan-line" id="scan-line"></div>
             </div>
+            <div class="physical-card" id="physical-card"></div>
             <div class="field-row"><label>Nom ou pseudo à scanner</label><input type="text" id="card-query" placeholder="ex: C.FLANDEU"></div>
             <div class="field-row">
               <label>Niveau requis (contrôle d'accès)</label>
@@ -315,6 +385,10 @@
                 <option value="4">Niveau 4</option>
               </select>
             </div>
+            <label class="quick-scan-toggle">
+              <input type="checkbox" id="quick-scan-checkbox">
+              ⚡ Mode scan rapide (patrouille — Entrée relance direct)
+            </label>
             <button class="btn" id="scan-btn">🔍 Scanner</button>
           </div>
 
@@ -322,6 +396,15 @@
 
           <div class="history-panel">
             <div class="history-head">Derniers accès</div>
+            <div class="history-filters">
+              <select id="history-filter-dept"><option value="">Tous départements</option></select>
+              <select id="history-filter-result">
+                <option value="">Tous résultats</option>
+                <option value="granted">Autorisé</option>
+                <option value="denied">Refusé</option>
+                <option value="info">Consulté</option>
+              </select>
+            </div>
             <div id="history-list"><div class="empty-row">Chargement…</div></div>
           </div>
         </div>
@@ -333,6 +416,20 @@
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
     btn.addEventListener('click', runScan);
 
+    document.getElementById('quick-scan-checkbox').addEventListener('change', (e) => {
+      quickScanMode = e.target.checked;
+    });
+    // Mode scan rapide : Entrée relance un scan même si le focus n'est pas
+    // dans le champ (pratique en patrouille, sans re-cliquer à chaque fois).
+    document.addEventListener('keydown', (e) => {
+      if (quickScanMode && e.key === 'Enter' && document.activeElement !== input) {
+        runScan();
+      }
+    });
+
+    document.getElementById('history-filter-dept').addEventListener('change', renderHistory);
+    document.getElementById('history-filter-result').addEventListener('change', renderHistory);
+
     loadHistory();
   }
 
@@ -340,27 +437,58 @@
     const list = document.getElementById('history-list');
     try {
       const data = await apiFetch('/api/rp/security/card-scans');
-      const scans = data.scans || [];
-      list.innerHTML = scans.length
-        ? scans
-            .map((s) => {
-              const resultColor = s.result === 'granted' ? 'var(--good)' : s.result === 'denied' ? 'var(--bad)' : 'var(--ink-faint)';
-              const resultLabel = s.result === 'granted' ? 'Autorisé' : s.result === 'denied' ? 'Refusé' : 'Consulté';
-              return `
-            <div class="history-item">
-              <div>
-                <div class="history-name">${escapeHtml(s.scannedName)}</div>
-                <div class="history-meta">${escapeHtml(s.deptName || '')} — par ${escapeHtml(s.scannedBy)}</div>
-              </div>
-              <span class="history-result" style="color:${resultColor};">${resultLabel}</span>
-            </div>
-          `;
-            })
-            .join('')
-        : '<div class="empty-row">Aucun scan récent.</div>';
+      historyCache = data.scans || [];
+
+      // Peuple le filtre "Département" une seule fois avec les valeurs
+      // réellement présentes dans l'historique.
+      const deptSelect = document.getElementById('history-filter-dept');
+      const currentDeptValue = deptSelect.value;
+      const depts = [...new Set(historyCache.map((s) => s.deptName).filter(Boolean))];
+      deptSelect.innerHTML = '<option value="">Tous départements</option>' + depts.map((d) => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+      deptSelect.value = currentDeptValue;
+
+      renderHistory();
     } catch (err) {
       list.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
     }
+  }
+
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    const deptFilter = document.getElementById('history-filter-dept').value;
+    const resultFilter = document.getElementById('history-filter-result').value;
+
+    const filtered = historyCache.filter(
+      (s) => (!deptFilter || s.deptName === deptFilter) && (!resultFilter || s.result === resultFilter)
+    );
+
+    list.innerHTML = filtered.length
+      ? filtered
+          .map((s) => {
+            const resultColor = s.result === 'granted' ? 'var(--good)' : s.result === 'denied' ? 'var(--bad)' : 'var(--ink-faint)';
+            const resultLabel = s.result === 'granted' ? 'Autorisé' : s.result === 'denied' ? 'Refusé' : 'Consulté';
+            return `
+          <div class="history-item">
+            <div>
+              <div class="history-name">${escapeHtml(s.scannedName)}</div>
+              <div class="history-meta">${escapeHtml(s.deptName || '')} — par ${escapeHtml(s.scannedBy)}</div>
+            </div>
+            <span class="history-result" style="color:${resultColor};">${resultLabel}</span>
+          </div>
+        `;
+          })
+          .join('')
+      : '<div class="empty-row">Aucun scan ne correspond.</div>';
+  }
+
+  // Compte les refus déjà enregistrés aujourd'hui pour cette personne —
+  // basé sur l'historique déjà en cache (pas d'appel réseau en plus).
+  function countTodayDenials(username) {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    return historyCache.filter(
+      (s) => s.scannedUsername === username && s.result === 'denied' && (s.createdAt || 0) >= startOfDay.getTime()
+    ).length;
   }
 
   // ---- Sons (Web Audio API, pas de fichier externe) ----
@@ -388,8 +516,19 @@
     }
   }
   function playScanBeep() { playTone(1600, 0.08, 'square', 0, 0.03); }
-  function playGrantedChime() { playTone(880, 0.15, 'sine', 0, 0.05); playTone(1320, 0.2, 'sine', 0.12, 0.05); }
-  function playDeniedBuzz() { playTone(180, 0.35, 'sawtooth', 0, 0.06); }
+  // "sensitive" = profil EIT/accréditation élevée — ton plus grave et plus
+  // long, façon alarme feutrée, pour marquer que ce n'est pas un scan anodin.
+  function playGrantedChime(sensitive) {
+    if (sensitive) {
+      playTone(440, 0.2, 'sine', 0, 0.05); playTone(660, 0.3, 'sine', 0.15, 0.05);
+    } else {
+      playTone(880, 0.15, 'sine', 0, 0.05); playTone(1320, 0.2, 'sine', 0.12, 0.05);
+    }
+  }
+  function playDeniedBuzz(sensitive) {
+    playTone(sensitive ? 110 : 180, sensitive ? 0.5 : 0.35, 'sawtooth', 0, sensitive ? 0.08 : 0.06);
+    if (sensitive) playTone(90, 0.4, 'sawtooth', 0.15, 0.07);
+  }
 
   async function runScan() {
     const query = document.getElementById('card-query').value.trim();
@@ -455,29 +594,50 @@
 
   function renderBadge(agent) {
     const results = document.getElementById('results-wrap');
-    const meta = ACCRED_META[agent.accreditation] || ACCRED_META[0];
-    const bars = [1, 2, 3, 4].map((i) => `<div class="accred-bar${i <= agent.accreditation ? ' filled' : ''}"></div>`).join('');
-    const isActive = (agent.status || 'actif') === 'actif';
-    const avatarInner = agent.avatarUrl
-      ? `<img src="${escapeHtml(agent.avatarUrl)}" alt="" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
-      : escapeHtml((agent.name || '?')[0]);
+    const isSensitive = (agent.division || '').toUpperCase().includes('EIT') || agent.accreditation >= 3;
+
+    // Carte physique qui "sort" du lecteur avant tout le reste.
+    const physicalCard = document.getElementById('physical-card');
+    physicalCard.innerHTML = `
+      <div class="card-visual-brand">SITE-15</div>
+      <div class="card-visual-name">${escapeHtml(agent.name)}</div>
+      <div class="card-visual-dept">${escapeHtml(agent.deptName || '')}</div>
+    `;
+    physicalCard.classList.remove('ejecting');
+    void physicalCard.offsetWidth;
+    physicalCard.classList.add('ejecting');
 
     // Écran plein cadre accordé/refusé si un contrôle d'accès a été
     // demandé (requiredLevel envoyé et une seule correspondance).
     if (agent.accessResult) {
       const granted = agent.accessResult === 'granted';
-      if (granted) playGrantedChime(); else playDeniedBuzz();
+
+      if (!granted) {
+        if (lastScannedUsername === agent.username) consecutiveDenials += 1;
+        else consecutiveDenials = 1;
+      } else {
+        consecutiveDenials = 0;
+      }
+      lastScannedUsername = agent.username;
+
+      if (granted) playGrantedChime(isSensitive); else playDeniedBuzz(isSensitive);
+
+      const suspicious = !granted && consecutiveDenials >= 2;
+
       results.innerHTML = `
-        <div class="access-result ${granted ? 'granted' : 'denied'}">
+        <div class="access-result ${granted ? 'granted' : 'denied'}${suspicious ? ' suspicious' : ''}">
           <div class="access-result-icon">${granted ? '✓' : '✕'}</div>
           <div class="access-result-label">${granted ? 'ACCÈS AUTORISÉ' : 'ACCÈS REFUSÉ'}</div>
           <div class="access-result-sub">${escapeHtml(agent.name)} — ${escapeHtml(ACCRED_META[agent.accreditation]?.label || 'Niveau 0')}</div>
+          ${suspicious ? `<div class="suspicious-warning">⚠ ${consecutiveDenials}ᵉ refus consécutif — tentative suspecte</div>` : ''}
         </div>
       `;
       setTimeout(() => renderBadgeDetails(agent), 1400);
       return;
     }
 
+    lastScannedUsername = agent.username;
+    consecutiveDenials = 0;
     renderBadgeDetails(agent);
   }
 
@@ -489,9 +649,13 @@
     const avatarInner = agent.avatarUrl
       ? `<img src="${escapeHtml(agent.avatarUrl)}" alt="" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`
       : escapeHtml((agent.name || '?')[0]);
+    const todayDenials = countTodayDenials(agent.username);
 
     results.innerHTML = `
       <div class="badge-card level-${agent.accreditation}">
+        <div class="dossier-stamp">CONFIDENTIEL</div>
+        <div class="dossier-header">Dossier personnel — SITE-15</div>
+
         <div class="badge-head">
           <div class="badge-avatar">${avatarInner}</div>
           <div>
@@ -500,24 +664,118 @@
           </div>
         </div>
 
-        <div class="accred-row">
-          <span class="accred-label">Accréditation</span>
-          <span class="accred-value" style="color:${meta.color};">${meta.label}</span>
-        </div>
-        <div class="accred-bars">${bars}</div>
+        ${todayDenials >= 2 ? `<div class="repeat-warning">⚠ ${todayDenials} refus déjà enregistrés aujourd'hui pour cette personne</div>` : ''}
 
-        <div class="badge-detail-row"><span class="badge-detail-label">Pseudo Roblox</span><span class="badge-detail-value">${escapeHtml(agent.username)}</span></div>
-        ${agent.division ? `<div class="badge-detail-row"><span class="badge-detail-label">Division</span><span class="badge-detail-value">${escapeHtml(agent.division)}</span></div>` : ''}
-        <div class="badge-detail-row">
-          <span class="badge-detail-label">Sanctions RP</span>
-          <span class="badge-detail-value" style="color:${agent.sanctionCount ? 'var(--bad)' : 'var(--good)'};">${agent.sanctionCount || 0}${agent.sanctionCount ? ' infraction(s)' : ' — casier vierge'}</span>
+        <div class="dossier-section">
+          <div class="dossier-section-title">Habilitation</div>
+          <div class="accred-row">
+            <span class="accred-label">Accréditation</span>
+            <span class="accred-value" style="color:${meta.color};">${meta.label}</span>
+          </div>
+          <div class="accred-bars">${bars}</div>
+          ${agent.division ? `<div class="badge-detail-row"><span class="badge-detail-label">Division</span><span class="badge-detail-value">${escapeHtml(agent.division)}</span></div>` : ''}
+        </div>
+
+        <div class="dossier-section">
+          <div class="dossier-section-title">Identité</div>
+          <div class="badge-detail-row"><span class="badge-detail-label">Pseudo Roblox</span><span class="badge-detail-value">${escapeHtml(agent.username)}</span></div>
+          <div class="badge-detail-row"><span class="badge-detail-label">Département</span><span class="badge-detail-value">${escapeHtml(agent.deptName || '—')}</span></div>
+          ${agent.registeredDate ? `<div class="badge-detail-row"><span class="badge-detail-label">Enregistré le</span><span class="badge-detail-value">${escapeHtml(agent.registeredDate)}</span></div>` : ''}
+        </div>
+
+        ${agent.command ? `
+        <div class="dossier-section">
+          <div class="dossier-section-title">Commande associée</div>
+          <div class="dossier-command">${escapeHtml(agent.command)}</div>
+        </div>` : ''}
+
+        <div class="dossier-section">
+          <div class="dossier-section-title">Antécédents</div>
+          <div class="badge-detail-row">
+            <span class="badge-detail-label">Sanctions RP</span>
+            <span class="badge-detail-value" style="color:${agent.sanctionCount ? 'var(--bad)' : 'var(--good)'};">${agent.sanctionCount || 0}${agent.sanctionCount ? ' infraction(s)' : ' — casier vierge'}</span>
+          </div>
+        </div>
+
+        <div class="badge-actions">
+          ${agent.accessResult === 'denied' ? `<button class="btn small ghost" id="create-report-btn">📄 Créer un rapport</button>` : ''}
+          <button class="btn small ghost" id="print-badge-btn">🖨️ Imprimer</button>
         </div>
       </div>
     `;
+
+    const reportBtn = document.getElementById('create-report-btn');
+    if (reportBtn) reportBtn.addEventListener('click', () => openIncidentReportModal(agent));
+    document.getElementById('print-badge-btn').addEventListener('click', () => printBadge(agent));
+  }
+
+  // ---- Rapport d'incident lié à un refus ----
+  function openIncidentReportModal(agent) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'reader-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="reader-modal">
+        <h3>Créer un rapport d'incident</h3>
+        <form id="incident-report-form">
+          <div class="field-row"><label>Titre *</label><input type="text" id="report-title" value="Refus d'accès — ${escapeHtml(agent.name)}" required></div>
+          <div class="field-row"><label>Impliqué(s)</label><input type="text" id="report-involved" value="${escapeHtml(agent.name)}"></div>
+          <div class="field-row"><label>Description</label><textarea id="report-description" rows="5">${escapeHtml(agent.name)} (${escapeHtml(agent.rank || 'grade non précisé')}, accréditation ${agent.accreditation}) s'est vu refuser l'accès lors d'un contrôle au lecteur de carte.</textarea></div>
+          <div class="reader-modal-actions">
+            <button type="button" class="btn ghost" id="report-cancel-btn">Annuler</button>
+            <button type="submit" class="btn">Créer le rapport</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.getElementById('report-cancel-btn').addEventListener('click', () => backdrop.remove());
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+    document.getElementById('incident-report-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('report-title').value.trim();
+      const involved = document.getElementById('report-involved').value.trim();
+      const description = document.getElementById('report-description').value.trim();
+      if (!title) { alert('Le titre est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/security/reports', { method: 'POST', body: JSON.stringify({ title, involved, description }) });
+        backdrop.remove();
+        alert('Rapport créé — retrouve-le dans l\'onglet Rapport du terminal Sécurité.');
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // ---- Fiche imprimable ----
+  function printBadge(agent) {
+    const meta = ACCRED_META[agent.accreditation] || ACCRED_META[0];
+    const win = window.open('', '_blank', 'width=500,height=650');
+    win.document.write(`
+      <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Badge — ${escapeHtml(agent.name)}</title>
+      <style>
+        body{ font-family:'Courier New', monospace; padding:40px; color:#111; }
+        h1{ font-size:18px; border-bottom:2px solid #111; padding-bottom:10px; }
+        .row{ margin:10px 0; } .label{ font-weight:bold; display:inline-block; width:150px; }
+      </style></head><body>
+        <h1>FICHE DE CONTRÔLE — LECTEUR DE CARTE</h1>
+        <div class="row"><span class="label">Nom :</span> ${escapeHtml(agent.name)}</div>
+        <div class="row"><span class="label">Département :</span> ${escapeHtml(agent.deptName || '—')}</div>
+        <div class="row"><span class="label">Grade :</span> ${escapeHtml(agent.rank || '—')}</div>
+        <div class="row"><span class="label">Division :</span> ${escapeHtml(agent.division || '—')}</div>
+        <div class="row"><span class="label">Accréditation :</span> ${escapeHtml(meta.label)}</div>
+        <div class="row"><span class="label">Statut :</span> ${(agent.status || 'actif') === 'actif' ? 'Actif' : 'Inactif'}</div>
+        <div class="row"><span class="label">Sanctions RP :</span> ${agent.sanctionCount || 0}</div>
+        <div class="row"><span class="label">Contrôlé le :</span> ${new Date().toLocaleString('fr-FR')}</div>
+      </body></html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
   }
 
   checkAccessAndInit();
 </script>
 
 </body>
-</html>
+</html> 
