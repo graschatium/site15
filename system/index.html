@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCP-████ — Document classifié — SITE-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #08090C;
+    --void-2: #0D0F14;
+    --panel: #12141B;
+    --line: #23262F;
+    --accent: #6E76FF;
+    --accent-2: #A78BFA;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #565B6B;
+    --good: #4FD895;
+    --warn: #F0A83C;
+    --bad: #F0525A;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html, body{ height:100%; }
+  body{
+    background:var(--void); color:var(--ink); font-family:'Inter', sans-serif;
+    display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;
+  }
+  a{ color:inherit; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  body::before{
+    content:''; position:absolute; inset:0; pointer-events:none; opacity:0.035;
+    background-image:
+      linear-gradient(to right, #fff 1px, transparent 1px),
+      linear-gradient(to bottom, #fff 1px, transparent 1px);
+    background-size:44px 44px;
+  }
+
+  /* ---- Écran 1 : faux chargement de document classifié ---- */
+  #loading-screen{
+    position:relative; z-index:2; width:520px; max-width:90vw; text-align:left;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--accent-2); margin-bottom:14px; display:block;
+  }
+  .doc-title{ font-family:'Space Grotesk', sans-serif; font-size:24px; font-weight:700; margin-bottom:6px; }
+  .doc-sub{ color:var(--ink-faint); font-size:12.5px; margin-bottom:26px; }
+
+  .terminal-box{
+    background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px 20px;
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; line-height:2; min-height:180px;
+  }
+  .terminal-box .line{ color:var(--ink-dim); opacity:0; animation:lineIn 0.3s ease forwards; }
+  .terminal-box .ok{ color:var(--good); }
+  .terminal-box .cursor{
+    display:inline-block; width:7px; height:13px; background:var(--accent-2); margin-left:4px;
+    animation:blink 1s step-end infinite; vertical-align:middle;
+  }
+  @keyframes lineIn{ to{ opacity:1; } }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .progress-track{ height:4px; background:var(--void-2); border-radius:2px; margin-top:18px; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background:var(--accent); transition:width 3.2s linear; }
+
+  /* ---- Écran 2 : le reveal ---- */
+  #reveal-screen{
+    display:none; position:relative; z-index:2; text-align:center; padding:20px; max-width:640px;
+  }
+  #reveal-screen.visible{ display:block; }
+  .reveal-eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--bad); margin-bottom:14px;
+  }
+  .reveal-title{
+    font-family:'Space Grotesk', sans-serif; font-size:32px; font-weight:700; margin-bottom:10px;
+    text-shadow:0 0 50px rgba(110,118,255,0.4);
+  }
+  .reveal-sub{ color:var(--ink-dim); font-size:13.5px; margin-bottom:26px; }
+
+  .video-frame{
+    width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; border:1px solid var(--line);
+    box-shadow:0 30px 70px rgba(0,0,0,0.6); margin-bottom:20px;
+  }
+  .video-frame iframe{ width:100%; height:100%; border:none; }
+
+  .btn{
+    padding:11px 22px; border-radius:6px; border:1px solid var(--line); background:var(--accent); color:#fff;
+    font-size:13px; font-weight:600; cursor:pointer; text-decoration:none; display:inline-block;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <span class="eyebrow">SITE-15 // Accès document classifié</span>
+  <div class="doc-title">SCP-████</div>
+  <div class="doc-sub">Objet de classe <span class="mono">EUCLIDE</span> — Accréditation Niveau 4 requise — Authentification en cours...</div>
+
+  <div class="terminal-box" id="terminal-box"></div>
+
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<div id="reveal-screen">
+  <span class="reveal-eyebrow">⚠ Anomalie comportementale détectée</span>
+  <div class="reveal-title">Tu t'es fait avoir.</div>
+  <div class="reveal-sub">SCP-████ n'a jamais existé. Gloire à la Fondation... et à Rick Astley.</div>
+  <div class="video-frame">
+    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" title="???" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+  </div>
+  <a href="/" class="btn">Fuir vers l'accueil</a>
+</div>
+
+<script>
+  const lines = [
+    'site-15:~$ auth --level 4 --scp XXXX',
+    '&gt; Vérification des identifiants...',
+    '&gt; Déchiffrement du dossier...',
+    '&gt; Chargement du contenu multimédia associé...',
+    '&gt; <span class="ok">Accès autorisé.</span>',
+  ];
+
+  const box = document.getElementById('terminal-box');
+  lines.forEach((text, i) => {
+    const el = document.createElement('div');
+    el.className = 'line';
+    el.style.animationDelay = `${i * 0.55}s`;
+    el.innerHTML = text;
+    box.appendChild(el);
+  });
+  const cursorHolder = document.createElement('div');
+  cursorHolder.className = 'line';
+  cursorHolder.style.animationDelay = `${lines.length * 0.55}s`;
+  cursorHolder.innerHTML = '<span class="cursor"></span>';
+  box.appendChild(cursorHolder);
+
+  requestAnimationFrame(() => {
+    document.getElementById('progress-fill').style.width = '100%';
+  });
+
+  setTimeout(() => {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('reveal-screen').classList.add('visible');
+  }, 3400);
+</script>
+
+</body>
+</html>
