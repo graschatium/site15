@@ -192,6 +192,12 @@
   }
   .scope-mini-preview .mini-cell{ position:absolute; border-radius:50%; }
 
+  /* ---- Stats perso ---- */
+  .scope-stat-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line-soft); font-size:12px; }
+  .scope-stat-row:last-child{ border-bottom:none; }
+  .scope-stat-label{ color:var(--ink-faint); }
+  .scope-stat-value{ color:var(--ink); font-weight:600; text-align:right; }
+
   /* ---- Post-its ---- */
   .scope-notes{ width:100%; max-width:640px; }
   .scope-notes-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
@@ -444,6 +450,8 @@
 
   let scopeExaminations = [];
   let currentSpecimenReady = false;
+  let lastExaminedScpId = null;
+  let consecutiveExamCount = 0; // "fatigue" du spécimen — réduit sa tolérance à chaque passage consécutif
 
   function loadScope() {
     pageRoot.innerHTML = `
@@ -451,6 +459,13 @@
         <div class="scope-columns">
 
           <div class="scope-col-left">
+            <div class="scope-panel compact">
+              <div class="scope-panel-title">Statistiques</div>
+              <div id="scope-stats-card">
+                <div class="empty-row">Chargement…</div>
+              </div>
+            </div>
+
             <div class="scope-panel compact">
               <div class="scope-panel-title">Échantillon</div>
               <button type="button" class="clipboard-trigger" id="scp-picker-trigger">
@@ -471,7 +486,13 @@
             </div>
 
             <div class="scope-log">
-              <div class="scope-log-head"><h2>Journal des examens</h2><span class="count" id="scope-log-count">0</span></div>
+              <div class="scope-log-head">
+                <h2>Journal des examens</h2>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="count" id="scope-log-count">0</span>
+                  <button class="btn ghost small" id="scope-export-btn" type="button">⬇ Exporter</button>
+                </div>
+              </div>
               <input type="text" id="scope-log-search" placeholder="Rechercher (échantillon, observations)..." style="margin-bottom:10px;">
               <div id="scope-log-list"><div class="empty-row">Chargement…</div></div>
             </div>
@@ -553,6 +574,7 @@
     initScpPicker();
 
     document.getElementById('scope-log-search').addEventListener('input', (e) => renderScopeLog(e.target.value));
+    document.getElementById('scope-export-btn').addEventListener('click', exportFullJournal);
 
     loadScopeLog();
   }
@@ -632,6 +654,7 @@
       freeInput.focus();
       hiddenInput.value = freeInput.value;
       panel.style.display = 'none';
+      retuneAmbientSound();
     }
 
     function selectScp(entry) {
@@ -642,6 +665,13 @@
       hiddenInput.value = entry.id;
       panel.style.display = 'none';
       if (entry.category) document.getElementById('scope-type').value = entry.category;
+
+      // Règle les curseurs de lumière sur le profil propre à ce SCP.
+      const profile = getScpLightProfile(entry.id, entry.classification);
+      document.getElementById('scope-brightness').value = profile.idealBrightness;
+      document.getElementById('scope-focus').value = profile.idealFocus;
+      updateScopeVisuals();
+      retuneAmbientSound();
     }
 
     function renderPanel(filterText) {
@@ -653,13 +683,17 @@
         }
       });
 
+      // Catalogue personnel : SCP déjà examinés au moins une fois
+      // (d'après le journal), marqués d'une coche dans la liste.
+      const examinedIds = new Set(scopeExaminations.map((e) => e.sampleDesignation));
+
       const groupsHtml = Object.entries(groups)
         .map(([key, entries]) => {
           if (!entries.length) return '';
           const meta = CLASSIFICATION_META[key];
           return `
             <div class="clipboard-group-label" style="color:${meta.color};">${meta.label}</div>
-            ${entries.map((e) => `<div class="clipboard-item" data-scp-id="${e.id}">${escapeHtml(e.id)}</div>`).join('')}
+            ${entries.map((e) => `<div class="clipboard-item" data-scp-id="${e.id}">${escapeHtml(e.id)}${examinedIds.has(e.id) ? ' <span style="color:var(--good);">✓</span>' : ''}</div>`).join('')}
           `;
         })
         .join('');
@@ -740,6 +774,31 @@
     };
   }
 
+  // Profil lumineux propre à chaque SCP — dérivé de manière stable de sa
+  // désignation (même graine que ses particules), donc toujours identique
+  // d'une session à l'autre pour un même SCP. idealBrightness/idealFocus =
+  // réglages "corrects" pour ce spécimen précis ; sensitivity = tolérance
+  // avant réaction (plus petit = plus nerveux). La classification pilote la
+  // tolérance globale (Keter/Thaumiel = très sensible, Sûr = quasi inerte).
+  const SENSITIVITY_BY_CLASS = { safe: 45, euclid: 32, keter: 20, thaumiel: 22 };
+
+  function getScpLightProfile(scpId, classification) {
+    if (!scpId) return { idealBrightness: 50, idealFocus: 50, sensitivity: 999 }; // libre/inconnu : jamais de réaction
+    const rand = seededRandom(scpId);
+    const idealBrightness = Math.round(35 + rand() * 30); // 35–65
+    const idealFocus = Math.round(45 + rand() * 35); // 45–80
+    let sensitivity = SENSITIVITY_BY_CLASS[classification] || 35;
+
+    // Fatigue : chaque examen consécutif du MÊME SCP réduit sa tolérance
+    // (le rend plus nerveux) — pousse à varier plutôt qu'à spammer le même
+    // échantillon. Plancher à 8 pour ne jamais devenir instantanément fou.
+    if (scpId === lastExaminedScpId && consecutiveExamCount > 0) {
+      sensitivity = Math.max(8, sensitivity - consecutiveExamCount * 4);
+    }
+
+    return { idealBrightness, idealFocus, sensitivity };
+  }
+
   function buildSpecimenCells(color, seed) {
     const container = document.getElementById('scope-cells');
     const rand = seed ? seededRandom(seed) : Math.random;
@@ -804,15 +863,15 @@
     const brightnessValue = 0.25 + (brightness / 100) * 1.3;
     document.getElementById('scope-viewport').style.filter = `brightness(${brightnessValue})`;
 
-    // Réaction du spécimen : conditions de lumière extrêmes (trop vif, trop
-    // sombre, ou très mal concentré) font "trembler" le spécimen — l'effet
-    // ne se déclenche que sur un Keter/Thaumiel, pour la tension RP (un
-    // échantillon Sûr ou libre reste inerte quels que soient les réglages).
-    const extremeLight = brightness > 85 || brightness < 15 || focus < 20;
-    const dangerBoost = selectedScpClassification === 'keter' || selectedScpClassification === 'thaumiel';
+    // Réaction du spécimen : à quel point les réglages actuels s'écartent
+    // du profil lumineux propre à CE SCP précis (idéal + tolérance) —
+    // un échantillon libre/inconnu n'a pas de profil donc ne réagit jamais.
+    const profile = getScpLightProfile(selectedScpId, selectedScpClassification);
+    const deviation = Math.max(Math.abs(brightness - profile.idealBrightness), Math.abs(focus - profile.idealFocus));
+    const extremeLight = deviation > profile.sensitivity;
     const specimen = document.getElementById('scope-specimen');
     const warning = document.getElementById('scope-warning');
-    const shouldAgitate = currentSpecimenReady && extremeLight && dangerBoost;
+    const shouldAgitate = currentSpecimenReady && extremeLight;
 
     if (shouldAgitate) {
       specimen.classList.add('agitated');
@@ -838,6 +897,15 @@
 
     const type = document.getElementById('scope-type').value;
     const color = (SAMPLE_TYPES[type] || SAMPLE_TYPES.inconnu).color;
+
+    // Fatigue : incrémente si c'est le même SCP que la dernière fois,
+    // repart à 1 sinon.
+    if (selectedScpId && selectedScpId === lastExaminedScpId) {
+      consecutiveExamCount += 1;
+    } else {
+      consecutiveExamCount = selectedScpId ? 1 : 0;
+    }
+    lastExaminedScpId = selectedScpId;
 
     const btn = document.getElementById('scope-examine-btn');
     btn.disabled = true;
@@ -874,6 +942,10 @@
   // disparaître, aucune conséquence réelle, juste de l'ambiance.
   function triggerContaminationAlert(designation) {
     playAlarmTone();
+    // Trace locale pour la carte stats — { designation, timestamp }.
+    localStorage.setItem('scope_last_alert', JSON.stringify({ designation, timestamp: Date.now() }));
+    renderStatsCard();
+
     const overlay = document.createElement('div');
     overlay.className = 'scope-contamination-overlay';
     overlay.innerHTML = `
@@ -978,6 +1050,67 @@
     document.getElementById('scope-log-count').textContent = scopeExaminations.length;
 
     renderScopeLog(document.getElementById('scope-log-search').value);
+    renderStatsCard();
+  }
+
+  function renderStatsCard() {
+    const card = document.getElementById('scope-stats-card');
+    if (!card) return;
+
+    const total = scopeExaminations.length;
+
+    let mostStudied = '—';
+    if (total) {
+      const counts = {};
+      scopeExaminations.forEach((e) => {
+        counts[e.sampleDesignation] = (counts[e.sampleDesignation] || 0) + 1;
+      });
+      mostStudied = Object.entries(counts).sort(([, a], [, b]) => b - a)[0][0];
+    }
+
+    let lastAlertText = 'Aucune';
+    try {
+      const lastAlert = JSON.parse(localStorage.getItem('scope_last_alert') || 'null');
+      if (lastAlert) {
+        lastAlertText = `${lastAlert.designation} — ${new Date(lastAlert.timestamp).toLocaleDateString('fr-FR')}`;
+      }
+    } catch (err) {
+      lastAlertText = 'Aucune';
+    }
+
+    card.innerHTML = `
+      <div class="scope-stat-row"><span class="scope-stat-label">Examens réalisés</span><span class="scope-stat-value">${total}</span></div>
+      <div class="scope-stat-row"><span class="scope-stat-label">SCP le plus étudié</span><span class="scope-stat-value">${escapeHtml(mostStudied)}</span></div>
+      <div class="scope-stat-row"><span class="scope-stat-label">Dernière alerte</span><span class="scope-stat-value">${escapeHtml(lastAlertText)}</span></div>
+    `;
+  }
+
+  // Exporte le journal complet en un seul fichier texte téléchargeable.
+  function exportFullJournal() {
+    if (!scopeExaminations.length) { alert('Aucun examen à exporter.'); return; }
+
+    const lines = scopeExaminations.map((e) => {
+      const typeMeta = SAMPLE_TYPES[e.sampleType] || SAMPLE_TYPES.inconnu;
+      const date = e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : 'Date inconnue';
+      return [
+        '═══════════════════════════════',
+        `Échantillon : ${e.sampleDesignation}`,
+        `Type : ${typeMeta.label}`,
+        `Examiné par : ${e.authorCharacterName}`,
+        `Date : ${date}`,
+        '',
+        e.observations || 'Aucune observation notée.',
+      ].join('\n');
+    });
+
+    const content = `JOURNAL COMPLET — SCPSCOPE\n${scopeExaminations.length} examen(s)\n\n${lines.join('\n\n')}`;
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `journal-scpscope-${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function renderScopeLog(filterText) {
@@ -1018,6 +1151,7 @@
           <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="report">📄 Rapport d'expérience</button>
           <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="copy">📋 Copier la fiche</button>
           <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="print">🖨️ Imprimer</button>
+          <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="discord">📢 Discord</button>
         </div>
       </div>
     `;
@@ -1042,6 +1176,25 @@
     list.querySelectorAll('[data-action="print"]').forEach((btn) => {
       btn.addEventListener('click', () => printExaminationSheet(btn.dataset.examinationId));
     });
+
+    list.querySelectorAll('[data-action="discord"]').forEach((btn) => {
+      btn.addEventListener('click', () => postExaminationToDiscord(btn.dataset.examinationId, btn));
+    });
+  }
+
+  async function postExaminationToDiscord(examinationId, btn) {
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Envoi…';
+    try {
+      await apiFetch(`/api/rp/science-ops/microscope/${encodeURIComponent(examinationId)}/post-discord`, { method: 'POST' });
+      btn.textContent = '✓ Posté !';
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
+    } catch (err) {
+      alert(`Erreur : ${err.message}`);
+      btn.textContent = original;
+      btn.disabled = false;
+    }
   }
 
   // Ouvre une fenêtre d'impression avec la fiche mise en forme proprement
@@ -1246,6 +1399,15 @@
   let ambientNodes = null;
   let ambientWantsPlaying = true; // activé par défaut, comme demandé
 
+  // Fréquence de base du bourdonnement d'ambiance selon la classification
+  // du SCP à l'écran — plus grave/sombre sur un Keter, neutre sur un Sûr.
+  const AMBIENT_BASE_FREQ_BY_CLASS = { safe: 74, euclid: 62, keter: 46, thaumiel: 52 };
+
+  function getAmbientBaseFreq() {
+    if (!selectedScpClassification) return 62; // défaut, cohérent avec avant
+    return AMBIENT_BASE_FREQ_BY_CLASS[selectedScpClassification] || 62;
+  }
+
   function startAmbientSound() {
     if (ambientNodes) return; // déjà en cours
 
@@ -1261,14 +1423,16 @@
     gain.gain.value = 0.025; // très discret, ambiance de fond seulement
     gain.connect(ambientAudioCtx.destination);
 
+    const baseFreq = getAmbientBaseFreq();
+
     const osc1 = ambientAudioCtx.createOscillator();
     osc1.type = 'sine';
-    osc1.frequency.value = 62;
+    osc1.frequency.value = baseFreq;
     osc1.connect(gain);
 
     const osc2 = ambientAudioCtx.createOscillator();
     osc2.type = 'sine';
-    osc2.frequency.value = 64.5; // léger décalage -> battement lent, plus organique qu'un ton pur
+    osc2.frequency.value = baseFreq + 2.5; // léger décalage -> battement lent, plus organique qu'un ton pur
     osc2.connect(gain);
 
     osc1.start();
@@ -1278,6 +1442,16 @@
     const btn = document.getElementById('scope-ambient-btn');
     btn.classList.add('active');
     btn.textContent = '🔇 Ambiance';
+  }
+
+  // Réaccorde le bourdonnement en cours (sans le couper) quand le SCP
+  // sélectionné change — transition douce sur 0.8s plutôt qu'un saut brut.
+  function retuneAmbientSound() {
+    if (!ambientNodes || !ambientAudioCtx) return;
+    const baseFreq = getAmbientBaseFreq();
+    const now = ambientAudioCtx.currentTime;
+    ambientNodes.osc1.frequency.linearRampToValueAtTime(baseFreq, now + 0.8);
+    ambientNodes.osc2.frequency.linearRampToValueAtTime(baseFreq + 2.5, now + 0.8);
   }
 
   function stopAmbientSound() {
@@ -1314,6 +1488,29 @@
   document.addEventListener('keydown', primeAmbientOnFirstInteraction);
 
   document.getElementById('scope-ambient-btn').addEventListener('click', toggleAmbientSound);
+
+  // ---------------------------------------------------------------------
+  // Son de clic — léger tick synthétisé sur CHAQUE clic dans la page.
+  // ---------------------------------------------------------------------
+  function playClickSound() {
+    try {
+      const ctx = ambientAudioCtx || (ambientAudioCtx = new (window.AudioContext || window.webkitAudioContext)());
+      ctx.resume();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = 1200;
+      gain.gain.value = 0.02;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.04);
+      osc.stop(ctx.currentTime + 0.05);
+    } catch (err) {
+      // Silencieux — un clic sans son n'est pas bloquant.
+    }
+  }
+  document.addEventListener('click', playClickSound);
 
   checkAccessAndInit();
 </script>
