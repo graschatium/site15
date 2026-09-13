@@ -134,6 +134,28 @@
     font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.05em; text-transform:uppercase;
     padding:2px 8px; border-radius:20px; margin-left:8px;
   }
+
+  /* ---- Curseurs de réglage du microscope ---- */
+  .scope-controls{ width:300px; display:flex; flex-direction:column; gap:14px; }
+  .scope-control-row label{
+    display:flex; justify-content:space-between; font-family:'JetBrains Mono', monospace; font-size:10.5px;
+    letter-spacing:0.03em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:6px;
+  }
+  .scope-control-row label span{ color:var(--line-bright-2); font-weight:600; }
+  input[type="range"]{
+    -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:2px;
+    background:var(--line); outline:none; padding:0; border:none;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:15px; height:15px; border-radius:50%;
+    background:var(--accent); cursor:pointer; box-shadow:0 0 8px rgba(110,118,255,0.6);
+  }
+  input[type="range"]::-moz-range-thumb{
+    width:15px; height:15px; border-radius:50%; background:var(--accent); cursor:pointer; border:none;
+    box-shadow:0 0 8px rgba(110,118,255,0.6);
+  }
+
+  .scope-specimen-zoom-wrap{ display:flex; align-items:center; justify-content:center; }
 </style>
 </head>
 <body>
@@ -279,10 +301,27 @@
         <div class="scope-viewport" id="scope-viewport">
           <div class="scope-crosshair"></div>
           <div class="scope-specimen" id="scope-specimen">
-            <div class="scope-specimen-blob" id="scope-specimen-blob"></div>
+            <div class="scope-specimen-zoom-wrap" id="scope-specimen-zoom-wrap">
+              <div class="scope-specimen-blob" id="scope-specimen-blob"></div>
+            </div>
           </div>
           <div class="scope-idle-label" id="scope-idle-label">Aucun échantillon en cours d'examen</div>
           <div class="scope-scan-line" id="scope-scan-line"></div>
+        </div>
+
+        <div class="scope-controls">
+          <div class="scope-control-row">
+            <label>Grossissement <span id="scope-zoom-value">100x</span></label>
+            <input type="range" id="scope-zoom" min="10" max="1000" step="10" value="100">
+          </div>
+          <div class="scope-control-row">
+            <label>Réglage de lumière <span id="scope-brightness-value">50%</span></label>
+            <input type="range" id="scope-brightness" min="0" max="100" value="50">
+          </div>
+          <div class="scope-control-row">
+            <label>Concentration de lumière <span id="scope-focus-value">50%</span></label>
+            <input type="range" id="scope-focus" min="0" max="100" value="50">
+          </div>
         </div>
 
         <div class="scope-panel">
@@ -320,7 +359,40 @@
 
     document.getElementById('scope-save-btn').addEventListener('click', saveExamination);
 
+    ['scope-zoom', 'scope-brightness', 'scope-focus'].forEach((id) => {
+      document.getElementById(id).addEventListener('input', updateScopeVisuals);
+    });
+    updateScopeVisuals();
+
     loadScopeLog();
+  }
+
+  // Applique en direct grossissement / luminosité / concentration de
+  // lumière sur le viseur — purement visuel, rien n'est envoyé au serveur.
+  function updateScopeVisuals() {
+    const zoom = Number(document.getElementById('scope-zoom').value);
+    const brightness = Number(document.getElementById('scope-brightness').value);
+    const focus = Number(document.getElementById('scope-focus').value);
+
+    document.getElementById('scope-zoom-value').textContent = `${zoom}x`;
+    document.getElementById('scope-brightness-value').textContent = `${brightness}%`;
+    document.getElementById('scope-focus-value').textContent = `${focus}%`;
+
+    // Grossissement : zoome le spécimen (sans toucher à sa propre animation
+    // de morphing/rotation, gérée séparément par CSS sur le blob lui-même).
+    const scale = 0.4 + (zoom / 1000) * 2.6;
+    const wrap = document.getElementById('scope-specimen-zoom-wrap');
+    wrap.style.transform = `scale(${scale})`;
+
+    // Concentration de lumière : plus c'est concentré (proche de 100%),
+    // plus l'image est nette ; diffus (proche de 0%) = flou, comme un
+    // condenseur mal réglé sur un vrai microscope.
+    const blurAmount = (100 - focus) / 10;
+    wrap.style.filter = `blur(${blurAmount}px)`;
+
+    // Réglage de lumière : assombrit/éclaircit tout le viseur.
+    const brightnessValue = 0.25 + (brightness / 100) * 1.3;
+    document.getElementById('scope-viewport').style.filter = `brightness(${brightnessValue})`;
   }
 
   function runExamination() {
@@ -378,6 +450,12 @@
       document.getElementById('scope-specimen').classList.remove('visible');
       document.getElementById('scope-idle-label').style.display = 'flex';
       currentSpecimenReady = false;
+
+      // Remet aussi les curseurs à leurs valeurs par défaut.
+      document.getElementById('scope-zoom').value = 100;
+      document.getElementById('scope-brightness').value = 50;
+      document.getElementById('scope-focus').value = 50;
+      updateScopeVisuals();
 
       loadScopeLog();
     } catch (err) {
