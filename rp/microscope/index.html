@@ -50,10 +50,15 @@
   .center-msg{ display:flex; align-items:center; justify-content:center; height:calc(100vh - 48px); color:var(--ink-dim); font-size:14px; text-align:center; padding:20px; }
 
   .scope-page{
-    height:calc(100vh - 48px); overflow-y:auto; padding:32px 20px;
-    display:flex; flex-direction:column; align-items:center; gap:28px;
+    height:calc(100vh - 48px); overflow-y:auto; padding:28px 20px;
+    display:flex; justify-content:center;
     background:radial-gradient(ellipse 900px 500px at 50% -10%, rgba(110,118,255,0.06), transparent 60%);
   }
+  .scope-columns{ display:flex; gap:22px; width:100%; max-width:1180px; align-items:flex-start; }
+  .scope-col-left{ width:270px; flex-shrink:0; display:flex; flex-direction:column; gap:18px; }
+  .scope-col-middle{ flex:1; min-width:340px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .scope-col-right{ width:200px; flex-shrink:0; position:sticky; top:0; }
+  .scope-panel.compact .scope-panel-title{ margin-bottom:8px; }
 
   /* ---- Viseur du microscope ---- */
   .scope-viewport{
@@ -463,15 +468,6 @@
 
         </div>
       </div>
-
-        <div class="scope-notes">
-          <div class="scope-notes-head">
-            <h2>Notes</h2>
-            <button class="btn ghost small" id="scope-add-note-btn" type="button">+ Note</button>
-          </div>
-          <div class="scope-notes-board" id="scope-notes-board"></div>
-        </div>
-      </div>
     `;
 
     document.getElementById('scope-form').addEventListener('submit', (e) => {
@@ -496,31 +492,56 @@
   }
 
   // ---------------------------------------------------------------------
-  // Sélecteur SCP façon clipboard — tire les vraies fiches du wiki
-  // (Archives Scientifique), groupées par classification. Option "Libre /
-  // Inconnu" en secours pour un échantillon absent du wiki.
+  // Sélecteur SCP façon clipboard — liste réelle de SCP tagués "biohazard"
+  // sur le wiki SCP Foundation (scp-wiki.wikidot.com/scp-hub/tag/biohazard),
+  // groupée par classification d'objet. Option "Libre / Inconnu" en secours
+  // pour un échantillon non répertorié.
   // ---------------------------------------------------------------------
   let selectedScpId = null; // null = mode libre/manuel
-  let wikiScpEntries = [];
 
   const CLASSIFICATION_META = {
     safe: { label: 'Sûr', color: 'var(--good)' },
     euclid: { label: 'Euclide', color: 'var(--warn)' },
     keter: { label: 'Keter', color: 'var(--bad)' },
+    thaumiel: { label: 'Thaumiel', color: 'var(--line-bright-2)' },
   };
 
-  async function initScpPicker() {
+  // id = désignation exacte (utilisée comme graine de particules ET comme
+  // titre affiché) — pas de nom complet volontairement, cohérent avec
+  // l'usage interne où le personnel ne voit souvent que le numéro tant que
+  // la fiche n'est pas consultée en détail.
+  const BIOHAZARD_SCP_LIST = [
+    { id: 'SCP-8363', classification: 'safe' },
+    { id: 'SCP-8535', classification: 'safe' },
+    { id: 'SCP-8543', classification: 'safe' },
+    { id: 'SCP-8194', classification: 'safe' },
+    { id: 'SCP-9775', classification: 'euclid' },
+    { id: 'SCP-9547', classification: 'euclid' },
+    { id: 'SCP-9149', classification: 'euclid' },
+    { id: 'SCP-9229', classification: 'euclid' },
+    { id: 'SCP-8486', classification: 'euclid' },
+    { id: 'SCP-8263', classification: 'euclid' },
+    { id: 'SCP-8345', classification: 'euclid' },
+    { id: 'SCP-8127', classification: 'euclid' },
+    { id: 'SCP-1611', classification: 'euclid' },
+    { id: 'SCP-8275', classification: 'euclid' },
+    { id: 'SCP-8077', classification: 'euclid' },
+    { id: 'SCP-9383', classification: 'keter' },
+    { id: 'SCP-9087', classification: 'keter' },
+    { id: 'SCP-CN-3549', classification: 'keter' },
+    { id: 'SCP-7694', classification: 'keter' },
+    { id: 'SCP-8738', classification: 'keter' },
+    { id: 'SCP-8987', classification: 'keter' },
+    { id: 'SCP-7493', classification: 'keter' },
+    { id: 'SCP-8447', classification: 'keter' },
+    { id: 'SCP-9148', classification: 'thaumiel' },
+  ];
+
+  function initScpPicker() {
     const trigger = document.getElementById('scp-picker-trigger');
     const panel = document.getElementById('scp-picker-panel');
     const freeInput = document.getElementById('scope-designation-free');
     const hiddenInput = document.getElementById('scope-designation');
-
-    try {
-      const data = await apiFetch('/api/rp/science/publications');
-      wikiScpEntries = (data.publications || []).filter((p) => p.docType === 'objet');
-    } catch (err) {
-      wikiScpEntries = [];
-    }
 
     function selectFree() {
       selectedScpId = null;
@@ -533,17 +554,17 @@
 
     function selectScp(entry) {
       selectedScpId = entry.id;
-      document.getElementById('scp-picker-label').textContent = `📋 ${entry.title}`;
+      document.getElementById('scp-picker-label').textContent = `📋 ${entry.id}`;
       freeInput.style.display = 'none';
-      hiddenInput.value = entry.title;
+      hiddenInput.value = entry.id;
       panel.style.display = 'none';
     }
 
     function renderPanel(filterText) {
       const q = (filterText || '').toLowerCase();
-      const groups = { safe: [], euclid: [], keter: [] };
-      wikiScpEntries.forEach((entry) => {
-        if (entry.classification && groups[entry.classification] && entry.title.toLowerCase().includes(q)) {
+      const groups = { safe: [], euclid: [], keter: [], thaumiel: [] };
+      BIOHAZARD_SCP_LIST.forEach((entry) => {
+        if (groups[entry.classification] && entry.id.toLowerCase().includes(q)) {
           groups[entry.classification].push(entry);
         }
       });
@@ -554,7 +575,7 @@
           const meta = CLASSIFICATION_META[key];
           return `
             <div class="clipboard-group-label" style="color:${meta.color};">${meta.label}</div>
-            ${entries.map((e) => `<div class="clipboard-item" data-scp-id="${e.id}">${escapeHtml(e.title)}</div>`).join('')}
+            ${entries.map((e) => `<div class="clipboard-item" data-scp-id="${e.id}">${escapeHtml(e.id)}</div>`).join('')}
           `;
         })
         .join('');
@@ -562,9 +583,9 @@
       panel.innerHTML = `
         <div class="clipboard-panel">
           <input type="text" class="clipboard-search" id="clipboard-search-input" placeholder="Rechercher un SCP..." value="${escapeHtml(filterText || '')}">
-          <div class="clipboard-free-option" id="clipboard-free-option">🔓 Échantillon libre / inconnu (non répertorié)</div>
+          <div class="clipboard-free-option" id="clipboard-free-option">🔓 Échantillon libre / inconnu</div>
           <div class="clipboard-list">
-            ${groupsHtml || '<div class="clipboard-empty">Aucun SCP trouvé dans le wiki.</div>'}
+            ${groupsHtml || '<div class="clipboard-empty">Aucun résultat.</div>'}
           </div>
         </div>
       `;
@@ -572,7 +593,7 @@
       document.getElementById('clipboard-free-option').addEventListener('click', selectFree);
       panel.querySelectorAll('.clipboard-item').forEach((el) => {
         el.addEventListener('click', () => {
-          const entry = wikiScpEntries.find((e) => e.id === el.dataset.scpId);
+          const entry = BIOHAZARD_SCP_LIST.find((e) => e.id === el.dataset.scpId);
           if (entry) selectScp(entry);
         });
       });
@@ -746,7 +767,7 @@
 
       // Remet le sélecteur SCP à zéro.
       selectedScpId = null;
-      document.getElementById('scp-picker-label').textContent = '📋 Choisir un SCP dans le wiki…';
+      document.getElementById('scp-picker-label').textContent = '📋 Choisir un SCP…';
       document.getElementById('scope-designation-free').style.display = 'none';
       document.getElementById('scope-designation-free').value = '';
 
