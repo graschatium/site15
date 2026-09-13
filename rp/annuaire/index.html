@@ -208,10 +208,11 @@
   let directoryCache = [];
 
   async function loadTrombinoscope() {
+    const prefillQuery = new URL(window.location.href).searchParams.get('q') || '';
     pageRoot.innerHTML = `
       <div class="page-body">
         <div class="directory-controls">
-          <input type="text" id="directory-search" placeholder="Rechercher un nom, pseudo, grade...">
+          <input type="text" id="directory-search" placeholder="Rechercher un nom, pseudo, grade..." value="${escapeHtml(prefillQuery)}">
           <select id="directory-dept-filter"><option value="">Tous départements</option></select>
         </div>
         <div class="directory-grid" id="directory-grid"><div class="empty-row">Chargement…</div></div>

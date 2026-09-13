@@ -59,7 +59,9 @@
   .reader-columns{ display:flex; gap:24px; justify-content:center; align-items:flex-start; flex-wrap:wrap; max-width:1000px; margin:0 auto; }
 
   .history-panel{ width:280px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; }
-  .history-head{ font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; margin-bottom:12px; }
+  .history-head{ display:flex; justify-content:space-between; align-items:center; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; margin-bottom:12px; }
+  .device-toolbar{ display:flex; gap:8px; margin-top:10px; }
+  .device-toolbar .btn{ flex:1; }
   .history-item{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line-soft); gap:8px; }
   .history-filters{ display:flex; gap:6px; margin-bottom:12px; }
   .history-filters select{ font-size:11px; padding:6px 8px; }
@@ -204,6 +206,11 @@
     margin:12px 0; padding:8px 12px; border-radius:6px; background:rgba(240,168,60,0.12); border:1px solid var(--warn);
     color:var(--warn); font-size:11.5px; font-weight:600;
   }
+  .blacklist-warning{
+    margin:12px 0; padding:10px 12px; border-radius:6px; background:rgba(240,82,90,0.18); border:2px solid var(--bad);
+    color:var(--bad); font-size:12px; font-weight:700; animation:blacklistPulse 1s ease-in-out infinite;
+  }
+  @keyframes blacklistPulse{ 50%{ opacity:0.6; } }
   .badge-actions{ display:flex; gap:8px; margin-top:16px; }
   .btn.small{ padding:8px 12px; font-size:11.5px; width:auto; }
   .btn.ghost{ background:var(--void-2); color:var(--ink-dim); border:1px solid var(--line); }
@@ -217,6 +224,10 @@
   }
   .reader-modal h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; margin-bottom:16px; }
   .reader-modal-actions{ display:flex; gap:10px; margin-top:16px; }
+  .batch-result-row{ padding:8px 10px; border-radius:6px; margin-bottom:6px; font-size:12px; background:var(--void-2); border:1px solid var(--line); }
+  .batch-result-row.ok{ border-color:var(--good); }
+  .batch-result-row.bad{ border-color:var(--bad); }
+  .batch-result-row.warn{ border-color:var(--warn); }
   .badge-detail-label{ color:var(--ink-faint); }
   .badge-detail-value{ font-family:'JetBrains Mono', monospace; }
 
@@ -390,12 +401,19 @@
               ⚡ Mode scan rapide (patrouille — Entrée relance direct)
             </label>
             <button class="btn" id="scan-btn">🔍 Scanner</button>
+            <div class="device-toolbar">
+              <button class="btn small ghost" id="batch-scan-btn" type="button">📋 Scan par lot</button>
+              <button class="btn small ghost" id="blacklist-btn" type="button">🚩 Liste noire</button>
+            </div>
           </div>
 
           <div class="results-wrap" id="results-wrap"></div>
 
           <div class="history-panel">
-            <div class="history-head">Derniers accès</div>
+            <div class="history-head">
+              <span>Derniers accès</span>
+              <button class="btn small ghost" id="export-history-btn" type="button">⬇ Exporter</button>
+            </div>
             <div class="history-filters">
               <select id="history-filter-dept"><option value="">Tous départements</option></select>
               <select id="history-filter-result">
@@ -415,6 +433,10 @@
     const btn = document.getElementById('scan-btn');
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
     btn.addEventListener('click', runScan);
+
+    document.getElementById('batch-scan-btn').addEventListener('click', openBatchScanModal);
+    document.getElementById('blacklist-btn').addEventListener('click', openBlacklistModal);
+    document.getElementById('export-history-btn').addEventListener('click', exportHistoryCsv);
 
     document.getElementById('quick-scan-checkbox').addEventListener('change', (e) => {
       quickScanMode = e.target.checked;
@@ -607,6 +629,13 @@
     void physicalCard.offsetWidth;
     physicalCard.classList.add('ejecting');
 
+    // Alerte sonore distincte immédiate si le profil est en liste noire —
+    // indépendante du résultat accordé/refusé.
+    if (agent.blacklisted) {
+      playDeniedBuzz(true);
+      setTimeout(() => playDeniedBuzz(true), 300);
+    }
+
     // Écran plein cadre accordé/refusé si un contrôle d'accès a été
     // demandé (requiredLevel envoyé et une seule correspondance).
     if (agent.accessResult) {
@@ -684,11 +713,12 @@
         <div class="badge-head">
           <div class="badge-avatar">${avatarInner}</div>
           <div>
-            <div class="badge-name">${escapeHtml(agent.name)} <span class="status-tag ${isActive ? 'status-actif' : 'status-inactif'}">${isActive ? 'Actif' : 'Inactif'}</span></div>
+            <div class="badge-name"><a href="#" id="open-directory-link" style="color:inherit; text-decoration:underline dotted;">${escapeHtml(agent.name)}</a> <span class="status-tag ${isActive ? 'status-actif' : 'status-inactif'}">${isActive ? 'Actif' : 'Inactif'}</span></div>
             <div class="badge-rank">${escapeHtml(agent.rank || 'Grade non précisé')} — ${escapeHtml(agent.deptName || '')}</div>
           </div>
         </div>
 
+        ${agent.blacklisted ? `<div class="blacklist-warning">🚩 PROFIL EN LISTE NOIRE — ${escapeHtml(agent.blacklisted.reason || 'motif non précisé')}</div>` : ''}
         ${todayDenials >= 2 ? `<div class="repeat-warning">⚠ ${todayDenials} refus déjà enregistrés aujourd'hui pour cette personne</div>` : ''}
 
         <div class="dossier-section">
@@ -729,6 +759,16 @@
         </div>
 
         <div class="dossier-section">
+          <div class="dossier-section-title">Équipement assigné</div>
+          <div id="equipment-view">
+            <div class="badge-detail-row"><span class="badge-detail-label">Arme</span><span class="badge-detail-value">${escapeHtml(agent.equipment?.weapon || 'N/A')}</span></div>
+            <div class="badge-detail-row"><span class="badge-detail-label">Radio</span><span class="badge-detail-value">${escapeHtml(agent.equipment?.radio || 'N/A')}</span></div>
+            <div class="badge-detail-row"><span class="badge-detail-label">Gilet</span><span class="badge-detail-value">${escapeHtml(agent.equipment?.vest || 'N/A')}</span></div>
+          </div>
+          <button class="btn small ghost" id="edit-equipment-btn" style="margin-top:8px;">✏️ Modifier l'équipement</button>
+        </div>
+
+        <div class="dossier-section">
           <div class="dossier-section-title">Antécédents</div>
           <div class="badge-detail-row">
             <span class="badge-detail-label">Sanctions RP</span>
@@ -746,9 +786,191 @@
     const reportBtn = document.getElementById('create-report-btn');
     if (reportBtn) reportBtn.addEventListener('click', () => openIncidentReportModal(agent));
     document.getElementById('print-badge-btn').addEventListener('click', () => printBadge(agent));
+
+    document.getElementById('open-directory-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      window.open(`/rp/annuaire/?q=${encodeURIComponent(agent.name)}&token=${encodeURIComponent(getToken() || '')}`, '_blank');
+    });
+
+    document.getElementById('edit-equipment-btn').addEventListener('click', () => openEquipmentModal(agent));
   }
 
-  // ---- Rapport d'incident lié à un refus ----
+  // ---- Édition de l'équipement assigné ----
+  function openEquipmentModal(agent) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'reader-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="reader-modal">
+        <h3>Équipement — ${escapeHtml(agent.name)}</h3>
+        <form id="equipment-form">
+          <div class="field-row"><label>Arme</label><input type="text" id="equip-weapon" value="${escapeHtml(agent.equipment?.weapon || '')}"></div>
+          <div class="field-row"><label>Radio</label><input type="text" id="equip-radio" value="${escapeHtml(agent.equipment?.radio || '')}"></div>
+          <div class="field-row"><label>Gilet</label><input type="text" id="equip-vest" value="${escapeHtml(agent.equipment?.vest || '')}"></div>
+          <div class="field-row"><label>Notes</label><input type="text" id="equip-notes" value="${escapeHtml(agent.equipment?.notes || '')}"></div>
+          <div class="reader-modal-actions">
+            <button type="button" class="btn ghost" id="equip-cancel-btn">Annuler</button>
+            <button type="submit" class="btn">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.getElementById('equip-cancel-btn').addEventListener('click', () => backdrop.remove());
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+    document.getElementById('equipment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const weapon = document.getElementById('equip-weapon').value.trim();
+      const radio = document.getElementById('equip-radio').value.trim();
+      const vest = document.getElementById('equip-vest').value.trim();
+      const notes = document.getElementById('equip-notes').value.trim();
+      try {
+        await apiFetch('/api/rp/security/equipment', { method: 'POST', body: JSON.stringify({ username: agent.username, weapon, radio, vest, notes }) });
+        agent.equipment = { weapon, radio, vest, notes };
+        backdrop.remove();
+        renderBadgeDetails(agent);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+  // ---- Scan par lot ----
+  function openBatchScanModal() {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'reader-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="reader-modal">
+        <h3>Scan par lot</h3>
+        <div class="field-row"><label>Un nom/pseudo par ligne</label><textarea id="batch-names" rows="8" placeholder="C.FLANDEU&#10;A.ERMASNOV&#10;..." style="font-family:'JetBrains Mono', monospace; text-align:left;"></textarea></div>
+        <div id="batch-results" style="max-height:220px; overflow-y:auto; margin-bottom:12px;"></div>
+        <div class="reader-modal-actions">
+          <button type="button" class="btn ghost" id="batch-cancel-btn">Fermer</button>
+          <button type="button" class="btn" id="batch-run-btn">Lancer le scan par lot</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.getElementById('batch-cancel-btn').addEventListener('click', () => backdrop.remove());
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+    document.getElementById('batch-run-btn').addEventListener('click', async () => {
+      const names = document.getElementById('batch-names').value.split('\n').map((n) => n.trim()).filter(Boolean);
+      const resultsBox = document.getElementById('batch-results');
+      if (!names.length) { resultsBox.innerHTML = '<div class="empty-row">Aucun nom saisi.</div>'; return; }
+      resultsBox.innerHTML = '<div class="empty-row">Scan en cours…</div>';
+
+      const lines = [];
+      for (const name of names) {
+        try {
+          const data = await apiFetch(`/api/rp/security/card-check?query=${encodeURIComponent(name)}`);
+          const m = data.matches || [];
+          if (!m.length) lines.push({ name, ok: false, text: 'Aucun agent trouvé' });
+          else if (m.length > 1) lines.push({ name, ok: null, text: `${m.length} correspondances (préciser)` });
+          else {
+            const meta = ACCRED_META[m[0].accreditation] || ACCRED_META[0];
+            lines.push({ name, ok: true, text: `${m[0].deptName} — ${meta.label}${m[0].blacklisted ? ' 🚩' : ''}` });
+          }
+        } catch (err) {
+          lines.push({ name, ok: false, text: err.message });
+        }
+      }
+      loadHistory();
+
+      resultsBox.innerHTML = lines
+        .map((l) => `<div class="batch-result-row ${l.ok === true ? 'ok' : l.ok === false ? 'bad' : 'warn'}"><strong>${escapeHtml(l.name)}</strong> — ${escapeHtml(l.text)}</div>`)
+        .join('');
+    });
+  }
+
+  // ---- Liste noire ----
+  async function openBlacklistModal() {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'reader-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="reader-modal">
+        <h3>Liste noire</h3>
+        <div id="blacklist-list"><div class="empty-row">Chargement…</div></div>
+        <form id="blacklist-add-form" style="margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
+          <div class="field-row"><label>Pseudo Roblox *</label><input type="text" id="blacklist-username" required></div>
+          <div class="field-row"><label>Motif</label><input type="text" id="blacklist-reason"></div>
+          <button class="btn small" type="submit">Ajouter à la liste noire</button>
+        </form>
+        <div class="reader-modal-actions">
+          <button type="button" class="btn ghost" id="blacklist-close-btn">Fermer</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.getElementById('blacklist-close-btn').addEventListener('click', () => backdrop.remove());
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+    async function refreshBlacklist() {
+      const list = document.getElementById('blacklist-list');
+      try {
+        const data = await apiFetch('/api/rp/security/blacklist');
+        const entries = data.blacklist || [];
+        list.innerHTML = entries.length
+          ? entries
+              .map(
+                (b) => `
+            <div class="post-card">
+              <div class="post-card-head">
+                <span class="post-card-title">${escapeHtml(b.username)}</span>
+                <button class="btn danger small" data-remove-username="${escapeHtml(b.username)}">Retirer</button>
+              </div>
+              <div class="post-card-meta">${escapeHtml(b.reason || 'Motif non précisé')} — ajouté par ${escapeHtml(b.addedBy)}</div>
+            </div>
+          `
+              )
+              .join('')
+          : '<div class="empty-row">Liste noire vide.</div>';
+        list.querySelectorAll('[data-remove-username]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            await apiFetch(`/api/rp/security/blacklist/${encodeURIComponent(btn.dataset.removeUsername)}`, { method: 'DELETE' });
+            refreshBlacklist();
+          });
+        });
+      } catch (err) {
+        list.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    document.getElementById('blacklist-add-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('blacklist-username').value.trim();
+      const reason = document.getElementById('blacklist-reason').value.trim();
+      if (!username) { alert('Le pseudo est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/security/blacklist', { method: 'POST', body: JSON.stringify({ username, reason }) });
+        document.getElementById('blacklist-add-form').reset();
+        refreshBlacklist();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    refreshBlacklist();
+  }
+
+  // ---- Export CSV de l'historique complet ----
+  function exportHistoryCsv() {
+    if (!historyCache.length) { alert('Aucun historique à exporter.'); return; }
+    const header = 'Nom,Pseudo,Departement,Accreditation,Niveau requis,Resultat,Scanne par,Date';
+    const rows = historyCache.map((s) =>
+      [s.scannedName, s.scannedUsername, s.deptName, s.accreditation, s.requiredLevel ?? '', s.result, s.scannedBy, new Date(s.createdAt).toLocaleString('fr-FR')]
+        .map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`)
+        .join(',')
+    );
+    const content = [header, ...rows].join('\n');
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `historique-lecteur-carte-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function openIncidentReportModal(agent) {
     const backdrop = document.createElement('div');
     backdrop.className = 'reader-modal-backdrop';
