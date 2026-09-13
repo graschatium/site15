@@ -111,7 +111,14 @@
   <div class="reveal-title">Tu t'es fait avoir.</div>
   <div class="reveal-sub">SCP-████ n'a jamais existé. Gloire à la Fondation... et à Rick Astley.</div>
   <div class="video-frame">
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/DLzxrzFCyOs?si=oLRJpl3t6cfooQtB&amp;controls=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <iframe
+      id="rickroll-player"
+      src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1"
+      title="???"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allow="autoplay; encrypted-media; picture-in-picture"
+      allowfullscreen
+    ></iframe>
   </div>
   <a href="/" class="btn">Fuir vers l'accueil</a>
 </div>
@@ -147,6 +154,47 @@
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('reveal-screen').classList.add('visible');
   }, 3400);
+
+  // La vidéo démarre muette (seul moyen fiable de garantir l'autoplay dans
+  // tous les navigateurs) — le son s'active automatiquement dès la toute
+  // première interaction sur la page (mouvement de souris, clic, touche),
+  // sans que la personne ait besoin de cliquer sur la vidéo elle-même.
+  let ytPlayer = null;
+  let soundUnlocked = false;
+
+  const ytScript = document.createElement('script');
+  ytScript.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(ytScript);
+
+  window.onYouTubeIframeAPIReady = function () {
+    ytPlayer = new YT.Player('rickroll-player', {
+      events: {
+        onReady: () => {
+          if (soundUnlocked) unlockSound();
+        },
+      },
+    });
+  };
+
+  function unlockSound() {
+    soundUnlocked = true;
+    if (ytPlayer && typeof ytPlayer.unMute === 'function') {
+      ytPlayer.unMute();
+      ytPlayer.playVideo();
+    }
+  }
+
+  function primeSoundOnFirstInteraction() {
+    unlockSound();
+    document.removeEventListener('mousemove', primeSoundOnFirstInteraction);
+    document.removeEventListener('click', primeSoundOnFirstInteraction);
+    document.removeEventListener('keydown', primeSoundOnFirstInteraction);
+    document.removeEventListener('touchstart', primeSoundOnFirstInteraction);
+  }
+  document.addEventListener('mousemove', primeSoundOnFirstInteraction);
+  document.addEventListener('click', primeSoundOnFirstInteraction);
+  document.addEventListener('keydown', primeSoundOnFirstInteraction);
+  document.addEventListener('touchstart', primeSoundOnFirstInteraction);
 </script>
 
 </body>
