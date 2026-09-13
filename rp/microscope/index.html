@@ -156,6 +156,55 @@
   }
 
   .scope-specimen-zoom-wrap{ display:flex; align-items:center; justify-content:center; }
+
+  /* ---- Rendu plus réaliste du viseur ---- */
+  .scope-graticule{ position:absolute; inset:0; pointer-events:none; opacity:0.35; }
+  .scope-graticule .ring{
+    position:absolute; border:1px solid rgba(110,118,255,0.18); border-radius:50%;
+    top:50%; left:50%; transform:translate(-50%,-50%);
+  }
+  .scope-graticule .tick{
+    position:absolute; background:rgba(110,118,255,0.22); top:50%; left:50%;
+    width:1px; height:6px; transform-origin:0 0;
+  }
+  .scope-glass-sheen{
+    position:absolute; inset:-20%; pointer-events:none; mix-blend-mode:screen; opacity:0.5;
+    background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.10) 45%, rgba(255,255,255,0.02) 52%, transparent 62%);
+  }
+  .scope-chromatic-edge{
+    position:absolute; inset:0; pointer-events:none; border-radius:50%;
+    box-shadow:inset 0 0 30px 4px rgba(240,82,90,0.10), inset 0 0 46px 10px rgba(79,168,240,0.08);
+  }
+  .scope-cell{
+    position:absolute; border-radius:50%; mix-blend-mode:screen;
+  }
+
+  /* ---- Post-its ---- */
+  .scope-notes{ width:100%; max-width:640px; }
+  .scope-notes-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .scope-notes-head h2{ font-family:'Space Grotesk', sans-serif; font-size:14px; }
+  .btn.ghost.small{ width:auto; padding:6px 12px; font-size:11.5px; border:1px solid var(--line); }
+  .scope-notes-board{
+    display:flex; flex-wrap:wrap; gap:16px; padding:18px; background:var(--panel); border:1px solid var(--line);
+    border-radius:8px; min-height:80px;
+  }
+  .sticky-note{
+    width:150px; min-height:140px; padding:12px 12px 8px; border-radius:2px; position:relative;
+    box-shadow:0 8px 16px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.25);
+    font-family:'Space Grotesk', sans-serif; display:flex; flex-direction:column;
+    transition:transform .15s ease;
+  }
+  .sticky-note:hover{ transform:scale(1.03) rotate(0deg) !important; z-index:2; }
+  .sticky-note-delete{
+    position:absolute; top:4px; right:6px; background:none; border:none; cursor:pointer;
+    font-size:14px; color:rgba(10,11,14,0.4); line-height:1; padding:2px;
+  }
+  .sticky-note-delete:hover{ color:rgba(10,11,14,0.8); }
+  .sticky-note-text{
+    flex:1; width:100%; background:transparent; border:none; resize:none; color:#1a1a1a;
+    font-family:'Space Grotesk', sans-serif; font-size:12.5px; line-height:1.5; padding:0; margin-top:6px;
+  }
+  .sticky-note-text::placeholder{ color:rgba(10,11,14,0.4); }
 </style>
 </head>
 <body>
@@ -300,13 +349,17 @@
       <div class="scope-page">
         <div class="scope-viewport" id="scope-viewport">
           <div class="scope-crosshair"></div>
+          <div class="scope-graticule" id="scope-graticule"></div>
           <div class="scope-specimen" id="scope-specimen">
             <div class="scope-specimen-zoom-wrap" id="scope-specimen-zoom-wrap">
               <div class="scope-specimen-blob" id="scope-specimen-blob"></div>
+              <div id="scope-cells"></div>
             </div>
           </div>
           <div class="scope-idle-label" id="scope-idle-label">Aucun échantillon en cours d'examen</div>
           <div class="scope-scan-line" id="scope-scan-line"></div>
+          <div class="scope-chromatic-edge"></div>
+          <div class="scope-glass-sheen"></div>
         </div>
 
         <div class="scope-controls">
@@ -349,6 +402,14 @@
           <div class="scope-log-head"><h2>Journal des examens</h2><span class="count" id="scope-log-count">0</span></div>
           <div id="scope-log-list"><div class="empty-row">Chargement…</div></div>
         </div>
+
+        <div class="scope-notes">
+          <div class="scope-notes-head">
+            <h2>Notes</h2>
+            <button class="btn ghost small" id="scope-add-note-btn" type="button">+ Note</button>
+          </div>
+          <div class="scope-notes-board" id="scope-notes-board"></div>
+        </div>
       </div>
     `;
 
@@ -363,8 +424,44 @@
       document.getElementById(id).addEventListener('input', updateScopeVisuals);
     });
     updateScopeVisuals();
+    buildGraticule();
+
+    document.getElementById('scope-add-note-btn').addEventListener('click', () => addStickyNote());
+    renderStickyNotes();
 
     loadScopeLog();
+  }
+
+  // Génère la graticule (anneaux + graduations radiales) une seule fois —
+  // purement décoratif, façon réticule de mesure d'un vrai oculaire.
+  function buildGraticule() {
+    const graticule = document.getElementById('scope-graticule');
+    let html = '';
+    [40, 80, 120].forEach((r) => {
+      html += `<div class="ring" style="width:${r * 2}px; height:${r * 2}px;"></div>`;
+    });
+    for (let i = 0; i < 24; i += 1) {
+      const angle = (360 / 24) * i;
+      html += `<div class="tick" style="transform:rotate(${angle}deg) translate(0, -142px);"></div>`;
+    }
+    graticule.innerHTML = html;
+  }
+
+  // Regénère une texture "cellulaire" (petits amas translucides) à chaque
+  // examen, pour que le spécimen ait un aspect granuleux/organique plutôt
+  // qu'une simple tache lisse — purement décoratif.
+  function buildSpecimenCells(color) {
+    const container = document.getElementById('scope-cells');
+    let html = '';
+    const count = 10 + Math.floor(Math.random() * 8);
+    for (let i = 0; i < count; i += 1) {
+      const size = 8 + Math.random() * 22;
+      const x = 20 + Math.random() * 110;
+      const y = 20 + Math.random() * 110;
+      const opacity = (0.15 + Math.random() * 0.35).toFixed(2);
+      html += `<div class="scope-cell" style="width:${size}px; height:${size}px; left:${x}px; top:${y}px; background:${color}; opacity:${opacity};"></div>`;
+    }
+    container.innerHTML = html;
   }
 
   // Applique en direct grossissement / luminosité / concentration de
@@ -415,6 +512,7 @@
     const blob = document.getElementById('scope-specimen-blob');
     blob.style.background = `radial-gradient(circle at 35% 35%, ${color}dd, ${color}55 60%, transparent 90%)`;
     blob.style.boxShadow = `0 0 40px ${color}55`;
+    buildSpecimenCells(color);
 
     setTimeout(() => {
       document.getElementById('scope-specimen').classList.add('visible');
@@ -497,6 +595,81 @@
     `;
       })
       .join('');
+  }
+
+  // ---------------------------------------------------------------------
+  // Post-its — notes personnelles rapides, sauvegardées en local
+  // (par navigateur), séparées du journal officiel des examens.
+  // ---------------------------------------------------------------------
+  const NOTES_STORAGE_KEY = 'scope_sticky_notes';
+  const NOTE_COLORS = ['#F0D97A', '#F0A8C4', '#A8E0D0', '#A8C4F0', '#F0C09A'];
+
+  function loadStickyNotesFromStorage() {
+    try {
+      return JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || '[]');
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function saveStickyNotesToStorage(notes) {
+    localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+  }
+
+  function addStickyNote() {
+    const notes = loadStickyNotesFromStorage();
+    notes.push({
+      id: `note-${Date.now()}`,
+      text: '',
+      color: NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)],
+      rotate: Math.round((Math.random() - 0.5) * 8),
+    });
+    saveStickyNotesToStorage(notes);
+    renderStickyNotes();
+  }
+
+  function renderStickyNotes() {
+    const board = document.getElementById('scope-notes-board');
+    const notes = loadStickyNotesFromStorage();
+
+    if (!notes.length) {
+      board.innerHTML = '<div class="empty-row">Aucune note — clique sur "+ Note" pour en ajouter une.</div>';
+      return;
+    }
+
+    board.innerHTML = notes
+      .map(
+        (n) => `
+      <div class="sticky-note" style="background:${n.color}; transform:rotate(${n.rotate}deg);" data-note-id="${n.id}">
+        <button class="sticky-note-delete" data-note-id="${n.id}">×</button>
+        <textarea class="sticky-note-text" data-note-id="${n.id}" placeholder="Écris quelque chose...">${escapeHtml(n.text)}</textarea>
+      </div>
+    `
+      )
+      .join('');
+
+    board.querySelectorAll('.sticky-note-delete').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const notes = loadStickyNotesFromStorage().filter((n) => n.id !== btn.dataset.noteId);
+        saveStickyNotesToStorage(notes);
+        renderStickyNotes();
+      });
+    });
+
+    let saveTimeout;
+    board.querySelectorAll('.sticky-note-text').forEach((textarea) => {
+      textarea.addEventListener('input', () => {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+          const notes = loadStickyNotesFromStorage();
+          const note = notes.find((n) => n.id === textarea.dataset.noteId);
+          if (note) {
+            note.text = textarea.value;
+            saveStickyNotesToStorage(notes);
+          }
+        }, 400);
+      });
+    });
   }
 
   checkAccessAndInit();
