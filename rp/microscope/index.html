@@ -184,6 +184,14 @@
     position:absolute; border-radius:50%; mix-blend-mode:screen;
   }
 
+  /* ---- Miniature snapshot dans le journal ---- */
+  .scope-mini-preview{
+    width:50px; height:50px; border-radius:50%; flex-shrink:0; position:relative; overflow:hidden;
+    background:radial-gradient(circle at 50% 45%, #171922 0%, #0c0d12 60%, #050508 100%);
+    border:2px solid var(--line);
+  }
+  .scope-mini-preview .mini-cell{ position:absolute; border-radius:50%; }
+
   /* ---- Post-its ---- */
   .scope-notes{ width:100%; max-width:640px; }
   .scope-notes-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
@@ -250,6 +258,10 @@
   @keyframes scopeAgitate{
     0%, 100%{ margin-left:0; margin-top:0; } 25%{ margin-left:-3px; margin-top:2px; } 50%{ margin-left:3px; margin-top:-2px; } 75%{ margin-left:-2px; margin-top:-3px; }
   }
+  #scope-cells.cells-agitated .scope-cell{ animation:scopeCellJitter 0.25s ease-in-out infinite; }
+  @keyframes scopeCellJitter{
+    0%, 100%{ transform:translate(0,0); } 33%{ transform:translate(-2px, 1px); } 66%{ transform:translate(2px, -1px); }
+  }
   .scope-warning{
     margin-top:10px; padding:8px 12px; border-radius:5px; background:rgba(240,82,90,0.1); border:1px solid rgba(240,82,90,0.3);
     color:var(--bad); font-family:'JetBrains Mono', monospace; font-size:11px; text-align:center; display:none;
@@ -274,6 +286,23 @@
   .scope-modal h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; margin-bottom:16px; }
   .scope-modal-actions{ display:flex; gap:10px; margin-top:16px; }
   .scope-modal-actions .btn.ghost{ background:var(--void-2); border:1px solid var(--line); }
+
+  /* ---- Alerte de contamination (pur RP) ---- */
+  .scope-contamination-overlay{
+    position:fixed; inset:0; background:rgba(80,0,0,0.55); display:flex; align-items:center; justify-content:center;
+    z-index:200; animation:contaminationFlash 1s steps(2) infinite;
+  }
+  @keyframes contaminationFlash{ 50%{ background:rgba(120,0,0,0.7); } }
+  .scope-contamination-box{
+    width:420px; max-width:90vw; background:#1a0d0d; border:2px solid var(--bad); border-radius:8px; padding:26px;
+    text-align:center; box-shadow:0 0 60px rgba(240,82,90,0.4);
+  }
+  .scope-contamination-title{
+    font-family:'JetBrains Mono', monospace; font-size:16px; font-weight:700; color:var(--bad); letter-spacing:0.04em;
+    margin-bottom:14px; animation:contaminationTitlePulse 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes contaminationTitlePulse{ from{ opacity:1; } to{ opacity:0.5; } }
+  .scope-contamination-msg{ font-size:12.5px; color:var(--ink-dim); line-height:1.6; margin-bottom:20px; }
 </style>
 </head>
 <body>
@@ -548,34 +577,45 @@
   // titre affiché) — pas de nom complet volontairement, cohérent avec
   // l'usage interne où le personnel ne voit souvent que le numéro tant que
   // la fiche n'est pas consultée en détail.
-  const BIOHAZARD_SCP_LIST = [
-    { id: 'SCP-8363', classification: 'safe' },
-    { id: 'SCP-8535', classification: 'safe' },
-    { id: 'SCP-8543', classification: 'safe' },
-    { id: 'SCP-8194', classification: 'safe' },
-    { id: 'SCP-9775', classification: 'euclid' },
-    { id: 'SCP-008', classification: 'euclid' },
-    { id: 'SCP-016', classification: 'euclid' },
-    { id: 'SCP-9547', classification: 'euclid' },
-    { id: 'SCP-9149', classification: 'euclid' },
-    { id: 'SCP-9229', classification: 'euclid' },
-    { id: 'SCP-8486', classification: 'euclid' },
-    { id: 'SCP-8263', classification: 'euclid' },
-    { id: 'SCP-8345', classification: 'euclid' },
-    { id: 'SCP-8127', classification: 'euclid' },
-    { id: 'SCP-1611', classification: 'euclid' },
-    { id: 'SCP-8275', classification: 'euclid' },
-    { id: 'SCP-8077', classification: 'euclid' },
-    { id: 'SCP-9383', classification: 'keter' },
-    { id: 'SCP-409', classification: 'keter' },
-    { id: 'SCP-9087', classification: 'keter' },
-    { id: 'SCP-CN-3549', classification: 'keter' },
-    { id: 'SCP-7694', classification: 'keter' },
-    { id: 'SCP-8738', classification: 'keter' },
-    { id: 'SCP-8987', classification: 'keter' },
-    { id: 'SCP-7493', classification: 'keter' },
-    { id: 'SCP-8447', classification: 'keter' },
-    { id: 'SCP-9148', classification: 'thaumiel' },
+  // category = correspond au sélecteur "Type" (biologique/anomalique/
+  // chimique) — pré-sélectionne automatiquement le bon type à la sélection
+  // du SCP.
+  const SCP_LIST = [
+    { id: 'SCP-8363', classification: 'safe', category: 'biologique' },
+    { id: 'SCP-8535', classification: 'safe', category: 'biologique' },
+    { id: 'SCP-8543', classification: 'safe', category: 'biologique' },
+    { id: 'SCP-8194', classification: 'safe', category: 'biologique' },
+    { id: 'SCP-9775', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-008', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-016', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-9547', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-9149', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-9229', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-8486', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-8263', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-8345', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-8127', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-1611', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-8275', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-8077', classification: 'euclid', category: 'biologique' },
+    { id: 'SCP-9383', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-409', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-9087', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-CN-3549', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-7694', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-8738', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-8987', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-7493', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-8447', classification: 'keter', category: 'biologique' },
+    { id: 'SCP-9148', classification: 'thaumiel', category: 'biologique' },
+    // Chimique
+    { id: 'SCP-500', classification: 'safe', category: 'chimique' },
+    // Anomalique
+    { id: 'SCP-999', classification: 'safe', category: 'anomalique' },
+    { id: 'SCP-173', classification: 'euclid', category: 'anomalique' },
+    { id: 'SCP-096', classification: 'euclid', category: 'anomalique' },
+    { id: 'SCP-035', classification: 'keter', category: 'anomalique' },
+    { id: 'SCP-682', classification: 'keter', category: 'anomalique' },
   ];
 
   function initScpPicker() {
@@ -601,12 +641,13 @@
       freeInput.style.display = 'none';
       hiddenInput.value = entry.id;
       panel.style.display = 'none';
+      if (entry.category) document.getElementById('scope-type').value = entry.category;
     }
 
     function renderPanel(filterText) {
       const q = (filterText || '').toLowerCase();
       const groups = { safe: [], euclid: [], keter: [], thaumiel: [] };
-      BIOHAZARD_SCP_LIST.forEach((entry) => {
+      SCP_LIST.forEach((entry) => {
         if (groups[entry.classification] && entry.id.toLowerCase().includes(q)) {
           groups[entry.classification].push(entry);
         }
@@ -636,7 +677,7 @@
       document.getElementById('clipboard-free-option').addEventListener('click', selectFree);
       panel.querySelectorAll('.clipboard-item').forEach((el) => {
         el.addEventListener('click', () => {
-          const entry = BIOHAZARD_SCP_LIST.find((e) => e.id === el.dataset.scpId);
+          const entry = SCP_LIST.find((e) => e.id === el.dataset.scpId);
           if (entry) selectScp(entry);
         });
       });
@@ -714,6 +755,28 @@
     container.innerHTML = html;
   }
 
+  // Reconstruit une miniature statique du spécimen à partir du snapshot
+  // sauvegardé avec l'examen — même graine que l'examen d'origine, donc
+  // le même motif de cellules réapparaît systématiquement dans le journal.
+  function buildMiniSpecimenPreview(elementId, snapshot) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+    const rand = seededRandom(snapshot.seed || 'default');
+    const color = snapshot.color || '#9297A8';
+    let html = '';
+    const count = 5 + Math.floor(rand() * 5);
+    for (let i = 0; i < count; i += 1) {
+      const size = 4 + rand() * 8;
+      const x = 8 + rand() * 34;
+      const y = 8 + rand() * 34;
+      const opacity = (0.2 + rand() * 0.35).toFixed(2);
+      html += `<div class="mini-cell" style="width:${size}px; height:${size}px; left:${x}px; top:${y}px; background:${color}; opacity:${opacity};"></div>`;
+    }
+    container.innerHTML = html;
+    const brightness = 0.25 + ((snapshot.brightness ?? 50) / 100) * 1.3;
+    container.style.filter = `brightness(${brightness})`;
+  }
+
   // Applique en direct grossissement / luminosité / concentration de
   // lumière sur le viseur — purement visuel, rien n'est envoyé au serveur.
   function updateScopeVisuals() {
@@ -754,9 +817,15 @@
     if (shouldAgitate) {
       specimen.classList.add('agitated');
       warning.classList.add('visible');
+      // Assombrissement supplémentaire du spécimen lui-même (au-delà du
+      // brightness global du viseur) + particules qui s'agitent plus fort.
+      wrap.style.filter = `blur(${blurAmount}px) brightness(0.55) saturate(1.4)`;
+      document.getElementById('scope-cells').classList.add('cells-agitated');
     } else {
       specimen.classList.remove('agitated');
       warning.classList.remove('visible');
+      wrap.style.filter = `blur(${blurAmount}px)`;
+      document.getElementById('scope-cells').classList.remove('cells-agitated');
     }
   }
 
@@ -792,7 +861,50 @@
       btn.textContent = 'Examiner';
       document.getElementById('scope-results').style.display = 'block';
       document.getElementById('scope-observations').focus();
+
+      // Alerte de contamination aléatoire — pur RP, ~10% de chance, jamais
+      // sur un échantillon Sûr (ça n'aurait pas de sens en RP).
+      if (selectedScpClassification && selectedScpClassification !== 'safe' && Math.random() < 0.1) {
+        triggerContaminationAlert(designation);
+      }
     }, 1700);
+  }
+
+  // Écran d'alerte factice — le joueur doit "confirmer" pour le faire
+  // disparaître, aucune conséquence réelle, juste de l'ambiance.
+  function triggerContaminationAlert(designation) {
+    playAlarmTone();
+    const overlay = document.createElement('div');
+    overlay.className = 'scope-contamination-overlay';
+    overlay.innerHTML = `
+      <div class="scope-contamination-box">
+        <div class="scope-contamination-title">⚠ ALERTE CONTAMINATION ⚠</div>
+        <div class="scope-contamination-msg">Rupture de confinement détectée sur l'échantillon ${escapeHtml(designation)}.<br>Protocole de décontamination en attente de confirmation.</div>
+        <button class="btn" id="scope-contamination-confirm">Confirmer et gérer l'incident</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.getElementById('scope-contamination-confirm').addEventListener('click', () => overlay.remove());
+  }
+
+  function playAlarmTone() {
+    try {
+      const ctx = ambientAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = 440;
+      gain.gain.value = 0.04;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
+      osc.stop(ctx.currentTime + 0.6);
+    } catch (err) {
+      // Silencieux — pas grave si l'audio échoue, l'alerte visuelle suffit.
+    }
   }
 
   async function saveExamination() {
@@ -806,10 +918,21 @@
     saveBtn.disabled = true;
     saveBtn.textContent = 'Enregistrement…';
 
+    // Snapshot = état visuel du viseur au moment de la sauvegarde
+    // (réglages + apparence du spécimen), pour pouvoir le re-rendre en
+    // miniature dans le journal plus tard.
+    const snapshot = {
+      zoom: Number(document.getElementById('scope-zoom').value),
+      brightness: Number(document.getElementById('scope-brightness').value),
+      focus: Number(document.getElementById('scope-focus').value),
+      color: (SAMPLE_TYPES[type] || SAMPLE_TYPES.inconnu).color,
+      seed: selectedScpId || designation,
+    };
+
     try {
       await apiFetch('/api/rp/science-ops/microscope', {
         method: 'POST',
-        body: JSON.stringify({ sampleDesignation: designation, sampleType: type, observations }),
+        body: JSON.stringify({ sampleDesignation: designation, sampleType: type, observations, snapshot }),
       });
 
       // Reset de l'interface pour le prochain examen
@@ -881,19 +1004,29 @@
         const typeMeta = SAMPLE_TYPES[e.sampleType] || SAMPLE_TYPES.inconnu;
         return `
       <div class="post-card">
-        <div class="post-card-head">
-          <span class="post-card-title">${escapeHtml(e.sampleDesignation)}<span class="type-badge" style="background:${typeMeta.color}22; color:${typeMeta.color};">${escapeHtml(typeMeta.label)}</span></span>
-          <span class="post-card-meta">${escapeHtml(e.authorCharacterName)} — ${e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : ''}</span>
+        <div style="display:flex; gap:10px;">
+          ${e.snapshot ? `<div class="scope-mini-preview" id="mini-${escapeHtml(e.id)}"></div>` : ''}
+          <div style="flex:1; min-width:0;">
+            <div class="post-card-head">
+              <span class="post-card-title">${escapeHtml(e.sampleDesignation)}<span class="type-badge" style="background:${typeMeta.color}22; color:${typeMeta.color};">${escapeHtml(typeMeta.label)}</span></span>
+            </div>
+            <span class="post-card-meta">${escapeHtml(e.authorCharacterName)} — ${e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : ''}</span>
+            <div class="post-card-body" style="margin-top:6px;">${escapeHtml(e.observations || 'Aucune observation notée.')}</div>
+          </div>
         </div>
-        <div class="post-card-body">${escapeHtml(e.observations || 'Aucune observation notée.')}</div>
         <div style="display:flex; gap:8px; margin-top:8px;">
           <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="report">📄 Rapport d'expérience</button>
           <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="copy">📋 Copier la fiche</button>
+          <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="print">🖨️ Imprimer</button>
         </div>
       </div>
     `;
       })
       .join('');
+
+    filtered.forEach((e) => {
+      if (e.snapshot) buildMiniSpecimenPreview(`mini-${e.id}`, e.snapshot);
+    });
 
     list.querySelectorAll('[data-action="report"]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -905,6 +1038,41 @@
     list.querySelectorAll('[data-action="copy"]').forEach((btn) => {
       btn.addEventListener('click', () => copyExaminationSheet(btn.dataset.examinationId, btn));
     });
+
+    list.querySelectorAll('[data-action="print"]').forEach((btn) => {
+      btn.addEventListener('click', () => printExaminationSheet(btn.dataset.examinationId));
+    });
+  }
+
+  // Ouvre une fenêtre d'impression avec la fiche mise en forme proprement
+  // — prête à imprimer ou exporter en PDF via le dialogue navigateur.
+  function printExaminationSheet(examinationId) {
+    const e = scopeExaminations.find((x) => x.id === examinationId);
+    if (!e) return;
+    const typeMeta = SAMPLE_TYPES[e.sampleType] || SAMPLE_TYPES.inconnu;
+    const date = e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : 'Date inconnue';
+
+    const win = window.open('', '_blank', 'width=600,height=700');
+    win.document.write(`
+      <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiche d'examen — ${escapeHtml(e.sampleDesignation)}</title>
+      <style>
+        body{ font-family:'Courier New', monospace; padding:40px; color:#111; }
+        h1{ font-size:18px; border-bottom:2px solid #111; padding-bottom:10px; }
+        .row{ margin:10px 0; }
+        .label{ font-weight:bold; display:inline-block; width:140px; }
+        .obs{ white-space:pre-wrap; border:1px solid #999; padding:14px; margin-top:14px; }
+      </style></head><body>
+        <h1>FICHE D'EXAMEN MICROSCOPIQUE — SCPSCOPE</h1>
+        <div class="row"><span class="label">Échantillon :</span> ${escapeHtml(e.sampleDesignation)}</div>
+        <div class="row"><span class="label">Type :</span> ${escapeHtml(typeMeta.label)}</div>
+        <div class="row"><span class="label">Examiné par :</span> ${escapeHtml(e.authorCharacterName)}</div>
+        <div class="row"><span class="label">Date :</span> ${escapeHtml(date)}</div>
+        <div class="obs"><strong>OBSERVATIONS</strong><br><br>${escapeHtml(e.observations || 'Aucune observation notée.')}</div>
+      </body></html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
   }
 
   // Formate un examen en fiche texte propre, prête à coller dans un rapport
