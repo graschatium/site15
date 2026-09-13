@@ -144,6 +144,10 @@
   .post-card-meta{ font-size:11.5px; color:var(--ink-faint); }
   .post-card-body{ font-size:12.5px; color:var(--ink-dim); white-space:pre-wrap; }
   .empty-row{ color:var(--ink-faint); font-size:12.5px; padding:12px 0; text-align:center; }
+  .log-card-actions{
+    display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px;
+  }
+  .log-card-actions .btn{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .type-badge{
     font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.05em; text-transform:uppercase;
     padding:2px 8px; border-radius:20px; margin-left:8px;
@@ -1179,9 +1183,9 @@
             <div class="post-card-body" style="margin-top:6px;">${escapeHtml(e.observations || 'Aucune observation notée.')}</div>
           </div>
         </div>
-        <div style="display:flex; gap:8px; margin-top:8px;">
-          <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="report">📄 Rapport d'expérience</button>
-          <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="copy">📋 Copier la fiche</button>
+        <div class="log-card-actions">
+          <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="report">📄 Rapport</button>
+          <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="copy">📋 Copier</button>
           <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="print">🖨️ Imprimer</button>
           <button class="btn ghost small" data-examination-id="${escapeHtml(e.id)}" data-action="discord">📢 Discord</button>
         </div>
