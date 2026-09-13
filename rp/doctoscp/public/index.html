@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoctoSCP — Prise de rendez-vous — SITE-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #0A0B0E;
+    --void-2: #101218;
+    --panel: #14161D;
+    --line: #24262F;
+    --line-soft: rgba(255,255,255,0.06);
+    --accent: #2FAE7A;
+    --accent-2: #4FD895;
+    --accent-soft: rgba(47,174,122,0.12);
+    --ink: #F2F3F5;
+    --ink-dim: #9297A8;
+    --ink-faint: #5A5F6E;
+    --good: #4FD895;
+    --warn: #F0A83C;
+    --bad: #F0525A;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  *{ scrollbar-width:thin; scrollbar-color:#3a3d4a var(--void-2); }
+  *::-webkit-scrollbar{ width:8px; height:8px; }
+  *::-webkit-scrollbar-track{ background:var(--void-2); }
+  *::-webkit-scrollbar-thumb{ background:#3a3d4a; border-radius:4px; }
+  html, body{ height:100%; }
+  body{ background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; }
+  a{ color:inherit; text-decoration:none; }
+
+  .public-header{
+    display:flex; align-items:center; justify-content:center; gap:12px; padding:36px 20px 8px;
+  }
+  .public-header-icon{
+    width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg, var(--accent), #1f7a56);
+    display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(47,174,122,0.35);
+  }
+  .public-header-icon svg{ width:22px; height:22px; color:#fff; }
+  .public-header-title{ font-family:'Space Grotesk', sans-serif; font-size:22px; font-weight:700; }
+  .public-header-sub{ text-align:center; color:var(--ink-faint); font-size:13px; margin-bottom:30px; }
+
+  .public-wrap{ max-width:640px; margin:0 auto; padding:0 20px 60px; }
+
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:26px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.25); margin-bottom:20px;
+  }
+  .card h2{ font-family:'Space Grotesk', sans-serif; font-size:15.5px; font-weight:600; margin-bottom:16px; }
+
+  .center-msg{ text-align:center; color:var(--ink-dim); font-size:14px; padding:60px 20px; }
+
+  .btn{
+    padding:12px 22px; border-radius:8px; border:none; background:var(--accent); color:#fff;
+    font-size:13px; font-weight:600; cursor:pointer; transition:filter .12s ease;
+  }
+  .btn:hover{ filter:brightness(1.08); }
+  .btn.small{ padding:8px 14px; font-size:11.5px; }
+  .btn.ghost{ background:var(--void-2); color:var(--ink-dim); border:1px solid var(--line); }
+  .btn.danger{ background:var(--bad); }
+  .btn.full{ width:100%; }
+  .btn.discord{ background:#5865F2; display:flex; align-items:center; justify-content:center; gap:8px; }
+
+  .field-row{ margin-bottom:14px; }
+  .field-row label{ display:block; font-size:11px; color:var(--ink-faint); margin-bottom:6px; font-family:'JetBrains Mono', monospace; letter-spacing:0.04em; text-transform:uppercase; }
+  input, select, textarea{
+    width:100%; background:var(--void-2); border:1px solid var(--line); border-radius:8px; padding:11px 13px;
+    color:var(--ink); font-family:'Inter', sans-serif; font-size:13.5px; transition:border-color .12s ease;
+  }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent); }
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  .char-option{
+    display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line);
+    cursor:pointer; margin-bottom:8px; transition:all .12s ease;
+  }
+  .char-option:hover{ border-color:#3a3d4a; }
+  .char-option.selected{ border-color:var(--accent); background:var(--accent-soft); }
+  .char-avatar{
+    width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, var(--accent), #1f7a56);
+    display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:13px; color:#fff; flex-shrink:0;
+  }
+  .char-name{ font-size:13.5px; font-weight:600; }
+  .char-dept{ font-size:11px; color:var(--ink-faint); font-family:'JetBrains Mono', monospace; }
+
+  .post-card{ background:var(--void-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:10px; }
+  .post-card-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:10px; }
+  .post-card-title{ font-weight:600; font-size:13.5px; }
+  .post-card-meta{ font-size:11.5px; color:var(--ink-faint); }
+  .empty-row{ color:var(--ink-faint); font-size:12.5px; padding:16px 0; text-align:center; }
+
+  .status-pill{
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:10px; font-family:'JetBrains Mono', monospace;
+    text-transform:uppercase; letter-spacing:0.05em; font-weight:600;
+  }
+  .status-good{ background:rgba(79,216,149,0.12); color:var(--good); }
+  .status-warn{ background:rgba(240,168,60,0.12); color:var(--warn); }
+  .status-bad{ background:rgba(240,82,90,0.12); color:var(--bad); }
+  .status-neutral{ background:rgba(146,151,168,0.12); color:var(--ink-dim); }
+</style>
+</head>
+<body>
+
+<div class="public-header">
+  <div class="public-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v8M8 12h8"/><rect x="3" y="3" width="18" height="18" rx="4"/></svg></div>
+  <span class="public-header-title">DoctoSCP</span>
+</div>
+<div class="public-header-sub">Prise de rendez-vous en ligne — SITE-15</div>
+
+<div class="public-wrap" id="public-wrap">
+  <div class="center-msg">Chargement…</div>
+</div>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+  const TOKEN_KEY = 'vs_token';
+
+  (function captureTokenFromUrl() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    }
+  })();
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY); }
+
+  function escapeHtml(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  async function apiFetch(path, options = {}) {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+    if (res.status === 204) return null;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    return data;
+  }
+
+  const wrap = document.getElementById('public-wrap');
+
+  const DEPT_LABELS = {
+    security: 'Sécurité',
+    medical: 'Médical',
+    scientifique_mmqbrd32f2z7: 'Scientifique',
+    administratif_mmqbmvq8ikle: 'Administratif',
+    classe_d_mmqbk7ziqke2: 'Classe-D',
+    fim_mmqbs55q2vge: 'FIM',
+  };
+  const SPECIALTIES = ['Médecine générale', 'Chirurgie', 'Psychologie', 'Biologie', 'Urgentiste'];
+  let selectedCharacter = null;
+
+  async function init() {
+    if (!getToken()) {
+      wrap.innerHTML = `
+        <div class="card" style="text-align:center;">
+          <h2 style="margin-bottom:10px;">Connecte-toi pour réserver</h2>
+          <p style="color:var(--ink-dim); font-size:13px; margin-bottom:20px;">
+            La prise de rendez-vous est ouverte à tout le monde — connecte-toi avec ton compte Discord
+            pour choisir parmi tes personnages actifs (Classe-D inclus).
+          </p>
+          <a class="btn discord full" href="${API_BASE}/auth/discord/login?return_to=${encodeURIComponent('/rp/doctoscp/public/')}">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.07.07 0 0 0-.075.035c-.211.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.075-.035A19.736 19.736 0 0 0 3.68 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.076.076 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+            Se connecter avec Discord
+          </a>
+        </div>
+      `;
+      return;
+    }
+
+    let charsData;
+    try {
+      charsData = await apiFetch('/api/rp/doctoscp/public/my-characters');
+    } catch (err) {
+      wrap.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const characters = charsData.characters || [];
+    if (!characters.length) {
+      wrap.innerHTML = `
+        <div class="card" style="text-align:center;">
+          <h2>Aucun personnage actif</h2>
+          <p style="color:var(--ink-dim); font-size:13px;">Tu dois avoir au moins un personnage actif sur le roster (n'importe quel département, Classe-D inclus) pour réserver un rendez-vous.</p>
+        </div>
+      `;
+      return;
+    }
+
+    selectedCharacter = characters[0].name;
+
+    wrap.innerHTML = `
+      <div class="card">
+        <h2>Qui consulte ?</h2>
+        <div id="char-list">
+          ${characters
+            .map(
+              (c) => `
+            <div class="char-option${c.name === selectedCharacter ? ' selected' : ''}" data-char-name="${escapeHtml(c.name)}">
+              <div class="char-avatar">${escapeHtml((c.name || '?')[0])}</div>
+              <div>
+                <div class="char-name">${escapeHtml(c.name)}</div>
+                <div class="char-dept">${escapeHtml(DEPT_LABELS[c.deptId] || c.deptId)}${c.rank ? ` — ${escapeHtml(c.rank)}` : ''}</div>
+              </div>
+            </div>
+          `
+            )
+            .join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Nouveau rendez-vous</h2>
+        <form id="public-rdv-form">
+          <div class="field-row">
+            <label>Spécialité</label>
+            <select id="public-rdv-specialty">
+              <option value="">Peu importe</option>
+              ${SPECIALTIES.map((s) => `<option value="${s}">${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-row">
+            <label>Médecin</label>
+            <select id="public-rdv-doctor"><option value="">Affectation automatique</option></select>
+          </div>
+          <div class="field-grid">
+            <div class="field-row"><label>Date</label><input type="text" id="public-rdv-date" placeholder="JJ/MM/AAAA"></div>
+            <div class="field-row"><label>Heure</label><input type="text" id="public-rdv-time" placeholder="14h30"></div>
+          </div>
+          <div class="field-row"><label>Motif</label><textarea id="public-rdv-reason" rows="2" placeholder="Optionnel"></textarea></div>
+          <button class="btn full" type="submit">Réserver</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Mes rendez-vous</h2>
+        <div id="my-appointments"><div class="empty-row">Chargement…</div></div>
+      </div>
+    `;
+
+    document.querySelectorAll('.char-option').forEach((el) => {
+      el.addEventListener('click', () => {
+        selectedCharacter = el.dataset.charName;
+        document.querySelectorAll('.char-option').forEach((c) => c.classList.toggle('selected', c.dataset.charName === selectedCharacter));
+      });
+    });
+
+    try {
+      const doctorsData = await apiFetch('/api/rp/doctoscp/public/doctors');
+      const doctorSelect = document.getElementById('public-rdv-doctor');
+      (doctorsData.doctors || []).forEach((d) => {
+        const opt = document.createElement('option');
+        opt.value = d.characterName;
+        opt.textContent = `${d.characterName} — ${d.specialty || ''}`;
+        doctorSelect.appendChild(opt);
+      });
+    } catch (err) {
+      // silencieux — l'affectation automatique reste possible sans la liste
+    }
+
+    document.getElementById('public-rdv-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!selectedCharacter) { alert('Sélectionne un personnage.'); return; }
+      const specialty = document.getElementById('public-rdv-specialty').value;
+      const doctorName = document.getElementById('public-rdv-doctor').value;
+      const date = document.getElementById('public-rdv-date').value.trim();
+      const time = document.getElementById('public-rdv-time').value.trim();
+      const reason = document.getElementById('public-rdv-reason').value.trim();
+      try {
+        const result = await apiFetch('/api/rp/doctoscp/public/appointments', {
+          method: 'POST',
+          body: JSON.stringify({ patientCharacterName: selectedCharacter, doctorName, specialty, date, time, reason }),
+        });
+        alert(`Rendez-vous confirmé avec ${result.assignedDoctor} !`);
+        document.getElementById('public-rdv-form').reset();
+        loadMyAppointments();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    loadMyAppointments();
+  }
+
+  async function loadMyAppointments() {
+    const box = document.getElementById('my-appointments');
+    box.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/doctoscp/public/appointments');
+    } catch (err) {
+      box.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const STATUS_META = {
+      confirmed: { label: 'Confirmé', cls: 'status-good' },
+      cancelled: { label: 'Annulé', cls: 'status-bad' },
+      completed: { label: 'Terminé', cls: 'status-neutral' },
+    };
+    const appointments = data.appointments || [];
+
+    box.innerHTML = appointments.length
+      ? appointments
+          .map((a) => {
+            const meta = STATUS_META[a.status] || STATUS_META.confirmed;
+            return `
+        <div class="post-card">
+          <div class="post-card-head">
+            <span class="post-card-title">${escapeHtml(a.patientCharacterName)} → ${escapeHtml(a.doctorName)}</span>
+            <span class="status-pill ${meta.cls}">${meta.label}</span>
+          </div>
+          <div class="post-card-meta">${escapeHtml(a.date)} à ${escapeHtml(a.time)} — ${escapeHtml(a.specialty || 'Non précisé')}</div>
+          ${a.status === 'confirmed' ? `<button class="btn danger small" style="margin-top:8px;" data-cancel-id="${escapeHtml(a.id)}">Annuler</button>` : ''}
+        </div>
+      `;
+          })
+          .join('')
+      : '<div class="empty-row">Aucun rendez-vous.</div>';
+
+    box.querySelectorAll('[data-cancel-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Annuler ce rendez-vous ?')) return;
+        try {
+          await apiFetch(`/api/rp/doctoscp/public/appointments/${encodeURIComponent(btn.dataset.cancelId)}/cancel`, { method: 'PATCH' });
+          loadMyAppointments();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+  }
+
+  init();
+</script>
+
+</body>
+</html>
