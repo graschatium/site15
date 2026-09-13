@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoctoSCP — Médical — SITE-15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #0A0B0E;
+    --void-2: #101218;
+    --panel: #14161D;
+    --panel-raised: #191c25;
+    --line: #2A2D38;
+    --line-soft: rgba(255,255,255,0.06);
+    --accent: #2FAE7A;
+    --accent-2: #4FD895;
+    --line-bright: #2FAE7A;
+    --line-bright-2: #4FD895;
+    --ink: #ECEDF1;
+    --ink-dim: #9297A8;
+    --ink-faint: #5A5F6E;
+    --good: #4FD895;
+    --warn: #F0A83C;
+    --bad: #F0525A;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  *{ scrollbar-width:thin; scrollbar-color:#3a3d4a var(--void-2); }
+  *::-webkit-scrollbar{ width:8px; height:8px; }
+  *::-webkit-scrollbar-track{ background:var(--void-2); }
+  *::-webkit-scrollbar-thumb{ background:#3a3d4a; border-radius:4px; }
+  *::-webkit-scrollbar-thumb:hover{ background:#4a4d5e; }
+
+  html, body{ height:100%; }
+  body{ background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; overflow:hidden; }
+  a{ color:inherit; text-decoration:none; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .topbar{
+    height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+    background:var(--void-2); border-bottom:1px solid var(--line);
+  }
+  .topbar-left{ display:flex; align-items:center; gap:10px; }
+  .back-link{
+    display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-dim); padding:6px 10px;
+    border-radius:5px; border:1px solid var(--line); transition:color .15s ease, border-color .15s ease;
+  }
+  .back-link:hover{ color:var(--ink); border-color:var(--line-bright); }
+  .back-link svg{ width:14px; height:14px; }
+  .topbar-title{ font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; }
+  .topbar-status{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+
+  .center-msg{ display:flex; align-items:center; justify-content:center; height:calc(100vh - 48px); color:var(--ink-dim); font-size:14px; text-align:center; padding:20px; }
+
+  .doctoscp-page{ height:calc(100vh - 48px); display:flex; flex-direction:column; }
+  .doctoscp-tabs{
+    display:flex; gap:2px; padding:0 20px; background:var(--void-2); border-bottom:1px solid var(--line);
+    overflow-x:auto; flex-shrink:0;
+  }
+  .doctoscp-tab-btn{
+    padding:12px 16px; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.03em;
+    color:var(--ink-faint); background:none; border:none; cursor:pointer; border-bottom:2px solid transparent;
+    white-space:nowrap; display:flex; align-items:center; gap:6px;
+  }
+  .doctoscp-tab-btn:hover{ color:var(--ink-dim); }
+  .doctoscp-tab-btn.active{ color:var(--accent-2); border-bottom-color:var(--accent); }
+  .doctoscp-content{ flex:1; overflow-y:auto; padding:24px; }
+
+  .dsc-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; max-width:1200px; }
+  .dsc-panel{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px; }
+  .dsc-panel h2{ font-family:'Space Grotesk', sans-serif; font-size:14px; margin-bottom:12px; }
+  .dsc-two-col{ display:grid; grid-template-columns:1.3fr 1fr; gap:20px; max-width:1200px; align-items:start; }
+  @media (max-width: 900px){ .dsc-two-col{ grid-template-columns:1fr; } }
+
+  .field-row{ margin-bottom:12px; }
+  .field-row label{ display:block; font-size:11.5px; color:var(--ink-faint); margin-bottom:5px; font-family:'JetBrains Mono', monospace; letter-spacing:0.03em; text-transform:uppercase; }
+  input, select, textarea{
+    width:100%; background:var(--void-2); border:1px solid var(--line); border-radius:5px; padding:9px 11px;
+    color:var(--ink); font-family:'Inter', sans-serif; font-size:13px;
+  }
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .btn{
+    padding:9px 16px; border-radius:5px; border:1px solid var(--line); background:var(--accent); color:#fff;
+    font-size:12.5px; font-weight:600; cursor:pointer;
+  }
+  .btn.small{ padding:6px 12px; font-size:11.5px; }
+  .btn.ghost{ background:var(--void-2); color:var(--ink-dim); border:1px solid var(--line); }
+  .btn.danger{ background:var(--bad); }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  .post-card{ background:var(--void-2); border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:8px; }
+  .post-card-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:10px; }
+  .post-card-title{ font-weight:600; font-size:13px; }
+  .post-card-meta{ font-size:11.5px; color:var(--ink-faint); }
+  .post-card-body{ font-size:12.5px; color:var(--ink-dim); white-space:pre-wrap; }
+  .empty-row{ color:var(--ink-faint); font-size:12.5px; padding:12px 0; text-align:center; }
+  .record-block-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .record-block-head h2{ font-family:'Space Grotesk', sans-serif; font-size:14px; }
+  .count{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+
+  .status-pill{
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:10.5px; font-family:'JetBrains Mono', monospace;
+    text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .status-good{ background:rgba(79,216,149,0.12); color:var(--good); }
+  .status-warn{ background:rgba(240,168,60,0.12); color:var(--warn); }
+  .status-bad{ background:rgba(240,82,90,0.12); color:var(--bad); }
+  .status-neutral{ background:rgba(146,151,168,0.12); color:var(--ink-dim); }
+
+  .dsc-doctor-card{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .dsc-avatar{
+    width:36px; height:36px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13px; color:#fff; flex-shrink:0;
+  }
+
+  .dsc-stat-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line-soft); font-size:12px; }
+  .dsc-stat-row:last-child{ border-bottom:none; }
+  .dsc-stat-label{ color:var(--ink-faint); }
+  .dsc-stat-value{ color:var(--ink); font-weight:600; }
+
+  .dsc-thread-item{
+    display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-radius:6px; cursor:pointer;
+    border:1px solid transparent;
+  }
+  .dsc-thread-item:hover{ background:var(--void-2); }
+  .dsc-thread-item.active{ background:var(--void-2); border-color:var(--accent); }
+  .dsc-chat-bubble{ max-width:75%; padding:8px 12px; border-radius:10px; margin-bottom:8px; font-size:12.5px; }
+  .dsc-chat-bubble.mine{ background:var(--accent); color:#fff; margin-left:auto; }
+  .dsc-chat-bubble.theirs{ background:var(--void-2); border:1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="/rp/" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à l'intranet
+    </a>
+    <span class="topbar-title">DoctoSCP — Médical</span>
+  </div>
+  <span class="topbar-status mono" id="topbar-status">DOCTOSCP v1.0</span>
+</div>
+
+<div id="page-root">
+  <div class="center-msg">Chargement…</div>
+</div>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+  const TOKEN_KEY = 'vs_token';
+  const MEDICAL_DEPT_ID = 'medical';
+
+  (function captureTokenFromUrl() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+    }
+  })();
+
+  function getToken() { return localStorage.getItem(TOKEN_KEY); }
+
+  function escapeHtml(s) {
+    return (s ?? '').toString().replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  let adminOverrideActive = false;
+
+  async function apiFetch(path, options = {}) {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        Authorization: `Bearer ${token}`,
+        ...(adminOverrideActive ? { 'X-Admin-Override-Dept': MEDICAL_DEPT_ID } : {}),
+        ...(options.headers || {}),
+      },
+    });
+    if (res.status === 204) return null;
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    return data;
+  }
+
+  const pageRoot = document.getElementById('page-root');
+  let myCharacterName = '';
+
+  // ---------------------------------------------------------------------
+  // Contrôle d'accès — même mécanisme que Bureau/Microscope : personnage
+  // Médical réel, ou Mode Administrateur (canManagePermissions/rpFullAccess)
+  // via case à cocher opt-in.
+  // ---------------------------------------------------------------------
+  async function checkAccessAndInit() {
+    if (!getToken()) {
+      pageRoot.innerHTML = '<div class="center-msg">Connecte-toi depuis le site avant d\'accéder à DoctoSCP.</div>';
+      return;
+    }
+
+    let context;
+    try {
+      context = await apiFetch('/api/rp/context');
+    } catch (err) {
+      pageRoot.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    if (context.banned) {
+      pageRoot.innerHTML = '<div class="center-msg">Accès révoqué.</div>';
+      return;
+    }
+
+    const medicalChar = (context.characters || []).find((c) => c.deptId === MEDICAL_DEPT_ID);
+    if (medicalChar) {
+      myCharacterName = medicalChar.name;
+      loadDoctoscp();
+      return;
+    }
+
+    if (context.canUseAdminOverride) {
+      pageRoot.innerHTML = `
+        <div class="center-msg" style="flex-direction:column; gap:16px;">
+          <p>Aucun personnage actif dans Médical.</p>
+          <label style="display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--accent-2); cursor:pointer;">
+            <input type="checkbox" id="dsc-admin-override-checkbox" style="width:16px; height:16px; accent-color:var(--accent); cursor:pointer;">
+            Utiliser les perms administrateur ?
+          </label>
+          <button class="btn" id="dsc-admin-override-enter" style="width:auto; padding:9px 20px;">Entrer</button>
+        </div>
+      `;
+      document.getElementById('dsc-admin-override-enter').addEventListener('click', async () => {
+        const checked = document.getElementById('dsc-admin-override-checkbox').checked;
+        if (!checked) {
+          pageRoot.innerHTML = '<div class="center-msg">Accès refusé — DoctoSCP est réservé au personnel actif du département Médical.</div>';
+          return;
+        }
+        adminOverrideActive = true;
+        pageRoot.innerHTML = '<div class="center-msg">Chargement…</div>';
+        try {
+          context = await apiFetch('/api/rp/context');
+        } catch (err) {
+          pageRoot.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+          return;
+        }
+        const overrideChar = (context.characters || []).find((c) => c.deptId === MEDICAL_DEPT_ID);
+        myCharacterName = overrideChar ? overrideChar.name : 'Mode Administrateur';
+        loadDoctoscp();
+      });
+      return;
+    }
+
+    pageRoot.innerHTML = '<div class="center-msg">Accès refusé — DoctoSCP est réservé au personnel actif du département Médical.</div>';
+  }
+
+  // =======================================================================
+  // Coquille à onglets
+  // =======================================================================
+  const TABS = [
+    { id: 'accueil', label: '🏠 Accueil' },
+    { id: 'rdv', label: '📅 Rendez-vous' },
+    { id: 'medecins', label: '👨‍⚕️ Médecins' },
+    { id: 'dossier', label: '📁 Dossier médical' },
+    { id: 'messagerie', label: '💬 Messagerie' },
+    { id: 'urgences', label: '🚨 Urgences' },
+    { id: 'quarantaine', label: '🔒 Quarantaine' },
+    { id: 'certificats', label: '📜 Certificats' },
+  ];
+  let currentTab = 'accueil';
+
+  function loadDoctoscp() {
+    pageRoot.innerHTML = `
+      <div class="doctoscp-page">
+        <div class="doctoscp-tabs">
+          ${TABS.map((t) => `<button class="doctoscp-tab-btn${t.id === currentTab ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`).join('')}
+        </div>
+        <div class="doctoscp-content" id="doctoscp-content"></div>
+      </div>
+    `;
+    document.querySelectorAll('.doctoscp-tab-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        currentTab = btn.dataset.tab;
+        document.querySelectorAll('.doctoscp-tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === currentTab));
+        renderTab(currentTab);
+      });
+    });
+    renderTab(currentTab);
+  }
+
+  function renderTab(tabId) {
+    if (tabId === 'accueil') loadAccueilTab();
+    else if (tabId === 'rdv') loadRdvTab();
+    else if (tabId === 'medecins') loadMedecinsTab();
+    else if (tabId === 'dossier') loadDossierTab();
+    else if (tabId === 'messagerie') loadMessagerieTab();
+    else if (tabId === 'urgences') loadUrgencesTab();
+    else if (tabId === 'quarantaine') loadQuarantaineTab();
+    else if (tabId === 'certificats') loadCertificatsTab();
+  }
+
+  const SPECIALTIES = ['Médecine générale', 'Chirurgie', 'Psychologie', 'Biologie', 'Urgentiste'];
+
+  // =======================================================================
+  // 🏠 Accueil — tableau de bord
+  // =======================================================================
+  async function loadAccueilTab() {
+    const content = document.getElementById('doctoscp-content');
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let appointments, emergencies, quarantines;
+    try {
+      [appointments, emergencies, quarantines] = await Promise.all([
+        apiFetch('/api/rp/doctoscp/appointments'),
+        apiFetch('/api/rp/doctoscp/emergencies'),
+        apiFetch('/api/rp/doctoscp/quarantine'),
+      ]);
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const myAppointments = (appointments.appointments || []).filter((a) => a.patientCharacterName === myCharacterName && a.status === 'confirmed');
+    const openEmergencies = (emergencies.emergencies || []).filter((e) => e.status === 'open');
+    const activeQuarantines = (quarantines.quarantines || []).filter((q) => !q.endedAt);
+
+    content.innerHTML = `
+      <div class="dsc-grid">
+        <div class="dsc-panel">
+          <h2>👋 Bienvenue, ${escapeHtml(myCharacterName)}</h2>
+          <div class="dsc-stat-row"><span class="dsc-stat-label">Mes rendez-vous à venir</span><span class="dsc-stat-value">${myAppointments.length}</span></div>
+          <div class="dsc-stat-row"><span class="dsc-stat-label">Urgences en cours</span><span class="dsc-stat-value" style="color:${openEmergencies.length ? 'var(--bad)' : 'var(--good)'};">${openEmergencies.length}</span></div>
+          <div class="dsc-stat-row"><span class="dsc-stat-label">Quarantaines actives</span><span class="dsc-stat-value" style="color:${activeQuarantines.length ? 'var(--warn)' : 'var(--good)'};">${activeQuarantines.length}</span></div>
+        </div>
+
+        <div class="dsc-panel">
+          <h2>🚨 Urgences ouvertes</h2>
+          ${
+            openEmergencies.length
+              ? openEmergencies
+                  .slice(0, 4)
+                  .map((e) => `<div class="post-card"><div class="post-card-title">${escapeHtml(e.patientCharacterName)}</div><div class="post-card-meta">Signalé par ${escapeHtml(e.reportedBy)}</div></div>`)
+                  .join('')
+              : '<div class="empty-row">Aucune urgence en cours.</div>'
+          }
+        </div>
+
+        <div class="dsc-panel">
+          <h2>📅 Mes prochains rendez-vous</h2>
+          ${
+            myAppointments.length
+              ? myAppointments
+                  .slice(0, 4)
+                  .map((a) => `<div class="post-card"><div class="post-card-title">${escapeHtml(a.doctorName)}</div><div class="post-card-meta">${escapeHtml(a.date)} ${escapeHtml(a.time)} — ${escapeHtml(a.specialty || '')}</div></div>`)
+                  .join('')
+              : '<div class="empty-row">Aucun rendez-vous à venir.</div>'
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  // =======================================================================
+  // 📅 Rendez-vous
+  // =======================================================================
+  async function loadRdvTab() {
+    const content = document.getElementById('doctoscp-content');
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let appointmentsData, doctorsData;
+    try {
+      [appointmentsData, doctorsData] = await Promise.all([
+        apiFetch('/api/rp/doctoscp/appointments'),
+        apiFetch('/api/rp/doctoscp/doctors'),
+      ]);
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const appointments = appointmentsData.appointments || [];
+    const doctors = doctorsData.doctors || [];
+    const STATUS_META = {
+      confirmed: { label: 'Confirmé', cls: 'status-good' },
+      cancelled: { label: 'Annulé', cls: 'status-bad' },
+      completed: { label: 'Terminé', cls: 'status-neutral' },
+    };
+
+    content.innerHTML = `
+      <div class="dsc-two-col">
+        <div>
+          <div class="record-block-head"><h2>Tous les rendez-vous</h2><span class="count">${appointments.length}</span></div>
+          <div id="dsc-rdv-list">
+            ${
+              appointments.length
+                ? appointments
+                    .map((a) => {
+                      const meta = STATUS_META[a.status] || STATUS_META.confirmed;
+                      return `
+                <div class="post-card">
+                  <div class="post-card-head">
+                    <span class="post-card-title">${escapeHtml(a.patientCharacterName)} → ${escapeHtml(a.doctorName)}</span>
+                    <span class="status-pill ${meta.cls}">${meta.label}</span>
+                  </div>
+                  <div class="post-card-meta">${escapeHtml(a.date)} à ${escapeHtml(a.time)} — ${escapeHtml(a.specialty || 'Non précisé')}</div>
+                  ${a.reason ? `<div class="post-card-body" style="margin-top:6px;">${escapeHtml(a.reason)}</div>` : ''}
+                  ${
+                    a.status === 'confirmed'
+                      ? `<div style="display:flex; gap:8px; margin-top:8px;">
+                          <button class="btn small" data-appt-id="${escapeHtml(a.id)}" data-status="completed">Marquer terminé</button>
+                          <button class="btn danger small" data-appt-id="${escapeHtml(a.id)}" data-status="cancelled">Annuler</button>
+                        </div>`
+                      : ''
+                  }
+                </div>
+              `;
+                    })
+                    .join('')
+                : '<div class="empty-row">Aucun rendez-vous.</div>'
+            }
+          </div>
+        </div>
+
+        <div class="dsc-panel">
+          <h2>Nouveau rendez-vous</h2>
+          <form id="dsc-rdv-form">
+            <div class="field-row"><label>Patient *</label><input type="text" id="dsc-rdv-patient" required placeholder="Nom du personnage"></div>
+            <div class="field-row">
+              <label>Spécialité</label>
+              <select id="dsc-rdv-specialty">
+                <option value="">Peu importe</option>
+                ${SPECIALTIES.map((s) => `<option value="${s}">${s}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Médecin</label>
+              <select id="dsc-rdv-doctor">
+                <option value="">Affectation automatique</option>
+                ${doctors.filter((d) => d.available).map((d) => `<option value="${escapeHtml(d.characterName)}">${escapeHtml(d.characterName)} — ${escapeHtml(d.specialty || '')}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field-grid">
+              <div class="field-row"><label>Date</label><input type="text" id="dsc-rdv-date" placeholder="JJ/MM/AAAA"></div>
+              <div class="field-row"><label>Heure</label><input type="text" id="dsc-rdv-time" placeholder="14h30"></div>
+            </div>
+            <div class="field-row"><label>Motif</label><textarea id="dsc-rdv-reason" rows="2"></textarea></div>
+            <button class="btn" type="submit">Réserver</button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    content.querySelectorAll('[data-appt-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/doctoscp/appointments/${encodeURIComponent(btn.dataset.apptId)}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: btn.dataset.status }),
+          });
+          loadRdvTab();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+
+    document.getElementById('dsc-rdv-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const patientCharacterName = document.getElementById('dsc-rdv-patient').value.trim();
+      const specialty = document.getElementById('dsc-rdv-specialty').value;
+      const doctorName = document.getElementById('dsc-rdv-doctor').value;
+      const date = document.getElementById('dsc-rdv-date').value.trim();
+      const time = document.getElementById('dsc-rdv-time').value.trim();
+      const reason = document.getElementById('dsc-rdv-reason').value.trim();
+      if (!patientCharacterName) { alert('Le nom du patient est obligatoire.'); return; }
+      try {
+        const result = await apiFetch('/api/rp/doctoscp/appointments', {
+          method: 'POST',
+          body: JSON.stringify({ patientCharacterName, doctorName, specialty, date, time, reason }),
+        });
+        alert(`Rendez-vous confirmé avec ${result.assignedDoctor}.`);
+        loadRdvTab();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // =======================================================================
+  // 👨‍⚕️ Médecins
+  // =======================================================================
+  async function loadMedecinsTab() {
+    const content = document.getElementById('doctoscp-content');
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/doctoscp/doctors');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    const doctors = data.doctors || [];
+
+    content.innerHTML = `
+      <div class="dsc-two-col">
+        <div>
+          <div class="record-block-head"><h2>Annuaire</h2><span class="count">${doctors.length}</span></div>
+          ${
+            doctors.length
+              ? doctors
+                  .map(
+                    (d) => `
+            <div class="post-card">
+              <div class="dsc-doctor-card">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div class="dsc-avatar">${escapeHtml((d.characterName || '?')[0])}</div>
+                  <div>
+                    <div class="post-card-title">${escapeHtml(d.characterName)}</div>
+                    <div class="post-card-meta">${escapeHtml(d.specialty || 'Non précisé')}${d.division ? ` — ${escapeHtml(d.division)}` : ''}</div>
+                  </div>
+                </div>
+                <span class="status-pill ${d.available ? 'status-good' : 'status-neutral'}">${d.available ? 'Disponible' : 'Indisponible'}</span>
+              </div>
+              ${d.bio ? `<div class="post-card-body" style="margin-top:8px;">${escapeHtml(d.bio)}</div>` : ''}
+              <div style="display:flex; gap:8px; margin-top:8px;">
+                <button class="btn ghost small" data-doctor-id="${escapeHtml(d.id)}" data-action="toggle" data-available="${d.available}">${d.available ? 'Marquer indisponible' : 'Marquer disponible'}</button>
+                <button class="btn danger small" data-doctor-id="${escapeHtml(d.id)}" data-action="delete">Retirer</button>
+              </div>
+            </div>
+          `
+                  )
+                  .join('')
+              : '<div class="empty-row">Aucun médecin enregistré.</div>'
+          }
+        </div>
+
+        <div class="dsc-panel">
+          <h2>S'inscrire à l'annuaire</h2>
+          <form id="dsc-doctor-form">
+            <div class="field-row"><label>Nom du personnage *</label><input type="text" id="dsc-doctor-name" required></div>
+            <div class="field-row">
+              <label>Spécialité</label>
+              <select id="dsc-doctor-specialty">
+                ${SPECIALTIES.map((s) => `<option value="${s}">${s}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field-row"><label>Division</label><input type="text" id="dsc-doctor-division" placeholder="Optionnel"></div>
+            <div class="field-row"><label>Bio</label><textarea id="dsc-doctor-bio" rows="2" placeholder="Optionnel"></textarea></div>
+            <button class="btn" type="submit">Ajouter à l'annuaire</button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    content.querySelectorAll('[data-action="toggle"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/doctoscp/doctors/${encodeURIComponent(btn.dataset.doctorId)}/availability`, {
+            method: 'PATCH',
+            body: JSON.stringify({ available: btn.dataset.available !== 'true' }),
+          });
+          loadMedecinsTab();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+    content.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Retirer ce médecin de l\'annuaire ?')) return;
+        try {
+          await apiFetch(`/api/rp/doctoscp/doctors/${encodeURIComponent(btn.dataset.doctorId)}`, { method: 'DELETE' });
+          loadMedecinsTab();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+
+    document.getElementById('dsc-doctor-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const characterName = document.getElementById('dsc-doctor-name').value.trim();
+      const specialty = document.getElementById('dsc-doctor-specialty').value;
+      const division = document.getElementById('dsc-doctor-division').value.trim();
+      const bio = document.getElementById('dsc-doctor-bio').value.trim();
+      if (!characterName) { alert('Le nom est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/doctoscp/doctors', { method: 'POST', body: JSON.stringify({ characterName, specialty, division, bio, available: true }) });
+        loadMedecinsTab();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // =======================================================================
+  // 📁 Dossier médical
+  // =======================================================================
+  const RECORD_TYPE_META = {
+    consultation: { label: 'Consultation', color: '#4FD895' },
+    ordonnance: { label: 'Ordonnance', color: '#4FA8F0' },
+    blessure: { label: 'Blessure RP', color: '#F0525A' },
+    rapport: { label: "Rapport d'intervention", color: '#F0A83C' },
+    examen: { label: 'Examen médical', color: '#A78BFA' },
+  };
+  let currentPatientName = null;
+
+  async function loadDossierTab() {
+    const content = document.getElementById('doctoscp-content');
+    content.innerHTML = `
+      <div class="dsc-two-col">
+        <div>
+          <div class="dsc-panel" style="margin-bottom:16px;">
+            <h2>Rechercher un patient</h2>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="dsc-patient-search" placeholder="Nom du personnage...">
+              <button class="btn small" id="dsc-patient-search-btn" style="flex-shrink:0;">Ouvrir</button>
+            </div>
+          </div>
+          <div id="dsc-record-view"><div class="empty-row">Recherche un patient pour voir son dossier.</div></div>
+        </div>
+        <div class="dsc-panel">
+          <h2>Patients connus</h2>
+          <div id="dsc-patients-list"><div class="empty-row">Chargement…</div></div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('dsc-patient-search-btn').addEventListener('click', () => {
+      const name = document.getElementById('dsc-patient-search').value.trim();
+      if (name) openPatientRecord(name);
+    });
+    document.getElementById('dsc-patient-search').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('dsc-patient-search-btn').click();
+    });
+
+    try {
+      const data = await apiFetch('/api/rp/doctoscp/patients');
+      const list = document.getElementById('dsc-patients-list');
+      const patients = data.patients || [];
+      list.innerHTML = patients.length
+        ? patients
+            .map((p) => `<div class="post-card" style="cursor:pointer;" data-patient-name="${escapeHtml(p.patientCharacterName)}"><span class="post-card-title" style="font-size:12.5px;">${escapeHtml(p.patientCharacterName)}</span><div class="post-card-meta">${p.entryCount} entrée(s)</div></div>`)
+            .join('')
+        : '<div class="empty-row">Aucun patient enregistré.</div>';
+      list.querySelectorAll('[data-patient-name]').forEach((el) => {
+        el.addEventListener('click', () => openPatientRecord(el.dataset.patientName));
+      });
+    } catch (err) {
+      document.getElementById('dsc-patients-list').innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+    }
+
+    if (currentPatientName) openPatientRecord(currentPatientName);
+  }
+
+  async function openPatientRecord(patientName) {
+    currentPatientName = patientName;
+    const view = document.getElementById('dsc-record-view');
+    view.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch(`/api/rp/doctoscp/records/${encodeURIComponent(patientName)}`);
+    } catch (err) {
+      view.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+
+    const record = data.record;
+    const entries = record.entries || [];
+
+    view.innerHTML = `
+      <div class="record-block-head"><h2>Dossier — ${escapeHtml(record.patientCharacterName)}</h2><span class="count">${entries.length}</span></div>
+      ${
+        entries.length
+          ? entries
+              .map((e) => {
+                const meta = RECORD_TYPE_META[e.type] || RECORD_TYPE_META.consultation;
+                return `
+          <div class="post-card">
+            <div class="post-card-head">
+              <span class="status-pill" style="background:${meta.color}22; color:${meta.color};">${meta.label}</span>
+              <span class="post-card-meta">${escapeHtml(e.authorCharacterName)} — ${e.createdAt ? new Date(e.createdAt).toLocaleString('fr-FR') : ''}</span>
+            </div>
+            <div class="post-card-body">${escapeHtml(e.content)}</div>
+          </div>
+        `;
+              })
+              .join('')
+          : '<div class="empty-row">Dossier vide.</div>'
+      }
+      <div class="dsc-panel" style="margin-top:14px;">
+        <h2>Ajouter une entrée</h2>
+        <form id="dsc-record-form">
+          <div class="field-row">
+            <label>Type</label>
+            <select id="dsc-record-type">
+              ${Object.entries(RECORD_TYPE_META).map(([id, m]) => `<option value="${id}">${m.label}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field-row"><label>Contenu *</label><textarea id="dsc-record-content" rows="3" required></textarea></div>
+          <button class="btn small" type="submit">Ajouter au dossier</button>
+        </form>
+      </div>
+    `;
+
+    document.getElementById('dsc-record-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const type = document.getElementById('dsc-record-type').value;
+      const contentVal = document.getElementById('dsc-record-content').value.trim();
+      if (!contentVal) { alert('Le contenu est obligatoire.'); return; }
+      try {
+        await apiFetch(`/api/rp/doctoscp/records/${encodeURIComponent(patientName)}`, { method: 'POST', body: JSON.stringify({ type, content: contentVal }) });
+        openPatientRecord(patientName);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // =======================================================================
+  // 💬 Messagerie
+  // =======================================================================
+  let currentThreadWith = null;
+
+  async function loadMessagerieTab() {
+    const content = document.getElementById('doctoscp-content');
+    content.innerHTML = `
+      <div class="dsc-two-col">
+        <div class="dsc-panel">
+          <h2>Conversations</h2>
+          <div id="dsc-threads-list"><div class="empty-row">Chargement…</div></div>
+          <div class="field-row" style="margin-top:14px;">
+            <label>Nouveau message à...</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="dsc-new-thread-name" placeholder="Nom du personnage">
+              <button class="btn small" id="dsc-new-thread-btn" style="flex-shrink:0;">Ouvrir</button>
+            </div>
+          </div>
+        </div>
+        <div class="dsc-panel" style="display:flex; flex-direction:column; height:540px;">
+          <h2 id="dsc-chat-title">Sélectionne une conversation</h2>
+          <div id="dsc-chat-messages" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; padding:8px 0;"></div>
+          <div id="dsc-chat-input-row" style="display:none; gap:8px;">
+            <input type="text" id="dsc-chat-input" placeholder="Écris un message...">
+            <button class="btn small" id="dsc-chat-send-btn" style="flex-shrink:0;">Envoyer</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('dsc-new-thread-btn').addEventListener('click', () => {
+      const name = document.getElementById('dsc-new-thread-name').value.trim();
+      if (name) openThread(name);
+    });
+
+    try {
+      const data = await apiFetch('/api/rp/doctoscp/threads');
+      renderThreadsList(data.threads || []);
+    } catch (err) {
+      document.getElementById('dsc-threads-list').innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+    }
+
+    if (currentThreadWith) openThread(currentThreadWith);
+  }
+
+  function renderThreadsList(threads) {
+    const list = document.getElementById('dsc-threads-list');
+    list.innerHTML = threads.length
+      ? threads
+          .map(
+            (t) => `
+      <div class="dsc-thread-item${t.otherCharacterName === currentThreadWith ? ' active' : ''}" data-thread-name="${escapeHtml(t.otherCharacterName)}">
+        <div>
+          <div style="font-size:12.5px; font-weight:600;">${escapeHtml(t.otherCharacterName)}</div>
+          <div class="post-card-meta">${escapeHtml((t.lastMessage || '').slice(0, 40))}</div>
+        </div>
+      </div>
+    `
+          )
+          .join('')
+      : '<div class="empty-row">Aucune conversation.</div>';
+    list.querySelectorAll('[data-thread-name]').forEach((el) => {
+      el.addEventListener('click', () => openThread(el.dataset.threadName));
+    });
+  }
+
+  async function openThread(otherName) {
+    currentThreadWith = otherName;
+    document.getElementById('dsc-chat-title').textContent = otherName;
+    document.getElementById('dsc-chat-input-row').style.display = 'flex';
+    const box = document.getElementById('dsc-chat-messages');
+    box.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    try {
+      const data = await apiFetch(`/api/rp/doctoscp/messages/${encodeURIComponent(otherName)}`);
+      const messages = data.messages || [];
+      box.innerHTML = messages.length
+        ? messages
+            .map((m) => `<div class="dsc-chat-bubble ${m.fromCharacterName === myCharacterName ? 'mine' : 'theirs'}">${escapeHtml(m.content)}</div>`)
+            .join('')
+        : '<div class="empty-row">Aucun message. Lance la conversation !</div>';
+      box.scrollTop = box.scrollHeight;
+    } catch (err) {
+      box.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+    }
+
+    document.getElementById('dsc-chat-send-btn').onclick = async () => {
+      const input = document.getElementById('dsc-chat-input');
+      const contentVal = input.value.trim();
+      if (!contentVal) return;
+      try {
+        await apiFetch('/api/rp/doctoscp/messages', { method: 'POST', body: JSON.stringify({ toCharacterName: otherName, content: contentVal }) });
+        input.value = '';
+        openThread(otherName);
+        apiFetch('/api/rp/doctoscp/threads').then((d) => renderThreadsList(d.threads || []));
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    };
+  }
+
+  // =======================================================================
+  // 🚨 Urgences
+  // =======================================================================
+  async function loadUrgencesTab() {
+    const content = document.getElementById('doctoscp-content');
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/doctoscp/emergencies');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    const emergencies = data.emergencies || [];
+
+    content.innerHTML = `
+      <div class="dsc-two-col">
+        <div>
+          <div class="record-block-head"><h2>Urgences</h2><span class="count">${emergencies.length}</span></div>
+          ${
+            emergencies.length
+              ? emergencies
+                  .map(
+                    (e) => `
+            <div class="post-card">
+              <div class="post-card-head">
+                <span class="post-card-title">${escapeHtml(e.patientCharacterName)}</span>
+                <span class="status-pill ${e.status === 'open' ? 'status-bad' : 'status-good'}">${e.status === 'open' ? 'Ouverte' : 'Traitée'}</span>
+              </div>
+              <div class="post-card-meta">Signalé par ${escapeHtml(e.reportedBy)}${e.handledBy ? ` — Pris en charge par ${escapeHtml(e.handledBy)}` : ''}</div>
+              <div class="post-card-body" style="margin-top:6px;">${escapeHtml(e.description || '')}</div>
+              ${e.status === 'open' ? `<button class="btn small" style="margin-top:8px;" data-emergency-id="${escapeHtml(e.id)}">Prendre en charge</button>` : ''}
+            </div>
+          `
+                  )
+                  .join('')
+              : '<div class="empty-row">Aucune urgence.</div>'
+          }
+        </div>
+        <div class="dsc-panel">
+          <h2>Signaler une urgence</h2>
+          <form id="dsc-emergency-form">
+            <div class="field-row"><label>Patient *</label><input type="text" id="dsc-emergency-patient" required></div>
+            <div class="field-row"><label>Description</label><textarea id="dsc-emergency-desc" rows="3"></textarea></div>
+            <button class="btn danger" type="submit">🚨 Signaler</button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    content.querySelectorAll('[data-emergency-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/doctoscp/emergencies/${encodeURIComponent(btn.dataset.emergencyId)}/resolve`, { method: 'PATCH' });
+          loadUrgencesTab();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+
+    document.getElementById('dsc-emergency-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const patientCharacterName = document.getElementById('dsc-emergency-patient').value.trim();
+      const description = document.getElementById('dsc-emergency-desc').value.trim();
+      if (!patientCharacterName) { alert('Le nom du patient est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/doctoscp/emergencies', { method: 'POST', body: JSON.stringify({ patientCharacterName, description }) });
+        loadUrgencesTab();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // =======================================================================
+  // 🔒 Quarantaine
+  // =======================================================================
+  async function loadQuarantaineTab() {
+    const content = document.getElementById('doctoscp-content');
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/doctoscp/quarantine');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    const quarantines = data.quarantines || [];
+
+    content.innerHTML = `
+      <div class="dsc-two-col">
+        <div>
+          <div class="record-block-head"><h2>Quarantaines</h2><span class="count">${quarantines.length}</span></div>
+          ${
+            quarantines.length
+              ? quarantines
+                  .map(
+                    (q) => `
+            <div class="post-card">
+              <div class="post-card-head">
+                <span class="post-card-title">${escapeHtml(q.characterName)}</span>
+                <span class="status-pill ${q.endedAt ? 'status-good' : 'status-warn'}">${q.endedAt ? 'Levée' : 'Active'}</span>
+              </div>
+              <div class="post-card-meta">Ordonné par ${escapeHtml(q.orderedBy)} — ${q.startedAt ? new Date(q.startedAt).toLocaleString('fr-FR') : ''}</div>
+              <div class="post-card-body" style="margin-top:6px;">${escapeHtml(q.reason || '')}</div>
+              ${!q.endedAt ? `<button class="btn small" style="margin-top:8px;" data-quarantine-id="${escapeHtml(q.id)}">Lever la quarantaine</button>` : ''}
+            </div>
+          `
+                  )
+                  .join('')
+              : '<div class="empty-row">Aucune quarantaine enregistrée.</div>'
+          }
+        </div>
+        <div class="dsc-panel">
+          <h2>Mettre en quarantaine</h2>
+          <form id="dsc-quarantine-form">
+            <div class="field-row"><label>Personnage *</label><input type="text" id="dsc-quarantine-name" required></div>
+            <div class="field-row"><label>Motif</label><textarea id="dsc-quarantine-reason" rows="3"></textarea></div>
+            <button class="btn" type="submit">🔒 Placer en quarantaine</button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    content.querySelectorAll('[data-quarantine-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        try {
+          await apiFetch(`/api/rp/doctoscp/quarantine/${encodeURIComponent(btn.dataset.quarantineId)}/end`, { method: 'PATCH' });
+          loadQuarantaineTab();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    });
+
+    document.getElementById('dsc-quarantine-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const characterName = document.getElementById('dsc-quarantine-name').value.trim();
+      const reason = document.getElementById('dsc-quarantine-reason').value.trim();
+      if (!characterName) { alert('Le nom est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/doctoscp/quarantine', { method: 'POST', body: JSON.stringify({ characterName, reason }) });
+        loadQuarantaineTab();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // =======================================================================
+  // 📜 Certificats d'aptitude
+  // =======================================================================
+  const CERT_STATUS_META = {
+    apte: { label: 'Apte', cls: 'status-good' },
+    apte_surveillance: { label: 'Apte avec surveillance', cls: 'status-warn' },
+    inapte: { label: 'Inapte', cls: 'status-bad' },
+  };
+
+  async function loadCertificatsTab() {
+    const content = document.getElementById('doctoscp-content');
+    content.innerHTML = '<div class="empty-row">Chargement…</div>';
+
+    let data;
+    try {
+      data = await apiFetch('/api/rp/doctoscp/certificates');
+    } catch (err) {
+      content.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    const certificates = data.certificates || [];
+
+    content.innerHTML = `
+      <div class="dsc-two-col">
+        <div>
+          <div class="record-block-head"><h2>Certificats délivrés</h2><span class="count">${certificates.length}</span></div>
+          ${
+            certificates.length
+              ? certificates
+                  .map((c) => {
+                    const meta = CERT_STATUS_META[c.status] || CERT_STATUS_META.apte;
+                    return `
+            <div class="post-card">
+              <div class="post-card-head">
+                <span class="post-card-title">${escapeHtml(c.characterName)}</span>
+                <span class="status-pill ${meta.cls}">${meta.label}</span>
+              </div>
+              <div class="post-card-meta">Délivré par ${escapeHtml(c.issuedBy)} — ${c.createdAt ? new Date(c.createdAt).toLocaleDateString('fr-FR') : ''}</div>
+              ${c.notes ? `<div class="post-card-body" style="margin-top:6px;">${escapeHtml(c.notes)}</div>` : ''}
+            </div>
+          `;
+                  })
+                  .join('')
+              : '<div class="empty-row">Aucun certificat délivré.</div>'
+          }
+        </div>
+        <div class="dsc-panel">
+          <h2>Délivrer un certificat</h2>
+          <form id="dsc-cert-form">
+            <div class="field-row"><label>Personnage *</label><input type="text" id="dsc-cert-name" required></div>
+            <div class="field-row">
+              <label>Statut</label>
+              <select id="dsc-cert-status">
+                ${Object.entries(CERT_STATUS_META).map(([id, m]) => `<option value="${id}">${m.label}</option>`).join('')}
+              </select>
+            </div>
+            <div class="field-row"><label>Notes</label><textarea id="dsc-cert-notes" rows="2"></textarea></div>
+            <button class="btn" type="submit">Délivrer</button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('dsc-cert-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const characterName = document.getElementById('dsc-cert-name').value.trim();
+      const status = document.getElementById('dsc-cert-status').value;
+      const notes = document.getElementById('dsc-cert-notes').value.trim();
+      if (!characterName) { alert('Le nom est obligatoire.'); return; }
+      try {
+        await apiFetch('/api/rp/doctoscp/certificates', { method: 'POST', body: JSON.stringify({ characterName, status, notes }) });
+        loadCertificatsTab();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  checkAccessAndInit();
+</script>
+
+</body>
+</html>

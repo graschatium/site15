@@ -959,6 +959,7 @@
       tabs.push({ id: 'med-div-psy', label: 'PSY', icon: 'brain' });
       tabs.push({ id: 'med-div-chi', label: 'CHI', icon: 'scalpel' });
       tabs.push({ id: 'med-div-bio', label: 'BIO', icon: 'dna' });
+      tabs.push({ id: 'doctoscp', label: 'DoctoSCP', icon: 'monitor' });
     }
     if (deptId === SCIENCE_DEPT_ID) {
       tabs.push({ id: 'sci-pcs', label: 'Rapport PCS', icon: 'document' });
@@ -1090,6 +1091,7 @@
     else if (tabId === 'adm-div-bji') loadAdminBjiShell();
     else if (tabId === 'adm-div-rh') loadAdminRhShell();
     else if (tabId === 'adm-desktop') loadAdminDesktop();
+    else if (tabId === 'doctoscp') loadDoctoscpLauncher();
   }
 
   // -----------------------------------------------------------------
@@ -4361,6 +4363,22 @@
     `;
     document.getElementById('open-bureau-btn').addEventListener('click', () => {
       window.open(`/rp/bureau/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
+    });
+  }
+
+  function loadDoctoscpLauncher() {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = `
+      <div class="record-block" style="text-align:center; padding:48px 24px;">
+        <h2 style="margin-bottom:10px;">DoctoSCP</h2>
+        <p style="color:var(--ink-dim); font-size:13px; margin-bottom:24px; max-width:420px; margin-left:auto; margin-right:auto;">
+          Système médical complet — rendez-vous, dossiers, messagerie, urgences. S'ouvre dans son propre environnement.
+        </p>
+        <button class="btn" id="open-doctoscp-btn">Ouvrir DoctoSCP ↗</button>
+      </div>
+    `;
+    document.getElementById('open-doctoscp-btn').addEventListener('click', () => {
+      window.open(`/rp/doctoscp/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
     });
   }
 
