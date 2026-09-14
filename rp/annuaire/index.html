@@ -47,10 +47,14 @@
   .empty-row{ color:var(--ink-faint); font-size:12.5px; padding:16px 0; text-align:center; }
 
   /* ---- Trombinoscope ---- */
-  .directory-controls{ display:flex; gap:10px; margin-bottom:22px; max-width:900px; flex-wrap:wrap; }
+  .directory-controls{ display:flex; gap:10px; margin-bottom:22px; max-width:1200px; flex-wrap:wrap; align-items:center; }
   .directory-controls input{ flex:1; min-width:200px; }
+  .inactive-toggle{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-dim); white-space:nowrap; cursor:pointer; }
+  .inactive-toggle input{ width:auto; flex:none; }
   .directory-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:14px; max-width:1200px; }
   .person-card{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px; display:flex; gap:12px; align-items:center; }
+  .person-card.inactive-card{ opacity:0.55; }
+  .inactive-tag{ font-family:'JetBrains Mono', monospace; font-size:8.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--warn); border:1px solid var(--warn); border-radius:10px; padding:1px 6px; margin-left:4px; }
   .person-avatar{ width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, var(--accent), var(--accent-2)); display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk', sans-serif; font-weight:700; color:#fff; flex-shrink:0; overflow:hidden; }
   .person-avatar img{ width:100%; height:100%; object-fit:cover; }
   .person-name{ font-size:13px; font-weight:600; }
@@ -80,6 +84,11 @@
   .career-entry-title{ font-size:12.5px; font-weight:600; }
   .career-entry-desc{ font-size:11.5px; color:var(--ink-dim); margin-top:3px; }
   .career-entry-meta{ font-size:10px; color:var(--ink-faint); margin-top:5px; }
+  .hrp-info-row{ display:flex; justify-content:space-between; font-size:11.5px; padding:5px 0; border-bottom:1px solid var(--line-soft); }
+  .hrp-info-row:last-child{ border-bottom:none; }
+  .hrp-info-row span:first-child{ color:var(--ink-faint); }
+  .hrp-info-row span:last-child{ font-family:'JetBrains Mono', monospace; }
+  .btn.danger{ background:#F0525A; }
 
   /* ---- État du site ---- */
   .status-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; max-width:1100px; margin-bottom:24px; }
@@ -237,6 +246,8 @@
         <div class="directory-controls">
           <input type="text" id="directory-search" placeholder="Rechercher un nom, pseudo, grade..." value="${escapeHtml(prefillQuery)}">
           <select id="directory-dept-filter"><option value="">Tous départements</option></select>
+          <label class="inactive-toggle"><input type="checkbox" id="show-inactive-toggle"> Afficher les inactifs</label>
+          <button class="btn small ghost" id="manage-badges-quick-btn" type="button" style="display:none;">🏅 Gérer les distinctions</button>
         </div>
         <div class="directory-grid" id="directory-grid"><div class="empty-row">Chargement…</div></div>
       </div>
@@ -256,6 +267,17 @@
 
     document.getElementById('directory-search').addEventListener('input', renderDirectory);
     deptSelect.addEventListener('change', renderDirectory);
+    document.getElementById('show-inactive-toggle').addEventListener('change', renderDirectory);
+
+    // Bouton rapide "Gérer les distinctions" — visible si la personne peut
+    // gérer AU MOINS un département (canManage renvoyé par le serveur).
+    const manageableDepts = [...new Map(directoryCache.filter((p) => p.canManage).map((p) => [p.deptId, p.deptName])).entries()];
+    if (manageableDepts.length) {
+      const quickBtn = document.getElementById('manage-badges-quick-btn');
+      quickBtn.style.display = 'inline-block';
+      quickBtn.addEventListener('click', () => openBadgeManagerModal(manageableDepts));
+    }
+
     renderDirectory();
   }
 
@@ -263,21 +285,23 @@
     const grid = document.getElementById('directory-grid');
     const q = document.getElementById('directory-search').value.trim().toLowerCase();
     const deptFilter = document.getElementById('directory-dept-filter').value;
+    const showInactive = document.getElementById('show-inactive-toggle').checked;
 
     const filtered = directoryCache.filter((p) => {
       const matchesQuery = !q || p.name.toLowerCase().includes(q) || p.username.toLowerCase().includes(q) || (p.rank || '').toLowerCase().includes(q);
       const matchesDept = !deptFilter || p.deptName === deptFilter;
-      return matchesQuery && matchesDept;
+      const matchesStatus = showInactive || p.status === 'actif';
+      return matchesQuery && matchesDept && matchesStatus;
     });
 
     grid.innerHTML = filtered.length
       ? filtered
           .map(
             (p, i) => `
-        <div class="person-card" data-person-idx="${i}" style="cursor:pointer;">
+        <div class="person-card${p.status !== 'actif' ? ' inactive-card' : ''}" data-person-idx="${i}" style="cursor:pointer;">
           <div class="person-avatar">${escapeHtml((p.name || '?')[0])}</div>
           <div style="min-width:0;">
-            <div class="person-name">${escapeHtml(p.name)}</div>
+            <div class="person-name">${escapeHtml(p.name)}${p.status !== 'actif' ? ' <span class="inactive-tag">Inactif</span>' : ''}</div>
             <div class="person-rank">${escapeHtml(p.rank || 'Grade non précisé')}</div>
             <span class="person-dept">${escapeHtml(p.deptName)}</span>
           </div>
@@ -309,7 +333,7 @@
         <div class="person-modal-head">
           <div class="person-avatar" style="width:52px; height:52px; font-size:18px;">${escapeHtml((person.name || '?')[0])}</div>
           <div>
-            <div style="font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:700;">${escapeHtml(person.name)}</div>
+            <div style="font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:700;">${escapeHtml(person.name)} ${person.status !== 'actif' ? '<span class="inactive-tag">Inactif</span>' : ''}</div>
             <div style="font-size:12px; color:var(--ink-faint);">${escapeHtml(person.rank || 'Grade non précisé')} — ${escapeHtml(person.deptName)}</div>
           </div>
         </div>
@@ -325,6 +349,7 @@
         </div>
 
         <div id="person-director-tools"></div>
+        <div id="person-hrp-tools"></div>
 
         <div class="person-modal-actions">
           <button type="button" class="btn ghost" id="person-modal-close">Fermer</button>
@@ -337,13 +362,115 @@
 
     await Promise.all([loadPersonBadges(person), loadPersonCareer(person)]);
 
-    // Outils Directeur — visibles seulement si la personne connectée a
-    // elle-même un personnage dans CE département (le serveur revérifie de
-    // toute façon le statut de Directeur avant d'accepter quoi que ce soit).
-    const myCharInDept = myCharacters.find((c) => c.deptId === person.deptId);
-    if (myCharInDept) {
+    // Outils RP et HRP — visibles seulement si le serveur confirme le
+    // droit de gestion sur CE département précis (Directeur ou accès
+    // administrateur complet, revérifié à chaque action de toute façon).
+    if (person.canManage) {
       renderDirectorTools(person);
+      renderHrpTools(person, backdrop);
     }
+  }
+
+  function renderHrpTools(person, backdrop) {
+    const box = document.getElementById('person-hrp-tools');
+    box.innerHTML = `
+      <div class="person-modal-section" style="border-top:1px dashed var(--line); padding-top:14px;">
+        <div class="person-modal-title">🗂️ Outils HRP</div>
+
+        <div class="field-row">
+          <label>Statut</label>
+          <div style="display:flex; gap:8px;">
+            <select id="hrp-status-select">
+              <option value="actif"${person.status === 'actif' ? ' selected' : ''}>Actif</option>
+              <option value="inactif"${person.status !== 'actif' ? ' selected' : ''}>Inactif</option>
+            </select>
+            <button class="btn small ghost" id="hrp-status-save" style="flex-shrink:0;">Appliquer</button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label>Grade</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="hrp-rank-input" value="${escapeHtml(person.rank || '')}">
+            <button class="btn small ghost" id="hrp-rank-save" style="flex-shrink:0;">Enregistrer</button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label>Division</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="hrp-division-input" value="${escapeHtml(person.division || '')}">
+            <button class="btn small ghost" id="hrp-division-save" style="flex-shrink:0;">Enregistrer</button>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label>Infos HRP</label>
+          <div class="hrp-info-row"><span>Pseudo Roblox</span><span>${escapeHtml(person.username)}</span></div>
+          <div class="hrp-info-row"><span>Enregistré le</span><span>${escapeHtml(person.registeredDate || 'N/A')}</span></div>
+          <div class="hrp-info-row"><span>Discord lié</span><span id="hrp-discord-link">Chargement…</span></div>
+        </div>
+
+        <button class="btn danger small" id="hrp-remove-btn" style="width:100%; margin-top:10px;">🗑️ Retirer du roster</button>
+      </div>
+    `;
+
+    document.getElementById('hrp-status-save').addEventListener('click', async () => {
+      const status = document.getElementById('hrp-status-select').value;
+      try {
+        await apiFetch(`/api/rp/depts/${encodeURIComponent(person.deptId)}/agents/${encodeURIComponent(person.agentId)}/status`, {
+          method: 'PATCH', body: JSON.stringify({ status }),
+        });
+        person.status = status;
+        alert('Statut mis à jour.');
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    document.getElementById('hrp-rank-save').addEventListener('click', async () => {
+      const rank = document.getElementById('hrp-rank-input').value.trim();
+      if (!rank) { alert('Le grade ne peut pas être vide.'); return; }
+      try {
+        await apiFetch(`/api/rp/depts/${encodeURIComponent(person.deptId)}/agents/${encodeURIComponent(person.agentId)}/rank`, {
+          method: 'PATCH', body: JSON.stringify({ rank }),
+        });
+        alert('Grade mis à jour.');
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    document.getElementById('hrp-division-save').addEventListener('click', async () => {
+      const division = document.getElementById('hrp-division-input').value.trim();
+      try {
+        await apiFetch(`/api/rp/depts/${encodeURIComponent(person.deptId)}/agents/${encodeURIComponent(person.agentId)}/division`, {
+          method: 'PATCH', body: JSON.stringify({ division }),
+        });
+        alert('Division mise à jour.');
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    document.getElementById('hrp-remove-btn').addEventListener('click', async () => {
+      if (!confirm(`Retirer définitivement ${person.name} du roster ${person.deptName} ?`)) return;
+      try {
+        await apiFetch(`/api/rp/depts/${encodeURIComponent(person.deptId)}/agents/${encodeURIComponent(person.agentId)}`, { method: 'DELETE' });
+        backdrop.remove();
+        loadTrombinoscope();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    apiFetch(`/api/rp/directory/discord-link/${encodeURIComponent(person.deptId)}/${encodeURIComponent(person.username)}`)
+      .then((data) => {
+        document.getElementById('hrp-discord-link').textContent = data.discordId ? data.discordId : 'Non lié';
+      })
+      .catch(() => {
+        document.getElementById('hrp-discord-link').textContent = 'Erreur';
+      });
   }
 
   async function loadPersonBadges(person) {
@@ -441,6 +568,96 @@
         });
         document.getElementById('new-badge-form').reset();
         loadBadgeAssignArea(person);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  // ---- Accès rapide "Gérer les distinctions" — sans passer par une fiche
+  // personnelle. Permet juste de créer/retirer des types de distinctions
+  // pour un département ; l'attribution à une personne reste dans sa fiche.
+  function openBadgeManagerModal(manageableDepts) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'person-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="person-modal">
+        <div class="person-modal-title" style="font-size:15px; margin-bottom:16px;">🏅 Gérer les distinctions</div>
+        <div class="field-row">
+          <label>Département</label>
+          <select id="badge-mgr-dept">
+            ${manageableDepts.map(([id, name]) => `<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`).join('')}
+          </select>
+        </div>
+        <div id="badge-mgr-list"><div class="empty-row">Chargement…</div></div>
+        <form id="badge-mgr-form" style="margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
+          <div class="field-row"><input type="text" id="badge-mgr-name" placeholder="Nom (ex: Vétéran EIT)" required></div>
+          <div class="field-row"><input type="text" id="badge-mgr-icon" placeholder="Emoji (ex: 🎖️)" maxlength="4"></div>
+          <div class="field-row"><input type="text" id="badge-mgr-desc" placeholder="Description (optionnel)"></div>
+          <button class="btn small" type="submit">Créer la distinction</button>
+        </form>
+        <div class="person-modal-actions">
+          <button type="button" class="btn ghost" id="badge-mgr-close">Fermer</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.getElementById('badge-mgr-close').addEventListener('click', () => backdrop.remove());
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+    const deptSelect = document.getElementById('badge-mgr-dept');
+
+    async function refreshBadgeMgrList() {
+      const list = document.getElementById('badge-mgr-list');
+      list.innerHTML = '<div class="empty-row">Chargement…</div>';
+      try {
+        const data = await apiFetch(`/api/rp/badges/catalog/${encodeURIComponent(deptSelect.value)}`);
+        const catalog = data.badges || [];
+        list.innerHTML = catalog.length
+          ? catalog
+              .map(
+                (b) => `
+            <div class="post-card" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>${b.icon} ${escapeHtml(b.name)}</span>
+              <button class="btn danger small" data-delete-badge="${escapeHtml(b.id)}">Supprimer</button>
+            </div>
+          `
+              )
+              .join('')
+          : '<div class="empty-row">Aucune distinction pour ce département.</div>';
+        list.querySelectorAll('[data-delete-badge]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Supprimer cette distinction ? Elle sera retirée de tous ceux qui la possèdent.')) return;
+            try {
+              await apiFetch(`/api/rp/badges/catalog/${encodeURIComponent(btn.dataset.deleteBadge)}`, { method: 'DELETE' });
+              refreshBadgeMgrList();
+            } catch (err) {
+              alert(`Erreur : ${err.message}`);
+            }
+          });
+        });
+      } catch (err) {
+        list.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    deptSelect.addEventListener('change', refreshBadgeMgrList);
+    refreshBadgeMgrList();
+
+    document.getElementById('badge-mgr-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('badge-mgr-name').value.trim();
+      const icon = document.getElementById('badge-mgr-icon').value.trim() || '🏅';
+      const description = document.getElementById('badge-mgr-desc').value.trim();
+      if (!name) return;
+      const color = BADGE_COLOR_CHOICES[Math.floor(Math.random() * BADGE_COLOR_CHOICES.length)];
+      try {
+        await apiFetch('/api/rp/badges/catalog', {
+          method: 'POST',
+          body: JSON.stringify({ deptId: deptSelect.value, name, icon, description, color }),
+        });
+        document.getElementById('badge-mgr-form').reset();
+        refreshBadgeMgrList();
       } catch (err) {
         alert(`Erreur : ${err.message}`);
       }
