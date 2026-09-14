@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE-15 — Statistiques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #08090C; --void-2: #0D0F14; --panel: #12141B; --line: #23262F;
+    --accent: #6E76FF; --accent-2: #A78BFA;
+    --ink: #ECEDF1; --ink-dim: #9297A8; --ink-faint: #565B6B;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html, body{ height:100%; }
+  body{
+    background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; min-height:100vh;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% 0%, rgba(110,118,255,0.10), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 85% 100%, rgba(167,139,250,0.08), transparent 60%);
+  }
+  a{ color:inherit; text-decoration:none; }
+
+  .wrap{ max-width:1000px; margin:0 auto; padding:60px 24px 80px; }
+  .hero{ text-align:center; margin-bottom:56px; }
+  .hero-eyebrow{ font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent-2); margin-bottom:14px; }
+  .hero-title{ font-family:'Space Grotesk', sans-serif; font-size:38px; font-weight:800; margin-bottom:12px; letter-spacing:-0.02em; }
+  .hero-sub{ color:var(--ink-dim); font-size:14px; }
+
+  .stats-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px; margin-bottom:40px; }
+  .stat-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:26px 22px; text-align:center;
+    box-shadow:0 16px 40px rgba(0,0,0,0.25); position:relative; overflow:hidden;
+  }
+  .stat-card::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .stat-value{ font-family:'Space Grotesk', sans-serif; font-size:40px; font-weight:800; background:linear-gradient(135deg, var(--accent-2), var(--accent)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; line-height:1; }
+  .stat-label{ font-size:12.5px; color:var(--ink-dim); margin-top:10px; }
+  .stat-icon{ font-size:22px; margin-bottom:10px; }
+
+  .footer-note{ text-align:center; color:var(--ink-faint); font-size:11.5px; margin-top:20px; }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-dim); padding:8px 16px;
+    border-radius:20px; border:1px solid var(--line); margin-top:24px;
+  }
+  .back-link:hover{ color:var(--ink); border-color:var(--accent); }
+
+  .center-msg{ display:flex; align-items:center; justify-content:center; min-height:60vh; color:var(--ink-dim); font-size:14px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-eyebrow">SITE-15 // Statistiques serveur</div>
+    <div class="hero-title">Le RP en chiffres</div>
+    <div class="hero-sub" id="hero-sub">Activité cumulée depuis la mise en place des outils numériques.</div>
+  </div>
+
+  <div id="stats-content" class="center-msg">Chargement…</div>
+
+  <div style="text-align:center;">
+    <a href="/" class="back-link">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à l'accueil
+    </a>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+
+  const STAT_META = [
+    { key: 'securityDocs', icon: '📄', label: 'Documents DSE publiés' },
+    { key: 'doctoscpAppointments', icon: '📅', label: 'Rendez-vous DoctoSCP pris' },
+    { key: 'microscopeExams', icon: '🔬', label: 'Examens microscopiques réalisés' },
+    { key: 'securityReports', icon: '🛡️', label: "Rapports d'incident Sécurité" },
+    { key: 'scienceReports', icon: '🧪', label: "Rapports d'expérience Scientifique" },
+    { key: 'doctoscpMessages', icon: '💬', label: 'Messages échangés (DoctoSCP)' },
+    { key: 'cardScans', icon: '🪪', label: 'Scans au lecteur de carte' },
+    { key: 'recruitmentApplications', icon: '📋', label: 'Candidatures de recrutement' },
+  ];
+
+  async function loadStats() {
+    const content = document.getElementById('stats-content');
+    let data;
+    try {
+      const res = await fetch(`${API_BASE}/api/public/stats-wrapped`);
+      data = await res.json();
+    } catch (err) {
+      content.innerHTML = '<div class="center-msg">Impossible de charger les statistiques pour le moment.</div>';
+      return;
+    }
+
+    content.className = '';
+    content.innerHTML = `
+      <div class="stats-grid">
+        ${STAT_META.map(
+          (m) => `
+          <div class="stat-card">
+            <div class="stat-icon">${m.icon}</div>
+            <div class="stat-value">${(data[m.key] ?? 0).toLocaleString('fr-FR')}</div>
+            <div class="stat-label">${m.label}</div>
+          </div>
+        `
+        ).join('')}
+      </div>
+      <div class="footer-note">Mis à jour en direct — dernière génération : ${data.generatedAt ? new Date(data.generatedAt).toLocaleString('fr-FR') : '—'}</div>
+    `;
+  }
+
+  loadStats();
+</script>
+
+</body>
+</html>

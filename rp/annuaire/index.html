@@ -60,6 +60,27 @@
     padding:2px 8px; border-radius:20px; background:var(--accent-soft); color:var(--accent-2);
   }
 
+  /* ---- Fiche personnelle (modal) ---- */
+  .person-modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,0.65); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;
+  }
+  .person-modal{
+    width:480px; max-width:100%; max-height:85vh; overflow-y:auto; background:var(--panel); border:1px solid var(--line);
+    border-radius:12px; padding:24px; box-shadow:0 30px 70px rgba(0,0,0,0.6);
+  }
+  .person-modal-head{ display:flex; align-items:center; gap:14px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+  .person-modal-section{ margin-bottom:18px; }
+  .person-modal-title{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.06em; text-transform:uppercase; color:var(--accent-2); margin-bottom:10px; }
+  .person-modal-actions{ display:flex; justify-content:flex-end; margin-top:6px; }
+
+  .badge-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .badge-chip{ font-size:11.5px; padding:4px 10px; border-radius:20px; border:1px solid; background:var(--void-2); }
+
+  .career-entry{ background:var(--void-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px; }
+  .career-entry-title{ font-size:12.5px; font-weight:600; }
+  .career-entry-desc{ font-size:11.5px; color:var(--ink-dim); margin-top:3px; }
+  .career-entry-meta{ font-size:10px; color:var(--ink-faint); margin-top:5px; }
+
   /* ---- État du site ---- */
   .status-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:16px; max-width:1100px; margin-bottom:24px; }
   .status-card{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; }
@@ -135,6 +156,7 @@
 
   const pageRoot = document.getElementById('page-root');
   let currentTab = 'trombinoscope';
+  let myCharacters = [];
 
   async function checkAccessAndInit() {
     if (!getToken()) {
@@ -155,7 +177,8 @@
       return;
     }
 
-    if ((context.characters || []).length > 0) {
+    myCharacters = context.characters || [];
+    if (myCharacters.length > 0) {
       startHub();
       return;
     }
@@ -250,8 +273,8 @@
     grid.innerHTML = filtered.length
       ? filtered
           .map(
-            (p) => `
-        <div class="person-card">
+            (p, i) => `
+        <div class="person-card" data-person-idx="${i}" style="cursor:pointer;">
           <div class="person-avatar">${escapeHtml((p.name || '?')[0])}</div>
           <div style="min-width:0;">
             <div class="person-name">${escapeHtml(p.name)}</div>
@@ -263,11 +286,201 @@
           )
           .join('')
       : '<div class="empty-row">Aucun résultat.</div>';
+
+    grid.querySelectorAll('[data-person-idx]').forEach((el) => {
+      el.addEventListener('click', () => openPersonModal(filtered[Number(el.dataset.personIdx)]));
+    });
   }
 
   // =======================================================================
   // État du site — statut public + alertes RP si accessibles (Médical)
   // =======================================================================
+  // =======================================================================
+  // Fiche personnelle — carrière + distinctions, avec gestion si la
+  // personne qui consulte est Directeur du département de la fiche.
+  // =======================================================================
+  const BADGE_COLOR_CHOICES = ['#A78BFA', '#4FD895', '#F0A83C', '#F0525A', '#4FA8F0', '#ECEDF1'];
+
+  async function openPersonModal(person) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'person-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="person-modal">
+        <div class="person-modal-head">
+          <div class="person-avatar" style="width:52px; height:52px; font-size:18px;">${escapeHtml((person.name || '?')[0])}</div>
+          <div>
+            <div style="font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:700;">${escapeHtml(person.name)}</div>
+            <div style="font-size:12px; color:var(--ink-faint);">${escapeHtml(person.rank || 'Grade non précisé')} — ${escapeHtml(person.deptName)}</div>
+          </div>
+        </div>
+
+        <div class="person-modal-section">
+          <div class="person-modal-title">🏅 Distinctions</div>
+          <div id="person-badges-list"><div class="empty-row">Chargement…</div></div>
+        </div>
+
+        <div class="person-modal-section">
+          <div class="person-modal-title">📈 Carrière</div>
+          <div id="person-career-list"><div class="empty-row">Chargement…</div></div>
+        </div>
+
+        <div id="person-director-tools"></div>
+
+        <div class="person-modal-actions">
+          <button type="button" class="btn ghost" id="person-modal-close">Fermer</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.getElementById('person-modal-close').addEventListener('click', () => backdrop.remove());
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+    await Promise.all([loadPersonBadges(person), loadPersonCareer(person)]);
+
+    // Outils Directeur — visibles seulement si la personne connectée a
+    // elle-même un personnage dans CE département (le serveur revérifie de
+    // toute façon le statut de Directeur avant d'accepter quoi que ce soit).
+    const myCharInDept = myCharacters.find((c) => c.deptId === person.deptId);
+    if (myCharInDept) {
+      renderDirectorTools(person);
+    }
+  }
+
+  async function loadPersonBadges(person) {
+    const box = document.getElementById('person-badges-list');
+    try {
+      const data = await apiFetch(`/api/rp/badges/assigned/${encodeURIComponent(person.username)}`);
+      const badges = data.badges || [];
+      box.innerHTML = badges.length
+        ? `<div class="badge-chips">${badges.map((b) => `<span class="badge-chip" style="border-color:${escapeHtml(b.badgeColor)}; color:${escapeHtml(b.badgeColor)};">${b.badgeIcon} ${escapeHtml(b.badgeName)}</span>`).join('')}</div>`
+        : '<div class="empty-row">Aucune distinction.</div>';
+    } catch (err) {
+      box.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function loadPersonCareer(person) {
+    const box = document.getElementById('person-career-list');
+    try {
+      const data = await apiFetch(`/api/rp/career/${encodeURIComponent(person.username)}`);
+      const entries = data.entries || [];
+      box.innerHTML = entries.length
+        ? entries
+            .map(
+              (e) => `
+          <div class="career-entry">
+            <div class="career-entry-title">${escapeHtml(e.title)}</div>
+            ${e.description ? `<div class="career-entry-desc">${escapeHtml(e.description)}</div>` : ''}
+            <div class="career-entry-meta">${new Date(e.createdAt).toLocaleDateString('fr-FR')} — ${escapeHtml(e.addedBy)}</div>
+          </div>
+        `
+            )
+            .join('')
+        : '<div class="empty-row">Aucun événement de carrière consigné.</div>';
+    } catch (err) {
+      box.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function renderDirectorTools(person) {
+    const box = document.getElementById('person-director-tools');
+    box.innerHTML = `
+      <div class="person-modal-section" style="border-top:1px dashed var(--line); padding-top:14px;">
+        <div class="person-modal-title">🛠️ Outils Directeur</div>
+
+        <form id="add-career-form" style="margin-bottom:16px;">
+          <div class="field-row"><label>Nouvel événement de carrière</label><input type="text" id="career-title" placeholder="Titre (ex: Promu Sergent)" required></div>
+          <div class="field-row"><input type="text" id="career-desc" placeholder="Description (optionnel)"></div>
+          <button class="btn small" type="submit">Ajouter à la carrière</button>
+        </form>
+
+        <div id="assign-badge-area"><div class="empty-row">Chargement du catalogue...</div></div>
+
+        <details style="margin-top:12px;">
+          <summary style="cursor:pointer; font-size:11.5px; color:var(--ink-faint);">+ Créer une nouvelle distinction pour ce département</summary>
+          <form id="new-badge-form" style="margin-top:10px;">
+            <div class="field-row"><input type="text" id="new-badge-name" placeholder="Nom (ex: Vétéran EIT)" required></div>
+            <div class="field-row"><input type="text" id="new-badge-icon" placeholder="Emoji (ex: 🎖️)" maxlength="4"></div>
+            <div class="field-row"><input type="text" id="new-badge-desc" placeholder="Description (optionnel)"></div>
+            <button class="btn small ghost" type="submit">Créer la distinction</button>
+          </form>
+        </details>
+      </div>
+    `;
+
+    document.getElementById('add-career-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('career-title').value.trim();
+      const description = document.getElementById('career-desc').value.trim();
+      if (!title) return;
+      try {
+        await apiFetch(`/api/rp/career/${encodeURIComponent(person.username)}`, {
+          method: 'POST',
+          body: JSON.stringify({ title, description, deptId: person.deptId }),
+        });
+        document.getElementById('add-career-form').reset();
+        loadPersonCareer(person);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+
+    loadBadgeAssignArea(person);
+
+    document.getElementById('new-badge-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('new-badge-name').value.trim();
+      const icon = document.getElementById('new-badge-icon').value.trim() || '🏅';
+      const description = document.getElementById('new-badge-desc').value.trim();
+      if (!name) return;
+      const color = BADGE_COLOR_CHOICES[Math.floor(Math.random() * BADGE_COLOR_CHOICES.length)];
+      try {
+        await apiFetch('/api/rp/badges/catalog', {
+          method: 'POST',
+          body: JSON.stringify({ deptId: person.deptId, name, icon, description, color }),
+        });
+        document.getElementById('new-badge-form').reset();
+        loadBadgeAssignArea(person);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
+    });
+  }
+
+  async function loadBadgeAssignArea(person) {
+    const area = document.getElementById('assign-badge-area');
+    try {
+      const data = await apiFetch(`/api/rp/badges/catalog/${encodeURIComponent(person.deptId)}`);
+      const catalog = data.badges || [];
+      if (!catalog.length) {
+        area.innerHTML = '<div class="empty-row">Aucune distinction créée pour ce département pour l\'instant.</div>';
+        return;
+      }
+      area.innerHTML = `
+        <div class="field-row">
+          <label>Attribuer une distinction</label>
+          <div style="display:flex; gap:8px;">
+            <select id="assign-badge-select">
+              ${catalog.map((b) => `<option value="${escapeHtml(b.id)}">${b.icon} ${escapeHtml(b.name)}</option>`).join('')}
+            </select>
+            <button class="btn small" id="assign-badge-btn" style="flex-shrink:0;">Attribuer</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('assign-badge-btn').addEventListener('click', async () => {
+        const badgeId = document.getElementById('assign-badge-select').value;
+        try {
+          await apiFetch('/api/rp/badges/assign', { method: 'POST', body: JSON.stringify({ username: person.username, badgeId }) });
+          loadPersonBadges(person);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      });
+    } catch (err) {
+      area.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
   async function loadEtatSite() {
     pageRoot.innerHTML = `
       <div class="page-body">

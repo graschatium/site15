@@ -795,6 +795,11 @@
             <div class="topchoice-title">Messagerie interne</div>
             <div class="topchoice-desc">Envoie et reçois des messages avec n'importe quel personnage actif.</div>
           </button>
+          <button class="topchoice-card" id="topchoice-stats" type="button">
+            <div class="topchoice-eyebrow">${ICONS.info} Accès public</div>
+            <div class="topchoice-title">Statistiques serveur</div>
+            <div class="topchoice-desc">Chiffres cumulés de l'activité RP — docs, rendez-vous, examens, rapports...</div>
+          </button>
         </div>
       </div>
     `;
@@ -812,6 +817,9 @@
     });
     document.getElementById('topchoice-messages').addEventListener('click', () => {
       window.open(`/rp/messagerie/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
+    });
+    document.getElementById('topchoice-stats').addEventListener('click', () => {
+      window.open('/rp/stats/', '_blank');
     });
   }
 
