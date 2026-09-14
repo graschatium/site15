@@ -77,8 +77,8 @@
 
   .history-panel{ width:280px; max-width:100%; background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:18px; }
   .history-head{ display:flex; justify-content:space-between; align-items:center; font-family:'Space Grotesk', sans-serif; font-size:13px; font-weight:600; margin-bottom:12px; }
-  .device-toolbar{ display:flex; gap:8px; margin-top:10px; }
-  .device-toolbar .btn{ flex:1; }
+  .device-toolbar{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+  .device-toolbar .btn{ width:100%; }
   .favoris-row{ margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
   .favoris-label{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px; }
   .favori-chip{ display:flex; align-items:center; justify-content:space-between; background:var(--void-2); border:1px solid var(--line); border-radius:6px; padding:6px 10px; margin-bottom:6px; font-size:12px; }
@@ -504,6 +504,7 @@
             <div class="device-toolbar">
               <button class="btn small ghost" id="batch-scan-btn" type="button">📋 Scan par lot</button>
               <button class="btn small ghost" id="blacklist-btn" type="button">🚩 Liste noire</button>
+              <button class="btn small ghost" id="dossier-btn" type="button" style="grid-column:span 2;">📁 Dossier</button>
             </div>
 
             <div class="favoris-row">
@@ -549,6 +550,7 @@
 
     document.getElementById('batch-scan-btn').addEventListener('click', openBatchScanModal);
     document.getElementById('blacklist-btn').addEventListener('click', openBlacklistModal);
+    document.getElementById('dossier-btn').addEventListener('click', openDossierModal);
     document.getElementById('export-history-btn').addEventListener('click', exportHistoryCsv);
 
     document.getElementById('quick-scan-checkbox').addEventListener('change', (e) => {
@@ -1223,6 +1225,88 @@
   }
 
   // ---- Liste noire ----
+  // ---- Dossier — croise rapports / refus / fouilles pour une personne ----
+  function openDossierModal() {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'reader-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="reader-modal" style="width:520px;">
+        <h3>Dossier — recherche croisée</h3>
+        <div style="display:flex; gap:8px; margin-bottom:14px;">
+          <input type="text" id="dossier-search" placeholder="Nom ou pseudo...">
+          <button class="btn small" id="dossier-search-btn" style="flex-shrink:0;">Chercher</button>
+        </div>
+        <div id="dossier-results" style="max-height:420px; overflow-y:auto;">
+          <div class="empty-row">Recherche une personne pour voir son dossier.</div>
+        </div>
+        <div class="reader-modal-actions">
+          <button type="button" class="btn ghost" id="dossier-close-btn">Fermer</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.getElementById('dossier-close-btn').addEventListener('click', () => backdrop.remove());
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
+
+    const input = document.getElementById('dossier-search');
+    const runSearch = async () => {
+      const query = input.value.trim();
+      const results = document.getElementById('dossier-results');
+      if (!query) { results.innerHTML = '<div class="empty-row">Saisis un nom ou pseudo.</div>'; return; }
+      results.innerHTML = '<div class="empty-row">Recherche…</div>';
+      try {
+        const data = await apiFetch(`/api/rp/security/dossier?query=${encodeURIComponent(query)}`);
+        renderDossierResults(data);
+      } catch (err) {
+        results.innerHTML = `<div class="empty-row">Erreur : ${escapeHtml(err.message)}</div>`;
+      }
+    };
+    document.getElementById('dossier-search-btn').addEventListener('click', runSearch);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') runSearch(); });
+    input.focus();
+  }
+
+  function renderDossierResults(data) {
+    const results = document.getElementById('dossier-results');
+    const reports = data.reports || [];
+    const denials = data.denials || [];
+    const searches = data.searches || [];
+
+    if (!reports.length && !denials.length && !searches.length) {
+      results.innerHTML = '<div class="empty-row">Aucun antécédent trouvé pour cette recherche.</div>';
+      return;
+    }
+
+    results.innerHTML = `
+      <div class="dossier-section" style="margin-top:0;">
+        <div class="dossier-section-title">📄 Rapports (${reports.length})</div>
+        ${
+          reports.length
+            ? reports.map((r) => `<div class="post-card"><div class="post-card-title" style="font-size:12.5px;">${escapeHtml(r.title)}</div><div class="post-card-meta">${r.createdAt ? new Date(r.createdAt).toLocaleString('fr-FR') : ''} — impliqué(s) : ${escapeHtml(r.involved || '—')}</div>${r.description ? `<div class="post-card-body" style="margin-top:4px;">${escapeHtml(r.description)}</div>` : ''}</div>`).join('')
+            : '<div class="empty-row">Aucun rapport.</div>'
+        }
+      </div>
+
+      <div class="dossier-section">
+        <div class="dossier-section-title">🚫 Refus d'accès (${denials.length})</div>
+        ${
+          denials.length
+            ? denials.map((s) => `<div class="post-card"><div class="post-card-title" style="font-size:12.5px;">${escapeHtml(s.deptName || '')} — Niveau requis ${s.requiredLevel ?? '?'}</div><div class="post-card-meta">${s.createdAt ? new Date(s.createdAt).toLocaleString('fr-FR') : ''} — scanné par ${escapeHtml(s.scannedBy)}</div></div>`).join('')
+            : '<div class="empty-row">Aucun refus enregistré.</div>'
+        }
+      </div>
+
+      <div class="dossier-section">
+        <div class="dossier-section-title">🔍 Fouilles (${searches.length})</div>
+        ${
+          searches.length
+            ? searches.map((s) => `<div class="post-card"><div class="post-card-title" style="font-size:12.5px;">${(s.items || []).length ? escapeHtml(s.items.join(', ')) : 'Rien trouvé'}</div><div class="post-card-meta">${s.createdAt ? new Date(s.createdAt).toLocaleString('fr-FR') : ''} — par ${escapeHtml(s.foundBy)}</div></div>`).join('')
+            : '<div class="empty-row">Aucune fouille enregistrée.</div>'
+        }
+      </div>
+    `;
+  }
+
   async function openBlacklistModal() {
     const backdrop = document.createElement('div');
     backdrop.className = 'reader-modal-backdrop';
