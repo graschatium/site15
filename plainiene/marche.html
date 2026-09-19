@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plainiene — Marché officiel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B2A6B;
+    --blue: #2338C9;
+    --ink: #1F2430;
+    --ink-dim: #6B7280;
+    --ink-faint: #9CA3AF;
+    --border: #E5E7EB;
+    --bg: #FFFFFF;
+    --bg-soft: #F7F8FA;
+    --green: #16A34A;
+    --red: #DC2626;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-soft);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, .serif { font-family: 'Fraunces', serif; font-weight: 600; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  /* Bande tricolore en haut */
+  .tricolor { height: 4px; display: flex; }
+  .tricolor span { flex: 1; }
+  .tricolor .b { background: var(--navy); }
+  .tricolor .w { background: #fff; }
+  .tricolor .r { background: var(--red); }
+
+  /* ---- Header ---- */
+  header.site-header {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+  }
+  header.site-header .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .flag {
+    width: 34px;
+    height: 34px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--navy) 0 33%, #fff 33% 66%, var(--red) 66% 100%);
+    border: 1px solid var(--border);
+  }
+  .brand .name {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--navy);
+    line-height: 1.15;
+  }
+  header nav { display: flex; align-items: center; gap: 26px; }
+  header nav a {
+    font-size: 14px;
+    color: var(--ink-dim);
+    font-weight: 500;
+  }
+  header nav a:hover { color: var(--navy); }
+  header .user-chip {
+    font-size: 13px;
+    color: var(--ink-dim);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+  }
+  header .logout {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    border: 1px solid var(--navy);
+    padding: 7px 14px;
+    border-radius: 6px;
+  }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+
+  /* ---- Ticker ---- */
+  .ticker-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker-track {
+    display: inline-flex;
+    gap: 36px;
+    padding: 11px 28px;
+    animation: scroll-ticker 45s linear infinite;
+  }
+  .ticker-bar:hover .ticker-track { animation-play-state: paused; }
+  @keyframes scroll-ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .ticker-item { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; }
+  .ticker-item .name { font-weight: 600; }
+  .ticker-item .swatch { width: 8px; height: 8px; border-radius: 2px; background: var(--green); display: inline-block; }
+  .ticker-item .swatch.down { background: var(--red); }
+  .ticker-item .variation { color: var(--ink-faint); }
+  .ticker-item .variation.up { color: var(--green); }
+  .ticker-item .variation.down { color: var(--red); }
+
+  /* ---- Hero ---- */
+  .hero { text-align: center; padding: 56px 0 40px; }
+  .hero .kicker {
+    font-size: 12.5px;
+    letter-spacing: 0.06em;
+    color: var(--blue);
+    font-weight: 600;
+    margin: 0 0 14px;
+  }
+  .hero h1 { font-size: clamp(34px, 5vw, 46px); color: var(--navy); margin: 0 0 18px; }
+  .hero p { color: var(--ink-dim); font-size: 15.5px; line-height: 1.6; max-width: 62ch; margin: 0 auto; }
+  .hero .date { color: var(--ink-faint); font-size: 13px; margin-top: 18px; }
+
+  /* ---- Stat cards ---- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 8px 0 40px;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    text-align: center;
+  }
+  .stat-card .value { font-family: 'Fraunces', serif; font-weight: 700; font-size: 34px; color: var(--navy); }
+  .stat-card .value.green { color: var(--green); }
+  .stat-card .value.red { color: var(--red); }
+  .stat-card .label { font-size: 11.5px; color: var(--ink-dim); margin-top: 6px; letter-spacing: 0.02em; }
+
+  /* ---- Filtres ---- */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 24px; }
+  .search {
+    flex: 1;
+    min-width: 220px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+  }
+  .pill {
+    background: #fff;
+    border: 1px solid var(--border);
+    color: var(--ink-dim);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .pill.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+  /* ---- Table ---- */
+  .market-table {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 60px;
+  }
+  .table-head, .table-row {
+    display: grid;
+    grid-template-columns: 2.2fr 1.4fr 1fr 1fr 1.3fr;
+    align-items: center;
+    padding: 14px 20px;
+  }
+  .table-head {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-row { border-bottom: 1px solid var(--border); font-size: 14px; }
+  .table-row:last-child { border-bottom: none; }
+  .res-name { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+  .res-icon {
+    width: 26px; height: 26px; border-radius: 5px;
+    background: var(--bg-soft); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .res-category { color: var(--ink-dim); }
+  .res-price { font-weight: 700; }
+  .res-variation { font-weight: 600; }
+  .res-variation.up { color: var(--green); }
+  .res-variation.down { color: var(--red); }
+  .res-variation.flat { color: var(--ink-faint); font-weight: 500; }
+  .sparkline-empty { color: var(--ink-faint); font-size: 12.5px; }
+
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--ink-faint); font-size: 14px; }
+
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .table-head { display: none; }
+    .table-row { grid-template-columns: 1fr; gap: 6px; padding: 16px 20px; }
+    header nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tricolor"><span class="b"></span><span class="w"></span><span class="r"></span></div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="/plainiene/" class="brand">
+      <span class="flag"></span>
+      <span class="name">RÉPUBLIQUE<br>PLAINIENE</span>
+    </a>
+    <nav>
+      <a href="/plainiene/">Espace gestion</a>
+      <a href="/plainiene/">Administration</a>
+    </nav>
+    <div class="header-right">
+      <span class="user-chip" id="user-chip">Non connecté</span>
+      <a href="#" class="logout">Déconnexion</a>
+    </div>
+  </div>
+</header>
+
+<div class="ticker-bar">
+  <div class="ticker-track" id="ticker-track">
+    <span class="ticker-item"><span class="name">Chargement du marché…</span></span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <p class="kicker">RÉPUBLIQUE PLAINIENE — DIRECTION DES MARCHÉS</p>
+    <h1>Marché officiel</h1>
+    <p>Les cours officiels des ressources du territoire, régulés par la loi de l'offre et de la demande. Achetez et vendez en toute confiance auprès de la République.</p>
+    <p class="date" id="today-date"></p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="value" id="stat-total">—</div><div class="label">RESSOURCES COTÉES</div></div>
+    <div class="stat-card"><div class="value green" id="stat-up">—</div><div class="label">EN HAUSSE ↗</div></div>
+    <div class="stat-card"><div class="value red" id="stat-down">—</div><div class="label">EN BAISSE ↘</div></div>
+    <div class="stat-card"><div class="value" id="stat-pending">0</div><div class="label">ORDRES EN ATTENTE</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input class="search" id="search-input" type="text" placeholder="Rechercher une ressource…">
+    <button class="pill active" data-category="">Tous</button>
+    <button class="pill" data-category="Armes">Armes</button>
+    <button class="pill" data-category="Agriculture">Agriculture</button>
+    <button class="pill" data-category="Construction">Construction</button>
+    <button class="pill" data-category="Ressources">Ressources</button>
+    <button class="pill" data-category="Minerais">Minerais</button>
+    <button class="pill" data-category="Divers">Divers</button>
+    <button class="pill" data-category="Nourriture">Nourriture</button>
+  </div>
+
+  <div class="market-table">
+    <div class="table-head">
+      <div>RESSOURCE</div><div>CATÉGORIE</div><div>COURS</div><div>VARIATION</div><div>HISTORIQUE</div>
+    </div>
+    <div id="table-body">
+      <div class="empty-state">Chargement du marché…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = "https://site15-bot.onrender.com";
+  let allResources = [];
+  let activeCategory = "";
+  let searchTerm = "";
+
+  document.getElementById("today-date").textContent = new Date().toLocaleDateString("fr-FR", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  });
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  function sparkline(history) {
+    if (!history || history.length < 2) {
+      return `<span class="sparkline-empty">Pas d'historique</span>`;
+    }
+    const w = 70, h = 24, pad = 2;
+    const min = Math.min(...history), max = Math.max(...history);
+    const range = max - min || 1;
+    const step = (w - pad * 2) / (history.length - 1);
+    const points = history.map((v, i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+    const trendUp = history[history.length - 1] >= history[0];
+    const color = trendUp ? "#16A34A" : "#DC2626";
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+
+  function formatVariation(pct) {
+    if (pct > 0.005) return { cls: "up", arrow: "↗", text: `+${pct.toFixed(2)}%` };
+    if (pct < -0.005) return { cls: "down", arrow: "↘", text: `${pct.toFixed(2)}%` };
+    return { cls: "flat", arrow: "—", text: "0,00%" };
+  }
+
+  function renderTicker(resources) {
+    const track = document.getElementById("ticker-track");
+    const items = resources.map((r) => {
+      const v = formatVariation(r.variationPct);
+      return `<span class="ticker-item">
+        <span class="swatch ${v.cls === 'down' ? 'down' : ''}"></span>
+        <span class="name">${escapeHtml(r.name)}</span>
+        <span>${r.currentPrice}</span>
+        <span class="variation ${v.cls}">${v.arrow} ${v.text}</span>
+      </span>`;
+    }).join("");
+    // Dupliqué pour un défilement continu sans coupure visible.
+    track.innerHTML = items + items;
+  }
+
+  function renderStats(resources) {
+    document.getElementById("stat-total").textContent = resources.length;
+    document.getElementById("stat-up").textContent = resources.filter((r) => r.variationPct > 0.005).length;
+    document.getElementById("stat-down").textContent = resources.filter((r) => r.variationPct < -0.005).length;
+  }
+
+  function renderTable() {
+    const body = document.getElementById("table-body");
+    let filtered = allResources;
+    if (activeCategory) {
+      filtered = filtered.filter((r) => r.category === activeCategory);
+    }
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter((r) => r.name.toLowerCase().includes(term));
+    }
+
+    if (filtered.length === 0) {
+      body.innerHTML = `<div class="empty-state">Aucune ressource ne correspond à ta recherche.</div>`;
+      return;
+    }
+
+    body.innerHTML = filtered.map((r) => {
+      const v = formatVariation(r.variationPct);
+      return `
+        <div class="table-row">
+          <div class="res-name"><span class="res-icon">${r.icon || "📦"}</span>${escapeHtml(r.name)}</div>
+          <div class="res-category">${escapeHtml(r.category)}</div>
+          <div class="res-price">${r.currentPrice}</div>
+          <div class="res-variation ${v.cls}">${v.arrow} ${v.text}</div>
+          <div>${sparkline(r.history)}</div>
+        </div>`;
+    }).join("");
+  }
+
+  async function loadMarket() {
+    try {
+      const res = await fetch(API_BASE + "/api/market/resources");
+      const data = await res.json();
+      allResources = data.resources || [];
+      renderTicker(allResources);
+      renderStats(allResources);
+      renderTable();
+    } catch (err) {
+      document.getElementById("table-body").innerHTML = `<div class="empty-state">Impossible de charger le marché pour le moment.</div>`;
+      document.getElementById("ticker-track").innerHTML = `<span class="ticker-item"><span class="name">Marché indisponible</span></span>`;
+    }
+  }
+
+  document.querySelectorAll(".pill").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".pill").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeCategory = btn.dataset.category;
+      renderTable();
+    });
+  });
+
+  document.getElementById("search-input").addEventListener("input", (e) => {
+    searchTerm = e.target.value;
+    renderTable();
+  });
+
+  loadMarket();
+  setInterval(loadMarket, 60000); // rafraîchit toutes les minutes
+</script>
+
+</body>
+</html>

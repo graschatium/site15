@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plainiene — Gouvernement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B2A6B;
+    --blue: #2338C9;
+    --ink: #1F2430;
+    --ink-dim: #6B7280;
+    --ink-faint: #9CA3AF;
+    --border: #E5E7EB;
+    --bg: #FFFFFF;
+    --bg-soft: #F7F8FA;
+    --green: #16A34A;
+    --red: #DC2626;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-soft);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .serif { font-family: 'Fraunces', serif; font-weight: 600; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  .tricolor { height: 4px; display: flex; }
+  .tricolor span { flex: 1; }
+  .tricolor .b { background: var(--navy); }
+  .tricolor .w { background: #fff; }
+  .tricolor .r { background: var(--red); }
+
+  header.site-header { background: #fff; border-bottom: 1px solid var(--border); }
+  header.site-header .wrap {
+    display: flex; align-items: center; justify-content: space-between; padding: 16px 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .flag {
+    width: 34px; height: 34px; border-radius: 3px;
+    background: linear-gradient(90deg, var(--navy) 0 33%, #fff 33% 66%, var(--red) 66% 100%);
+    border: 1px solid var(--border);
+  }
+  .brand .name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; color: var(--navy); line-height: 1.15; }
+  header nav { display: flex; align-items: center; gap: 26px; }
+  header nav a { font-size: 14px; color: var(--ink-dim); font-weight: 500; }
+  header nav a:hover { color: var(--navy); }
+  header .user-chip { font-size: 13px; color: var(--ink-dim); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; }
+  header .logout { font-size: 13px; font-weight: 600; color: var(--navy); border: 1px solid var(--navy); padding: 7px 14px; border-radius: 6px; }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+
+  .hero { text-align: center; padding: 56px 0 40px; }
+  .hero .kicker { font-size: 12.5px; letter-spacing: 0.06em; color: var(--blue); font-weight: 600; margin: 0 0 14px; }
+  .hero h1 { font-size: clamp(34px, 5vw, 46px); color: var(--navy); margin: 0 0 18px; }
+  .hero p { color: var(--ink-dim); font-size: 15.5px; line-height: 1.6; max-width: 62ch; margin: 0 auto; }
+
+  section.block { padding: 20px 0 56px; }
+  section.block h2 { font-size: 22px; color: var(--navy); margin: 0 0 8px; }
+  section.block .sub { color: var(--ink-dim); font-size: 14.5px; margin: 0 0 28px; }
+
+  .president-card {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 28px;
+    align-items: center;
+    padding: 30px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .president-card .portrait {
+    width: 140px; height: 140px; border-radius: 50%;
+    background: var(--bg-soft); border: 2px solid var(--navy); overflow: hidden;
+  }
+  .president-card .portrait img { width: 100%; height: 100%; object-fit: cover; }
+  .president-card .role { color: var(--blue); font-size: 12.5px; font-weight: 700; letter-spacing: 0.03em; margin: 0 0 6px; }
+  .president-card .name { font-size: 28px; color: var(--navy); margin: 0 0 10px; }
+  .president-card .meta { color: var(--ink-dim); font-size: 13.5px; margin: 0; }
+
+  .roster {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .roster-row {
+    display: grid; grid-template-columns: 44px 1fr auto; gap: 16px; align-items: center;
+    padding: 16px 22px; border-bottom: 1px solid var(--border);
+  }
+  .roster-row:last-child { border-bottom: none; }
+  .roster-row .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--bg-soft); border: 1px solid var(--border); overflow: hidden; }
+  .roster-row .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .roster-row .name { font-size: 15px; margin: 0 0 2px; font-weight: 600; }
+  .roster-row .role { color: var(--blue); font-size: 12.5px; font-weight: 600; }
+  .roster-row .appointed { color: var(--ink-faint); font-size: 12.5px; white-space: nowrap; }
+
+  .laws-filter { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .laws-filter button {
+    background: #fff; border: 1px solid var(--border); color: var(--ink-dim);
+    font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 20px; cursor: pointer;
+  }
+  .laws-filter button.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+  .laws-register { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .law-entry { display: grid; grid-template-columns: 60px 1fr; gap: 18px; padding: 22px; border-bottom: 1px solid var(--border); }
+  .law-entry:last-child { border-bottom: none; }
+  .law-entry .number { font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; color: var(--ink-faint); }
+  .law-entry .title { font-size: 16px; color: var(--ink); margin: 0 0 6px; }
+  .law-entry .desc { color: var(--ink-dim); font-size: 13.5px; line-height: 1.55; margin: 0 0 10px; }
+  .law-entry .footer { display: flex; gap: 12px; align-items: center; font-size: 12px; color: var(--ink-faint); }
+  .status-pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .status-pill.active { color: var(--green); background: #ECFDF3; }
+  .status-pill.proposée { color: var(--blue); background: #EEF0FD; }
+  .status-pill.abrogée { color: var(--red); background: #FEF2F2; }
+
+  .empty-state { padding: 32px 22px; text-align: center; color: var(--ink-faint); font-size: 14px; }
+
+  footer.site-footer { padding: 40px 0 60px; text-align: center; color: var(--ink-faint); font-size: 13px; }
+
+  @media (max-width: 640px) {
+    .president-card { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+    .roster-row { grid-template-columns: 36px 1fr; }
+    .roster-row .appointed { grid-column: 2; }
+    header nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tricolor"><span class="b"></span><span class="w"></span><span class="r"></span></div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="/plainiene/" class="brand">
+      <span class="flag"></span>
+      <span class="name">RÉPUBLIQUE<br>PLAINIENE</span>
+    </a>
+    <nav>
+      <a href="/plainiene/">Espace gestion</a>
+      <a href="/plainiene/marche.html">Marché officiel</a>
+      <a href="/plainiene/">Administration</a>
+    </nav>
+    <div class="header-right">
+      <span class="user-chip">Non connecté</span>
+      <a href="#" class="logout">Déconnexion</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <p class="kicker">RÉPUBLIQUE PLAINIENE — DIRECTION DU GOUVERNEMENT</p>
+    <h1>Le gouvernement, en un seul endroit.</h1>
+    <p>Qui dirige, qui siège au cabinet, et ce que dit la loi — le registre public de la présidence de Plainiene, tenu à jour en continu.</p>
+  </div>
+
+  <section class="block" id="president">
+    <h2>Présidence</h2>
+    <p class="sub">Le chef de l'État actuellement en exercice.</p>
+    <div id="president-slot"><div class="empty-state">Chargement…</div></div>
+  </section>
+
+  <section class="block" id="cabinet">
+    <h2>Cabinet</h2>
+    <p class="sub">Les ministres en exercice, par ordre protocolaire.</p>
+    <div class="roster" id="cabinet-slot"><div class="empty-state">Chargement…</div></div>
+  </section>
+
+  <section class="block" id="lois">
+    <h2>Registre des lois</h2>
+    <p class="sub">L'ensemble des textes en vigueur, proposés ou abrogés à Plainiene.</p>
+    <div class="laws-filter" id="laws-filter">
+      <button data-status="" class="active">Toutes</button>
+      <button data-status="active">En vigueur</button>
+      <button data-status="proposée">Proposées</button>
+      <button data-status="abrogée">Abrogées</button>
+    </div>
+    <div class="laws-register" id="laws-slot"><div class="empty-state">Chargement…</div></div>
+  </section>
+</div>
+
+<footer class="site-footer">Plainiene — registre public tenu par voidline-studio.com</footer>
+
+<script>
+  const API_BASE = "https://site15-bot.onrender.com";
+
+  function formatDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  }
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  async function loadOfficials() {
+    const presidentSlot = document.getElementById("president-slot");
+    const cabinetSlot = document.getElementById("cabinet-slot");
+    try {
+      const res = await fetch(API_BASE + "/api/government/officials");
+      const data = await res.json();
+      const officials = data.officials || [];
+
+      const president = officials.find((o) => /président/i.test(o.role));
+      const ministers = officials.filter((o) => o !== president);
+
+      if (president) {
+        presidentSlot.innerHTML = `
+          <div class="president-card">
+            <div class="portrait">${president.avatarUrl ? `<img src="${escapeHtml(president.avatarUrl)}" alt="">` : ""}</div>
+            <div>
+              <p class="role">${escapeHtml(president.role)}</p>
+              <h3 class="name">${escapeHtml(president.name || "Vacant")}</h3>
+              <p class="meta">En fonction depuis le ${formatDate(president.appointedAt)}</p>
+            </div>
+          </div>`;
+      } else {
+        presidentSlot.innerHTML = `<div class="empty-state">Poste vacant.</div>`;
+      }
+
+      if (ministers.length > 0) {
+        cabinetSlot.innerHTML = ministers.map((m) => `
+          <div class="roster-row">
+            <div class="avatar">${m.avatarUrl ? `<img src="${escapeHtml(m.avatarUrl)}" alt="">` : ""}</div>
+            <div>
+              <p class="name">${escapeHtml(m.name || "Vacant")}</p>
+              <p class="role">${escapeHtml(m.role)}</p>
+            </div>
+            <div class="appointed">Depuis le ${formatDate(m.appointedAt)}</div>
+          </div>`).join("");
+      } else {
+        cabinetSlot.innerHTML = `<div class="empty-state">Aucun ministre nommé pour le moment.</div>`;
+      }
+    } catch (err) {
+      presidentSlot.innerHTML = `<div class="empty-state">Impossible de charger les données pour le moment.</div>`;
+      cabinetSlot.innerHTML = "";
+    }
+  }
+
+  let allLaws = [];
+
+  function renderLaws(status) {
+    const slot = document.getElementById("laws-slot");
+    const filtered = status ? allLaws.filter((l) => l.status === status) : allLaws;
+
+    if (filtered.length === 0) {
+      slot.innerHTML = `<div class="empty-state">Aucune loi à afficher pour ce filtre.</div>`;
+      return;
+    }
+
+    slot.innerHTML = filtered.map((law, i) => `
+      <div class="law-entry">
+        <div class="number">N°${filtered.length - i}</div>
+        <div>
+          <h3 class="title">${escapeHtml(law.title)}</h3>
+          <p class="desc">${escapeHtml(law.description || "")}</p>
+          <div class="footer">
+            <span class="status-pill ${escapeHtml(law.status)}">${escapeHtml(law.status)}</span>
+            <span>${escapeHtml(law.category || "Général")}</span>
+            <span>${formatDate(law.enactedAt)}</span>
+          </div>
+        </div>
+      </div>`).join("");
+  }
+
+  async function loadLaws() {
+    const slot = document.getElementById("laws-slot");
+    try {
+      const res = await fetch(API_BASE + "/api/government/laws");
+      const data = await res.json();
+      allLaws = data.laws || [];
+      renderLaws("");
+    } catch (err) {
+      slot.innerHTML = `<div class="empty-state">Impossible de charger le registre pour le moment.</div>`;
+    }
+  }
+
+  document.getElementById("laws-filter").addEventListener("click", (e) => {
+    if (e.target.tagName !== "BUTTON") return;
+    document.querySelectorAll("#laws-filter button").forEach((b) => b.classList.remove("active"));
+    e.target.classList.add("active");
+    renderLaws(e.target.dataset.status);
+  });
+
+  loadOfficials();
+  loadLaws();
+</script>
+
+</body>
+</html>
