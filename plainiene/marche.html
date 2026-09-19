@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="/plainiene/assets/plainiene-eagle.png">
 <title>Plainiene — Marché officiel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -57,13 +58,7 @@
     padding: 16px 28px;
   }
   .brand { display: flex; align-items: center; gap: 12px; }
-  .brand .flag {
-    width: 34px;
-    height: 34px;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--navy) 0 33%, #fff 33% 66%, var(--red) 66% 100%);
-    border: 1px solid var(--border);
-  }
+  .brand .logo { width: 40px; height: 40px; object-fit: contain; }
   .brand .name {
     font-family: 'Fraunces', serif;
     font-weight: 700;
@@ -232,7 +227,7 @@
 <header class="site-header">
   <div class="wrap">
     <a href="/plainiene/" class="brand">
-      <span class="flag"></span>
+      <img src="/plainiene/assets/plainiene-eagle.png" alt="Blason de la République Plainiene" class="logo">
       <span class="name">RÉPUBLIQUE<br>PLAINIENE</span>
     </a>
     <nav>

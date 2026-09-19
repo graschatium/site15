@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="/plainiene/assets/plainiene-eagle.png">
+<title>Plainiene — Administration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1B2A6B;
+    --blue: #2338C9;
+    --ink: #1F2430;
+    --ink-dim: #6B7280;
+    --ink-faint: #9CA3AF;
+    --border: #E5E7EB;
+    --bg: #FFFFFF;
+    --bg-soft: #F7F8FA;
+    --green: #16A34A;
+    --red: #DC2626;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg-soft); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, .serif { font-family: 'Fraunces', serif; font-weight: 600; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  .tricolor { height: 4px; display: flex; }
+  .tricolor span { flex: 1; }
+  .tricolor .b { background: var(--navy); }
+  .tricolor .w { background: #fff; }
+  .tricolor .r { background: var(--red); }
+
+  header.site-header { background: #fff; border-bottom: 1px solid var(--border); }
+  header.site-header .wrap { display: flex; align-items: center; justify-content: space-between; padding: 16px 28px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand .logo { width: 40px; height: 40px; object-fit: contain; }
+  .brand .name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; color: var(--navy); line-height: 1.15; }
+  header nav { display: flex; align-items: center; gap: 26px; }
+  header nav a { font-size: 14px; color: var(--ink-dim); font-weight: 500; }
+  header nav a:hover, header nav a.current { color: var(--navy); }
+  header .user-chip { font-size: 13px; color: var(--ink-dim); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; display: flex; align-items: center; gap: 8px; }
+  header .user-chip img { width: 20px; height: 20px; border-radius: 50%; }
+  header .logout { font-size: 13px; font-weight: 600; color: var(--navy); border: 1px solid var(--navy); padding: 7px 14px; border-radius: 6px; cursor: pointer; background: none; font-family: inherit; }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+
+  .hero { padding: 44px 0 8px; }
+  .hero .kicker { font-size: 12.5px; letter-spacing: 0.06em; color: var(--blue); font-weight: 600; margin: 0 0 12px; }
+  .hero h1 { font-size: clamp(28px, 4vw, 38px); color: var(--navy); margin: 0; }
+
+  .gate { max-width: 480px; margin: 100px auto; text-align: center; padding: 40px; background: #fff; border: 1px solid var(--border); border-radius: 10px; }
+  .gate p { color: var(--ink-dim); font-size: 14.5px; margin: 8px 0 24px; }
+  .btn-primary { display: inline-block; background: var(--navy); color: #fff; font-weight: 600; font-size: 14px; padding: 11px 22px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; }
+
+  .tabs { display: flex; gap: 8px; margin: 28px 0 24px; border-bottom: 1px solid var(--border); }
+  .tab-btn { background: none; border: none; font-family: inherit; font-size: 14.5px; font-weight: 600; color: var(--ink-dim); padding: 12px 18px; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: var(--navy); border-bottom-color: var(--navy); }
+
+  .panel { display: none; padding-bottom: 80px; }
+  .panel.active { display: block; }
+
+  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .card-list { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .list-row { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .list-row:last-child { border-bottom: none; }
+  .list-row .main { min-width: 0; }
+  .list-row .title { font-size: 14.5px; font-weight: 600; margin: 0 0 3px; }
+  .list-row .meta { font-size: 12.5px; color: var(--ink-dim); }
+  .list-row .actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+  .form-panel { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px; position: sticky; top: 20px; }
+  .form-panel h3 { font-size: 15px; margin: 0 0 16px; color: var(--navy); }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-dim); margin-bottom: 5px; }
+  .field input, .field select, .field textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 9px 11px;
+    font-size: 13.5px; font-family: inherit; background: var(--bg-soft);
+  }
+  .field textarea { resize: vertical; min-height: 70px; }
+
+  .btn { font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 13px; border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--ink-dim); cursor: pointer; }
+  .btn:hover { border-color: var(--ink-dim); }
+  .btn-danger { color: var(--red); border-color: #FCA5A5; }
+  .btn-danger:hover { background: #FEF2F2; }
+  .btn-submit { width: 100%; background: var(--navy); color: #fff; border: none; padding: 11px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer; font-family: inherit; }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status-select { font-size: 12px; padding: 4px 8px; border-radius: 20px; border: 1px solid var(--border); font-family: inherit; background: #fff; }
+
+  .empty-state { padding: 32px 18px; text-align: center; color: var(--ink-faint); font-size: 13.5px; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--navy); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13.5px; font-weight: 600; opacity: 0; transform: translateY(10px); transition: 0.25s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="tricolor"><span class="b"></span><span class="w"></span><span class="r"></span></div>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="/plainiene/" class="brand"><img src="/plainiene/assets/plainiene-eagle.png" alt="Blason de la République Plainiene" class="logo"><span class="name">RÉPUBLIQUE<br>PLAINIENE</span></a>
+    <nav>
+      <a href="/plainiene/">Espace gestion</a>
+      <a href="/plainiene/marche.html">Marché officiel</a>
+      <a href="/plainiene/administration.html" class="current">Administration</a>
+    </nav>
+    <div class="header-right">
+      <span class="user-chip" id="user-chip">Non connecté</span>
+      <button class="logout" id="logout-btn" style="display:none;">Déconnexion</button>
+    </div>
+  </div>
+</header>
+
+<div id="gate-view" class="wrap" style="display:none;">
+  <div class="gate">
+    <h2 class="serif">Accès restreint</h2>
+    <p id="gate-message">Connecte-toi avec un compte Discord autorisé pour accéder à l'administration.</p>
+    <button class="btn-primary" id="login-btn">Se connecter avec Discord</button>
+  </div>
+</div>
+
+<div id="admin-view" class="wrap" style="display:none;">
+  <div class="hero">
+    <p class="kicker">RÉPUBLIQUE PLAINIENE — ESPACE ADMINISTRATION</p>
+    <h1>Administration</h1>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="market">Marché</button>
+    <button class="tab-btn" data-tab="officials">Officiels</button>
+    <button class="tab-btn" data-tab="laws">Lois</button>
+  </div>
+
+  <!-- ==== Marché ==== -->
+  <div class="panel active" id="panel-market">
+    <div class="layout">
+      <div class="card-list" id="market-list"><div class="empty-state">Chargement…</div></div>
+      <div class="form-panel">
+        <h3>Ajouter une ressource</h3>
+        <form id="market-form">
+          <div class="field"><label>Nom</label><input type="text" id="market-name" required></div>
+          <div class="field">
+            <label>Catégorie</label>
+            <select id="market-category">
+              <option>Armes</option><option>Agriculture</option><option>Construction</option>
+              <option>Ressources</option><option>Minerais</option><option>Divers</option><option>Nourriture</option>
+            </select>
+          </div>
+          <div class="field"><label>Icône (emoji ou URL)</label><input type="text" id="market-icon" placeholder="📦"></div>
+          <div class="field"><label>Prix de départ</label><input type="number" id="market-price" step="0.01" value="1" required></div>
+          <button type="submit" class="btn-submit">Ajouter au marché</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==== Officiels ==== -->
+  <div class="panel" id="panel-officials">
+    <div class="layout">
+      <div class="card-list" id="officials-list"><div class="empty-state">Chargement…</div></div>
+      <div class="form-panel">
+        <h3 id="officials-form-title">Nommer un officiel</h3>
+        <form id="officials-form">
+          <input type="hidden" id="official-docid">
+          <div class="field"><label>Rôle (ex: Président, Ministre de...)</label><input type="text" id="official-role" required></div>
+          <div class="field"><label>Nom</label><input type="text" id="official-name" required></div>
+          <div class="field"><label>URL de la photo (facultatif)</label><input type="text" id="official-avatar"></div>
+          <div class="field"><label>Ordre d'affichage</label><input type="number" id="official-order" value="1"></div>
+          <button type="submit" class="btn-submit">Enregistrer</button>
+          <button type="button" class="btn" id="officials-cancel-edit" style="display:none; width:100%; margin-top:8px;">Annuler la modification</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==== Lois ==== -->
+  <div class="panel" id="panel-laws">
+    <div class="layout">
+      <div class="card-list" id="laws-list"><div class="empty-state">Chargement…</div></div>
+      <div class="form-panel">
+        <h3>Proposer une loi</h3>
+        <form id="laws-form">
+          <div class="field"><label>Titre</label><input type="text" id="law-title" required></div>
+          <div class="field"><label>Description</label><textarea id="law-description"></textarea></div>
+          <div class="field">
+            <label>Catégorie</label>
+            <input type="text" id="law-category" placeholder="Général" value="Général">
+          </div>
+          <div class="field">
+            <label>Statut</label>
+            <select id="law-status">
+              <option value="active">En vigueur</option>
+              <option value="proposée">Proposée</option>
+              <option value="abrogée">Abrogée</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-submit">Publier la loi</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_BASE = "https://site15-bot.onrender.com";
+  const RETURN_PATH = "/plainiene/administration.html";
+
+  // -----------------------------------------------------------------
+  // Auth — même système que le reste du site (token en localStorage,
+  // transmis via ?token=... après le callback Discord, header
+  // Authorization: Bearer ensuite).
+  // -----------------------------------------------------------------
+  function getToken() { return localStorage.getItem("plainiene_token"); }
+  function setToken(t) { localStorage.setItem("plainiene_token", t); }
+  function clearToken() { localStorage.removeItem("plainiene_token"); }
+
+  function authHeaders() {
+    const token = getToken();
+    return token ? { Authorization: "Bearer " + token } : {};
+  }
+
+  function showToast(message, isError) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = "toast show" + (isError ? " error" : "");
+    setTimeout(() => { toast.className = "toast"; }, 2600);
+  }
+
+  // Récupère le token depuis l'URL si on revient tout juste du callback
+  // Discord, le stocke, puis nettoie l'URL.
+  (function captureTokenFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      setToken(token);
+      params.delete("token");
+      const clean = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
+      window.history.replaceState({}, "", clean);
+    }
+  })();
+
+  document.getElementById("login-btn").addEventListener("click", () => {
+    window.location.href = `${API_BASE}/auth/discord/login?return_to=${encodeURIComponent(RETURN_PATH)}`;
+  });
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    clearToken();
+    window.location.reload();
+  });
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  let currentUser = null;
+
+  async function checkAccess() {
+    const token = getToken();
+    if (!token) {
+      document.getElementById("gate-view").style.display = "block";
+      return;
+    }
+    try {
+      const meRes = await fetch(`${API_BASE}/api/account/me`, { headers: authHeaders() });
+      if (!meRes.ok) throw new Error("not_authenticated");
+      const me = await meRes.json();
+      currentUser = me.discord;
+
+      document.getElementById("user-chip").innerHTML = `${me.discord.avatar ? `<img src="${escapeHtml(me.discord.avatar)}">` : ""}${escapeHtml(me.discord.username)}`;
+      document.getElementById("logout-btn").style.display = "inline-block";
+
+      const ctxRes = await fetch(`${API_BASE}/api/admin/context`, { headers: authHeaders() });
+      const ctx = await ctxRes.json();
+
+      if (!ctxRes.ok || !ctx.canManagePermissions) {
+        document.getElementById("gate-message").textContent = "Ton compte est connecté, mais n'a pas les droits nécessaires pour accéder à l'administration.";
+        document.getElementById("login-btn").style.display = "none";
+        document.getElementById("gate-view").style.display = "block";
+        return;
+      }
+
+      document.getElementById("admin-view").style.display = "block";
+      loadMarket();
+      loadOfficials();
+      loadLaws();
+    } catch (err) {
+      clearToken();
+      document.getElementById("gate-view").style.display = "block";
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Onglets
+  // -----------------------------------------------------------------
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // -----------------------------------------------------------------
+  // Marché
+  // -----------------------------------------------------------------
+  async function loadMarket() {
+    const list = document.getElementById("market-list");
+    try {
+      const res = await fetch(`${API_BASE}/api/market/resources`);
+      const data = await res.json();
+      const resources = data.resources || [];
+      if (resources.length === 0) {
+        list.innerHTML = `<div class="empty-state">Aucune ressource cotée pour l'instant.</div>`;
+        return;
+      }
+      list.innerHTML = resources.map((r) => `
+        <div class="list-row">
+          <div class="main">
+            <p class="title">${escapeHtml(r.icon || "📦")} ${escapeHtml(r.name)}</p>
+            <p class="meta">${escapeHtml(r.category)} · Cours actuel : ${r.currentPrice}</p>
+          </div>
+          <div class="actions">
+            <button class="btn btn-danger" onclick="deleteResource('${r.id}')">Retirer</button>
+          </div>
+        </div>`).join("");
+    } catch (err) {
+      list.innerHTML = `<div class="empty-state">Erreur de chargement.</div>`;
+    }
+  }
+
+  document.getElementById("market-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {
+      name: document.getElementById("market-name").value.trim(),
+      category: document.getElementById("market-category").value,
+      icon: document.getElementById("market-icon").value.trim(),
+      startPrice: parseFloat(document.getElementById("market-price").value) || 1,
+    };
+    try {
+      const res = await fetch(`${API_BASE}/api/market/resources`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error();
+      showToast("Ressource ajoutée au marché.");
+      e.target.reset();
+      document.getElementById("market-price").value = 1;
+      loadMarket();
+    } catch (err) {
+      showToast("Impossible d'ajouter cette ressource.", true);
+    }
+  });
+
+  window.deleteResource = async function (id) {
+    if (!confirm("Retirer cette ressource du marché ?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/market/resources/${id}`, { method: "DELETE", headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      showToast("Ressource retirée.");
+      loadMarket();
+    } catch (err) {
+      showToast("Échec de la suppression.", true);
+    }
+  };
+
+  // -----------------------------------------------------------------
+  // Officiels
+  // -----------------------------------------------------------------
+  let officialsCache = [];
+
+  async function loadOfficials() {
+    const list = document.getElementById("officials-list");
+    try {
+      const res = await fetch(`${API_BASE}/api/government/officials`);
+      const data = await res.json();
+      officialsCache = data.officials || [];
+      if (officialsCache.length === 0) {
+        list.innerHTML = `<div class="empty-state">Aucun officiel nommé pour l'instant.</div>`;
+        return;
+      }
+      list.innerHTML = officialsCache.map((o) => `
+        <div class="list-row">
+          <div class="main">
+            <p class="title">${escapeHtml(o.name || "Vacant")}</p>
+            <p class="meta">${escapeHtml(o.role)}</p>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="editOfficial('${o.id}')">Modifier</button>
+            <button class="btn btn-danger" onclick="deleteOfficial('${o.id}')">Révoquer</button>
+          </div>
+        </div>`).join("");
+    } catch (err) {
+      list.innerHTML = `<div class="empty-state">Erreur de chargement.</div>`;
+    }
+  }
+
+  window.editOfficial = function (id) {
+    const o = officialsCache.find((x) => x.id === id);
+    if (!o) return;
+    document.getElementById("official-docid").value = o.id;
+    document.getElementById("official-role").value = o.role || "";
+    document.getElementById("official-name").value = o.name || "";
+    document.getElementById("official-avatar").value = o.avatarUrl || "";
+    document.getElementById("official-order").value = o.order ?? 1;
+    document.getElementById("officials-form-title").textContent = "Modifier l'officiel";
+    document.getElementById("officials-cancel-edit").style.display = "block";
+  };
+
+  document.getElementById("officials-cancel-edit").addEventListener("click", () => {
+    document.getElementById("officials-form").reset();
+    document.getElementById("official-docid").value = "";
+    document.getElementById("officials-form-title").textContent = "Nommer un officiel";
+    document.getElementById("officials-cancel-edit").style.display = "none";
+  });
+
+  document.getElementById("officials-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {
+      docId: document.getElementById("official-docid").value || undefined,
+      role: document.getElementById("official-role").value.trim(),
+      name: document.getElementById("official-name").value.trim(),
+      avatarUrl: document.getElementById("official-avatar").value.trim(),
+      order: parseInt(document.getElementById("official-order").value, 10) || 1,
+    };
+    try {
+      const res = await fetch(`${API_BASE}/api/government/officials`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error();
+      showToast("Officiel enregistré.");
+      document.getElementById("officials-form").reset();
+      document.getElementById("official-docid").value = "";
+      document.getElementById("officials-form-title").textContent = "Nommer un officiel";
+      document.getElementById("officials-cancel-edit").style.display = "none";
+      loadOfficials();
+    } catch (err) {
+      showToast("Impossible d'enregistrer.", true);
+    }
+  });
+
+  window.deleteOfficial = async function (id) {
+    if (!confirm("Révoquer cet officiel ?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/government/officials/${id}`, { method: "DELETE", headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      showToast("Officiel révoqué.");
+      loadOfficials();
+    } catch (err) {
+      showToast("Échec de la révocation.", true);
+    }
+  };
+
+  // -----------------------------------------------------------------
+  // Lois
+  // -----------------------------------------------------------------
+  async function loadLaws() {
+    const list = document.getElementById("laws-list");
+    try {
+      const res = await fetch(`${API_BASE}/api/government/laws`);
+      const data = await res.json();
+      const laws = data.laws || [];
+      if (laws.length === 0) {
+        list.innerHTML = `<div class="empty-state">Aucune loi publiée pour l'instant.</div>`;
+        return;
+      }
+      list.innerHTML = laws.map((l) => `
+        <div class="list-row">
+          <div class="main">
+            <p class="title">${escapeHtml(l.title)}</p>
+            <p class="meta">${escapeHtml(l.category || "Général")}</p>
+          </div>
+          <div class="actions">
+            <select class="status-select" onchange="changeLawStatus('${l.id}', this.value)">
+              <option value="active" ${l.status === "active" ? "selected" : ""}>En vigueur</option>
+              <option value="proposée" ${l.status === "proposée" ? "selected" : ""}>Proposée</option>
+              <option value="abrogée" ${l.status === "abrogée" ? "selected" : ""}>Abrogée</option>
+            </select>
+            <button class="btn btn-danger" onclick="deleteLaw('${l.id}')">Supprimer</button>
+          </div>
+        </div>`).join("");
+    } catch (err) {
+      list.innerHTML = `<div class="empty-state">Erreur de chargement.</div>`;
+    }
+  }
+
+  document.getElementById("laws-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {
+      title: document.getElementById("law-title").value.trim(),
+      description: document.getElementById("law-description").value.trim(),
+      category: document.getElementById("law-category").value.trim() || "Général",
+      status: document.getElementById("law-status").value,
+    };
+    try {
+      const res = await fetch(`${API_BASE}/api/government/laws`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error();
+      showToast("Loi publiée.");
+      e.target.reset();
+      document.getElementById("law-category").value = "Général";
+      loadLaws();
+    } catch (err) {
+      showToast("Impossible de publier cette loi.", true);
+    }
+  });
+
+  window.changeLawStatus = async function (id, status) {
+    try {
+      const res = await fetch(`${API_BASE}/api/government/laws/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error();
+      showToast("Statut mis à jour.");
+      loadLaws();
+    } catch (err) {
+      showToast("Échec de la mise à jour.", true);
+    }
+  };
+
+  window.deleteLaw = async function (id) {
+    if (!confirm("Supprimer définitivement cette loi ?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/government/laws/${id}`, { method: "DELETE", headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      showToast("Loi supprimée.");
+      loadLaws();
+    } catch (err) {
+      showToast("Échec de la suppression.", true);
+    }
+  };
+
+  checkAccess();
+</script>
+
+</body>
+</html>
