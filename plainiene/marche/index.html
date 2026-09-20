@@ -228,6 +228,35 @@
   .res-variation.flat { color: var(--ink-faint); font-weight: 500; }
   .sparkline-empty { color: var(--ink-faint); font-size: 12.5px; }
 
+  /* ---- Fiche détaillée d'une ressource (modal) ---- */
+  .detail-backdrop {
+    position: fixed; inset: 0; background: rgba(15, 20, 40, 0.5); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .detail-modal {
+    background: #fff; border-radius: 12px; max-width: 640px; width: 100%; max-height: 88vh;
+    overflow-y: auto; padding: 30px;
+  }
+  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+  .detail-title { font-size: 24px; color: var(--navy); margin: 0; display: flex; align-items: center; gap: 10px; }
+  .detail-close { background: none; border: none; font-size: 20px; color: var(--ink-faint); cursor: pointer; padding: 4px 8px; }
+  .detail-category { color: var(--ink-dim); font-size: 13px; margin: 0 0 20px; }
+
+  .detail-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
+  .detail-stat { background: var(--bg-soft); border-radius: 8px; padding: 14px; text-align: center; }
+  .detail-stat .label { font-size: 11px; color: var(--ink-faint); font-weight: 700; letter-spacing: 0.03em; margin: 0 0 4px; }
+  .detail-stat .value { font-family: 'Fraunces', serif; font-weight: 700; font-size: 19px; color: var(--navy); }
+  .detail-stat.high .value { color: var(--green); }
+  .detail-stat.low .value { color: var(--red); }
+
+  .detail-chart-wrap { background: var(--bg-soft); border-radius: 10px; padding: 16px; margin-bottom: 22px; }
+  .detail-chart-wrap svg { width: 100%; height: auto; display: block; }
+
+  .detail-section-label { font-size: 11.5px; color: var(--ink-faint); font-weight: 700; letter-spacing: 0.03em; margin: 0 0 8px; }
+  .detail-description { font-size: 14px; color: var(--ink); line-height: 1.6; margin: 0 0 6px; white-space: pre-wrap; }
+  .detail-description.empty { color: var(--ink-faint); font-style: italic; }
+  .detail-listed { font-size: 12.5px; color: var(--ink-faint); margin-top: 18px; }
+
   /* ---- Ordres en attente + formulaire ---- */
   .orders-title { font-size: 18px; color: var(--navy); margin: 0 0 16px; }
   .orders-list { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 40px; }
@@ -484,7 +513,7 @@
     body.innerHTML = filtered.map((r) => {
       const v = formatVariation(r.variationPct);
       return `
-        <div class="table-row">
+        <div class="table-row" onclick="openResourceDetail('${r.id}')" style="cursor:pointer;">
           <div class="res-name"><span class="res-icon">${r.icon || "📦"}</span>${escapeHtml(r.name)}</div>
           <div class="res-category">${escapeHtml(r.category)}</div>
           <div class="res-price">${r.currentPrice}</div>
@@ -612,7 +641,96 @@
   populateResourceDropdown();
   loadPendingOrders();
   setInterval(loadPendingOrders, 30000);
+  // -----------------------------------------------------------------
+  // Fiche détaillée d'une ressource (clic sur une ligne du tableau)
+  // -----------------------------------------------------------------
+  function detailChart(history, allTimeHigh, allTimeLow) {
+    if (!history || history.length < 2) {
+      return `<p class="sparkline-empty">Pas encore assez d'historique pour un graphique.</p>`;
+    }
+    const w = 560, h = 200, pad = 24;
+    const min = Math.min(...history, allTimeLow);
+    const max = Math.max(...history, allTimeHigh);
+    const range = max - min || 1;
+    const step = (w - pad * 2) / (history.length - 1);
+    const toY = (v) => h - pad - ((v - min) / range) * (h - pad * 2);
+
+    const points = history.map((v, i) => `${(pad + i * step).toFixed(1)},${toY(v).toFixed(1)}`).join(" ");
+    const trendUp = history[history.length - 1] >= history[0];
+    const color = trendUp ? "#16A34A" : "#DC2626";
+
+    // Marqueurs plus haut / plus bas -- seulement s'ils sont dans la
+    // fenêtre d'historique affichée (sinon juste indiqué dans les stats
+    // au-dessus, sans repère sur le graphique).
+    const highIdx = history.indexOf(Math.max(...history));
+    const lowIdx = history.indexOf(Math.min(...history));
+    const highDot = `<circle cx="${(pad + highIdx * step).toFixed(1)}" cy="${toY(history[highIdx]).toFixed(1)}" r="4" fill="#16A34A"/>`;
+    const lowDot = `<circle cx="${(pad + lowIdx * step).toFixed(1)}" cy="${toY(history[lowIdx]).toFixed(1)}" r="4" fill="#DC2626"/>`;
+
+    return `<svg viewBox="0 0 ${w} ${h}">
+      <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      ${highDot}${lowDot}
+    </svg>`;
+  }
+
+  async function openResourceDetail(resourceId) {
+    const slot = document.getElementById("detail-modal-slot");
+    slot.innerHTML = `
+      <div class="detail-backdrop" onclick="if(event.target===this) closeResourceDetail()">
+        <div class="detail-modal"><p class="empty-state">Chargement…</p></div>
+      </div>`;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/market/resources/${resourceId}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const r = data.resource;
+      const v = formatVariation(r.variationPct);
+
+      slot.innerHTML = `
+        <div class="detail-backdrop" onclick="if(event.target===this) closeResourceDetail()">
+          <div class="detail-modal">
+            <div class="detail-header">
+              <h2 class="detail-title">${r.icon || "📦"} ${escapeHtml(r.name)}</h2>
+              <button class="detail-close" onclick="closeResourceDetail()">✕</button>
+            </div>
+            <p class="detail-category">${escapeHtml(r.category)}</p>
+
+            <div class="detail-stats">
+              <div class="detail-stat"><p class="label">COURS ACTUEL</p><p class="value">${r.currentPrice}</p></div>
+              <div class="detail-stat high"><p class="label">PLUS HAUT</p><p class="value">${r.allTimeHigh}</p></div>
+              <div class="detail-stat low"><p class="label">PLUS BAS</p><p class="value">${r.allTimeLow}</p></div>
+            </div>
+
+            <div class="detail-chart-wrap">${detailChart(r.history, r.allTimeHigh, r.allTimeLow)}</div>
+
+            <p class="detail-section-label">INTRODUCTION SUR LE MARCHÉ</p>
+            <p class="detail-description ${r.description ? "" : "empty"}">${r.description ? escapeHtml(r.description) : "Aucune introduction renseignée pour cette ressource."}</p>
+
+            ${r.listedAt ? `<p class="detail-listed">Cotée depuis le ${formatDetailDate(r.listedAt)}</p>` : ""}
+          </div>
+        </div>`;
+    } catch (err) {
+      slot.innerHTML = `
+        <div class="detail-backdrop" onclick="if(event.target===this) closeResourceDetail()">
+          <div class="detail-modal"><p class="empty-state">Impossible de charger cette ressource.</p></div>
+        </div>`;
+    }
+  }
+
+  function formatDetailDate(iso) {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  }
+
+  window.openResourceDetail = openResourceDetail;
+  window.closeResourceDetail = function () {
+    document.getElementById("detail-modal-slot").innerHTML = "";
+  };
 </script>
+
+<div id="detail-modal-slot"></div>
 
 </body>
 </html>

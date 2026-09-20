@@ -145,8 +145,9 @@
     <div class="layout">
       <div class="card-list" id="market-list"><div class="empty-state">Chargement…</div></div>
       <div class="form-panel">
-        <h3>Ajouter une ressource</h3>
+        <h3 id="market-form-title">Ajouter une ressource</h3>
         <form id="market-form">
+          <input type="hidden" id="market-docid">
           <div class="field"><label>Nom</label><input type="text" id="market-name" required></div>
           <div class="field">
             <label>Catégorie</label>
@@ -156,8 +157,10 @@
             </select>
           </div>
           <div class="field"><label>Icône (emoji ou URL)</label><input type="text" id="market-icon" placeholder="📦"></div>
-          <div class="field"><label>Prix de départ</label><input type="number" id="market-price" step="0.01" value="1" required></div>
+          <div class="field" id="market-price-field"><label>Prix de départ</label><input type="number" id="market-price" step="0.01" value="1" required></div>
+          <div class="field"><label>Introduction sur le marché</label><textarea id="market-description" rows="3" placeholder="Texte affiché sur la fiche détaillée de la ressource…"></textarea></div>
           <button type="submit" class="btn-submit">Ajouter au marché</button>
+          <button type="button" class="btn" id="market-cancel-edit" style="display:none; width:100%; margin-top:8px;">Annuler la modification</button>
         </form>
       </div>
     </div>
@@ -335,23 +338,26 @@
   // -----------------------------------------------------------------
   // Marché
   // -----------------------------------------------------------------
+  let marketResourcesCache = [];
+
   async function loadMarket() {
     const list = document.getElementById("market-list");
     try {
       const res = await fetch(`${API_BASE}/api/market/resources`);
       const data = await res.json();
-      const resources = data.resources || [];
-      if (resources.length === 0) {
+      marketResourcesCache = data.resources || [];
+      if (marketResourcesCache.length === 0) {
         list.innerHTML = `<div class="empty-state">Aucune ressource cotée pour l'instant.</div>`;
         return;
       }
-      list.innerHTML = resources.map((r) => `
+      list.innerHTML = marketResourcesCache.map((r) => `
         <div class="list-row">
           <div class="main">
             <p class="title">${escapeHtml(r.icon || "📦")} ${escapeHtml(r.name)}</p>
             <p class="meta">${escapeHtml(r.category)} · Cours actuel : ${r.currentPrice}</p>
           </div>
           <div class="actions">
+            <button class="btn" onclick="editResource('${r.id}')">Modifier</button>
             <button class="btn btn-danger" onclick="deleteResource('${r.id}')">Retirer</button>
           </div>
         </div>`).join("");
@@ -412,27 +418,66 @@
     }
   };
 
+  window.editResource = async function (id) {
+    try {
+      const res = await fetch(`${API_BASE}/api/market/resources/${id}`);
+      const data = await res.json();
+      const r = data.resource;
+      document.getElementById("market-docid").value = r.id;
+      document.getElementById("market-name").value = r.name || "";
+      document.getElementById("market-category").value = r.category || "Divers";
+      document.getElementById("market-icon").value = r.icon || "";
+      document.getElementById("market-description").value = r.description || "";
+      document.getElementById("market-form-title").textContent = "Modifier la ressource";
+      document.getElementById("market-price-field").style.display = "none"; // le prix se gère via le simulateur/les ordres, pas ici
+      document.querySelector("#market-form .btn-submit").textContent = "Enregistrer les modifications";
+      document.getElementById("market-cancel-edit").style.display = "block";
+    } catch (err) {
+      showToast("Impossible de charger cette ressource.", true);
+    }
+  };
+
+  function resetMarketForm() {
+    document.getElementById("market-form").reset();
+    document.getElementById("market-docid").value = "";
+    document.getElementById("market-price").value = 1;
+    document.getElementById("market-form-title").textContent = "Ajouter une ressource";
+    document.getElementById("market-price-field").style.display = "block";
+    document.querySelector("#market-form .btn-submit").textContent = "Ajouter au marché";
+    document.getElementById("market-cancel-edit").style.display = "none";
+  }
+  document.getElementById("market-cancel-edit").addEventListener("click", resetMarketForm);
+
   document.getElementById("market-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const docId = document.getElementById("market-docid").value;
+    const isEdit = !!docId;
+
     const body = {
       name: document.getElementById("market-name").value.trim(),
       category: document.getElementById("market-category").value,
       icon: document.getElementById("market-icon").value.trim(),
-      startPrice: parseFloat(document.getElementById("market-price").value) || 1,
+      description: document.getElementById("market-description").value.trim(),
     };
+    if (!isEdit) {
+      body.startPrice = parseFloat(document.getElementById("market-price").value) || 1;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/api/market/resources`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(
+        isEdit ? `${API_BASE}/api/market/resources/${docId}` : `${API_BASE}/api/market/resources`,
+        {
+          method: isEdit ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify(body),
+        }
+      );
       if (!res.ok) throw new Error();
-      showToast("Ressource ajoutée au marché.");
-      e.target.reset();
-      document.getElementById("market-price").value = 1;
+      showToast(isEdit ? "Ressource modifiée." : "Ressource ajoutée au marché.");
+      resetMarketForm();
       loadMarket();
     } catch (err) {
-      showToast("Impossible d'ajouter cette ressource.", true);
+      showToast(isEdit ? "Impossible de modifier cette ressource." : "Impossible d'ajouter cette ressource.", true);
     }
   });
 
