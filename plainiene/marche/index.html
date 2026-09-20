@@ -249,7 +249,7 @@
   .detail-stat.high .value { color: var(--green); }
   .detail-stat.low .value { color: var(--red); }
 
-  .detail-chart-wrap { background: var(--bg-soft); border-radius: 10px; padding: 16px; margin-bottom: 22px; }
+  .detail-chart-wrap { background: var(--bg-soft); border-radius: 10px; padding: 16px; margin-bottom: 22px; height: 220px; }
   .detail-chart-wrap svg { width: 100%; height: auto; display: block; }
 
   .detail-section-label { font-size: 11.5px; color: var(--ink-faint); font-weight: 700; letter-spacing: 0.03em; margin: 0 0 8px; }
@@ -293,6 +293,7 @@
     header nav { display: none; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -449,22 +450,53 @@
     }[c]));
   }
 
-  function sparkline(history) {
+  // Garde une référence aux instances Chart.js actives pour les détruire
+  // avant un nouveau rendu -- Chart.js râle ("Canvas is already in use")
+  // si on réutilise un <canvas> sans détruire l'ancien graphique dessus.
+  let sparklineCharts = [];
+
+  function sparklinePlaceholder(resourceId, history) {
     if (!history || history.length < 2) {
       return `<span class="sparkline-empty">Pas d'historique</span>`;
     }
-    const w = 70, h = 24, pad = 2;
-    const min = Math.min(...history), max = Math.max(...history);
-    const range = max - min || 1;
-    const step = (w - pad * 2) / (history.length - 1);
-    const points = history.map((v, i) => {
-      const x = pad + i * step;
-      const y = h - pad - ((v - min) / range) * (h - pad * 2);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(" ");
-    const trendUp = history[history.length - 1] >= history[0];
-    const color = trendUp ? "#16A34A" : "#DC2626";
-    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    return `<canvas id="spark-${resourceId}" width="70" height="24" style="width:70px;height:24px;"></canvas>`;
+  }
+
+  function renderSparklineCharts(resources) {
+    sparklineCharts.forEach((c) => c.destroy());
+    sparklineCharts = [];
+
+    resources.forEach((r) => {
+      if (!r.history || r.history.length < 2) return;
+      const canvas = document.getElementById(`spark-${r.id}`);
+      if (!canvas) return;
+
+      const trendUp = r.history[r.history.length - 1] >= r.history[0];
+      const color = trendUp ? "#16A34A" : "#DC2626";
+
+      const chart = new Chart(canvas, {
+        type: "line",
+        data: {
+          labels: r.history.map((_, i) => i),
+          datasets: [{
+            data: r.history,
+            borderColor: color,
+            borderWidth: 1.6,
+            pointRadius: 0,
+            tension: 0.3,
+            fill: false,
+          }],
+        },
+        options: {
+          responsive: false,
+          animation: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: { x: { display: false }, y: { display: false } },
+          elements: { line: { borderJoinStyle: "round" } },
+        },
+      });
+      sparklineCharts.push(chart);
+    });
   }
 
   function formatVariation(pct) {
@@ -506,6 +538,8 @@
     }
 
     if (filtered.length === 0) {
+      sparklineCharts.forEach((c) => c.destroy());
+      sparklineCharts = [];
       body.innerHTML = `<div class="empty-state">Aucune ressource ne correspond à ta recherche.</div>`;
       return;
     }
@@ -518,9 +552,11 @@
           <div class="res-category">${escapeHtml(r.category)}</div>
           <div class="res-price">${r.currentPrice}</div>
           <div class="res-variation ${v.cls}">${v.arrow} ${v.text}</div>
-          <div>${sparkline(r.history)}</div>
+          <div>${sparklinePlaceholder(r.id, r.history)}</div>
         </div>`;
     }).join("");
+
+    renderSparklineCharts(filtered);
   }
 
   async function loadMarket() {
@@ -644,33 +680,78 @@
   // -----------------------------------------------------------------
   // Fiche détaillée d'une ressource (clic sur une ligne du tableau)
   // -----------------------------------------------------------------
-  function detailChart(history, allTimeHigh, allTimeLow) {
+  let detailChartInstance = null;
+
+  function detailChartPlaceholder(history) {
     if (!history || history.length < 2) {
       return `<p class="sparkline-empty">Pas encore assez d'historique pour un graphique.</p>`;
     }
-    const w = 560, h = 200, pad = 24;
-    const min = Math.min(...history, allTimeLow);
-    const max = Math.max(...history, allTimeHigh);
-    const range = max - min || 1;
-    const step = (w - pad * 2) / (history.length - 1);
-    const toY = (v) => h - pad - ((v - min) / range) * (h - pad * 2);
+    return `<canvas id="detail-chart-canvas" height="200"></canvas>`;
+  }
 
-    const points = history.map((v, i) => `${(pad + i * step).toFixed(1)},${toY(v).toFixed(1)}`).join(" ");
+  function renderDetailChart(history, allTimeHigh, allTimeLow) {
+    if (!history || history.length < 2) return;
+    const canvas = document.getElementById("detail-chart-canvas");
+    if (!canvas) return;
+
+    if (detailChartInstance) {
+      detailChartInstance.destroy();
+    }
+
     const trendUp = history[history.length - 1] >= history[0];
-    const color = trendUp ? "#16A34A" : "#DC2626";
+    const lineColor = trendUp ? "#16A34A" : "#DC2626";
 
-    // Marqueurs plus haut / plus bas -- seulement s'ils sont dans la
-    // fenêtre d'historique affichée (sinon juste indiqué dans les stats
-    // au-dessus, sans repère sur le graphique).
-    const highIdx = history.indexOf(Math.max(...history));
-    const lowIdx = history.indexOf(Math.min(...history));
-    const highDot = `<circle cx="${(pad + highIdx * step).toFixed(1)}" cy="${toY(history[highIdx]).toFixed(1)}" r="4" fill="#16A34A"/>`;
-    const lowDot = `<circle cx="${(pad + lowIdx * step).toFixed(1)}" cy="${toY(history[lowIdx]).toFixed(1)}" r="4" fill="#DC2626"/>`;
+    // Points plus haut/plus bas surlignés en plus gros, avec une couleur
+    // dédiée -- visibles directement sur la courbe, pas juste dans les
+    // cases de stats au-dessus.
+    const maxInHistory = Math.max(...history);
+    const minInHistory = Math.min(...history);
+    const pointRadii = history.map((v) => (v === maxInHistory || v === minInHistory ? 5 : 0));
+    const pointColors = history.map((v) => (v === maxInHistory ? "#16A34A" : v === minInHistory ? "#DC2626" : lineColor));
 
-    return `<svg viewBox="0 0 ${w} ${h}">
-      <polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      ${highDot}${lowDot}
-    </svg>`;
+    detailChartInstance = new Chart(canvas, {
+      type: "line",
+      data: {
+        labels: history.map((_, i) => `T-${history.length - 1 - i}`),
+        datasets: [{
+          label: "Cours",
+          data: history,
+          borderColor: lineColor,
+          backgroundColor: lineColor + "1A",
+          borderWidth: 2,
+          pointRadius: pointRadii,
+          pointBackgroundColor: pointColors,
+          pointBorderColor: "#fff",
+          pointBorderWidth: 1.5,
+          tension: 0.3,
+          fill: true,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 300 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#1B2A6B",
+            padding: 10,
+            titleFont: { family: "Inter" },
+            bodyFont: { family: "Inter" },
+            callbacks: {
+              label: (ctx) => `Cours : ${ctx.parsed.y}`,
+            },
+          },
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { display: false } },
+          y: {
+            grid: { color: "#E5E7EB" },
+            ticks: { font: { family: "Inter", size: 11 }, color: "#6B7280" },
+          },
+        },
+      },
+    });
   }
 
   async function openResourceDetail(resourceId) {
@@ -702,7 +783,7 @@
               <div class="detail-stat low"><p class="label">PLUS BAS</p><p class="value">${r.allTimeLow}</p></div>
             </div>
 
-            <div class="detail-chart-wrap">${detailChart(r.history, r.allTimeHigh, r.allTimeLow)}</div>
+            <div class="detail-chart-wrap">${detailChartPlaceholder(r.history)}</div>
 
             <p class="detail-section-label">INTRODUCTION SUR LE MARCHÉ</p>
             <p class="detail-description ${r.description ? "" : "empty"}">${r.description ? escapeHtml(r.description) : "Aucune introduction renseignée pour cette ressource."}</p>
@@ -710,6 +791,8 @@
             ${r.listedAt ? `<p class="detail-listed">Cotée depuis le ${formatDetailDate(r.listedAt)}</p>` : ""}
           </div>
         </div>`;
+
+      renderDetailChart(r.history, r.allTimeHigh, r.allTimeLow);
     } catch (err) {
       slot.innerHTML = `
         <div class="detail-backdrop" onclick="if(event.target===this) closeResourceDetail()">
@@ -726,6 +809,10 @@
 
   window.openResourceDetail = openResourceDetail;
   window.closeResourceDetail = function () {
+    if (detailChartInstance) {
+      detailChartInstance.destroy();
+      detailChartInstance = null;
+    }
     document.getElementById("detail-modal-slot").innerHTML = "";
   };
 </script>
