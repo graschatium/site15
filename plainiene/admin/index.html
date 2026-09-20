@@ -134,6 +134,7 @@
     <button class="tab-btn active" data-tab="market">Marché</button>
     <button class="tab-btn" data-tab="officials">Officiels</button>
     <button class="tab-btn" data-tab="laws">Lois</button>
+    <button class="tab-btn" data-tab="access">Accès</button>
   </div>
 
   <!-- ==== Marché ==== -->
@@ -203,6 +204,24 @@
             </select>
           </div>
           <button type="submit" class="btn-submit">Publier la loi</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==== Accès ==== -->
+  <div class="panel" id="panel-access">
+    <div class="layout">
+      <div class="card-list" id="admins-list"><div class="empty-state">Chargement…</div></div>
+      <div class="form-panel">
+        <h3>Autoriser un accès</h3>
+        <p style="font-size:12.5px; color:var(--ink-dim); margin: -8px 0 14px;">
+          Donne accès à cette page Administration à un ID Discord précis — indépendant des rôles staff du serveur Discord.
+        </p>
+        <form id="admins-form">
+          <div class="field"><label>ID Discord</label><input type="text" id="admin-discord-id" required placeholder="123456789012345678"></div>
+          <div class="field"><label>Note (facultatif)</label><input type="text" id="admin-label" placeholder="Ex: pseudo de la personne"></div>
+          <button type="submit" class="btn-submit">Autoriser</button>
         </form>
       </div>
     </div>
@@ -279,10 +298,10 @@
       document.getElementById("user-chip").innerHTML = `${me.discord.avatar ? `<img src="${escapeHtml(me.discord.avatar)}">` : ""}${escapeHtml(me.discord.username)}`;
       document.getElementById("logout-btn").style.display = "inline-block";
 
-      const ctxRes = await fetch(`${API_BASE}/api/admin/context`, { headers: authHeaders() });
+      const ctxRes = await fetch(`${API_BASE}/api/plainiene/admin-check`, { headers: authHeaders() });
       const ctx = await ctxRes.json();
 
-      if (!ctxRes.ok || !ctx.canManagePermissions) {
+      if (!ctxRes.ok || !ctx.isAdmin) {
         document.getElementById("gate-message").textContent = "Ton compte est connecté, mais n'a pas les droits nécessaires pour accéder à l'administration.";
         document.getElementById("login-btn").style.display = "none";
         document.getElementById("gate-view").style.display = "block";
@@ -294,6 +313,7 @@
       loadPendingOrders();
       loadOfficials();
       loadLaws();
+      loadAdminsList();
     } catch (err) {
       clearToken();
       document.getElementById("gate-view").style.display = "block";
@@ -598,6 +618,67 @@
       loadLaws();
     } catch (err) {
       showToast("Échec de la suppression.", true);
+    }
+  };
+
+  // -----------------------------------------------------------------
+  // Accès (liste d'ID Discord autorisés)
+  // -----------------------------------------------------------------
+  async function loadAdminsList() {
+    const list = document.getElementById("admins-list");
+    try {
+      const res = await fetch(`${API_BASE}/api/plainiene/admins`, { headers: authHeaders() });
+      const data = await res.json();
+      const admins = data.admins || [];
+      if (admins.length === 0) {
+        list.innerHTML = `<div class="empty-state">Personne d'autre n'a encore été autorisé (canManagePermissions garde l'accès de toute façon).</div>`;
+        return;
+      }
+      list.innerHTML = admins.map((a) => `
+        <div class="list-row">
+          <div class="main">
+            <p class="title">${escapeHtml(a.label || "Sans note")}</p>
+            <p class="meta">ID : ${escapeHtml(a.discordId)}</p>
+          </div>
+          <div class="actions">
+            <button class="btn btn-danger" onclick="revokeAdminAccess('${a.discordId}')">Retirer</button>
+          </div>
+        </div>`).join("");
+    } catch (err) {
+      list.innerHTML = `<div class="empty-state">Erreur de chargement.</div>`;
+    }
+  }
+
+  document.getElementById("admins-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {
+      discordId: document.getElementById("admin-discord-id").value.trim(),
+      label: document.getElementById("admin-label").value.trim(),
+    };
+    try {
+      const res = await fetch(`${API_BASE}/api/plainiene/admins`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error();
+      showToast("Accès accordé.");
+      e.target.reset();
+      loadAdminsList();
+    } catch (err) {
+      showToast("Impossible d'accorder cet accès.", true);
+    }
+  });
+
+  window.revokeAdminAccess = async function (discordId) {
+    if (!confirm("Retirer l'accès de cet ID Discord ?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/plainiene/admins/${discordId}`, { method: "DELETE", headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      showToast("Accès retiré.");
+      loadAdminsList();
+    } catch (err) {
+      showToast("Échec du retrait.", true);
     }
   };
 
