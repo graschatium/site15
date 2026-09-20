@@ -197,7 +197,7 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     overflow: hidden;
-    margin-bottom: 60px;
+    margin-bottom: 40px;
   }
   .table-head, .table-row {
     display: grid;
@@ -227,6 +227,33 @@
   .res-variation.down { color: var(--red); }
   .res-variation.flat { color: var(--ink-faint); font-weight: 500; }
   .sparkline-empty { color: var(--ink-faint); font-size: 12.5px; }
+
+  /* ---- Ordres en attente + formulaire ---- */
+  .orders-title { font-size: 18px; color: var(--navy); margin: 0 0 16px; }
+  .orders-list { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 40px; }
+  .order-row { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .order-row:last-child { border-bottom: none; }
+  .order-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .order-badge.buy { color: var(--green); background: #ECFDF3; }
+  .order-badge.sell { color: var(--red); background: #FEF2F2; }
+  .order-meta { color: var(--ink-faint); font-size: 12.5px; text-align: right; }
+
+  .order-form-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 26px; margin-bottom: 60px; }
+  .order-form-sub { color: var(--ink-dim); font-size: 13.5px; margin: 0 0 20px; }
+  .order-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
+  .toggle-btn {
+    font-family: inherit; font-size: 13.5px; font-weight: 600; padding: 9px 18px; border-radius: 8px;
+    border: 1px solid var(--border); background: #fff; color: var(--ink-dim); cursor: pointer;
+  }
+  .toggle-btn.active[data-action="buy"] { background: var(--green); border-color: var(--green); color: #fff; }
+  .toggle-btn.active[data-action="sell"] { background: var(--red); border-color: var(--red); color: #fff; }
+  .order-form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .order-form-grid .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-dim); margin-bottom: 5px; }
+  .order-form-grid .field input, .order-form-grid .field select {
+    width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 9px 11px; font-size: 13.5px; font-family: inherit; background: var(--bg-soft);
+  }
+  .btn-submit-order { background: var(--navy); color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; }
+  @media (max-width: 700px) { .order-form-grid { grid-template-columns: 1fr; } }
 
   .empty-state { padding: 40px 20px; text-align: center; color: var(--ink-faint); font-size: 14px; }
 
@@ -300,6 +327,31 @@
     <div id="table-body">
       <div class="empty-state">Chargement du marché…</div>
     </div>
+  </div>
+
+  <h2 class="orders-title">Ordres en attente de traitement (<span id="pending-count">0</span>)</h2>
+  <div class="orders-list" id="orders-list">
+    <div class="empty-state">Chargement…</div>
+  </div>
+
+  <div class="order-form-card">
+    <h2 class="orders-title">Passer un ordre auprès de la République</h2>
+    <p class="order-form-sub">Achetez ou vendez au cours officiel : chaque ordre approuvé fait évoluer le cours selon l'offre et la demande.</p>
+
+    <div class="order-toggle">
+      <button type="button" class="toggle-btn active" data-action="buy">Acheter</button>
+      <button type="button" class="toggle-btn" data-action="sell">Vendre</button>
+    </div>
+
+    <form id="order-form">
+      <div class="order-form-grid">
+        <div class="field"><label>Votre pseudo</label><input type="text" id="order-pseudo" required></div>
+        <div class="field"><label>Ressource</label><select id="order-resource" required></select></div>
+        <div class="field"><label>Quantité</label><input type="number" id="order-quantity" min="1" value="1" required></div>
+        <div class="field"><label>ID Discord (optionnel)</label><input type="text" id="order-discord" placeholder="Pour être notifié de la décision"></div>
+      </div>
+      <button type="submit" class="btn-submit-order" id="order-submit-btn">Proposer un achat</button>
+    </form>
   </div>
 </div>
 
@@ -472,6 +524,94 @@
 
   loadMarket();
   setInterval(loadMarket, 60000); // rafraîchit toutes les minutes
+
+  // -----------------------------------------------------------------
+  // Ordres en attente + formulaire de soumission
+  // -----------------------------------------------------------------
+  function timeAgo(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) + " " +
+           d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  async function loadPendingOrders() {
+    const list = document.getElementById("orders-list");
+    try {
+      const res = await fetch(API_BASE + "/api/market/orders?status=pending");
+      const data = await res.json();
+      const orders = data.orders || [];
+      document.getElementById("pending-count").textContent = orders.length;
+      document.getElementById("stat-pending").textContent = orders.length;
+
+      if (orders.length === 0) {
+        list.innerHTML = `<div class="empty-state">Aucun ordre en attente pour le moment.</div>`;
+        return;
+      }
+
+      list.innerHTML = orders.map((o) => `
+        <div class="order-row">
+          <span class="order-badge ${o.action}">${o.action === "buy" ? "ACHAT" : "VENTE"}</span>
+          <span>${escapeHtml(o.resourceName)} × ${o.quantity}</span>
+          <span class="order-meta">Par ${escapeHtml(o.pseudo)} · ${timeAgo(o.createdAt)}</span>
+        </div>`).join("");
+    } catch (err) {
+      list.innerHTML = `<div class="empty-state">Impossible de charger les ordres.</div>`;
+    }
+  }
+
+  async function populateResourceDropdown() {
+    const select = document.getElementById("order-resource");
+    try {
+      const res = await fetch(API_BASE + "/api/market/resources");
+      const data = await res.json();
+      const resources = data.resources || [];
+      select.innerHTML = resources.map((r) => `<option value="${r.id}">${escapeHtml(r.icon || "📦")} ${escapeHtml(r.name)}</option>`).join("");
+    } catch (err) {
+      select.innerHTML = `<option value="">Marché indisponible</option>`;
+    }
+  }
+
+  let currentOrderAction = "buy";
+  document.querySelectorAll(".toggle-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".toggle-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      currentOrderAction = btn.dataset.action;
+      document.getElementById("order-submit-btn").textContent =
+        currentOrderAction === "buy" ? "Proposer un achat" : "Proposer une vente";
+    });
+  });
+
+  document.getElementById("order-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = {
+      pseudo: document.getElementById("order-pseudo").value.trim(),
+      discordId: document.getElementById("order-discord").value.trim() || undefined,
+      resourceId: document.getElementById("order-resource").value,
+      action: currentOrderAction,
+      quantity: parseInt(document.getElementById("order-quantity").value, 10),
+    };
+    if (!body.pseudo || !body.resourceId || !body.quantity) return;
+
+    try {
+      const res = await fetch(API_BASE + "/api/market/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error();
+      e.target.reset();
+      document.getElementById("order-quantity").value = 1;
+      loadPendingOrders();
+    } catch (err) {
+      alert("Impossible de soumettre cet ordre pour le moment.");
+    }
+  });
+
+  populateResourceDropdown();
+  loadPendingOrders();
+  setInterval(loadPendingOrders, 30000);
 </script>
 
 </body>

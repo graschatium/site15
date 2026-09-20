@@ -138,6 +138,9 @@
 
   <!-- ==== Marché ==== -->
   <div class="panel active" id="panel-market">
+    <h3 style="font-size:15px; color:var(--navy); margin: 4px 0 12px;">Ordres en attente d'approbation</h3>
+    <div class="card-list" id="orders-pending-list" style="margin-bottom: 24px;"><div class="empty-state">Chargement…</div></div>
+
     <div class="layout">
       <div class="card-list" id="market-list"><div class="empty-state">Chargement…</div></div>
       <div class="form-panel">
@@ -288,6 +291,7 @@
 
       document.getElementById("admin-view").style.display = "block";
       loadMarket();
+      loadPendingOrders();
       loadOfficials();
       loadLaws();
     } catch (err) {
@@ -335,6 +339,58 @@
       list.innerHTML = `<div class="empty-state">Erreur de chargement.</div>`;
     }
   }
+
+  // ---- Ordres en attente (approbation/rejet) ----
+  async function loadPendingOrders() {
+    const list = document.getElementById("orders-pending-list");
+    try {
+      const res = await fetch(`${API_BASE}/api/market/orders?status=pending`);
+      const data = await res.json();
+      const orders = data.orders || [];
+      if (orders.length === 0) {
+        list.innerHTML = `<div class="empty-state">Aucun ordre en attente.</div>`;
+        return;
+      }
+      list.innerHTML = orders.map((o) => `
+        <div class="list-row">
+          <div class="main">
+            <p class="title">${o.action === "buy" ? "🟢 ACHAT" : "🔴 VENTE"} — ${escapeHtml(o.resourceName)} × ${o.quantity}</p>
+            <p class="meta">Par ${escapeHtml(o.pseudo)}${o.discordId ? " · Discord: " + escapeHtml(o.discordId) : ""}</p>
+          </div>
+          <div class="actions">
+            <button class="btn" onclick="approveOrder('${o.id}')">Approuver</button>
+            <button class="btn btn-danger" onclick="rejectOrder('${o.id}')">Rejeter</button>
+          </div>
+        </div>`).join("");
+    } catch (err) {
+      list.innerHTML = `<div class="empty-state">Erreur de chargement.</div>`;
+    }
+  }
+
+  window.approveOrder = async function (id) {
+    if (!confirm("Approuver cet ordre ? Le cours va bouger en conséquence.")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/market/orders/${id}/approve`, { method: "POST", headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      showToast("Ordre approuvé, cours mis à jour.");
+      loadPendingOrders();
+      loadMarket();
+    } catch (err) {
+      showToast("Échec de l'approbation.", true);
+    }
+  };
+
+  window.rejectOrder = async function (id) {
+    if (!confirm("Rejeter cet ordre ?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/market/orders/${id}/reject`, { method: "POST", headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      showToast("Ordre rejeté.");
+      loadPendingOrders();
+    } catch (err) {
+      showToast("Échec du rejet.", true);
+    }
+  };
 
   document.getElementById("market-form").addEventListener("submit", async (e) => {
     e.preventDefault();
