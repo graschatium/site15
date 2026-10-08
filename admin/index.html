@@ -373,6 +373,47 @@
   .toast.error{ border-color:var(--bad); color:var(--bad); }
   .toast.success{ border-color:var(--good); color:var(--good); }
 
+  /* ---------- En direct ---------- */
+
+  .live-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+  .live-updated{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); display:flex; align-items:center; gap:8px; }
+  .live-dot{ width:8px; height:8px; border-radius:50%; background:var(--good); box-shadow:0 0 0 0 rgba(79,216,149,0.6); animation:livePulse 1.8s infinite; }
+  @keyframes livePulse{ 0%{ box-shadow:0 0 0 0 rgba(79,216,149,0.55); } 70%{ box-shadow:0 0 0 9px rgba(79,216,149,0); } 100%{ box-shadow:0 0 0 0 rgba(79,216,149,0); } }
+  .live-stats{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:12px; margin-bottom:24px; }
+  .live-stat{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .live-stat .k{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .live-stat .v{ font-family:'Space Grotesk', sans-serif; font-size:26px; font-weight:600; margin-top:4px; }
+  .live-grid{ display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:20px; align-items:start; }
+  .live-server{ background:var(--panel); border:1px solid var(--line); border-radius:12px; margin-bottom:16px; overflow:hidden; }
+  .live-server-head{ display:flex; align-items:center; gap:14px; padding:16px 18px; border-bottom:1px solid var(--line-soft); }
+  .live-code{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13px; letter-spacing:0.04em; padding:6px 12px; border-radius:8px; white-space:nowrap; }
+  .live-server-title{ flex:1; min-width:0; }
+  .live-server-title strong{ font-family:'Space Grotesk', sans-serif; font-size:15px; display:block; }
+  .live-server-title span{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+  .live-count{ text-align:right; font-family:'Space Grotesk', sans-serif; font-size:20px; font-weight:600; }
+  .live-count small{ display:block; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); font-weight:400; }
+  .live-bar{ height:3px; background:var(--line); }
+  .live-bar > div{ height:100%; background:var(--accent); }
+  .live-chips{ display:flex; flex-wrap:wrap; gap:6px; padding:12px 18px 0; }
+  .live-chip{ font-family:'JetBrains Mono', monospace; font-size:10.5px; padding:4px 9px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim); background:var(--void-2); }
+  .live-chip.bad{ color:var(--bad); border-color:rgba(240,82,90,0.35); background:rgba(240,82,90,0.08); }
+  .live-chip.warn{ color:var(--warn); border-color:rgba(240,168,60,0.35); background:rgba(240,168,60,0.08); }
+  .live-chip.purple{ color:#C9A3D2; border-color:rgba(164,125,171,0.45); background:rgba(164,125,171,0.12); }
+  .live-chip.good{ color:var(--good); border-color:rgba(79,216,149,0.3); background:rgba(79,216,149,0.08); }
+  .live-teams{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px; padding:14px 18px 18px; }
+  .live-team{ border:1px solid var(--line-soft); border-radius:8px; padding:10px 12px; background:var(--void-2); }
+  .live-team h4{ font-size:12.5px; font-weight:600; display:flex; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .live-team h4 span{ font-family:'JetBrains Mono', monospace; color:var(--ink-faint); font-weight:400; }
+  .live-team p{ font-size:12px; color:var(--ink-dim); line-height:1.65; }
+  .live-staff{ color:var(--accent-2); }
+  .live-events{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:6px; max-height:760px; overflow:auto; }
+  .live-event{ padding:11px 12px 11px 14px; border-left:3px solid var(--accent); border-radius:6px; margin:6px; background:var(--void-2); }
+  .live-event-head{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; font-weight:600; }
+  .live-event-head time{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); font-weight:400; white-space:nowrap; }
+  .live-event p{ font-size:12.5px; color:var(--ink-dim); margin-top:3px; line-height:1.5; }
+  .live-event pre{ font-family:'Inter', sans-serif; white-space:pre-wrap; font-size:11.5px; color:var(--ink-faint); margin-top:6px; line-height:1.5; }
+  @media (max-width:1100px){ .live-grid{ grid-template-columns:1fr; } .live-stats{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+
   @media (max-width:900px){
     main{ padding-top:76px; }
     .console{ flex-direction:column; }
@@ -492,9 +533,11 @@
     permissions: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="3.5"/><path d="M10.5 13l8-8M15 8l2 2M18 5l2 2"/></svg>',
     rpbans: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M9 15l6-3.5"/></svg>',
     status: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>',
+    live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/></svg>',
   };
 
   const TAB_META = {
+    live: { title: 'En direct', subtitle: "Serveurs ouverts, joueurs par équipe, code d'alerte, raids, brèches et derniers évènements du site." },
     dossier: { title: 'Dossier', subtitle: "Recherche croisée d'un joueur : rosters, sanctions et absences réunis." },
     rosters: { title: 'Rosters', subtitle: "Effectifs par département, avec la commande de rôle prête à copier." },
     sanctions: { title: 'Sanctions', subtitle: 'Historique des sanctions et ajout de nouvelles entrées.' },
@@ -534,6 +577,7 @@
 
   function renderShell() {
     const tabs = [];
+    if (context.isAdminAnywhere || context.canManageSanctions) tabs.push('live');
     if (context.isAdminAnywhere) tabs.push('dossier');
     if (context.rosterLevel) tabs.push('rosters');
     if (context.canManageSanctions) tabs.push('sanctions');
@@ -592,7 +636,12 @@
     document.getElementById('console-title').textContent = meta.title;
     document.getElementById('console-subtitle').textContent = meta.subtitle;
 
-    if (tabId === 'dossier') loadDossierTab();
+    if (liveTimer) {
+      clearInterval(liveTimer);
+      liveTimer = null;
+    }
+    if (tabId === 'live') loadLiveTab();
+    else if (tabId === 'dossier') loadDossierTab();
     else if (tabId === 'rosters') loadRostersTab();
     else if (tabId === 'sanctions') loadSanctionsTab();
     else if (tabId === 'absences') loadAbsencesTab();
@@ -601,6 +650,133 @@
     else if (tabId === 'permissions') loadPermissionsTab();
     else if (tabId === 'rpbans') loadRpBansTab();
     else if (tabId === 'status') loadStatusTab();
+  }
+
+  // -----------------------------------------------------------------
+  // En direct : serveurs ouverts (heartbeat du jeu toutes les ~30 s) et
+  // derniers évènements du site. Rafraîchi toutes les 15 s.
+  // -----------------------------------------------------------------
+  let liveTimer = null;
+  const LIVE_CODES = {
+    vert: '#50C878', jaune: '#FBEC5D', orange: '#FB845D', bleu: '#468CFF',
+    rouge: '#F0525A', mauve: '#A47DAB', blanc: '#FFFFFF', noir: '#9A9A9A',
+  };
+
+  function liveDuration(seconds) {
+    seconds = Math.max(0, Math.floor(seconds || 0));
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return h > 0 ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`;
+  }
+
+  function liveAgo(ms) {
+    const s = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+    if (s < 60) return "à l'instant";
+    if (s < 3600) return `il y a ${Math.floor(s / 60)} min`;
+    return `il y a ${Math.floor(s / 3600)} h`;
+  }
+
+  function renderLiveServer(server) {
+    const code = String(server.alertCode || 'vert').toLowerCase();
+    const color = LIVE_CODES[code] || '#9297A8';
+    const site = server.site || {};
+    const chips = [];
+    (server.protocols || []).forEach((p) => chips.push(`<span class="live-chip bad">PROTOCOLE · ${escapeHtml(p)}</span>`));
+    if (site.raid) {
+      const left = site.raid.endsAt ? Math.max(0, site.raid.endsAt - Math.floor(Date.now() / 1000)) : 0;
+      const stage = site.raid.stage === 'extract' ? `extraction (${escapeHtml(site.raid.carrier || '?')})` : `piratage · ${escapeHtml(site.raid.target || '?')}`;
+      chips.push(`<span class="live-chip purple">RAID IC · ${stage} · ${liveDuration(left)}</span>`);
+    }
+    (site.breaches || []).forEach((b) => chips.push(`<span class="live-chip bad">BRÈCHE · ${escapeHtml(b)}</span>`));
+    if (site.nuke) chips.push('<span class="live-chip bad">☢ OGIVE ARMÉE</span>');
+    if (site.radioJam) chips.push(`<span class="live-chip warn">RADIO BROUILLÉE · ${site.radioJam}/3</span>`);
+    if (site.detained) chips.push(`<span class="live-chip">${site.detained} EN DÉTENTION</span>`);
+    if (site.patients) chips.push(`<span class="live-chip good">${site.patients} À L'INFIRMERIE</span>`);
+    if (site.experiments) chips.push(`<span class="live-chip">${site.experiments} SUJET(S) EN EXPÉRIENCE</span>`);
+
+    const teams = {};
+    (server.players || []).forEach((p) => {
+      const team = p.team || 'Sans équipe';
+      (teams[team] = teams[team] || []).push(p);
+    });
+    const teamNames = Object.keys(teams).sort((a, b) => teams[b].length - teams[a].length);
+    const playersHtml = teamNames.length
+      ? teamNames.map((team) => `
+          <div class="live-team">
+            <h4>${escapeHtml(team)} <span>${teams[team].length}</span></h4>
+            <p>${teams[team].map((p) => p.staff ? `<span class="live-staff">${escapeHtml(p.name)} ★</span>` : escapeHtml(p.name)).join(', ')}</p>
+          </div>`).join('')
+      : '<div class="empty-row">Aucun joueur.</div>';
+
+    const fill = server.maxPlayers ? Math.min(100, Math.round((server.players.length / server.maxPlayers) * 100)) : 0;
+    return `
+      <div class="live-server">
+        <div class="live-server-head">
+          <span class="live-code" style="background:${color}22;color:${color};border:1px solid ${color}55">CODE ${escapeHtml(code.toUpperCase())}</span>
+          <div class="live-server-title">
+            <strong>Serveur ${escapeHtml(String(server.jobId || '').slice(0, 8))}</strong>
+            <span>v${escapeHtml(server.version || '?')} · ouvert depuis ${liveDuration(server.uptime)} · maj ${liveAgo(server.updatedAt)}</span>
+          </div>
+          <div class="live-count">${server.players.length}<small>/ ${server.maxPlayers || '?'} joueurs</small></div>
+        </div>
+        <div class="live-bar"><div style="width:${fill}%"></div></div>
+        ${chips.length ? `<div class="live-chips">${chips.join('')}</div>` : ''}
+        <div class="live-teams">${playersHtml}</div>
+      </div>`;
+  }
+
+  function renderLiveEvent(event) {
+    return `
+      <div class="live-event" style="border-left-color:${escapeHtml(event.color || '#6E76FF')}">
+        <div class="live-event-head"><span>${escapeHtml(event.title || event.kind)}</span><time>${liveAgo(event.at)}</time></div>
+        <p>${escapeHtml(event.name || '')}${event.by ? ` · <span style="color:var(--ink-faint)">par ${escapeHtml(event.by)}</span>` : ''}</p>
+        ${event.details ? `<pre>${escapeHtml(event.details)}</pre>` : ''}
+      </div>`;
+  }
+
+  async function loadLiveTab(silent) {
+    const body = document.getElementById('console-body');
+    if (!silent) body.innerHTML = '<div class="center-msg">Connexion aux serveurs…</div>';
+    let servers, events;
+    try {
+      const [s, e] = await Promise.all([apiFetch('/api/admin/live-servers'), apiFetch('/api/admin/live-events').catch(() => ({ events: [] }))]);
+      servers = s.servers || [];
+      events = e.events || [];
+    } catch (err) {
+      if (!silent) body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    if (activeTab !== 'live') return;
+
+    const players = servers.reduce((n, s) => n + (s.players || []).length, 0);
+    const staff = servers.reduce((n, s) => n + (s.players || []).filter((p) => p.staff).length, 0);
+    const breaches = servers.reduce((n, s) => n + ((s.site && s.site.breaches) || []).length, 0);
+    const raids = servers.filter((s) => s.site && s.site.raid).length;
+
+    body.innerHTML = `
+      <div class="live-toolbar">
+        <div class="live-updated"><span class="live-dot"></span>Mis à jour ${new Date().toLocaleTimeString('fr-FR')} · actualisation toutes les 15 s</div>
+        <button class="btn ghost small" id="live-refresh">Actualiser</button>
+      </div>
+      <div class="live-stats">
+        <div class="live-stat"><div class="k">Serveurs</div><div class="v">${servers.length}</div></div>
+        <div class="live-stat"><div class="k">Joueurs</div><div class="v">${players}</div></div>
+        <div class="live-stat"><div class="k">Staff en jeu</div><div class="v" style="color:var(--accent-2)">${staff}</div></div>
+        <div class="live-stat"><div class="k">Brèches</div><div class="v" style="color:${breaches ? 'var(--bad)' : 'var(--ink)'}">${breaches}</div></div>
+        <div class="live-stat"><div class="k">Raids en cours</div><div class="v" style="color:${raids ? '#C9A3D2' : 'var(--ink)'}">${raids}</div></div>
+      </div>
+      <div class="live-grid">
+        <div>
+          <div class="record-block-head"><h2>Serveurs ouverts</h2><span class="count">${servers.length}</span></div>
+          ${servers.length ? servers.map(renderLiveServer).join('') : '<div class="empty-row">Aucun serveur ouvert en ce moment.</div>'}
+        </div>
+        <div>
+          <div class="record-block-head"><h2>Évènements du site</h2><span class="count">${events.length}</span></div>
+          ${events.length ? `<div class="live-events">${events.map(renderLiveEvent).join('')}</div>` : '<div class="empty-row">Aucun évènement depuis le dernier redémarrage du bot.</div>'}
+        </div>
+      </div>`;
+    document.getElementById('live-refresh').addEventListener('click', () => loadLiveTab(true));
+    if (!liveTimer) liveTimer = setInterval(() => { if (activeTab === 'live' && !document.hidden) loadLiveTab(true); }, 15000);
   }
 
   // -----------------------------------------------------------------
