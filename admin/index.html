@@ -407,6 +407,11 @@
   .live-team p{ font-size:12px; color:var(--ink-dim); line-height:1.65; }
   .live-staff{ color:var(--accent-2); }
   .live-events{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:6px; max-height:760px; overflow:auto; }
+  .hw-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; }
+  .hw-row + .hw-row{ border-top:1px solid var(--line); }
+  .hw-rank{ width:28px; text-align:center; }
+  .hw-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hw-score{ font-variant-numeric:tabular-nums; color:var(--dim, inherit); }
   .live-event{ padding:11px 12px 11px 14px; border-left:3px solid var(--accent); border-radius:6px; margin:6px; background:var(--void-2); }
   .live-event-head{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; font-weight:600; }
   .live-event-head time{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); font-weight:400; white-space:nowrap; }
@@ -559,11 +564,13 @@
     rpbans: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="1.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M9 15l6-3.5"/></svg>',
     status: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>',
     stats: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+    replays: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4-2.5-4-2.5z"/></svg>',
     live: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 5a10 10 0 0 0 0 14M19 5a10 10 0 0 1 0 14"/></svg>',
   };
 
   const TAB_META = {
     stats: { title: 'Statistiques', subtitle: 'Fréquentation du jeu : pics, heures les plus actives et départements les plus joués (heure de Paris).' },
+    replays: { title: 'Replays & rapports', subtitle: "Replays des morts envoyés depuis le jeu (mode modérateur, alertes) et rapports d'expérience des chercheurs." },
     live: { title: 'En direct', subtitle: "Serveurs ouverts, joueurs par équipe, code d'alerte, raids, brèches et derniers évènements du site." },
     dossier: { title: 'Dossier', subtitle: "Recherche croisée d'un joueur : rosters, sanctions et absences réunis." },
     rosters: { title: 'Rosters', subtitle: "Effectifs par département, avec la commande de rôle prête à copier." },
@@ -606,6 +613,7 @@
     const tabs = [];
     if (context.isAdminAnywhere || context.canManageSanctions) tabs.push('live');
     if (context.isAdminAnywhere || context.canManageSanctions) tabs.push('stats');
+    if (context.isAdminAnywhere || context.canManageSanctions) tabs.push('replays');
     if (context.isAdminAnywhere) tabs.push('dossier');
     if (context.rosterLevel) tabs.push('rosters');
     if (context.canManageSanctions) tabs.push('sanctions');
@@ -652,7 +660,14 @@
       btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
 
-    switchTab(tabs[0]);
+    // lien direct vers un replay (alertes Discord : #replay=ID)
+    const wantedReplay = (location.hash.match(/replay=([\w-]+)/) || [])[1];
+    if (wantedReplay && tabs.includes('replays')) {
+      pendingReplayId = wantedReplay;
+      switchTab('replays');
+    } else {
+      switchTab(tabs[0]);
+    }
   }
 
   function switchTab(tabId) {
@@ -670,6 +685,7 @@
     }
     if (tabId === 'live') loadLiveTab();
     else if (tabId === 'stats') loadStatsTab();
+    else if (tabId === 'replays') loadReplaysTab();
     else if (tabId === 'dossier') loadDossierTab();
     else if (tabId === 'rosters') loadRostersTab();
     else if (tabId === 'sanctions') loadSanctionsTab();
@@ -883,6 +899,15 @@
             <div class="viz-tip"></div>
           </div>
         </div>
+        ${(data.perf || []).length ? `
+        <div class="viz-card">
+          <h3>Performances par appareil</h3>
+          <div class="sub">FPS moyens mesurés en jeu (PerfClient), part des mesures sous 30 FPS</div>
+          <table>
+            <thead><tr><th>Appareil</th><th>FPS moyens</th><th>Sous 30 FPS</th><th>Mesures</th></tr></thead>
+            <tbody>${data.perf.map((p) => `<tr><td>${escapeHtml({ phone: 'Téléphone', tablet: 'Tablette', pc: 'PC', console: 'Console' }[p.device] || p.device)}</td><td>${fmtNum(p.avgFps, 1)}</td><td>${fmtNum(p.lowShare, 1)} %</td><td>${fmtNum(p.samples)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>` : ''}
         <details class="viz-table">
           <summary>Voir les données par jour</summary>
           <table>
@@ -902,6 +927,189 @@
     drawHourly(document.getElementById('viz-hourly'), hourly);
     drawTeams(document.getElementById('viz-teams'), data.teams || []);
   }
+
+  // -----------------------------------------------------------------
+  // Replays & rapports : replays des morts (vue du dessus, positions toutes
+  // les 0,4 s, tirs en traits) et rapports d'expérience (Tablette de test).
+  // -----------------------------------------------------------------
+  let pendingReplayId = null;
+  let replayAnim = null;
+
+  async function loadReplaysTab() {
+    const body = document.getElementById('console-body');
+    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+    let replays = [];
+    let reports = [];
+    try {
+      const [r1, r2] = await Promise.all([apiFetch('/api/admin/replays'), apiFetch('/api/admin/test-reports')]);
+      replays = r1.replays || [];
+      reports = r2.reports || [];
+    } catch (err) {
+      body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    if (activeTab !== 'replays') return;
+    const when = (sec) => new Date(sec * 1000).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    body.innerHTML = `
+      <div class="viz-root">
+        <div class="viz-card" id="replay-player">
+          <h3 id="replay-title">Lecteur de replay</h3>
+          <div class="sub" id="replay-sub">Choisis un replay dans la liste (envoyé depuis le jeu : mode modérateur ☠ MORTS → 📤, ou joint à une alerte « coéquipier tué »).</div>
+          <canvas id="replay-canvas" width="900" height="520" style="width:100%;max-width:900px;background:#0e0e10;border:1px solid #2a2a2e;display:block;margin-top:10px;"></canvas>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+            <button class="toggle-btn" id="replay-play">⏯</button>
+            <button class="toggle-btn" id="replay-speed">×1</button>
+            <input type="range" id="replay-seek" min="0" max="1000" value="0" style="flex:1;min-width:160px;">
+            <span class="mono" id="replay-time">0.0 s</span>
+          </div>
+        </div>
+        <div class="viz-card">
+          <h3>Replays reçus</h3>
+          ${replays.length ? `<table><thead><tr><th>Date</th><th>Victime</th><th>Tueur</th><th></th></tr></thead><tbody>
+            ${replays.map((r) => `<tr><td class="mono-cell">${escapeHtml(when(r.at))}</td><td>${escapeHtml(r.victim)}</td><td>${escapeHtml(r.killer || '—')}</td><td><button class="toggle-btn" data-replay="${escapeHtml(r.id)}">▶ Voir</button></td></tr>`).join('')}
+          </tbody></table>` : '<div class="center-msg">Aucun replay pour le moment.</div>'}
+        </div>
+        <div class="viz-card">
+          <h3>Rapports d'expérience</h3>
+          ${reports.length ? `<table><thead><tr><th>Date</th><th>SCP</th><th>Chercheur</th><th>Sujet</th><th>Résultat</th></tr></thead><tbody>
+            ${reports.map((r) => `<tr title="${escapeHtml((r.procedure || '') + (r.notes ? ' — ' + r.notes : ''))}"><td class="mono-cell">${escapeHtml(new Date(r.createdAt).toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }))}</td><td>${escapeHtml(r.scp)}</td><td>${escapeHtml((r.author && (r.author.rpName || r.author.username)) || '—')}</td><td>${escapeHtml(r.subject || '—')}</td><td>${escapeHtml(r.resultLabel || r.result || '—')}</td></tr>`).join('')}
+          </tbody></table>` : '<div class="center-msg">Aucun rapport pour le moment.</div>'}
+        </div>
+      </div>`;
+    body.querySelectorAll('[data-replay]').forEach((b) => b.addEventListener('click', () => openReplay(b.dataset.replay)));
+    if (pendingReplayId) {
+      const id = pendingReplayId;
+      pendingReplayId = null;
+      openReplay(id);
+    }
+  }
+
+  async function openReplay(id) {
+    let replay;
+    try {
+      replay = (await apiFetch(`/api/admin/replays/${encodeURIComponent(id)}`)).replay;
+    } catch (err) {
+      document.getElementById('replay-sub').textContent = `Erreur : ${err.message}`;
+      return;
+    }
+    document.getElementById('replay-title').textContent = `Mort de ${replay.victim}${replay.killer ? ` — tué par ${replay.killer}` : ''}`;
+    document.getElementById('replay-sub').textContent = 'Vue du dessus · victime en rouge, tueur en orange · traits jaunes = tirs · ✖ = lieu de la mort';
+    playReplay(replay);
+  }
+
+  function playReplay(replay) {
+    if (replayAnim) cancelAnimationFrame(replayAnim.raf);
+    const canvas = document.getElementById('replay-canvas');
+    const ctx = canvas.getContext('2d');
+    const frames = replay.frames || []; // [t, [[u, x, y, z, yaw, down], ...]]
+    const shots = replay.shots || []; // [t, u, ax, ay, az, bx, by, bz]
+    const people = replay.people || {};
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+    for (const [, list] of frames) {
+      for (const e of list) {
+        minX = Math.min(minX, e[1]); maxX = Math.max(maxX, e[1]);
+        minZ = Math.min(minZ, e[3]); maxZ = Math.max(maxZ, e[3]);
+      }
+    }
+    if (!isFinite(minX)) { minX = -50; maxX = 50; minZ = -50; maxZ = 50; }
+    const pad = 12;
+    const spanX = Math.max(30, maxX - minX + pad * 2);
+    const spanZ = Math.max(30, maxZ - minZ + pad * 2);
+    const scale = Math.min(canvas.width / spanX, canvas.height / spanZ);
+    const ox = (canvas.width - (maxX - minX) * scale) / 2 - minX * scale;
+    const oz = (canvas.height - (maxZ - minZ) * scale) / 2 - minZ * scale;
+    const toScreen = (x, z) => [ox + x * scale, oz + z * scale];
+    const duration = replay.duration || (frames.length ? frames[frames.length - 1][0] : 1);
+    const state = { t: 0, playing: true, speed: 1, last: performance.now(), raf: 0 };
+    replayAnim = state;
+    const seek = document.getElementById('replay-seek');
+    const timeLabel = document.getElementById('replay-time');
+    document.getElementById('replay-play').onclick = () => {
+      if (state.t >= duration) state.t = 0;
+      state.playing = !state.playing;
+    };
+    const speedBtn = document.getElementById('replay-speed');
+    speedBtn.onclick = () => {
+      state.speed = state.speed === 1 ? 0.5 : (state.speed === 0.5 ? 2 : 1);
+      speedBtn.textContent = `×${state.speed}`;
+    };
+    seek.oninput = () => { state.t = (seek.value / 1000) * duration; };
+
+    function positionsAt(t) {
+      let i = 0;
+      while (i < frames.length - 1 && frames[i + 1][0] < t) i++;
+      const a = frames[i];
+      const b = frames[Math.min(i + 1, frames.length - 1)];
+      if (!a) return [];
+      const k = b[0] > a[0] ? Math.min(1, Math.max(0, (t - a[0]) / (b[0] - a[0]))) : 0;
+      const bMap = new Map(b[1].map((e) => [e[0], e]));
+      return a[1].map((e) => {
+        const e2 = bMap.get(e[0]) || e;
+        return { u: e[0], x: e[1] + (e2[1] - e[1]) * k, z: e[3] + (e2[3] - e[3]) * k, yaw: e[4], down: e[5] === 1 };
+      });
+    }
+
+    function draw() {
+      ctx.fillStyle = '#0e0e10';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#1d1d22';
+      ctx.lineWidth = 1;
+      const step = 10 * scale;
+      for (let x = ((ox % step) + step) % step; x < canvas.width; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+      for (let z = ((oz % step) + step) % step; z < canvas.height; z += step) { ctx.beginPath(); ctx.moveTo(0, z); ctx.lineTo(canvas.width, z); ctx.stroke(); }
+      if (replay.pos) {
+        const [dx, dz] = toScreen(replay.pos[0], replay.pos[2]);
+        ctx.strokeStyle = '#F0525A';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(dx - 6, dz - 6); ctx.lineTo(dx + 6, dz + 6); ctx.moveTo(dx + 6, dz - 6); ctx.lineTo(dx - 6, dz + 6); ctx.stroke();
+      }
+      for (const sh of shots) {
+        const age = state.t - sh[0];
+        if (age >= 0 && age < 0.5) {
+          const [ax, az] = toScreen(sh[2], sh[4]);
+          const [bx, bz] = toScreen(sh[5], sh[7]);
+          ctx.strokeStyle = `rgba(255, 220, 120, ${1 - age / 0.5})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(ax, az); ctx.lineTo(bx, bz); ctx.stroke();
+        }
+      }
+      ctx.font = '12px system-ui, sans-serif';
+      for (const p of positionsAt(state.t)) {
+        const info = people[String(p.u)] || { name: String(p.u), team: '?', color: '999999' };
+        const [x, z] = toScreen(p.x, p.z);
+        const isVictim = p.u === replay.victimId;
+        const isKiller = p.u === replay.killerId;
+        ctx.fillStyle = `#${info.color}`;
+        ctx.beginPath(); ctx.arc(x, z, p.down ? 4 : 6, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = `#${info.color}`;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x, z); ctx.lineTo(x - Math.sin(p.yaw) * 12, z - Math.cos(p.yaw) * 12); ctx.stroke();
+        if (isVictim || isKiller) {
+          ctx.strokeStyle = isVictim ? '#F0525A' : '#F0A83C';
+          ctx.beginPath(); ctx.arc(x, z, 10, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.fillStyle = isVictim ? '#F0525A' : (isKiller ? '#F0A83C' : '#ECECF0');
+        ctx.fillText(`${info.name}${p.down ? ' (à terre)' : ''}`, x + 10, z - 8);
+      }
+      const untilDeath = (replay.deathAt || 10) - state.t;
+      timeLabel.textContent = `${state.t.toFixed(1)} / ${duration.toFixed(0)} s${untilDeath > 0 ? ` · mort dans ${untilDeath.toFixed(1)} s` : ' · ☠'}`;
+      seek.value = String(Math.round((state.t / duration) * 1000));
+    }
+
+    function tick(now) {
+      const dt = (now - state.last) / 1000;
+      state.last = now;
+      if (state.playing) {
+        state.t = Math.min(duration, state.t + dt * state.speed);
+        if (state.t >= duration) state.playing = false;
+      }
+      if (!document.getElementById('replay-canvas')) return; // onglet changé
+      draw();
+      state.raf = requestAnimationFrame(tick);
+    }
+    state.raf = requestAnimationFrame(tick);
+  }
+
 
   // -----------------------------------------------------------------
   // En direct : serveurs ouverts (heartbeat du jeu toutes les ~30 s) et
@@ -988,11 +1196,16 @@
   async function loadLiveTab(silent) {
     const body = document.getElementById('console-body');
     if (!silent) body.innerHTML = '<div class="center-msg">Connexion aux serveurs…</div>';
-    let servers, events;
+    let servers, events, halloween;
     try {
-      const [s, e] = await Promise.all([apiFetch('/api/admin/live-servers'), apiFetch('/api/admin/live-events').catch(() => ({ events: [] }))]);
+      const [s, e, h] = await Promise.all([
+        apiFetch('/api/admin/live-servers'),
+        apiFetch('/api/admin/live-events').catch(() => ({ events: [] })),
+        apiFetch('/api/admin/halloween').catch(() => ({ top: [] })),
+      ]);
       servers = s.servers || [];
       events = e.events || [];
+      halloween = h || { top: [] };
     } catch (err) {
       if (!silent) body.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
       return;
@@ -1024,6 +1237,10 @@
         <div>
           <div class="record-block-head"><h2>Évènements du site</h2><span class="count">${events.length}</span></div>
           ${events.length ? `<div class="live-events">${events.map(renderLiveEvent).join('')}</div>` : '<div class="empty-row">Aucun évènement depuis le dernier redémarrage du bot.</div>'}
+          <div class="record-block-head" style="margin-top:18px"><h2>🎃 Halloween — bonbons</h2><span class="count">${halloween.night ? 'Nuit des Morts en cours' : 'top 10'}</span></div>
+          ${(halloween.top || []).length ? `<div class="live-events">${halloween.top.map((p, i) => `
+            <div class="hw-row"><span class="hw-rank">${['🥇', '🥈', '🥉'][i] || (i + 1) + '.'}</span><span class="hw-name">${escapeHtml(p.name)}</span><span class="hw-score">${Number(p.candies) || 0} 🍬</span></div>`).join('')}</div>`
+            : '<div class="empty-row">Pas encore de classement (aucun serveur ouvert ou personne n\'a ramassé de bonbons).</div>'}
         </div>
       </div>`;
     document.getElementById('live-refresh').addEventListener('click', () => loadLiveTab(true));
