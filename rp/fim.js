@@ -1308,7 +1308,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
   }
 
   // En-tête de profil : radar + barres pour UNE grille, moyenne globale en %.
-  function profileBlock(name, unitId, evals, gridView, color, gridChoices) {
+  function profileBlock(name, unitId, evals, gridView, color, gridChoices, tags) {
     const overall = avgOf(evals.map((e) => e.percent).filter((v) => v != null));
     const scoped = gridView ? evals.filter((e) => e.gridId === gridView.id) : [];
     const avg = gridView ? criteriaAverages(gridView, scoped) : {};
@@ -1318,7 +1318,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       <div class="fim-eval-head">
         ${gridView && gridView.criteria.length >= 3 ? radar(gridView.criteria, avg, color) : `<div style="text-align:center; font-size:12px; color:var(--ink-faint);">${gridView ? 'Radar disponible à partir de 3 critères.' : 'Aucune évaluation.'}</div>`}
         <div>
-          <div class="fim-hero-eyebrow" style="color:${color}">${esc(unitId ? unitLabel(unitId) : 'Unité non renseignée')}</div>
+          <div class="fim-hero-eyebrow" style="color:${color}">${esc([unitId ? unitLabel(unitId) : '', ...(tags || []).filter((t) => t !== 'FIM')].filter(Boolean).join(' · ') || 'Unité non renseignée')}</div>
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:21px; margin:4px 0 12px;">${esc(name)}</h3>
           <div class="fim-facts" style="margin-bottom:14px;">
             <div class="fim-fact"><b>Moyenne générale</b><span style="color:${pctColor(overall)}; font-weight:700;">${fmtPct(overall)}</span></div>
@@ -1343,6 +1343,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
   let evalSelected = null;
   let evalFormOpen = false;
   let evalView = 'people';
+  let evalTag = 'TOUS';
   let evalGridView = {};
   let gridEditing = null;
 
@@ -1352,6 +1353,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     let data;
     let grids = [];
     let agents = [];
+    let extra = { roles: [], people: [] };
     try {
       const [d, g, dept] = await Promise.all([
         window.apiFetch('/api/rp/fim/evaluations'),
@@ -1360,6 +1362,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       ]);
       data = d;
       grids = g.grids || [];
+      if (data.canEvaluate) extra = await window.apiFetch('/api/rp/fim/evaluables').catch(() => extra);
       agents = (dept?.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
     } catch (err) {
       main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
@@ -1411,19 +1414,27 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     }));
     const body = document.getElementById('fim-eval-body');
     if (evalView === 'grids') renderGrids(body, grids, evaluations, deptId);
-    else renderPeople(body, data, grids, evaluations, agents, deptId);
+    else renderPeople(body, data, grids, evaluations, agents, extra, deptId);
   }
 
   // ---------------- Vue officier : opérateurs ----------------
-  function renderPeople(body, data, grids, evaluations, agents, deptId) {
+  function renderPeople(body, data, grids, evaluations, agents, extra, deptId) {
     const people = new Map();
     agents.forEach((a) => {
       const name = a.name || a.username;
-      if (name) people.set(norm(name), { name, unit: unitFromAgent(a), evals: [] });
+      if (name) people.set(norm(name), { name, unit: unitFromAgent(a), evals: [], tags: ['FIM'] });
+    });
+    // Membres des rôles Discord évaluables (ex : ERI), qu'ils soient FIM ou non.
+    (extra.people || []).forEach((x) => {
+      const key = norm(x.name);
+      if (!key) return;
+      const existing = people.get(key);
+      if (existing) existing.tags = [...new Set([...existing.tags, ...x.roles])];
+      else people.set(key, { name: x.name, unit: x.deptId === 'fim_mmqbs55q2vge' ? unitFromAgent(x) : null, evals: [], tags: x.roles, discordName: x.discordName });
     });
     evaluations.forEach((e) => {
       const key = norm(e.agentName);
-      if (!people.has(key)) people.set(key, { name: e.agentName, unit: e.unit !== 'INTER-UNITÉS' ? e.unit : null, evals: [], former: true });
+      if (!people.has(key)) people.set(key, { name: e.agentName, unit: e.unit !== 'INTER-UNITÉS' ? e.unit : null, evals: [], tags: [], former: true });
       people.get(key).evals.push(e);
     });
     const list = [...people.values()].sort((a, b) => (a.former ? 1 : 0) - (b.former ? 1 : 0) || a.name.localeCompare(b.name, 'fr'));
@@ -1440,6 +1451,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       <div class="fim-eval-layout">
         <div class="fim-eval-list">
           <input type="text" id="fim-eval-search" placeholder="Rechercher un opérateur ou une unité…">
+          ${(extra.roles || []).length ? `<div class="fim-subnav" style="margin:0 0 8px;">${['TOUS', 'FIM', ...extra.roles].map((t) => `<button type="button" data-tag="${esc(t)}" class="${t === evalTag ? 'active' : ''}" style="padding:7px 10px;">${esc(t === 'TOUS' ? 'Tous' : t)} (${t === 'TOUS' ? list.length : list.filter((p) => p.tags.includes(t)).length})</button>`).join('')}</div>` : ''}
           <div class="fim-eval-items" id="fim-eval-items"></div>
         </div>
         <div class="fim-eval-profile" id="fim-eval-profile"></div>
@@ -1448,11 +1460,11 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     let filter = '';
     const renderList = () => {
       const box = document.getElementById('fim-eval-items');
-      const shown = list.filter((p) => !filter || norm(p.name).includes(filter) || (p.unit && norm(unitLabel(p.unit)).includes(filter)));
+      const shown = list.filter((p) => (evalTag === 'TOUS' || p.tags.includes(evalTag)) && (!filter || norm(p.name).includes(filter) || norm(p.discordName).includes(filter) || (p.unit && norm(unitLabel(p.unit)).includes(filter))));
       box.innerHTML = shown.length ? shown.map((p) => {
         const avg = avgOf(p.evals.map((e) => e.percent).filter((v) => v != null));
         return `<button class="fim-eval-item${norm(p.name) === norm(evalSelected) ? ' active' : ''}" style="--u:${p.unit ? unitColor(p.unit) : 'var(--accent)'}" data-person="${esc(p.name)}" type="button">
-          <span class="nm">${esc(p.name)}<span class="sub">${esc(p.unit ? unitLabel(p.unit) : 'Sans unité')}${p.former ? ' · hors effectif' : ''} · ${p.evals.length} éval.</span></span>
+          <span class="nm">${esc(p.name)}<span class="sub">${esc(p.unit ? unitLabel(p.unit) : p.tags.filter((t) => t !== 'FIM').join(' · ') || 'Sans unité')}${p.unit && p.tags.some((t) => t !== 'FIM') ? ` · ${esc(p.tags.filter((t) => t !== 'FIM').join(' · '))}` : ''}${p.former ? ' · hors effectif' : ''} · ${p.evals.length} éval.</span></span>
           <span class="fim-score" style="color:${pctColor(avg)}">${avg == null ? '—' : `${fr(avg, 0)}%`}</span>
         </button>`;
       }).join('') : '<div class="empty-row">Aucun opérateur.</div>';
@@ -1474,7 +1486,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       const gv = choices.find((g) => g.id === evalGridView[norm(p.name)]) || choices[0] || null;
       box.style.setProperty('--u', color);
       box.innerHTML = `
-        ${profileBlock(p.name, p.unit, p.evals, gv, color, choices)}
+        ${profileBlock(p.name, p.unit, p.evals, gv, color, choices, p.tags)}${p.discordName && norm(p.discordName) !== norm(p.name) ? `<div class="post-card-meta" style="margin-top:-4px;">Discord : ${esc(p.discordName)}</div>` : ''}
         <div style="display:flex; justify-content:space-between; align-items:center; margin:22px 0 12px; gap:10px; flex-wrap:wrap;">
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px;">${evalFormOpen ? 'Nouvelle évaluation' : 'Historique'}</h3>
           ${isSelf ? '<span class="post-card-meta">Auto-évaluation impossible</span>' : `<button class="btn small${evalFormOpen ? ' ghost' : ''}" id="fim-eval-toggle" type="button">${evalFormOpen ? 'Annuler' : '+ Évaluer'}</button>`}
@@ -1497,6 +1509,11 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     };
 
     document.getElementById('fim-eval-search').addEventListener('input', (e) => { filter = norm(e.target.value); renderList(); });
+    body.querySelectorAll('[data-tag]').forEach((b) => b.addEventListener('click', () => {
+      evalTag = b.dataset.tag;
+      body.querySelectorAll('[data-tag]').forEach((x) => x.classList.toggle('active', x === b));
+      renderList();
+    }));
     renderList();
     renderProfile();
   }
