@@ -1316,8 +1316,11 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     const v = VERDICT_META[e.verdict] || VERDICT_META.conforme;
     const r = RECO_META[e.recommendation] || RECO_META.aucune;
     const g = e.grid;
+    const cert = certOf(e);
+    if (cert) diplomaRegistry.set(e.id, e);
     return `
       <div class="fim-eval-card">
+        ${cert ? `<div class="fim-cert-ribbon">${emblemSvg(cert.emblem)}<span>Brevet décerné : <b>${esc(cert.title)}</b> · mention ${esc(certMention(e))}</span><button class="btn small" type="button" data-diploma="${esc(e.id)}" style="background:#D4AF55; border-color:#D4AF55; white-space:nowrap;">Voir le diplôme</button></div>` : ''}
         <div class="fim-eval-card-top">
           <span class="fim-score" style="color:${pctColor(e.percent)}; text-align:left; min-width:0;">${esc(pctInScale(g.scale, e.percent))}</span>
           <span style="font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint);">${fmtPct(e.percent)}</span>
@@ -1351,6 +1354,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
             <div class="fim-fact"><b>Dernier avis</b><span>${last ? esc((VERDICT_META[last.verdict] || {}).label || '—') : '—'}</span></div>
             <div class="fim-fact"><b>Propositions promo</b><span>${promo}</span></div>
           </div>
+          ${medalsRow(evals)}
           ${gridView ? `
             ${gridChoices.length > 1 ? `<div class="field-row" style="margin-bottom:10px;"><label>Détail par grille</label><select id="fim-profile-grid">${gridChoices.map((g) => `<option value="${esc(g.id)}"${g.id === gridView.id ? ' selected' : ''}>${esc(g.name)} (${evals.filter((e) => e.gridId === g.id).length})</option>`).join('')}</select></div>` : `<div class="post-card-meta" style="margin-bottom:10px;">Grille : ${esc(gridView.name)} · ${scoped.length} évaluation(s)</div>`}
             <div class="fim-bars">${gridView.criteria.map((c) => `<div class="fim-bar-row"><span>${esc(c.label)}</span><div class="fim-bar"><i style="width:${avg[c.id] || 0}%; --c:${pctColor(avg[c.id])}"></i></div><b>${esc(pctInScale(gridView.scale, avg[c.id]))}</b></div>`).join('')}</div>` : ''}
@@ -1689,6 +1693,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
               <h4 style="margin-right:auto;">${esc(g.name)}</h4>
               ${g.builtin ? '<span class="fim-pill" style="--c:var(--accent-2)">Par défaut</span>' : ''}
               ${g.pathway ? '<span class="fim-pill" style="--c:#B07CFF">Parcours ERI</span>' : ''}
+              ${g.certificate?.enabled ? `<span class="fim-pill" style="--c:#D4AF55">🎖 ${esc(g.certificate.title)}</span>` : ''}
               ${g.archived ? '<span class="fim-pill">Archivée</span>' : ''}
             </div>
             ${g.description ? `<p>${esc(g.description)}</p>` : ''}
@@ -1763,7 +1768,15 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
           <div class="field-row"><label>Nom *</label><input id="ge-name" maxlength="60" value="${esc(g.name)}" placeholder="Ex : Qualification tir Nu-7"></div>
           <div class="field-row"><label>Description</label><input id="ge-desc" maxlength="300" value="${esc(g.description || '')}" placeholder="À quoi sert cette grille"></div>
         </div>
-        <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:12.5px; color:var(--ink-dim); cursor:pointer;"><input type="checkbox" id="ge-pathway" style="width:auto;"${g.pathway ? ' checked' : ''}> Module du parcours d'intégration ERI (validé quand une évaluation atteint le seuil « Conforme »)</label>
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-family:'Inter', sans-serif; font-size:12.5px; color:var(--ink-dim); cursor:pointer;"><input type="checkbox" id="ge-pathway" style="width:auto;"${g.pathway ? ' checked' : ''}> Module du parcours d'intégration ERI (validé quand une évaluation atteint le seuil « Conforme »)</label>
+
+        <div class="fim-editor-section" style="color:#E8C874; border-left-color:#D4AF55;">Brevet</div>
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-family:'Inter', sans-serif; font-size:12.5px; color:var(--ink-dim); cursor:pointer; margin-bottom:10px;"><input type="checkbox" id="ge-cert" style="width:auto;"${g.certificate?.enabled ? ' checked' : ''}> Cette grille délivre un brevet : un diplôme est décerné quand l'évaluation atteint le seuil « Conforme »</label>
+        <div id="ge-cert-box" style="${g.certificate?.enabled ? '' : 'display:none;'}">
+          <div class="field-row"><label>Intitulé du brevet</label><input id="ge-cert-title" maxlength="80" value="${esc(g.certificate?.title || g.name || '')}" placeholder="Ex : Brevet de tireur d'élite"></div>
+          <label>Emblème</label>
+          <div class="fim-emblems" id="ge-emblems">${Object.entries(EMBLEMS).map(([k, em]) => `<button type="button" data-emblem="${k}" class="${(g.certificate?.emblem || 'etoile') === k ? 'on' : ''}">${emblemSvg(k)}${esc(em.label)}</button>`).join('')}</div>
+        </div>
 
         <div class="fim-editor-section">Barème</div>
         <div class="field-grid">
@@ -1818,6 +1831,11 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       g.name = document.getElementById('ge-name').value;
       g.description = document.getElementById('ge-desc').value;
       g.pathway = document.getElementById('ge-pathway').checked;
+      g.certificate = {
+        enabled: document.getElementById('ge-cert').checked,
+        title: document.getElementById('ge-cert-title').value,
+        emblem: body.querySelector('#ge-emblems .on')?.dataset.emblem || 'etoile',
+      };
       if (document.getElementById('ge-min')) {
         g.scale = { kind: 'range', min: Number(document.getElementById('ge-min').value), max: Number(document.getElementById('ge-max').value), step: Number(document.getElementById('ge-step').value) };
       }
@@ -1847,6 +1865,20 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
         : '';
     };
     ['ge-t-exc', 'ge-t-conf', 'ge-t-amel', 'ge-min', 'ge-max'].forEach((id) => document.getElementById(id)?.addEventListener('input', updateZones));
+    // Brevet : case, emblème, et « Brevet de… » dans le nom coche la case d'office.
+    const certBox = document.getElementById('ge-cert');
+    const certTitle = document.getElementById('ge-cert-title');
+    let certTitleTouched = !!g.certificate?.title && g.certificate.title !== g.name;
+    certBox.addEventListener('change', () => { document.getElementById('ge-cert-box').style.display = certBox.checked ? '' : 'none'; });
+    certTitle.addEventListener('input', () => { certTitleTouched = true; });
+    document.getElementById('ge-name').addEventListener('input', (ev) => {
+      const v = ev.target.value;
+      if (!certTitleTouched) certTitle.value = v;
+      if (/^\s*brevet\b/i.test(v) && !g.id && !certBox.checked) { certBox.checked = true; certBox.dispatchEvent(new Event('change')); }
+    });
+    body.querySelectorAll('#ge-emblems [data-emblem]').forEach((b) => b.addEventListener('click', () => {
+      body.querySelectorAll('#ge-emblems [data-emblem]').forEach((x) => x.classList.toggle('on', x === b));
+    }));
     updateZones();
 
     document.getElementById('ge-preset').addEventListener('change', (e) => {
@@ -1871,7 +1903,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       if (!g.name.trim()) { window.showToast('Donne un nom à la grille.', 'error'); return; }
       if (!g.criteria.some((c) => c.label.trim())) { window.showToast('Ajoute au moins un critère.', 'error'); return; }
       if (g.scale.kind === 'range' && !(g.scale.max > g.scale.min)) { window.showToast('Le maximum doit être supérieur au minimum.', 'error'); return; }
-      const payload = { name: g.name, description: g.description, pathway: !!g.pathway, scale: g.scale, criteria: g.criteria, thresholds: g.thresholds };
+      const payload = { name: g.name, description: g.description, pathway: !!g.pathway, certificate: g.certificate, scale: g.scale, criteria: g.criteria, thresholds: g.thresholds };
       try {
         if (g.id) await window.apiFetch(`/api/rp/fim/eval-grids/${encodeURIComponent(g.id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
         else await window.apiFetch('/api/rp/fim/eval-grids', { method: 'POST', body: JSON.stringify(payload) });
@@ -1882,6 +1914,213 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
     });
+  }
+
+  // ---------------------------------------------------------------
+  // Brevets : grilles qui décernent un diplôme (« Brevet de tireur d'élite »…)
+  // ---------------------------------------------------------------
+  // Emblèmes en traits, viewBox 0 0 24 24 (mêmes clés que le bot).
+  const EMBLEMS = {
+    cible: { label: 'Tireur', svg: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>' },
+    croix: { label: 'Secours', svg: '<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/>' },
+    radio: { label: 'Transmissions', svg: '<rect x="6" y="8" width="12" height="13" rx="1.5"/><path d="M9 8L14 2.5M9 13h6M9 16.5h6"/><circle cx="9" cy="18.8" r=".6" fill="currentColor"/>' },
+    explosif: { label: 'Explosifs', svg: '<circle cx="11" cy="14" r="7"/><path d="M15.5 8.5l2-2M17.5 6.5l1.5-1.5M19 5l1.2.3M19 5l-.3-1.2"/><path d="M8 12.5a3.5 3.5 0 0 1 3-2.5"/>' },
+    k9: { label: 'Cynophile', svg: '<path d="M5 10l1.5-5 3 3h5l3-3L19 10c0 6-3 10-7 10s-7-4-7-10z"/><circle cx="9.5" cy="12" r=".7" fill="currentColor"/><circle cx="14.5" cy="12" r=".7" fill="currentColor"/><path d="M11 15.5h2l-1 1.2z"/>' },
+    bouclier: { label: 'Protection', svg: '<path d="M12 2.5l8 3v6.5c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V5.5z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>' },
+    etoile: { label: 'Mérite', svg: '<path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6-4.9-4.6 6.6-.8z"/>' },
+    parachute: { label: 'Aéroporté', svg: '<path d="M3 11a9 9 0 0 1 18 0"/><path d="M3 11c1.5-1.5 3-1.5 4.5 0 1.5-1.5 3-1.5 4.5 0 1.5-1.5 3-1.5 4.5 0 1.5-1.5 3-1.5 4.5 0"/><path d="M3 11l9 8 9-8M7.5 11L12 19l4.5-8M12 11v8"/><rect x="10.5" y="19" width="3" height="3" rx=".5"/>' },
+    biohazard: { label: 'NRBC', svg: '<circle cx="12" cy="13" r="2.2"/><path d="M12 3.5a4 4 0 0 0-2.2 7.3M12 3.5a4 4 0 0 1 2.2 7.3M4.5 17.5a4 4 0 0 0 7.4-1M4.5 17.5a4 4 0 0 1 5.3-6.7M19.5 17.5a4 4 0 0 1-7.4-1M19.5 17.5a4 4 0 0 0-5.3-6.7"/>' },
+    cle: { label: 'Confinement', svg: '<circle cx="8" cy="12" r="4.5"/><path d="M12.5 12H21M17.5 12v3.5M20.5 12v2.5"/>' },
+  };
+  const emblemSvg = (key, attrs = '', sw = 1.5) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" ${attrs}>${(EMBLEMS[key] || EMBLEMS.etoile).svg}</svg>`;
+
+  const brevetStyle = document.createElement('style');
+  brevetStyle.textContent = `
+  .fim-cert-ribbon{ display:flex; align-items:center; gap:10px; margin:2px 0 10px; padding:8px 12px; border-radius:3px;
+    background:linear-gradient(90deg, rgba(212,175,85,0.16), rgba(212,175,85,0.03)); border:1px solid rgba(212,175,85,0.4); color:#E8C874; font-size:12.5px; }
+  .fim-cert-ribbon svg{ width:20px; height:20px; flex-shrink:0; }
+  .fim-cert-ribbon b{ color:#F3DC9C; }
+  .fim-cert-ribbon button{ margin-left:auto; }
+  .fim-medals{ display:flex; flex-wrap:wrap; gap:10px; margin:0 0 14px; }
+  .fim-medal{ display:flex; align-items:center; gap:9px; padding:6px 12px 6px 6px; border-radius:30px; cursor:pointer; color:var(--ink); font-family:'Inter', sans-serif; font-size:12px;
+    background:linear-gradient(135deg, rgba(212,175,85,0.18), rgba(212,175,85,0.05)); border:1px solid rgba(212,175,85,0.45); transition:transform .15s ease, box-shadow .15s ease; }
+  .fim-medal:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(212,175,85,0.18); }
+  .fim-medal .disc{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#3a2a08;
+    background:radial-gradient(circle at 35% 30%, #FFF1BE, #E2B851 55%, #9C7520); box-shadow:inset 0 0 0 2px rgba(255,255,255,0.35), 0 1px 3px rgba(0,0,0,0.5); }
+  .fim-medal .disc svg{ width:17px; height:17px; }
+  .fim-medal small{ display:block; font-family:'JetBrains Mono', monospace; font-size:9px; color:#C9A95A; margin-top:1px; }
+  .fim-emblems{ display:flex; flex-wrap:wrap; gap:6px; }
+  .fim-emblems button{ display:flex; flex-direction:column; align-items:center; gap:4px; width:78px; padding:8px 4px; border-radius:3px; cursor:pointer;
+    background:var(--void-2); border:1px solid var(--line); color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:9px; }
+  .fim-emblems button svg{ width:22px; height:22px; }
+  .fim-emblems button:hover{ color:var(--ink); border-color:var(--accent); }
+  .fim-emblems button.on{ color:#E8C874; border-color:#D4AF55; background:rgba(212,175,85,0.1); }
+  `;
+  document.head.appendChild(brevetStyle);
+
+  const certOf = (e) => (e.certified && e.grid?.certificate?.enabled ? e.grid.certificate : null);
+  const certNumber = (e) => `FIM-${new Date(e.createdAt || Date.now()).getFullYear()}-${String(e.id || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 6).toUpperCase().padEnd(6, '0')}`;
+  function certMention(e) {
+    const t = e.grid.thresholds;
+    if (e.percent >= t.excellent) return 'Très bien';
+    if (e.percent >= (t.excellent + t.conforme) / 2) return 'Bien';
+    return 'Assez bien';
+  }
+  // Brevets obtenus : le plus ancien par intitulé.
+  function earnedBrevets(evals) {
+    const map = new Map();
+    chrono(evals).forEach((e) => {
+      const c = certOf(e);
+      if (c && !map.has(c.title)) map.set(c.title, e);
+    });
+    return [...map.values()];
+  }
+  function medalsRow(evals) {
+    const list = earnedBrevets(evals);
+    if (!list.length) return '';
+    return `<div class="fim-medals">${list.map((e) => {
+      const c = certOf(e);
+      diplomaRegistry.set(e.id, e);
+      return `<button type="button" class="fim-medal" data-diploma="${esc(e.id)}" title="Voir le diplôme"><span class="disc">${emblemSvg(c.emblem)}</span><span>${esc(c.title)}<small>${esc(new Date(e.createdAt).toLocaleDateString('fr-FR'))} · ${esc(certNumber(e))}</small></span></button>`;
+    }).join('')}</div>`;
+  }
+
+  // Registre des évaluations affichées, pour ouvrir un diplôme depuis un clic.
+  const diplomaRegistry = new Map();
+  document.addEventListener('click', (ev) => {
+    const btn = ev.target.closest && ev.target.closest('[data-diploma]');
+    if (!btn) return;
+    const e = diplomaRegistry.get(btn.dataset.diploma);
+    if (e) openDiploma(e);
+  });
+
+  function laurel(side) {
+    // Branche de laurier qui remonte le long du médaillon : tige en arc +
+    // paires de feuilles orientées sur la tangente (angles en degrés, y inversé).
+    const R = 82;
+    const pt = (deg, r) => [100 + r * Math.cos((deg * Math.PI) / 180), 100 - r * Math.sin((deg * Math.PI) / 180)];
+    const [sx, sy] = pt(250, R);
+    const [ex, ey] = pt(118, R);
+    const parts = [`<path d="M${sx.toFixed(1)} ${sy.toFixed(1)} A${R} ${R} 0 0 1 ${ex.toFixed(1)} ${ey.toFixed(1)}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>`];
+    for (let k = 0; k < 9; k += 1) {
+      const deg = 242 - k * 14;
+      const size = 1 - k * 0.045;
+      [[R + 7, 25], [R - 7, -25]].forEach(([r, tilt]) => {
+        const [cx, cy] = pt(deg, r);
+        parts.push(`<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${(4.2 * size).toFixed(1)}" ry="${(10 * size).toFixed(1)}" transform="rotate(${(-deg + tilt).toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})"/>`);
+      });
+    }
+    const [tx, ty] = pt(114, R + 2);
+    parts.push(`<ellipse cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" rx="3.6" ry="9" transform="rotate(${(-114 + 90).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})"/>`);
+    return `<g ${side === 'right' ? 'transform="translate(200 0) scale(-1 1)"' : ''}>${parts.join('')}</g>`;
+  }
+
+  function openDiploma(e) {
+    const c = certOf(e);
+    if (!c) return;
+    const raw = String(c.title || '').trim();
+    const m = raw.match(/^brevet\s+(.*)$/i);
+    const kicker = m ? 'Brevet' : 'Certificat';
+    const subtitle = m ? m[1] : raw;
+    const date = new Date(e.createdAt || Date.now());
+    const dateLong = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const unitName = e.unit && e.unit !== 'INTER-UNITÉS' ? `FIM ${unitLabel(e.unit)}` : "Forces d'Intervention Mobiles";
+    const score = pctInScale(e.grid.scale, e.percent);
+    const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<title>${esc(c.title)} — ${esc(e.agentName)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  @page{ size:A4 landscape; margin:0; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html, body{ background:#2a2b30; }
+  body{ font-family:'Cormorant Garamond', Georgia, serif; color:#1d2a44; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .bar{ position:fixed; top:14px; right:16px; display:flex; gap:8px; z-index:5; }
+  .bar button{ font:600 13px Inter, Arial, sans-serif; padding:9px 16px; border-radius:3px; border:none; cursor:pointer; background:#6E76FF; color:#fff; }
+  .bar button.ghost{ background:#ffffff22; color:#fff; }
+  .sheet{ width:297mm; height:210mm; margin:24px auto; position:relative; overflow:hidden;
+    background:radial-gradient(ellipse at 50% 40%, #fffaf0 0%, #f7efdc 55%, #eadcb9 100%); box-shadow:0 20px 60px rgba(0,0,0,.55); }
+  .sheet::before{ content:''; position:absolute; inset:0; opacity:.35; pointer-events:none;
+    background-image:radial-gradient(rgba(120,90,40,.10) 1px, transparent 1px); background-size:3px 3px; }
+  .frame{ position:absolute; inset:8mm; border:2.2mm solid #1d2a44; }
+  .frame::after{ content:''; position:absolute; inset:2.2mm; border:.5mm solid #b08d3c; }
+  .guilloche{ position:absolute; inset:13mm; }
+  .inner{ position:absolute; inset:19mm 22mm; display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .watermark{ position:absolute; left:50%; top:52%; width:120mm; height:120mm; transform:translate(-50%,-50%); opacity:.06; color:#1d2a44; }
+  .org{ font-family:'Cinzel', serif; font-weight:700; letter-spacing:.32em; font-size:11pt; color:#1d2a44; }
+  .org small{ display:block; font-weight:500; letter-spacing:.24em; font-size:7.5pt; color:#8a6d2b; margin-top:3px; }
+  .medallion{ position:relative; width:34mm; height:34mm; margin:6mm 0 2mm; }
+  .medallion svg.laurels{ position:absolute; left:-12mm; top:-12mm; width:58mm; height:58mm; color:#8a6d2b; fill:#a58431; }
+  .disc{ position:absolute; inset:0; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#2b1f05;
+    background:radial-gradient(circle at 35% 30%, #fff3c4, #e2b851 52%, #94701d 100%); box-shadow:inset 0 0 0 1.2mm rgba(255,255,255,.35), inset 0 0 0 1.8mm #8a6d2b, 0 1.5mm 3mm rgba(0,0,0,.25); }
+  .disc svg{ width:17mm; height:17mm; }
+  .kicker{ font-family:'Cinzel', serif; font-weight:900; font-size:30pt; letter-spacing:.3em; margin-top:3mm; color:#1d2a44; }
+  .subtitle{ font-family:'Cinzel', serif; font-weight:500; font-size:15pt; letter-spacing:.14em; color:#8a6d2b; margin-top:-1mm; text-transform:uppercase; }
+  .rule{ width:120mm; height:3mm; margin:3mm 0; color:#b08d3c; }
+  .lead{ font-size:13.5pt; font-style:italic; color:#3b4660; }
+  .name{ font-family:'Pinyon Script', cursive; font-size:40pt; line-height:1.15; color:#14203a; margin:1mm 0 0; }
+  .body{ font-size:13pt; max-width:205mm; line-height:1.45; color:#2c3650; }
+  .body b{ color:#14203a; }
+  .scores{ display:flex; gap:5mm; flex-wrap:wrap; justify-content:center; margin-top:2.5mm; font-family:'Cinzel', serif; font-size:7.5pt; letter-spacing:.12em; color:#6b5524; }
+  .footer{ position:absolute; left:0; right:0; bottom:0; display:grid; grid-template-columns:1fr 40mm 1fr; align-items:end; gap:8mm; }
+  .sign{ text-align:center; }
+  .sign .script{ font-family:'Pinyon Script', cursive; font-size:21pt; color:#1d2a44; height:11mm; }
+  .sign .line{ border-top:.35mm solid #1d2a44; margin:0 10mm; padding-top:1.5mm; font-family:'Cinzel', serif; font-size:7.5pt; letter-spacing:.16em; }
+  .sign .line small{ display:block; font-family:'Cormorant Garamond', serif; font-style:italic; font-size:10pt; letter-spacing:0; color:#556; margin-top:.5mm; }
+  .seal{ width:36mm; height:36mm; justify-self:center; margin-bottom:-2mm; filter:drop-shadow(0 1.2mm 1.5mm rgba(80,0,0,.35)); }
+  .meta{ position:absolute; left:36mm; right:36mm; bottom:11.2mm; display:flex; justify-content:space-between; font-family:'Cinzel', serif; font-size:6.8pt; letter-spacing:.18em; color:#8a6d2b; }
+  @media print{ html, body{ background:none; } .bar{ display:none; } .sheet{ margin:0; box-shadow:none; } }
+</style></head><body>
+<div class="bar"><button onclick="window.print()">Imprimer / PDF</button><button class="ghost" onclick="window.close()">Fermer</button></div>
+<div class="sheet">
+  <div class="frame"></div>
+  <svg class="guilloche" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <pattern id="rose" width="26" height="26" patternUnits="userSpaceOnUse">
+        <circle cx="13" cy="13" r="9" fill="none" stroke="#b08d3c" stroke-width=".55" opacity=".7"/>
+        <circle cx="0" cy="0" r="9" fill="none" stroke="#1d2a44" stroke-width=".4" opacity=".45"/>
+        <circle cx="26" cy="26" r="9" fill="none" stroke="#1d2a44" stroke-width=".4" opacity=".45"/>
+      </pattern>
+      <mask id="band"><rect width="1000" height="700" fill="#fff"/><rect x="16" y="16" width="968" height="668" fill="#000"/></mask>
+    </defs>
+    <rect width="1000" height="700" fill="url(#rose)" mask="url(#band)"/>
+    <rect x="16" y="16" width="968" height="668" fill="none" stroke="#b08d3c" stroke-width="1"/>
+    ${[[0, 0], [1000, 0], [0, 700], [1000, 700]].map(([x, y]) => `<g transform="translate(${x} ${y}) scale(${x ? -1 : 1} ${y ? -1 : 1})"><path d="M16 70 Q16 16 70 16" fill="none" stroke="#1d2a44" stroke-width="1.6"/><path d="M26 90 Q26 26 90 26" fill="none" stroke="#b08d3c" stroke-width="1"/><circle cx="34" cy="34" r="5" fill="#b08d3c"/></g>`).join('')}
+  </svg>
+  <div class="inner">
+    <svg class="watermark" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="50" cy="50" r="27" fill="none" stroke="currentColor" stroke-width="5"/>${[0, 120, 240].map((r) => `<g transform="rotate(${r} 50 50)"><path d="M50 4 V30" stroke="currentColor" stroke-width="5"/><path d="M41 22 L50 34 L59 22 Z" fill="currentColor"/></g>`).join('')}</svg>
+    <div class="org">FONDATION SCP · SITE-15<small>Commandement des Forces d'Intervention Mobiles</small></div>
+    <div class="medallion">
+      <svg class="laurels" viewBox="0 0 200 200" aria-hidden="true">${laurel('left')}${laurel('right')}</svg>
+      <div class="disc">${emblemSvg(c.emblem, '', 1.3)}</div>
+    </div>
+    <div class="kicker">${esc(kicker.toUpperCase())}</div>
+    <div class="subtitle">${esc(subtitle)}</div>
+    <svg class="rule" viewBox="0 0 400 10" aria-hidden="true"><path d="M0 5 H170 M230 5 H400" stroke="currentColor" stroke-width="1"/><path d="M200 0 L208 5 L200 10 L192 5 Z" fill="currentColor"/><circle cx="180" cy="5" r="2" fill="currentColor"/><circle cx="220" cy="5" r="2" fill="currentColor"/></svg>
+    <div class="lead">Le Commandement des Forces d'Intervention Mobiles certifie que</div>
+    <div class="name">${esc(e.agentName)}</div>
+    <div class="body">${esc(unitName)}, a satisfait aux épreuves du <b>${esc(raw.charAt(0).toLowerCase() + raw.slice(1))}</b> avec la note de <b>${esc(score)}</b> (${fr(e.percent, 0)} %) et obtient la mention <b>${esc(certMention(e))}</b>.</div>
+    <div class="scores">${e.grid.criteria.map((cr) => `<span>${esc(cr.label)} · ${esc(rawLabel(e.grid.scale, e.scores?.[cr.id]))}</span>`).join('<span>✦</span>')}</div>
+    <div class="footer">
+      <div class="sign"><div class="script">${esc(e.evaluatorName)}</div><div class="line">L'ÉVALUATEUR<small>${esc(e.evaluatorName)}</small></div></div>
+      <svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
+        <defs><path id="sealtext" d="M60 60 m-41 0 a41 41 0 1 1 82 0 a41 41 0 1 1 -82 0"/><radialGradient id="wax" cx="40%" cy="35%"><stop offset="0" stop-color="#d64545"/><stop offset=".6" stop-color="#9b1c1c"/><stop offset="1" stop-color="#5e0d0d"/></radialGradient></defs>
+        <path d="M60 4 C72 6 78 2 88 10 C98 16 106 18 110 30 C116 42 120 48 116 60 C118 74 114 80 106 90 C100 100 96 108 82 112 C70 118 62 116 50 116 C38 116 30 110 22 102 C12 94 6 86 6 72 C2 60 4 50 8 40 C12 28 18 18 30 12 C40 6 48 2 60 4 Z" fill="url(#wax)"/>
+        <circle cx="60" cy="60" r="47" fill="none" stroke="#f3b3b3" stroke-opacity=".35" stroke-width="1"/>
+        <circle cx="60" cy="60" r="33" fill="none" stroke="#f3b3b3" stroke-opacity=".35" stroke-width="1"/>
+        <text font-family="Cinzel, serif" font-size="8.5" font-weight="700" letter-spacing="2.6" fill="#ffd6d6" fill-opacity=".75"><textPath href="#sealtext">FIM · SITE-15 · FIM · SITE-15 · FIM · SITE-15 ·</textPath></text>
+        <g transform="translate(43 43) scale(1.42)" color="#ffd6d6" opacity=".8">${emblemSvg(c.emblem, 'width="24" height="24"', 1.7)}</g>
+      </svg>
+      <div class="sign"><div class="script">Commandement FIM</div><div class="line">LE COMMANDEMENT FIM<small>Délivré au Site-15, le ${esc(dateLong)}</small></div></div>
+    </div>
+  </div>
+  <div class="meta"><span>N° ${esc(certNumber(e))}</span><span>Classification : niveau 2 — usage interne</span></div>
+</div>
+</body></html>`;
+    const win = window.open('', '_blank');
+    if (!win) { window.showToast('Autorise les fenêtres pop-up pour afficher le diplôme.', 'error'); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
   }
 
   // ---------------------------------------------------------------
@@ -2064,6 +2303,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       </div>
       ${pathway && pathway.total ? `<h2>Parcours d'intégration ERI · ${pathway.done}/${pathway.total}</h2><div class="mods">${pathway.modules.map((m) => `<span class="${m.validated ? 'ok' : ''}">${m.validated ? '✓ ' : ''}${esc(m.name)}${m.best != null ? ` (${fr(m.best, 0)} %)` : ''}</span>`).join('')}</div>` : ''}
       ${proposals && proposals.length ? `<p>${proposals.map((p) => `${esc(PROPOSAL_META[p.status].label)} par ${esc(p.proposedBy)} le ${esc(new Date(p.createdAt).toLocaleDateString('fr-FR'))}${p.decidedBy ? ` (décision : ${esc(p.decidedBy)})` : ''}`).join('<br>')}</p>` : ''}
+      ${earnedBrevets(evals).length ? `<h2>Brevets obtenus</h2><div class="mods">${earnedBrevets(evals).map((b) => `<span class="ok">🎖 ${esc(certOf(b).title)} — ${esc(new Date(b.createdAt).toLocaleDateString('fr-FR'))} · N° ${esc(certNumber(b))}</span>`).join('')}</div>` : ''}
       <h2>Historique des évaluations</h2>
       ${evals.length ? `<table><thead><tr><th>Date</th><th>Grille</th><th>Notes</th><th>Total</th><th>Avis</th><th>Commentaires</th></tr></thead><tbody>${evals.map(row).join('')}</tbody></table>` : '<p>Aucune évaluation.</p>'}
       <footer><span>Document interne — diffusion restreinte au commandement FIM.</span><span>Édité le ${esc(new Date().toLocaleString('fr-FR'))}</span></footer>
