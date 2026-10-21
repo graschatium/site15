@@ -590,6 +590,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
             <span class="fim-code" style="--c:${worstMeta.color}"><i></i>CODE ${esc(worst)}</span>
             <span class="fim-chip">${breaches} brèche${breaches > 1 ? 's' : ''}</span>
             <span class="fim-chip">${servers.reduce((a, s) => a + s.players, 0)} joueurs en jeu</span>
+            <button class="btn ghost small fim-alert-btn" id="fim-alert-btn" type="button" style="margin-left:auto;"></button>
           </div>
           <div class="fim-posture" style="--c:${worstMeta.color}">${worstMeta.posture}</div>
         </div>
@@ -611,6 +612,9 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         </div>
       </div>
     `;
+    const alertBtn = document.getElementById('fim-alert-btn');
+    renderAlertButton(alertBtn);
+    alertBtn.addEventListener('click', () => toggleAlerts(alertBtn));
     if (!refreshTimer) refreshTimer = setInterval(() => loadSituation(true), 30000);
   }
 
@@ -781,6 +785,19 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     }));
   }
 
+  // Opérateurs FIM vus en jeu pendant l'opération (relevé automatique du bot).
+  function presenceList(o) {
+    return Object.values(o.presence || {}).sort((a, b) => b.minutes - a.minutes);
+  }
+  function presenceText(o) {
+    return presenceList(o).map((x) => `${x.name} (${x.unit ? unitLabel(x.unit) : 'FIM'}, ${fr(x.minutes, 0)} min)`).join(', ');
+  }
+  function presenceLine(o) {
+    const list = presenceList(o);
+    if (!list.length) return o.status === 'en_cours' ? '<div class="fim-op-meta" style="margin:10px 0 0;">Présence en jeu <b>relevé en cours (toutes les minutes)…</b></div>' : '';
+    return `<div class="fim-op-meta" style="margin:10px 0 0; flex-wrap:wrap; align-items:center;">Présents en jeu ${list.map((x) => `<span class="fim-chip u" style="--u:${unitColor(x.unit)}">${esc(x.name)} · ${fr(x.minutes, 0)} min</span>`).join(' ')}</div>`;
+  }
+
   function opCard(o, canCommand) {
     const st = STATUS_META[o.status] || STATUS_META.planifiee;
     const pr = PRIORITY_META[o.priority] || PRIORITY_META.routine;
@@ -805,6 +822,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         </div>
         <div class="fim-op-body">${esc(o.objective)}</div>
         ${o.assigned ? `<div class="fim-op-meta" style="margin:10px 0 0;">Affectés <b>${esc(o.assigned)}</b></div>` : ''}
+        ${presenceLine(o)}
         ${(o.statusLog || []).length > 1 ? `<div class="fim-op-log">${o.statusLog.map((l) => `${fmtDate(l.at)} — ${esc(STATUS_META[l.status]?.label || l.status)} par ${esc(l.by)}${l.note ? ` : ${esc(l.note)}` : ''}`).join('<br>')}</div>` : ''}
         ${actions.length ? `<div class="sci-card-actions">${actions.join('')}</div>` : ''}
       </div>`;
@@ -891,6 +909,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
             <div class="field-row"><label>Pertes et blessés</label><input id="db-losses" maxlength="200" placeholder="Ex : 1 blessé léger, aucun mort"></div>
           </div>
           <datalist id="fim-scp-list2">${SCPS.map((s) => `<option value="${s.id}">`).join('')}<option value="Insurrection du Chaos"></datalist>
+          <div class="field-row"><label>Participants${preOp && presenceList(preOp).length ? ' (pré-rempli : présents en jeu)' : ''}</label><textarea id="db-participants" rows="2" maxlength="1000" placeholder="Ex : RENARD-1 (chef), RENARD-2…">${preOp ? esc(presenceText(preOp)) : ''}</textarea></div>
           <div class="field-row"><label>Déroulé *</label><textarea id="db-summary" rows="6" maxlength="6000" required></textarea></div>
           <div class="field-row"><label>Leçons et recommandations</label><textarea id="db-lessons" rows="3" maxlength="3000"></textarea></div>
           <button class="btn" type="submit">Enregistrer le débriefing</button>
@@ -906,6 +925,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
               ${d.operationId && opName(d.operationId) ? `<span>Opération <b>${esc(opName(d.operationId))}</b></span>` : ''}
               ${d.scp ? `<span>Contre <b>${esc(d.scp)}</b></span>` : ''}
               ${d.losses ? `<span>Pertes <b>${esc(d.losses)}</b></span>` : ''}
+              ${d.participants ? `<span>Participants <b>${esc(d.participants)}</b></span>` : ''}
               <span>${esc(d.authorCharacterName)} · ${fmtDate(d.createdAt)}</span>
             </div>
             <div class="fim-op-body">${esc(d.summary)}</div>
@@ -913,10 +933,15 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
           </div>`).join('') : '<div class="empty-row">Aucun débriefing enregistré.</div>'}
       </div>
     `;
+    document.getElementById('db-op').addEventListener('change', (e) => {
+      const op = ops.find((o) => o.id === e.target.value);
+      const box = document.getElementById('db-participants');
+      if (op && presenceList(op).length && !box.value.trim()) box.value = presenceText(op);
+    });
     document.getElementById('fim-db-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const v = (id) => document.getElementById(id).value.trim();
-      const payload = { title: v('db-title'), operationId: v('db-op'), unit: v('db-unit'), outcome: v('db-outcome'), scp: v('db-scp'), losses: v('db-losses'), summary: v('db-summary'), lessons: v('db-lessons') };
+      const payload = { title: v('db-title'), operationId: v('db-op'), unit: v('db-unit'), outcome: v('db-outcome'), scp: v('db-scp'), losses: v('db-losses'), participants: v('db-participants'), summary: v('db-summary'), lessons: v('db-lessons') };
       if (!payload.title || !payload.summary) { window.showToast('Titre et déroulé obligatoires.', 'error'); return; }
       try {
         await window.apiFetch('/api/rp/fim/debriefs', { method: 'POST', body: JSON.stringify(payload) });
@@ -1330,7 +1355,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
             ${gridChoices.length > 1 ? `<div class="field-row" style="margin-bottom:10px;"><label>Détail par grille</label><select id="fim-profile-grid">${gridChoices.map((g) => `<option value="${esc(g.id)}"${g.id === gridView.id ? ' selected' : ''}>${esc(g.name)} (${evals.filter((e) => e.gridId === g.id).length})</option>`).join('')}</select></div>` : `<div class="post-card-meta" style="margin-bottom:10px;">Grille : ${esc(gridView.name)} · ${scoped.length} évaluation(s)</div>`}
             <div class="fim-bars">${gridView.criteria.map((c) => `<div class="fim-bar-row"><span>${esc(c.label)}</span><div class="fim-bar"><i style="width:${avg[c.id] || 0}%; --c:${pctColor(avg[c.id])}"></i></div><b>${esc(pctInScale(gridView.scale, avg[c.id]))}</b></div>`).join('')}</div>` : ''}
         </div>
-      </div>`;
+      </div>
+      ${evolutionBlock(evals)}`;
   }
 
   // Grilles connues d'une liste d'évaluations (copies figées dans chaque évaluation).
@@ -1354,6 +1380,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     let grids = [];
     let agents = [];
     let extra = { roles: [], people: [] };
+    let proposals = [];
     try {
       const [d, g, dept] = await Promise.all([
         window.apiFetch('/api/rp/fim/evaluations'),
@@ -1362,7 +1389,12 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       ]);
       data = d;
       grids = g.grids || [];
-      if (data.canEvaluate) extra = await window.apiFetch('/api/rp/fim/evaluables').catch(() => extra);
+      if (data.canEvaluate) {
+        [extra, proposals] = await Promise.all([
+          window.apiFetch('/api/rp/fim/evaluables').catch(() => extra),
+          window.apiFetch('/api/rp/fim/eri-proposals').then((r) => r.proposals || []).catch(() => []),
+        ]);
+      }
       agents = (dept?.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
     } catch (err) {
       main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
@@ -1386,11 +1418,13 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
             <p>Les évaluations rédigées par tes officiers après les opérations, exercices et revues périodiques. Seul le commandement peut en rédiger.</p>
           </div>
           <div class="fim-eval-profile" style="--u:${color}">
+            <div style="display:flex; justify-content:flex-end; margin:-8px 0 6px;"><button class="btn ghost small" id="fim-export-btn" type="button">Exporter ma fiche</button></div>
             ${profileBlock(data.self || '—', unitId, evaluations, gv, color, choices)}
             <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 12px;">Historique</h3>
             ${evaluations.length ? evaluations.map((e) => evalCard(e, false)).join('') : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}
           </div>`;
         document.getElementById('fim-profile-grid')?.addEventListener('change', (ev) => { evalGridView.self = ev.target.value; render(); });
+        document.getElementById('fim-export-btn').addEventListener('click', () => exportFiche({ name: data.self, unit: unitId, tags: [] }, evaluations, null, []));
       };
       render();
       return;
@@ -1414,11 +1448,11 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     }));
     const body = document.getElementById('fim-eval-body');
     if (evalView === 'grids') renderGrids(body, grids, evaluations, deptId);
-    else renderPeople(body, data, grids, evaluations, agents, extra, deptId);
+    else renderPeople(body, data, grids, evaluations, agents, extra, proposals, deptId);
   }
 
   // ---------------- Vue officier : opérateurs ----------------
-  function renderPeople(body, data, grids, evaluations, agents, extra, deptId) {
+  function renderPeople(body, data, grids, evaluations, agents, extra, proposals, deptId) {
     const people = new Map();
     agents.forEach((a) => {
       const name = a.name || a.username;
@@ -1429,11 +1463,16 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       const key = norm(x.name);
       if (!key) return;
       const existing = people.get(key);
-      if (existing) existing.tags = [...new Set([...existing.tags, ...x.roles])];
-      else people.set(key, { name: x.name, unit: x.deptId === 'fim_mmqbs55q2vge' ? unitFromAgent(x) : null, evals: [], tags: x.roles, discordName: x.discordName });
+      if (existing) {
+        existing.tags = [...new Set([...existing.tags, ...x.roles])];
+        existing.discordId = x.discordId;
+        existing.discordName = existing.discordName || x.discordName;
+      } else people.set(key, { name: x.name, unit: x.deptId === 'fim_mmqbs55q2vge' ? unitFromAgent(x) : null, evals: [], tags: x.roles, discordName: x.discordName, discordId: x.discordId });
     });
+    // Une évaluation suit la personne par son ID Discord si connu (le nom RP peut changer).
+    const keyByDiscord = new Map([...people.entries()].filter(([, p]) => p.discordId).map(([k, p]) => [p.discordId, k]));
     evaluations.forEach((e) => {
-      const key = norm(e.agentName);
+      const key = (e.agentDiscordId && keyByDiscord.get(e.agentDiscordId)) || norm(e.agentName);
       if (!people.has(key)) people.set(key, { name: e.agentName, unit: e.unit !== 'INTER-UNITÉS' ? e.unit : null, evals: [], tags: [], former: true });
       people.get(key).evals.push(e);
     });
@@ -1465,7 +1504,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
         const avg = avgOf(p.evals.map((e) => e.percent).filter((v) => v != null));
         return `<button class="fim-eval-item${norm(p.name) === norm(evalSelected) ? ' active' : ''}" style="--u:${p.unit ? unitColor(p.unit) : 'var(--accent)'}" data-person="${esc(p.name)}" type="button">
           <span class="nm">${esc(p.name)}<span class="sub">${esc(p.unit ? unitLabel(p.unit) : p.tags.filter((t) => t !== 'FIM').join(' · ') || 'Sans unité')}${p.unit && p.tags.some((t) => t !== 'FIM') ? ` · ${esc(p.tags.filter((t) => t !== 'FIM').join(' · '))}` : ''}${p.former ? ' · hors effectif' : ''} · ${p.evals.length} éval.</span></span>
-          <span class="fim-score" style="color:${pctColor(avg)}">${avg == null ? '—' : `${fr(avg, 0)}%`}</span>
+          <span class="fim-score" style="color:${pctColor(avg)}">${avg == null ? '—' : `${fr(avg, 0)}%`}${trendBadge(p.evals)}</span>
         </button>`;
       }).join('') : '<div class="empty-row">Aucun opérateur.</div>';
       box.querySelectorAll('[data-person]').forEach((b) => b.addEventListener('click', () => {
@@ -1485,8 +1524,14 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       const choices = gridsFromEvals(p.evals);
       const gv = choices.find((g) => g.id === evalGridView[norm(p.name)]) || choices[0] || null;
       box.style.setProperty('--u', color);
+      const personProposals = proposals.filter((x) => (p.discordId && x.agentDiscordId === p.discordId) || norm(x.agentName) === norm(p.name));
+      const status = pathwayOf(grids, p.evals);
+      const showPath = p.tags.some((t) => t !== 'FIM') || personProposals.length || status.modules.some((m) => m.attempts);
       box.innerHTML = `
-        ${profileBlock(p.name, p.unit, p.evals, gv, color, choices, p.tags)}${p.discordName && norm(p.discordName) !== norm(p.name) ? `<div class="post-card-meta" style="margin-top:-4px;">Discord : ${esc(p.discordName)}</div>` : ''}
+        <div style="display:flex; justify-content:flex-end; margin:-8px 0 6px;"><button class="btn ghost small" id="fim-export-btn" type="button">Exporter la fiche</button></div>
+        ${p.discordName && norm(p.discordName) !== norm(p.name) ? `<div class="post-card-meta" style="margin:-4px 0 6px;">Discord : ${esc(p.discordName)}</div>` : ''}
+        ${profileBlock(p.name, p.unit, p.evals, gv, color, choices, p.tags)}
+        ${showPath ? pathwayBlock(status, personProposals, { canPropose: true }) : ''}
         <div style="display:flex; justify-content:space-between; align-items:center; margin:22px 0 12px; gap:10px; flex-wrap:wrap;">
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px;">${evalFormOpen ? 'Nouvelle évaluation' : 'Historique'}</h3>
           ${isSelf ? '<span class="post-card-meta">Auto-évaluation impossible</span>' : `<button class="btn small${evalFormOpen ? ' ghost' : ''}" id="fim-eval-toggle" type="button">${evalFormOpen ? 'Annuler' : '+ Évaluer'}</button>`}
@@ -1495,6 +1540,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       `;
       document.getElementById('fim-profile-grid')?.addEventListener('change', (ev) => { evalGridView[norm(p.name)] = ev.target.value; renderProfile(); });
       document.getElementById('fim-eval-toggle')?.addEventListener('click', () => { evalFormOpen = !evalFormOpen; renderProfile(); });
+      document.getElementById('fim-export-btn').addEventListener('click', () => exportFiche(p, p.evals, status.total ? status : null, personProposals));
+      bindPathway(box, p, () => loadEvaluations(deptId));
       box.querySelectorAll('[data-eval-del]').forEach((b) => b.addEventListener('click', async () => {
         if (!confirm('Supprimer cette évaluation ?')) return;
         try {
@@ -1610,7 +1657,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
         const missing = grid.criteria.filter((c) => scores[c.id] === undefined);
         if (missing.length) { window.showToast(`Note manquante : ${missing.map((c) => c.label).join(', ')}.`, 'error'); return; }
         const v = (id) => document.getElementById(id).value.trim();
-        const payload = { agentName: p.name, gridId: grid.id, unit: v('ev-unit'), context: v('ev-context'), scores, verdict: v('ev-verdict'), recommendation: v('ev-reco'), strengths: v('ev-strengths'), improvements: v('ev-improvements') };
+        const payload = { agentName: p.name, agentDiscordId: p.discordId || null, gridId: grid.id, unit: v('ev-unit'), context: v('ev-context'), scores, verdict: v('ev-verdict'), recommendation: v('ev-reco'), strengths: v('ev-strengths'), improvements: v('ev-improvements') };
         try {
           await window.apiFetch('/api/rp/fim/evaluations', { method: 'POST', body: JSON.stringify(payload) });
           window.showToast(`Évaluation de ${p.name} enregistrée.`, 'success');
@@ -1633,7 +1680,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     body.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px; flex-wrap:wrap;">
         <p style="font-size:12.5px; color:var(--ink-dim); max-width:620px; line-height:1.6;">Une grille = des critères avec coefficient, un barème et des seuils d'avis. Modifier une grille ne change pas les évaluations déjà rendues : elles gardent la version utilisée.</p>
-        <button class="btn small" id="fim-grid-new" type="button">+ Nouvelle grille</button>
+        <span style="display:flex; gap:8px;">${grids.some((g) => g.pathway && !g.archived) ? '' : '<button class="btn ghost small" id="fim-grid-template" type="button">Créer le parcours ERI type</button>'}<button class="btn small" id="fim-grid-new" type="button">+ Nouvelle grille</button></span>
       </div>
       <div class="fim-grid">
         ${grids.map((g) => `
@@ -1641,6 +1688,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
               <h4 style="margin-right:auto;">${esc(g.name)}</h4>
               ${g.builtin ? '<span class="fim-pill" style="--c:var(--accent-2)">Par défaut</span>' : ''}
+              ${g.pathway ? '<span class="fim-pill" style="--c:#B07CFF">Parcours ERI</span>' : ''}
               ${g.archived ? '<span class="fim-pill">Archivée</span>' : ''}
             </div>
             ${g.description ? `<p>${esc(g.description)}</p>` : ''}
@@ -1656,6 +1704,16 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       </div>`;
 
     const byId = (id) => grids.find((g) => g.id === id);
+    document.getElementById('fim-grid-template')?.addEventListener('click', async () => {
+      if (!confirm("Créer les 4 grilles du parcours d'intégration ERI (radio, RDE, tir, reconfinement) ? Tu pourras les modifier ensuite.")) return;
+      try {
+        await window.apiFetch('/api/rp/fim/eval-grids/pathway-template', { method: 'POST', body: '{}' });
+        window.showToast('Parcours ERI créé.', 'success');
+        loadEvaluations(deptId);
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
     document.getElementById('fim-grid-new').addEventListener('click', () => {
       gridEditing = { id: null, name: '', description: '', scale: { kind: 'range', min: 0, max: 20, step: 0.5 }, criteria: [{ id: '', label: '', hint: '', weight: 1 }], thresholds: { excellent: 80, conforme: 55, a_ameliorer: 35 } };
       renderGrids(body, grids, evaluations, deptId);
@@ -1705,6 +1763,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
           <div class="field-row"><label>Nom *</label><input id="ge-name" maxlength="60" value="${esc(g.name)}" placeholder="Ex : Qualification tir Nu-7"></div>
           <div class="field-row"><label>Description</label><input id="ge-desc" maxlength="300" value="${esc(g.description || '')}" placeholder="À quoi sert cette grille"></div>
         </div>
+        <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:12.5px; color:var(--ink-dim); cursor:pointer;"><input type="checkbox" id="ge-pathway" style="width:auto;"${g.pathway ? ' checked' : ''}> Module du parcours d'intégration ERI (validé quand une évaluation atteint le seuil « Conforme »)</label>
 
         <div class="fim-editor-section">Barème</div>
         <div class="field-grid">
@@ -1758,6 +1817,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     const collect = () => {
       g.name = document.getElementById('ge-name').value;
       g.description = document.getElementById('ge-desc').value;
+      g.pathway = document.getElementById('ge-pathway').checked;
       if (document.getElementById('ge-min')) {
         g.scale = { kind: 'range', min: Number(document.getElementById('ge-min').value), max: Number(document.getElementById('ge-max').value), step: Number(document.getElementById('ge-step').value) };
       }
@@ -1811,7 +1871,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       if (!g.name.trim()) { window.showToast('Donne un nom à la grille.', 'error'); return; }
       if (!g.criteria.some((c) => c.label.trim())) { window.showToast('Ajoute au moins un critère.', 'error'); return; }
       if (g.scale.kind === 'range' && !(g.scale.max > g.scale.min)) { window.showToast('Le maximum doit être supérieur au minimum.', 'error'); return; }
-      const payload = { name: g.name, description: g.description, scale: g.scale, criteria: g.criteria, thresholds: g.thresholds };
+      const payload = { name: g.name, description: g.description, pathway: !!g.pathway, scale: g.scale, criteria: g.criteria, thresholds: g.thresholds };
       try {
         if (g.id) await window.apiFetch(`/api/rp/fim/eval-grids/${encodeURIComponent(g.id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
         else await window.apiFetch('/api/rp/fim/eval-grids', { method: 'POST', body: JSON.stringify(payload) });
@@ -1822,6 +1882,297 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
     });
+  }
+
+  // ---------------------------------------------------------------
+  // Évolution, parcours ERI, export, alertes, espace ERI
+  // ---------------------------------------------------------------
+  const extraStyle = document.createElement('style');
+  extraStyle.textContent = `
+  .fim-evo{ margin-top:16px; background:var(--void-2); border-radius:3px; padding:12px 14px; }
+  .fim-evo-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .fim-evo svg{ width:100%; height:86px; display:block; }
+  .fim-evo svg text{ font-family:'JetBrains Mono', monospace; font-size:8px; fill:var(--ink-faint); }
+  .fim-trend{ font-family:'JetBrains Mono', monospace; font-size:10px; margin-left:4px; }
+  .fim-path{ margin-top:18px; border:1px solid var(--line); border-radius:3px; padding:16px 18px; background:linear-gradient(140deg, rgba(110,118,255,0.07), transparent 60%); }
+  .fim-path-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+  .fim-path-head h4{ font-family:'Space Grotesk', sans-serif; font-size:14.5px; }
+  .fim-progress{ height:8px; background:var(--void-2); border-radius:4px; overflow:hidden; margin:6px 0 14px; }
+  .fim-progress i{ display:block; height:100%; background:linear-gradient(90deg, var(--accent), #4FD895); border-radius:4px; transition:width .4s ease; }
+  .fim-modules{ display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:8px; }
+  .fim-module{ display:flex; gap:10px; align-items:center; padding:10px 12px; background:var(--void-2); border-radius:3px; border:1px solid transparent; }
+  .fim-module.ok{ border-color:rgba(79,216,149,0.35); }
+  .fim-module .ic{ width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; background:var(--panel); color:var(--ink-faint); border:1px solid var(--line); }
+  .fim-module.ok .ic{ background:#4FD895; color:var(--void); border-color:#4FD895; font-weight:700; }
+  .fim-module .t{ font-size:12.5px; font-weight:600; line-height:1.3; }
+  .fim-module .s{ font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--ink-faint); margin-top:2px; }
+  .fim-proposal{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; padding:10px 12px; background:var(--void-2); border-radius:3px; font-size:12.5px; color:var(--ink-dim); }
+  .fim-alert-btn.on{ border-color:#4FD895 !important; color:#4FD895 !important; }
+  .fim-eri-wrap{ max-width:1040px; margin:0 auto; padding:40px 24px 90px; }
+  `;
+  document.head.appendChild(extraStyle);
+
+  const chrono = (evals) => [...evals].filter((e) => e.percent != null).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+  // Tendance : dernière note comparée à la moyenne des 3 précédentes.
+  function trendOf(evals) {
+    const list = chrono(evals);
+    if (list.length < 2) return null;
+    const last = list[list.length - 1].percent;
+    const prev = avgOf(list.slice(-4, -1).map((e) => e.percent));
+    return last - prev;
+  }
+  function trendBadge(evals) {
+    const d = trendOf(evals);
+    if (d == null) return '';
+    if (Math.abs(d) < 3) return '<span class="fim-trend" style="color:var(--ink-faint)" title="Stable">→</span>';
+    return d > 0
+      ? `<span class="fim-trend" style="color:#4FD895" title="En progrès (+${fr(d, 0)} pts)">↑</span>`
+      : `<span class="fim-trend" style="color:#F0525A" title="En baisse (${fr(d, 0)} pts)">↓</span>`;
+  }
+
+  function evolutionBlock(evals) {
+    const list = chrono(evals).slice(-20);
+    if (list.length < 2) return '';
+    const W = 300, H = 86, padL = 6, padR = 6, padT = 8, padB = 8;
+    const x = (i) => padL + (i * (W - padL - padR)) / (list.length - 1);
+    const y = (p) => padT + ((100 - p) * (H - padT - padB)) / 100;
+    const pts = list.map((e, i) => `${x(i)},${y(e.percent)}`).join(' ');
+    const d = trendOf(evals);
+    return `
+      <div class="fim-evo">
+        <div class="fim-evo-head"><span>Évolution · ${list.length} dernières évaluations · échelle 0 à 100 %</span>${d == null ? '' : `<span style="color:${Math.abs(d) < 3 ? 'var(--ink-faint)' : d > 0 ? '#4FD895' : '#F0525A'}">${d > 0 ? '+' : ''}${fr(d, 0)} pts</span>`}</div>
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+          ${[0, 50, 100].map((p) => `<line x1="${padL}" x2="${W - padR}" y1="${y(p)}" y2="${y(p)}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" stroke-dasharray="${p === 50 ? '3 3' : ''}"/>`).join('')}
+          <polyline points="${pts}" fill="none" stroke="var(--accent-2)" stroke-width="1.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+          ${list.map((e, i) => `<line x1="${x(i)}" y1="${y(e.percent)}" x2="${x(i)}" y2="${y(e.percent)}" stroke="${pctColor(e.percent)}" stroke-width="7" stroke-linecap="round" vector-effect="non-scaling-stroke"><title>${esc(new Date(e.createdAt).toLocaleDateString('fr-FR'))} · ${esc(e.grid?.name || '')} · ${fr(e.percent, 0)} %</title></line>`).join('')}
+        </svg>
+      </div>`;
+  }
+
+  // Parcours d'intégration ERI (même règle que le serveur).
+  function pathwayOf(grids, evals) {
+    const modules = grids.filter((g) => g.pathway && !g.archived).map((g) => {
+      const tries = evals.filter((e) => e.gridId === g.id);
+      const best = tries.reduce((a, e) => (e.percent != null && (a == null || e.percent > a) ? e.percent : a), null);
+      const threshold = g.thresholds?.conforme ?? 55;
+      return { gridId: g.id, name: g.name, attempts: tries.length, best, validated: best != null && best >= threshold, threshold };
+    });
+    return { modules, done: modules.filter((m) => m.validated).length, total: modules.length, complete: modules.length > 0 && modules.every((m) => m.validated) };
+  }
+  const PROPOSAL_META = {
+    proposee: { label: 'Intégration proposée', color: '#F0A83C' },
+    acceptee: { label: 'Intégration acceptée', color: '#4FD895' },
+    refusee: { label: 'Intégration refusée', color: '#F0525A' },
+  };
+  function pathwayBlock(status, proposals, opts = {}) {
+    if (!status.total) {
+      return opts.canPropose
+        ? '<div class="fim-path"><div class="fim-path-head"><h4>Parcours d\'intégration ERI</h4></div><div style="font-size:12.5px; color:var(--ink-faint);">Aucun module défini. Coche « Module du parcours ERI » sur des grilles, ou crée le parcours type dans « Grilles & barèmes ».</div></div>'
+        : '';
+    }
+    const pct = Math.round((status.done / status.total) * 100);
+    const pending = proposals.find((p) => p.status === 'proposee');
+    return `
+      <div class="fim-path">
+        <div class="fim-path-head">
+          <h4>Parcours d'intégration ERI</h4>
+          <span class="fim-pill" style="--c:${status.complete ? '#4FD895' : 'var(--accent-2)'}">${status.done} / ${status.total} modules${status.complete ? ' · complet' : ''}</span>
+        </div>
+        <div class="fim-progress"><i style="width:${pct}%"></i></div>
+        <div class="fim-modules">${status.modules.map((m) => `
+          <div class="fim-module${m.validated ? ' ok' : ''}">
+            <span class="ic">${m.validated ? '✓' : m.attempts ? '…' : ''}</span>
+            <div><div class="t">${esc(m.name.replace(/^ERI\s*·\s*/, ''))}</div><div class="s">${m.validated ? `Validé · ${fr(m.best, 0)} %` : m.attempts ? `Meilleur : ${fr(m.best, 0)} % · requis ${m.threshold} %` : 'Pas encore évalué'}</div></div>
+          </div>`).join('')}</div>
+        ${proposals.map((p) => `
+          <div class="fim-proposal">
+            ${pill(PROPOSAL_META[p.status] || PROPOSAL_META.proposee)}
+            <span>par ${esc(p.proposedBy)} · ${fmtDate(p.createdAt)}${p.decidedBy ? ` — décision de ${esc(p.decidedBy)} · ${fmtDate(p.decidedAt)}` : ''}</span>
+            ${p.note ? `<span style="width:100%; color:var(--ink-faint);">« ${esc(p.note)} »</span>` : ''}
+            ${p.decisionNote ? `<span style="width:100%; color:var(--ink-faint);">Décision : « ${esc(p.decisionNote)} »</span>` : ''}
+            ${opts.canPropose && p.status === 'proposee' ? `<span style="margin-left:auto; display:flex; gap:6px;"><button class="btn small" data-prop-decide="acceptee" data-id="${esc(p.id)}">Accepter</button><button class="btn danger small" data-prop-decide="refusee" data-id="${esc(p.id)}">Refuser</button></span>` : ''}
+          </div>`).join('')}
+        ${opts.canPropose && status.complete && !pending ? '<div style="margin-top:12px;"><button class="btn small" id="fim-propose-btn" type="button">Proposer l\'intégration FIM</button></div>' : ''}
+        ${!opts.canPropose && status.complete && !proposals.length ? '<div style="margin-top:10px; font-size:12.5px; color:#4FD895;">Tous les modules sont validés : le commandement peut proposer ton intégration.</div>' : ''}
+      </div>`;
+  }
+  function bindPathway(root, person, reload) {
+    root.querySelector('#fim-propose-btn')?.addEventListener('click', async () => {
+      const note = prompt(`Proposer l'intégration FIM de ${person.name}.\nCommentaire (facultatif) :`);
+      if (note === null) return;
+      try {
+        await window.apiFetch('/api/rp/fim/eri-proposals', { method: 'POST', body: JSON.stringify({ agentName: person.name, agentDiscordId: person.discordId || null, note }) });
+        window.showToast('Intégration proposée.', 'success');
+        reload();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+    root.querySelectorAll('[data-prop-decide]').forEach((b) => b.addEventListener('click', async () => {
+      const status = b.dataset.propDecide;
+      const note = prompt(status === 'acceptee' ? 'Accepter l\'intégration. Commentaire (facultatif) :' : 'Refuser l\'intégration. Motif :');
+      if (note === null) return;
+      try {
+        await window.apiFetch(`/api/rp/fim/eri-proposals/${encodeURIComponent(b.dataset.id)}`, { method: 'PATCH', body: JSON.stringify({ status, note }) });
+        window.showToast(status === 'acceptee' ? 'Intégration acceptée. Pense à ajouter la personne au roster FIM.' : 'Intégration refusée.', 'success');
+        reload();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    }));
+  }
+
+  // Fiche imprimable (Imprimer -> « Enregistrer au format PDF »).
+  function exportFiche(person, evals, pathway, proposals) {
+    const overall = avgOf(evals.map((e) => e.percent).filter((v) => v != null));
+    const tags = [person.unit ? unitLabel(person.unit) : '', ...(person.tags || []).filter((t) => t !== 'FIM')].filter(Boolean).join(' · ');
+    const row = (e) => `
+      <tr>
+        <td>${esc(new Date(e.createdAt).toLocaleDateString('fr-FR'))}</td>
+        <td>${esc(e.grid.name)}<br><small>${esc(CONTEXT_LABELS[e.context] || e.context)}</small></td>
+        <td>${e.grid.criteria.map((c) => `${esc(c.label)} : <b>${esc(rawLabel(e.grid.scale, e.scores?.[c.id]))}</b>`).join('<br>')}</td>
+        <td><b>${esc(pctInScale(e.grid.scale, e.percent))}</b><br><small>${fmtPct(e.percent)}</small></td>
+        <td>${esc((VERDICT_META[e.verdict] || {}).label || '')}${e.recommendation && e.recommendation !== 'aucune' ? `<br><small>${esc(RECO_META[e.recommendation].label)}</small>` : ''}</td>
+        <td>${e.strengths ? `<b>+</b> ${esc(e.strengths)}<br>` : ''}${e.improvements ? `<b>−</b> ${esc(e.improvements)}` : ''}<br><small>${esc(e.evaluatorName)}</small></td>
+      </tr>`;
+    const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche d'évaluation — ${esc(person.name)}</title>
+      <style>
+        @page{ size:A4; margin:14mm; }
+        body{ font-family:Inter, Arial, sans-serif; color:#111; font-size:11px; margin:0; }
+        header{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #111; padding-bottom:10px; margin-bottom:14px; }
+        h1{ font-size:20px; margin:4px 0 0; } .eyebrow{ font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:#555; }
+        .stamp{ border:2px solid #b00; color:#b00; font-weight:700; letter-spacing:.12em; padding:4px 10px; font-size:10px; transform:rotate(-3deg); }
+        .facts{ display:flex; gap:10px; margin:0 0 14px; } .facts div{ flex:1; border:1px solid #ccc; padding:6px 8px; } .facts b{ display:block; font-size:9px; color:#666; text-transform:uppercase; letter-spacing:.06em; }
+        .facts span{ font-size:14px; font-weight:700; }
+        h2{ font-size:12px; text-transform:uppercase; letter-spacing:.1em; margin:18px 0 8px; border-left:3px solid #111; padding-left:6px; }
+        table{ width:100%; border-collapse:collapse; } th, td{ border:1px solid #ccc; padding:5px 6px; vertical-align:top; text-align:left; }
+        th{ background:#f1f1f1; font-size:9px; text-transform:uppercase; letter-spacing:.06em; } small{ color:#666; }
+        .mods{ display:flex; flex-wrap:wrap; gap:6px; } .mods span{ border:1px solid #ccc; padding:3px 8px; } .mods .ok{ border-color:#1a7f4b; color:#1a7f4b; font-weight:700; }
+        footer{ margin-top:18px; font-size:9px; color:#777; border-top:1px solid #ccc; padding-top:6px; display:flex; justify-content:space-between; }
+        tr{ page-break-inside:avoid; }
+      </style></head><body>
+      <header>
+        <div><div class="eyebrow">Fondation SCP · Site-15 · Commandement FIM</div><h1>Fiche d'évaluation — ${esc(person.name)}</h1><div class="eyebrow" style="margin-top:4px;">${esc(tags || 'Unité non renseignée')}${person.discordName ? ` · Discord : ${esc(person.discordName)}` : ''}</div></div>
+        <div class="stamp">CONFIDENTIEL</div>
+      </header>
+      <div class="facts">
+        <div><b>Moyenne générale</b><span>${fmtPct(overall)}</span></div>
+        <div><b>Évaluations</b><span>${evals.length}</span></div>
+        <div><b>Dernier avis</b><span>${evals[0] ? esc((VERDICT_META[evals[0].verdict] || {}).label) : '—'}</span></div>
+        <div><b>Tendance</b><span>${(() => { const d = trendOf(evals); return d == null ? '—' : `${d > 0 ? '+' : ''}${fr(d, 0)} pts`; })()}</span></div>
+      </div>
+      ${pathway && pathway.total ? `<h2>Parcours d'intégration ERI · ${pathway.done}/${pathway.total}</h2><div class="mods">${pathway.modules.map((m) => `<span class="${m.validated ? 'ok' : ''}">${m.validated ? '✓ ' : ''}${esc(m.name)}${m.best != null ? ` (${fr(m.best, 0)} %)` : ''}</span>`).join('')}</div>` : ''}
+      ${proposals && proposals.length ? `<p>${proposals.map((p) => `${esc(PROPOSAL_META[p.status].label)} par ${esc(p.proposedBy)} le ${esc(new Date(p.createdAt).toLocaleDateString('fr-FR'))}${p.decidedBy ? ` (décision : ${esc(p.decidedBy)})` : ''}`).join('<br>')}</p>` : ''}
+      <h2>Historique des évaluations</h2>
+      ${evals.length ? `<table><thead><tr><th>Date</th><th>Grille</th><th>Notes</th><th>Total</th><th>Avis</th><th>Commentaires</th></tr></thead><tbody>${evals.map(row).join('')}</tbody></table>` : '<p>Aucune évaluation.</p>'}
+      <footer><span>Document interne — diffusion restreinte au commandement FIM.</span><span>Édité le ${esc(new Date().toLocaleString('fr-FR'))}</span></footer>
+      <script>window.onload = () => setTimeout(() => window.print(), 300);<\/script>
+      </body></html>`;
+    const win = window.open('', '_blank');
+    if (!win) { window.showToast('Autorise les fenêtres pop-up pour exporter la fiche.', 'error'); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  }
+
+  // --- Alertes navigateur (code grave, nouvelle brèche, ogive, raid IC) ---
+  const ALERT_KEY = 'fim_alerts_on';
+  const GRAVE = ['ROUGE', 'MAUVE', 'BLANC', 'NOIR'];
+  let alertTimer = null;
+  let alertBaseline = null;
+  const alertsOn = () => { try { return localStorage.getItem(ALERT_KEY) === '1'; } catch (e) { return false; } };
+  function notify(title, body) {
+    window.showToast(`${title} — ${body}`, 'error');
+    try {
+      if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body, tag: `fim-${title}`, icon: 'https://voidline-studio.com/ressources/voidline.ico' });
+    } catch (e) { /* notifications indisponibles */ }
+  }
+  async function alertTick() {
+    // Le guetteur ne tourne que tant qu'un terminal FIM est affiché.
+    if (!alertsOn() || !document.querySelector('.terminal-tab[data-tab="fim-situation"]')) { stopAlerts(); return; }
+    let data;
+    try { data = await window.apiFetch('/api/rp/fim/situation'); } catch (e) { return; }
+    const state = {};
+    (data.servers || []).forEach((s) => { state[s.jobId] = { code: s.alertCode, breaches: s.breaches, nuke: s.nuke, raid: !!(s.raid && s.raid.stage) }; });
+    if (alertBaseline) {
+      Object.entries(state).forEach(([id, s]) => {
+        const before = alertBaseline[id] || { code: 'VERT', breaches: [], nuke: false, raid: false };
+        if (GRAVE.includes(s.code) && s.code !== before.code) notify(`CODE ${s.code}`, `Serveur ${id} : ${CODES[s.code]?.desc || ''}`);
+        s.breaches.filter((b) => !before.breaches.includes(b)).forEach((b) => notify('BRÈCHE', `${/^\d/.test(b) ? `SCP-${b}` : b} hors confinement (serveur ${id}).`));
+        if (s.nuke && !before.nuke) notify('☢ OGIVE ARMÉE', `Serveur ${id} : évacuation immédiate.`);
+        if (s.raid && !before.raid) notify('RAID IC', `Serveur ${id} : l'Insurrection du Chaos attaque le Site.`);
+      });
+    }
+    alertBaseline = state;
+  }
+  function startAlerts() {
+    if (alertTimer || !alertsOn()) return;
+    alertBaseline = null;
+    alertTick();
+    alertTimer = setInterval(alertTick, 30000);
+  }
+  function stopAlerts() {
+    if (alertTimer) clearInterval(alertTimer);
+    alertTimer = null;
+  }
+  async function toggleAlerts(btn) {
+    if (alertsOn()) {
+      try { localStorage.setItem(ALERT_KEY, '0'); } catch (e) { /* stockage indisponible */ }
+      stopAlerts();
+    } else {
+      if ('Notification' in window && Notification.permission === 'default') {
+        try { await Notification.requestPermission(); } catch (e) { /* refus */ }
+      }
+      try { localStorage.setItem(ALERT_KEY, '1'); } catch (e) { /* stockage indisponible */ }
+      startAlerts();
+      if (!('Notification' in window) || Notification.permission !== 'granted') window.showToast('Alertes activées dans la page (notifications du navigateur refusées).', 'success');
+      else window.showToast('Alertes activées : tu seras prévenu même sur un autre onglet.', 'success');
+    }
+    renderAlertButton(btn);
+  }
+  function renderAlertButton(btn) {
+    if (!btn) return;
+    btn.classList.toggle('on', alertsOn());
+    btn.textContent = alertsOn() ? '🔔 Alertes activées' : '🔕 Activer les alertes';
+  }
+
+  // --- Espace ERI : page à part pour les membres ERI (évaluations + parcours) ---
+  async function checkEri() {
+    try { return await window.apiFetch('/api/rp/eri/me'); } catch (e) { return null; }
+  }
+  function renderEriSpace(root, data, onBack) {
+    const evals = data.evaluations || [];
+    const choices = gridsFromEvals(evals);
+    let gridId = choices[0]?.id;
+    const render = () => {
+      const gv = choices.find((g) => g.id === gridId) || null;
+      root.innerHTML = `
+        <div class="fim-eri-wrap">
+          ${onBack ? `<button class="terminal-breadcrumb" id="eri-back" style="margin-bottom:22px;">← SITE-15 // MENU PRINCIPAL</button>` : ''}
+          <div class="fim-hero">
+            <div class="fim-hero-eyebrow">Commandement FIM · Espace ERI</div>
+            <h2>${esc(data.name)}</h2>
+            <p>Ton dossier de candidat : les évaluations rédigées par les officiers FIM et ta progression dans le parcours d'intégration. Lecture seule.</p>
+            <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+              ${(data.roles || []).map((r) => `<span class="fim-chip u" style="--u:#B07CFF">${esc(r)}</span>`).join('')}
+              ${data.discordName ? `<span class="fim-chip">Discord : ${esc(data.discordName)}</span>` : ''}
+              <button class="btn ghost small" id="eri-export" type="button" style="margin-left:auto;">Exporter ma fiche</button>
+            </div>
+          </div>
+          ${pathwayBlock(data.pathway || { modules: [], total: 0, done: 0 }, data.proposals || [], { canPropose: false })}
+          <div class="fim-eval-profile" style="--u:#B07CFF; margin-top:18px;">
+            ${profileBlock(data.name, null, evals, gv, '#B07CFF', choices, data.roles)}
+            <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 12px;">Historique</h3>
+            ${evals.length ? evals.map((e) => evalCard(e, false)).join('') : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}
+          </div>
+          ${credit()}
+        </div>`;
+      root.querySelector('#eri-back')?.addEventListener('click', onBack);
+      root.querySelector('#fim-profile-grid')?.addEventListener('change', (e) => { gridId = e.target.value; render(); });
+      root.querySelector('#eri-export').addEventListener('click', () => exportFiche({ name: data.name, unit: null, tags: data.roles, discordName: data.discordName }, evals, data.pathway, data.proposals));
+    };
+    render();
   }
 
   // ---------------------------------------------------------------
@@ -1839,6 +2190,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     ],
     load(tabId, deptId) {
       stopRefresh();
+      startAlerts();
       if (tabId === 'fim-situation') loadSituation(false);
       else if (tabId === 'fim-units') loadUnits(deptId);
       else if (tabId === 'fim-ops') loadOperations();
@@ -1848,5 +2200,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
       else if (tabId === 'fim-evals') loadEvaluations(deptId);
     },
     stop: stopRefresh,
+    checkEri,
+    renderEriSpace,
   };
 })();

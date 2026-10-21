@@ -814,6 +814,20 @@
       }
     });
     document.getElementById('topchoice-archives').addEventListener('click', renderArchivesShell);
+    window.FIM?.checkEri().then((eri) => {
+      const grid = mainRoot.querySelector('.topchoice-grid');
+      if (!eri || !eri.isERI || !grid || document.getElementById('topchoice-eri')) return;
+      const card = document.createElement('button');
+      card.className = 'topchoice-card';
+      card.id = 'topchoice-eri';
+      card.type = 'button';
+      card.innerHTML = `
+        <div class="topchoice-eyebrow">${ICONS.badge} Candidat FIM</div>
+        <div class="topchoice-title">Espace ERI</div>
+        <div class="topchoice-desc">Tes évaluations par les officiers FIM et ta progression dans le parcours d'intégration (${eri.pathway?.done || 0}/${eri.pathway?.total || 0} modules).</div>`;
+      card.addEventListener('click', () => window.FIM.renderEriSpace(mainRoot, eri, renderTopChoice));
+      grid.appendChild(card);
+    });
     document.getElementById('topchoice-directory').addEventListener('click', () => {
       window.open(`/rp/annuaire/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
     });
@@ -4853,6 +4867,9 @@
     }
 
     if (!context.hasAnyAccess) {
+      // Membre ERI sans personnage : il garde l'accès à son Espace ERI (rp/fim.js).
+      const eri = await window.FIM?.checkEri();
+      if (eri) { window.FIM.renderEriSpace(mainRoot, eri, null); return; }
       renderNoAccess(context);
       return;
     }
