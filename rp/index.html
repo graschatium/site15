@@ -582,6 +582,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<script src="/rp/fim.js"></script>
 <script>
   const API_BASE = 'https://site15-bot.onrender.com';
   const TOKEN_KEY = 'vs_token';
@@ -640,6 +641,7 @@
   const SCIENCE_DEPT_ID = 'scientifique_mmqbrd32f2z7';
   const ADMIN_DEPT_ID = 'administratif_mmqbmvq8ikle';
   const SECURITY_DEPT_ID = 'security';
+  const FIM_DEPT_ID = 'fim_mmqbs55q2vge';
 
   const DEPT_CODES = {
     security: 'DEPT-SEC',
@@ -1012,6 +1014,10 @@
       tabs.push({ id: 'sec-service', label: 'Service', icon: 'badge' });
       tabs.push({ id: 'sec-card-reader', label: 'Lecteur de carte', icon: 'monitor' });
     }
+    if (deptId === FIM_DEPT_ID && window.FIM) {
+      // Onglets de l'intranet FIM : voir rp/fim.js
+      tabs.push(...window.FIM.tabs);
+    }
 
     mainRoot.innerHTML = `
       <div class="terminal-screen">
@@ -1086,7 +1092,9 @@
   }
 
   function loadTerminalTab(deptId, tabId) {
-    if (tabId === 'bulletin' || tabId === 'effectifs') loadDeptData(deptId, tabId);
+    window.FIM?.stop();
+    if (tabId.startsWith('fim-')) window.FIM?.load(tabId, deptId);
+    else if (tabId === 'bulletin' || tabId === 'effectifs') loadDeptData(deptId, tabId);
     else if (tabId === 'rdv') loadMedicalModule();
     else if (tabId === 'sec-reports') loadSecurityReports();
     else if (tabId === 'sec-zc') loadSecurityZcLog();
