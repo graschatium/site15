@@ -78,6 +78,36 @@
   .fim-credit a{ text-decoration:underline; }
   .fim-table td, .fim-table th{ font-size:12.5px; }
   .fim-search{ width:100%; margin:0 0 14px; }
+  .fim-op.mine{ box-shadow:inset 0 0 0 1px rgba(79,216,149,0.35); }
+  .fim-op-team{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .fim-op-team .fim-chip i{ font-style:normal; color:var(--ink-faint); }
+  .fim-op-team .fim-chip.me{ color:#4FD895; border-color:rgba(79,216,149,0.45); }
+  .fim-op-foot{ margin-top:10px; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); }
+  .fim-journal{ margin-top:12px; background:var(--void-2); border-radius:3px; padding:10px 12px; }
+  .fim-journal-head{ display:flex; justify-content:space-between; align-items:center; font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-2); margin-bottom:6px; }
+  .fim-journal-row{ display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px dashed var(--line); font-size:12.5px; }
+  .fim-journal-row .t{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+  .fim-journal-row .x{ flex:1; color:var(--ink-dim); }
+  .fim-journal-row .by{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); }
+  .fim-journal-form{ display:flex; gap:8px; margin-top:8px; }
+  .fim-journal-form select{ width:auto; }
+  .fim-journal-form input{ flex:1; }
+  .fim-link{ background:none; border:none; color:var(--accent-2); cursor:pointer; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; }
+  .fim-x{ background:none; border:1px solid var(--line); color:var(--ink-faint); width:24px; height:24px; border-radius:2px; cursor:pointer; flex-shrink:0; }
+  .fim-x:hover{ color:var(--bad); border-color:var(--bad); }
+  .fim-picker{ display:flex; flex-wrap:wrap; gap:6px; max-height:170px; overflow:auto; padding:8px; background:var(--void-2); border-radius:3px; }
+  .fim-picker .fim-chip{ cursor:pointer; opacity:.6; }
+  .fim-picker .fim-chip.picked{ opacity:1; box-shadow:0 0 0 1px var(--u) inset; }
+  .fim-team-list{ display:flex; flex-direction:column; gap:6px; }
+  .fim-team-row{ display:grid; grid-template-columns:minmax(140px, 1fr) 1.4fr auto; gap:8px; align-items:center; }
+  .fim-team-row .nm{ font-family:'JetBrains Mono', monospace; font-size:12px; }
+  .fim-plan-day{ margin-bottom:18px; }
+  .fim-plan-day h3{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-2); margin-bottom:8px; }
+  .fim-plan-row{ display:flex; align-items:center; gap:10px; padding:10px 12px; margin-bottom:6px; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--u); border-radius:3px; flex-wrap:wrap; }
+  .fim-plan-row .time{ font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; width:48px; }
+  .fim-plan-row .nm{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:12.5px; letter-spacing:.04em; }
+  .fim-plan-row .meta{ font-size:12px; color:var(--ink-faint); margin-right:auto; }
+  @media (max-width:640px){ .fim-team-row{ grid-template-columns:1fr auto; } .fim-team-row input{ grid-column:1 / -1; } .fim-journal-form{ flex-wrap:wrap; } }
   .fim-op.focus{ box-shadow:0 0 0 1px var(--accent); }
   .fim-hq-units{ display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
   .fim-hq-units .fim-chip.off{ opacity:.5; }
@@ -109,6 +139,13 @@
   .fim-staff tr.unit-row td{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.08em; color:var(--u); background:color-mix(in srgb, var(--u) 7%, transparent); border-left:3px solid var(--u); }
   .fim-staff .em{ display:inline-flex; width:22px; height:22px; border-radius:50%; align-items:center; justify-content:center; margin-right:3px; color:#E6B43C; border:1px solid rgba(230,180,60,.45); }
   .fim-staff .em svg{ width:13px; height:13px; }
+  .fim-staff tr.clickable{ cursor:pointer; }
+  .fim-staff tr.clickable:hover td{ background:var(--panel-raised); }
+  .fim-staff tr.sel td{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .fim-note{ border-left:2px solid var(--c); background:var(--void-2); border-radius:2px; padding:9px 12px; margin-bottom:8px; }
+  .fim-note-head{ display:flex; align-items:center; gap:10px; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); }
+  .fim-note-head span:nth-child(2){ margin-right:auto; }
+  .fim-note-text{ font-size:12.5px; color:var(--ink-dim); line-height:1.6; margin-top:6px; white-space:pre-wrap; }
   .fim-staff-wrap{ overflow-x:auto; background:var(--panel); border:1px solid var(--line); border-radius:3px; }
   @media (max-width:640px){ .fim-dossier{ padding:18px; } .fim-hero{ padding:18px; } }
   `;
@@ -610,6 +647,52 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   function subTabs(items, current, attr) {
     return `<div class="fim-subnav">${items.map(([k, l]) => `<button type="button" ${attr}="${k}" class="${k === current ? 'active' : ''}">${l}</button>`).join('')}</div>`;
   }
+  // Roster FIM actif + dossiers du personnel (indicatifs, notes).
+  let currentDeptId = null;
+  let personnel = new Map();
+  let personnelCanManage = false;
+  const personKey = (name) => String(name || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 80);
+  async function loadPersonnel() {
+    try {
+      const r = await window.apiFetch('/api/rp/fim/personnel');
+      personnel = new Map((r.personnel || []).map((p) => [p.key, p]));
+      personnelCanManage = !!r.canManage;
+    } catch (err) { /* garde la dernière liste */ }
+  }
+  async function loadRoster() {
+    const [dept] = await Promise.all([
+      window.apiFetch(`/api/rp/depts/${encodeURIComponent(currentDeptId)}`).catch(() => null),
+      loadRoleMembers(),
+      loadPersonnel(),
+    ]);
+    return (dept?.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
+  }
+  const callsignOf = (name) => personnel.get(personKey(name))?.callsign || '';
+  const withCallsign = (name) => (callsignOf(name) ? `${name} « ${callsignOf(name)} »` : name);
+  // Rôle d'une personne dans une opération (chef, équipier) ou null.
+  function roleIn(op, name) {
+    const n = norm(name);
+    if (!n) return null;
+    if (norm(op.leader) === n) return 'Chef d’opération';
+    const m = (op.team || []).find((x) => norm(x.name) === n);
+    if (m) return m.role || 'Équipier';
+    if (!(op.team || []).length && norm(op.assigned).includes(n)) return 'Affecté';
+    return null;
+  }
+  // Minutes passées en jeu pendant les opérations (relevé de présence).
+  function presenceMinutes(op, name) {
+    const n = norm(name);
+    return Object.values(op.presence || {}).filter((x) => norm(x.name) === n).reduce((a, x) => a + (x.minutes || 0), 0);
+  }
+  function relTime(t) {
+    if (!t) return '';
+    const d = t - Date.now();
+    const abs = Math.abs(d);
+    const txt = abs < 3600000 ? `${Math.max(1, Math.round(abs / 60000))} min` : abs < 86400000 ? `${Math.round(abs / 3600000)} h` : `${Math.round(abs / 86400000)} j`;
+    return d >= 0 ? `dans ${txt}` : `il y a ${txt}`;
+  }
+
   // Ouvre un onglet FIM du terminal (après avoir réglé sa vue).
   function goTab(id) {
     document.querySelector(`.terminal-tab[data-tab="${id}"]`)?.click();
@@ -648,13 +731,12 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const main = mainEl();
     main.innerHTML = '<div class="center-msg">Connexion au réseau tactique…</div>';
     const safe = (pr, fallback) => pr.catch(() => fallback);
-    const [ops, debriefs, evalData, docs, dept] = await Promise.all([
+    const [ops, debriefs, evalData, docs, agents] = await Promise.all([
       safe(window.apiFetch('/api/rp/fim/operations'), { operations: [] }),
       safe(window.apiFetch('/api/rp/fim/debriefs'), { debriefs: [] }),
       safe(window.apiFetch('/api/rp/fim/evaluations'), { evaluations: [] }),
       safe(window.apiFetch('/api/rp/fim/docs'), { documents: [] }),
-      safe(window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`), null),
-      loadRoleMembers(),
+      loadRoster(),
     ]);
     if (mainEl() !== main || !main.isConnected) return;
     const operations = ops.operations || [];
@@ -662,14 +744,17 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const evaluations = evalData.evaluations || [];
     const isCommand = !!evalData.canEvaluate;
     const self = evalData.self || '';
-    const agents = (dept?.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
+    const canCommand = !!ops.canCommand;
     const me = agents.find((a) => norm(a.name || a.username) === norm(self));
     const myUnit = me ? unitFromAgent(me) : null;
     // Le commandement reçoit toutes les évaluations : on garde les siennes.
     const myEvals = isCommand ? evaluations.filter((e) => norm(e.agentName) === norm(self)) : evaluations;
     const myAvg = avgOf(myEvals.map((e) => e.percent).filter((v) => v != null));
     const activeOps = operations.filter((o) => o.status === 'en_cours' || o.status === 'planifiee')
-      .sort((a, b) => (a.status === 'en_cours' ? 0 : 1) - (b.status === 'en_cours' ? 0 : 1) || (b.createdAt || 0) - (a.createdAt || 0));
+      .sort((a, b) => (a.status === 'en_cours' ? 0 : 1) - (b.status === 'en_cours' ? 0 : 1) || (a.scheduledAt || Infinity) - (b.scheduledAt || Infinity));
+    const myMissions = activeOps.filter((o) => roleIn(o, self));
+    const myFile = personnel.get(personKey(self)) || {};
+    const myMinutes = operations.reduce((acc, o) => acc + presenceMinutes(o, self), 0);
     const debriefed = new Set(debriefList.map((d) => d.operationId).filter(Boolean));
     const toDebrief = operations.filter((o) => o.status === 'terminee' && !debriefed.has(o.id));
     const neverEvaluated = isCommand ? agents.filter((a) => norm(a.name || a.username) !== norm(self) && !evaluations.some((e) => norm(e.agentName) === norm(a.name || a.username))).length : 0;
@@ -686,7 +771,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       <div class="fim-hq-me" style="--u:${color}">
         ${myUnit ? crest((UNITS.find((u) => u.id === myUnit) || {}).letter || '?') : ''}
         <div>
-          <div class="fim-hq-me-name">${esc(self || '—')}</div>
+          <div class="fim-hq-me-name">${esc(self || '—')}${myFile.callsign ? ` <span style="color:${color}; font-size:13px;">« ${esc(myFile.callsign)} »</span>` : ''}</div>
           <div class="fim-hq-me-sub">${esc(me?.rank || 'Opérateur')} · ${myUnit ? `<span style="color:${color}">FIM ${esc(unitLabel(myUnit))}</span>` : 'sans unité'}</div>
         </div>
       </div>
@@ -694,18 +779,26 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         <div><b style="color:${pctColor(myAvg)}">${fmtPct(myAvg)}</b><span>Moyenne</span></div>
         <div><b>${myEvals.length}</b><span>Évaluations</span></div>
         <div><b>${earnedBrevets(myEvals).length}</b><span>Brevets</span></div>
+        <div><b>${operations.filter((o) => roleIn(o, self) || presenceMinutes(o, self) > 0).length}</b><span>Missions</span></div>
+        <div><b>${myMinutes ? `${fr(myMinutes / 60, 1)} h` : '—'}</b><span>En opération</span></div>
+        <div><b>${(myFile.notes || []).filter((n) => n.kind === 'felicitation').length}</b><span>Félicitations</span></div>
       </div>
       ${medalsRow(myEvals)}`,
       `<button class="btn ghost small" type="button" data-go="fim-evals">${isCommand ? 'Évaluations' : 'Mes évaluations'}</button>`);
-    const opsCard = card('Opérations actives', activeOps.length, activeOps.length
-      ? activeOps.slice(0, 5).map((o) => `
+    const opRow = (o) => `
         <div class="fim-hq-row" style="--u:${unitColor(o.unit)}">
           <span class="nm">${esc(o.codeName)}</span>
-          <span class="meta">${esc(unitLabel(o.unit))}${o.zone ? ` · ${esc(o.zone)}` : ''}</span>
+          <span class="meta">${o.scheduledAt && o.status === 'planifiee' ? `${esc(relTime(o.scheduledAt))} · ` : ''}${esc(unitLabel(o.unit))}${roleIn(o, self) ? ` · ${esc(roleIn(o, self))}` : o.zone ? ` · ${esc(o.zone)}` : ''}</span>
           ${pill(STATUS_META[o.status] || STATUS_META.planifiee)}
-        </div>`).join('')
+        </div>`;
+    const missionsCard = card('Mes missions', myMissions.length, myMissions.length
+      ? myMissions.slice(0, 5).map(opRow).join('')
+      : '<div class="empty-row">Aucune mission en cours ou à venir.</div>',
+      `<button class="btn ghost small" type="button" data-go="fim-ops" data-ops="miennes">Mes missions</button>`);
+    const opsCard = card('Opérations actives', activeOps.length, activeOps.length
+      ? activeOps.slice(0, 5).map(opRow).join('')
       : '<div class="empty-row">Aucune opération en cours ou planifiée.</div>',
-      `<button class="btn ghost small" type="button" data-go="fim-ops" data-ops="actives">Toutes les opérations</button><button class="btn small" type="button" data-go="fim-ops" data-ops="nouvelle">+ Nouvel ordre</button>`);
+      `<button class="btn ghost small" type="button" data-go="fim-ops" data-ops="planning">Planning</button><button class="btn ghost small" type="button" data-go="fim-ops" data-ops="actives">Toutes</button>${canCommand ? '<button class="btn small" type="button" data-go="fim-ops" data-ops="nouvelle">+ Nouvel ordre</button>' : ''}`);
     const todo = [];
     if (toDebrief.length) todo.push([`${toDebrief.length} opération(s) terminée(s) sans débriefing`, toDebrief.slice(0, 3).map((o) => o.codeName).join(', '), 'fim-ops', 'debriefs']);
     if (isCommand && neverEvaluated) todo.push([`${neverEvaluated} opérateur(s) jamais évalué(s)`, 'Onglet Évaluations', 'fim-evals', '']);
@@ -731,7 +824,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     main.innerHTML = `
       <div id="fim-hq">
         <div id="fim-live"><div class="center-msg">Connexion au réseau tactique…</div></div>
-        <div class="fim-hq-grid">${myCard}${opsCard}${todoCard}${debriefCard}${notesCard}</div>
+        <div class="fim-hq-grid">${myCard}${missionsCard}${opsCard}${todoCard}${debriefCard}${notesCard}</div>
         <div id="fim-live-servers"></div>
       </div>`;
     main.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
@@ -837,14 +930,15 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         <h2>Forces d'Intervention Mobiles du Site-15</h2>
         <p>${UNITS.length} unités, chacune avec sa spécialité, son indicatif et ses règles. L'unité d'un opérateur vient de son rôle d'unité sur le Discord FIM (à défaut, de sa division dans le roster).</p>
       </div>
-      ${subTabs([['bataille', 'Ordre de bataille'], ['effectifs', 'Effectifs']], unitsView, 'data-uv')}
+      ${subTabs([['bataille', 'Ordre de bataille'], ['effectifs', 'Effectifs et dossiers'], ['activite', 'Activité']], unitsView, 'data-uv')}
       <div id="fim-units-body"></div>`;
     root.querySelectorAll('[data-uv]').forEach((b) => b.addEventListener('click', () => {
       unitsView = b.dataset.uv;
       loadUnits(deptId);
     }));
     mainOverride = document.getElementById('fim-units-body');
-    if (unitsView === 'effectifs') loadStaff(deptId);
+    if (unitsView === 'effectifs') loadStaff();
+    else if (unitsView === 'activite') loadActivity();
     else loadBattleOrder(deptId);
   }
 
@@ -901,33 +995,44 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     render();
   }
 
-  // Effectifs : tous les opérateurs actifs, rangés par unité.
+  // Effectifs : tous les opérateurs actifs, rangés par unité, avec leur dossier.
   let staffSearch = '';
-  async function loadStaff(deptId) {
+  let staffSelected = null;
+  const NOTE_META = {
+    felicitation: { label: 'Félicitation', color: '#4FD895' },
+    avertissement: { label: 'Avertissement', color: '#F0525A' },
+    observation: { label: 'Observation', color: '#5AA9FF' },
+  };
+  async function loadStaff() {
     const main = mainEl();
     main.innerHTML = '<div class="center-msg">Chargement…</div>';
     let agents = [];
     let evalData = { evaluations: [] };
+    let ops = [];
     try {
-      const [dept, ev] = await Promise.all([
-        window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`),
+      const [roster, ev, o] = await Promise.all([
+        loadRoster(),
         window.apiFetch('/api/rp/fim/evaluations').catch(() => evalData),
-        loadRoleMembers(),
+        window.apiFetch('/api/rp/fim/operations').catch(() => ({ operations: [] })),
       ]);
-      agents = (dept.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
+      agents = roster;
       evalData = ev;
+      ops = o.operations || [];
     } catch (err) {
       main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
       return;
     }
     if (mainEl() !== main) return;
     const isCommand = !!evalData.canEvaluate;
+    const self = evalData.self || '';
     const evaluations = evalData.evaluations || [];
     const people = agents.map((a) => {
       const member = roleMemberOf(a);
       const name = a.name || a.username;
       const evals = evaluations.filter((e) => (member?.discordId && e.agentDiscordId === member.discordId) || norm(e.agentName) === norm(name));
-      return { name, rank: a.rank || '', unit: unitFromAgent(a), viaRole: !!member, discordName: member?.discordName || '', evals };
+      const missions = ops.filter((o) => roleIn(o, name) || presenceMinutes(o, name) > 0);
+      const minutes = ops.reduce((acc, o) => acc + presenceMinutes(o, name), 0);
+      return { name, rank: a.rank || '', unit: unitFromAgent(a), viaRole: !!member, discordName: member?.discordName || '', evals, missions, minutes, file: personnel.get(personKey(name)) || {} };
     });
     const groups = [...UNITS.map((u) => ({ id: u.id, label: `FIM ${u.name}${u.nick ? ` ${u.nick}` : ''}`, color: u.color })), { id: null, label: 'Sans unité', color: '#9297A8' }];
     setSide(
@@ -936,35 +1041,225 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     );
 
     main.innerHTML = `
-      <input type="text" id="fim-staff-search" class="fim-search" placeholder="Rechercher un opérateur, un grade, une unité…" value="${esc(staffSearch)}">
+      <div id="fim-staff-dossier"></div>
+      <input type="text" id="fim-staff-search" class="fim-search" placeholder="Rechercher un opérateur, un indicatif, un grade, une unité…" value="${esc(staffSearch)}">
       <div class="fim-staff-wrap"><table class="fim-staff"><thead><tr>
-        <th>Opérateur</th><th>Grade</th><th>Brevets</th>${isCommand ? '<th>Moyenne</th><th>Dernière éval.</th>' : ''}<th>Unité</th>
+        <th>Opérateur</th><th>Indicatif</th><th>Grade</th><th>Brevets</th><th>Missions</th>${isCommand ? '<th>Moyenne</th>' : ''}<th>Unité</th>
       </tr></thead><tbody id="fim-staff-body"></tbody></table></div>
-      <div style="margin-top:10px; font-size:11.5px; color:var(--ink-faint);">« Rôle Discord » : unité lue sur le rôle d'unité du Discord FIM (compte Roblox lié). Sinon, l'unité vient de la division du roster.${isCommand ? '' : ' Les moyennes et brevets des autres opérateurs sont réservés au commandement.'}</div>`;
+      <div style="margin-top:10px; font-size:11.5px; color:var(--ink-faint);">Clique sur un opérateur pour ouvrir son dossier. « Rôle Discord » : unité lue sur le rôle d'unité du Discord FIM (compte Roblox lié), sinon sur la division du roster.</div>`;
+
+    const renderDossier = () => {
+      const box = document.getElementById('fim-staff-dossier');
+      const p = people.find((x) => norm(x.name) === norm(staffSelected));
+      if (!p) { box.innerHTML = ''; return; }
+      const isSelf = norm(p.name) === norm(self);
+      const color = p.unit ? unitColor(p.unit) : '#6E76FF';
+      const avg = avgOf(p.evals.map((e) => e.percent).filter((v) => v != null));
+      const notes = [...(p.file.notes || [])].sort((a, b) => b.at - a.at);
+      const canSeeNotes = isCommand || isSelf;
+      const missions = [...p.missions].sort((a, b) => (b.scheduledAt || b.createdAt || 0) - (a.scheduledAt || a.createdAt || 0));
+      box.innerHTML = `
+        <div class="fim-dossier" style="--u:${color}; margin:0 0 18px;">
+          <div class="fim-dossier-head" style="color:${color}">
+            ${p.unit ? crest((UNITS.find((u) => u.id === p.unit) || {}).letter || '?') : ''}
+            <div style="color:var(--ink); flex:1;">
+              <h3>${esc(p.name)}${p.file.callsign ? ` <span style="color:${color}">« ${esc(p.file.callsign)} »</span>` : ''}</h3>
+              <div class="fim-motto">${esc(p.rank || 'Opérateur')} · ${p.unit ? `FIM ${esc(unitLabel(p.unit))}` : 'sans unité'}${p.discordName ? ` · ${esc(p.discordName)}` : ''}</div>
+            </div>
+            <button class="btn ghost small" type="button" id="fim-dossier-close">Fermer</button>
+          </div>
+          <div class="fim-facts">
+            <div class="fim-fact"><b>Missions</b><span>${p.missions.length}</span></div>
+            <div class="fim-fact"><b>Temps en opération</b><span>${p.minutes ? `${fr(p.minutes / 60, 1)} h` : '—'}</span></div>
+            <div class="fim-fact"><b>Brevets</b><span>${earnedBrevets(p.evals).length}</span></div>
+            ${isCommand || isSelf ? `<div class="fim-fact"><b>Moyenne</b><span style="color:${pctColor(avg)}">${fmtPct(avg)} · ${p.evals.length} éval.</span></div>` : ''}
+            ${canSeeNotes ? `<div class="fim-fact"><b>Félicitations / avert.</b><span>${notes.filter((n) => n.kind === 'felicitation').length} / ${notes.filter((n) => n.kind === 'avertissement').length}</span></div>` : ''}
+          </div>
+          ${medalsRow(p.evals)}
+          ${isCommand ? `
+            <div class="fim-editor-section">Indicatif radio</div>
+            <form id="fim-callsign-form" style="display:flex; gap:8px; max-width:420px;">
+              <input type="text" id="fim-callsign" maxlength="24" placeholder="Ex : VALKYRIE-1" value="${esc(p.file.callsign || '')}" style="flex:1;">
+              <button class="btn small" type="submit">Enregistrer</button>
+            </form>` : ''}
+          <div class="fim-editor-section">Missions</div>
+          ${missions.length ? missions.slice(0, 12).map((o) => `
+            <div class="fim-hq-row" style="--u:${unitColor(o.unit)}; margin-bottom:6px;">
+              <span class="nm">${esc(o.codeName)}</span>
+              <span class="meta">${esc(roleIn(o, p.name) || 'Présent en jeu')}${presenceMinutes(o, p.name) ? ` · ${fr(presenceMinutes(o, p.name), 0)} min en jeu` : ''} · ${esc(new Date(o.scheduledAt || o.createdAt).toLocaleDateString('fr-FR'))}</span>
+              ${pill(STATUS_META[o.status] || STATUS_META.planifiee)}
+            </div>`).join('') : '<div class="empty-row" style="padding:12px;">Aucune mission enregistrée.</div>'}
+          ${canSeeNotes ? `
+            <div class="fim-editor-section">Notes du commandement</div>
+            ${notes.length ? notes.map((n) => `
+              <div class="fim-note" style="--c:${(NOTE_META[n.kind] || NOTE_META.observation).color}">
+                <div class="fim-note-head">${pill(NOTE_META[n.kind] || NOTE_META.observation)}<span>${esc(n.by)} · ${fmtDate(n.at)}</span>${isCommand ? `<button type="button" class="fim-x" data-note-del="${esc(n.id)}" title="Retirer">×</button>` : ''}</div>
+                <div class="fim-note-text">${esc(n.text)}</div>
+              </div>`).join('') : '<div class="empty-row" style="padding:12px;">Aucune note au dossier.</div>'}
+            ${isCommand && !isSelf ? `
+              <form id="fim-note-form" style="margin-top:10px;">
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <select id="fim-note-kind" style="width:auto;">${Object.entries(NOTE_META).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}</select>
+                  <input type="text" id="fim-note-text" maxlength="1000" placeholder="Motif, contexte, opération concernée…" style="flex:1; min-width:220px;">
+                  <button class="btn small" type="submit">Ajouter au dossier</button>
+                </div>
+              </form>` : ''}` : ''}
+        </div>`;
+      document.getElementById('fim-dossier-close').addEventListener('click', () => { staffSelected = null; renderDossier(); render(); });
+      document.getElementById('fim-callsign-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await window.apiFetch('/api/rp/fim/personnel/callsign', { method: 'PATCH', body: JSON.stringify({ name: p.name, callsign: document.getElementById('fim-callsign').value.trim() }) });
+          window.showToast('Indicatif enregistré.', 'success');
+          loadStaff();
+        } catch (err) {
+          window.showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      document.getElementById('fim-note-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = document.getElementById('fim-note-text').value.trim();
+        if (!text) return;
+        try {
+          await window.apiFetch('/api/rp/fim/personnel/notes', { method: 'POST', body: JSON.stringify({ name: p.name, kind: document.getElementById('fim-note-kind').value, text }) });
+          window.showToast('Note ajoutée au dossier.', 'success');
+          loadStaff();
+        } catch (err) {
+          window.showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      box.querySelectorAll('[data-note-del]').forEach((b) => b.addEventListener('click', async () => {
+        if (!confirm('Retirer cette note du dossier ?')) return;
+        try {
+          await window.apiFetch(`/api/rp/fim/personnel/notes/${encodeURIComponent(b.dataset.noteDel)}?name=${encodeURIComponent(p.name)}`, { method: 'DELETE' });
+          loadStaff();
+        } catch (err) {
+          window.showToast(`Erreur : ${err.message}`, 'error');
+        }
+      }));
+    };
+
     const render = () => {
       const q = norm(staffSearch);
-      const shown = q ? people.filter((p) => [p.name, p.rank, p.discordName, p.unit && unitLabel(p.unit)].some((x) => norm(x).includes(q))) : people;
-      const cols = isCommand ? 6 : 4;
+      const shown = q ? people.filter((p) => [p.name, p.rank, p.discordName, p.file.callsign, p.unit && unitLabel(p.unit)].some((x) => norm(x).includes(q))) : people;
+      const cols = isCommand ? 7 : 6;
       document.getElementById('fim-staff-body').innerHTML = groups.map((g) => {
         const rows = shown.filter((p) => p.unit === g.id).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
         if (!rows.length) return '';
         return `<tr class="unit-row" style="--u:${g.color}"><td colspan="${cols}">${esc(g.label.toUpperCase())} · ${rows.length}</td></tr>` + rows.map((p) => {
           const avg = avgOf(p.evals.map((e) => e.percent).filter((v) => v != null));
-          const last = p.evals.reduce((acc, e) => Math.max(acc, e.createdAt || 0), 0);
           const brevets = earnedBrevets(p.evals);
           brevets.forEach((e) => diplomaRegistry.set(e.id, e));
-          return `<tr>
+          return `<tr class="clickable${norm(p.name) === norm(staffSelected) ? ' sel' : ''}" data-person="${esc(p.name)}">
             <td><b>${esc(p.name)}</b>${p.discordName ? `<div style="font-size:11px; color:var(--ink-faint);">${esc(p.discordName)}</div>` : ''}</td>
+            <td style="font-family:'JetBrains Mono', monospace; font-size:11.5px;">${esc(p.file.callsign || '—')}</td>
             <td>${esc(p.rank || '—')}</td>
             <td>${brevets.length ? brevets.map((e) => `<button type="button" class="em" data-diploma="${esc(e.id)}" title="${esc(certOf(e).title)}" style="background:none; cursor:pointer;">${emblemSvg(certOf(e).emblem)}</button>`).join('') : '<span style="color:var(--ink-faint);">—</span>'}</td>
-            ${isCommand ? `<td style="font-family:'JetBrains Mono', monospace; color:${pctColor(avg)}">${fmtPct(avg)}${trendBadge(p.evals)}</td><td style="font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint);">${last ? new Date(last).toLocaleDateString('fr-FR') : 'Jamais'}</td>` : ''}
+            <td style="font-family:'JetBrains Mono', monospace; font-size:11.5px;">${p.missions.length}${p.minutes ? ` · ${fr(p.minutes / 60, 1)} h` : ''}</td>
+            ${isCommand ? `<td style="font-family:'JetBrains Mono', monospace; color:${pctColor(avg)}">${fmtPct(avg)}${trendBadge(p.evals)}</td>` : ''}
             <td>${p.unit ? `<span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>${p.viaRole ? ' <span style="font-size:10.5px; color:var(--ink-faint);">rôle Discord</span>' : ''}` : '<span style="color:var(--ink-faint);">—</span>'}</td>
           </tr>`;
         }).join('');
       }).join('') || `<tr><td colspan="${cols}" class="empty-row">Aucun opérateur.</td></tr>`;
+      document.querySelectorAll('#fim-staff-body [data-person]').forEach((tr) => tr.addEventListener('click', (ev) => {
+        if (ev.target.closest('[data-diploma]')) return;
+        staffSelected = tr.dataset.person;
+        render();
+        renderDossier();
+        document.getElementById('fim-staff-dossier').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }));
     };
     document.getElementById('fim-staff-search').addEventListener('input', (e) => { staffSearch = e.target.value; render(); });
     render();
+    renderDossier();
+  }
+
+  // Activité : bilan des opérations par unité et par opérateur.
+  let activityPeriod = 30;
+  async function loadActivity() {
+    const main = mainEl();
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+    let ops = [];
+    let debriefs = [];
+    try {
+      const [o, d] = await Promise.all([
+        window.apiFetch('/api/rp/fim/operations'),
+        window.apiFetch('/api/rp/fim/debriefs').catch(() => ({ debriefs: [] })),
+        loadRoster(),
+      ]);
+      ops = o.operations || [];
+      debriefs = d.debriefs || [];
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
+      return;
+    }
+    if (mainEl() !== main) return;
+    const since = activityPeriod ? Date.now() - activityPeriod * 86400000 : 0;
+    const inPeriod = (t) => (t || 0) >= since;
+    const pOps = ops.filter((o) => inPeriod(o.scheduledAt || o.createdAt));
+    const pDebriefs = debriefs.filter((d) => inPeriod(d.createdAt));
+    const rate = (list) => (list.length ? Math.round((list.filter((d) => d.outcome === 'succes').length / list.length) * 100) : null);
+    const minutesByUnit = {};
+    const byPerson = new Map();
+    pOps.forEach((o) => {
+      Object.values(o.presence || {}).forEach((x) => {
+        if (x.unit) minutesByUnit[x.unit] = (minutesByUnit[x.unit] || 0) + (x.minutes || 0);
+        const k = norm(x.name);
+        const p = byPerson.get(k) || { name: x.name, unit: x.unit, minutes: 0, ops: new Set(), led: 0 };
+        p.minutes += x.minutes || 0;
+        p.ops.add(o.id);
+        byPerson.set(k, p);
+      });
+      [o.leader, ...(o.team || []).map((m) => m.name)].filter(Boolean).forEach((n, i) => {
+        const k = norm(n);
+        const p = byPerson.get(k) || { name: n, unit: null, minutes: 0, ops: new Set(), led: 0 };
+        p.ops.add(o.id);
+        if (i === 0 && norm(o.leader) === k) p.led += 1;
+        byPerson.set(k, p);
+      });
+    });
+    const top = [...byPerson.values()].sort((a, b) => b.minutes - a.minutes || b.ops.size - a.ops.size).slice(0, 12);
+    const totalMin = Object.values(minutesByUnit).reduce((a, b) => a + b, 0);
+    const sr = rate(pDebriefs);
+    setSide([[String(pOps.length), 'Opérations'], [sr == null ? '—' : `${sr}%`, 'Succès']], top.slice(0, 5).map((p) => [`${fr(p.minutes / 60, 1)} h`, p.name]));
+
+    main.innerHTML = `
+      ${subTabs([['7', '7 jours'], ['30', '30 jours'], ['90', '90 jours'], ['0', 'Depuis le début']], String(activityPeriod), 'data-period')}
+      <div class="fim-hq-kpis" style="grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); margin-bottom:18px;">
+        <div><b>${pOps.length}</b><span>Opérations</span></div>
+        <div><b>${pOps.filter((o) => o.status === 'terminee').length}</b><span>Terminées</span></div>
+        <div><b style="color:${sr == null ? 'var(--ink-faint)' : pctColor(sr)}">${sr == null ? '—' : `${sr} %`}</b><span>Succès (débriefings)</span></div>
+        <div><b>${fr(totalMin / 60, 1)} h</b><span>Temps en opération</span></div>
+        <div><b>${byPerson.size}</b><span>Opérateurs engagés</span></div>
+      </div>
+      <div class="fim-grid">
+        ${UNITS.map((u) => {
+          const uo = pOps.filter((o) => o.unit === u.id);
+          const ud = pDebriefs.filter((d) => d.unit === u.id);
+          const r = rate(ud);
+          return `<div class="fim-unit-card" style="--u:${u.color}; cursor:default;">
+            <div class="fim-unit-top">${crest(u.letter)}<div><div class="fim-unit-code">${esc(u.name)}</div><div class="fim-unit-nick">${esc(u.nick)}</div></div></div>
+            <div class="fim-hq-kpis">
+              <div><b>${uo.length}</b><span>Opérations</span></div>
+              <div><b style="color:${r == null ? 'var(--ink-faint)' : pctColor(r)}">${r == null ? '—' : `${r}%`}</b><span>Succès</span></div>
+              <div><b>${fr((minutesByUnit[u.id] || 0) / 60, 1)} h</b><span>En jeu</span></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="record-block" style="margin-top:24px;">
+        <div class="record-block-head"><h2>Opérateurs les plus engagés</h2><span class="count">${top.length}</span></div>
+        ${top.length ? `<div class="fim-staff-wrap"><table class="fim-staff"><thead><tr><th>#</th><th>Opérateur</th><th>Temps en jeu</th><th>Opérations</th><th>Commandées</th></tr></thead><tbody>
+          ${top.map((p, i) => `<tr>
+            <td style="font-family:'JetBrains Mono', monospace; color:var(--ink-faint);">${i + 1}</td>
+            <td><b>${esc(withCallsign(p.name))}</b>${p.unit ? ` <span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>` : ''}</td>
+            <td style="font-family:'JetBrains Mono', monospace;">${p.minutes ? `${fr(p.minutes / 60, 1)} h` : '—'}</td>
+            <td style="font-family:'JetBrains Mono', monospace;">${p.ops.size}</td>
+            <td style="font-family:'JetBrains Mono', monospace;">${p.led || '—'}</td>
+          </tr>`).join('')}
+        </tbody></table></div>` : '<div class="empty-row">Aucune activité sur cette période.</div>'}
+      </div>`;
+    main.querySelectorAll('[data-period]').forEach((b) => b.addEventListener('click', () => { activityPeriod = +b.dataset.period; loadActivity(); }));
   }
 
   // ---------------------------------------------------------------
@@ -972,6 +1267,16 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   // ---------------------------------------------------------------
   let opsFilter = 'actives';
   let opsSearch = '';
+  let editingOp = null;
+  const openJournals = new Set();
+  const JOURNAL_META = {
+    info: { label: 'Info', color: '#9297A8' },
+    contact: { label: 'Contact', color: '#F0525A' },
+    objectif: { label: 'Objectif', color: '#4FD895' },
+    perte: { label: 'Perte', color: '#E0443F' },
+    renfort: { label: 'Renfort', color: '#5AA9FF' },
+    repli: { label: 'Repli', color: '#F0A83C' },
+  };
   async function loadOperations() {
     const root = document.getElementById('terminal-main');
     mainOverride = null;
@@ -979,39 +1284,52 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     let ops = [];
     let debriefs = [];
     let canCommand = false;
+    let agents = [];
+    let self = '';
     try {
-      const [o, d] = await Promise.all([window.apiFetch('/api/rp/fim/operations'), window.apiFetch('/api/rp/fim/debriefs').catch(() => ({ debriefs: [] }))]);
+      const [o, d, roster, ev] = await Promise.all([
+        window.apiFetch('/api/rp/fim/operations'),
+        window.apiFetch('/api/rp/fim/debriefs').catch(() => ({ debriefs: [] })),
+        loadRoster(),
+        window.apiFetch('/api/rp/fim/evaluations').catch(() => ({})),
+      ]);
       ops = o.operations || [];
       debriefs = d.debriefs || [];
       canCommand = !!o.canCommand;
+      agents = roster;
+      self = ev.self || '';
     } catch (err) {
       root.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
       return;
     }
+    if (!canCommand && opsFilter === 'nouvelle') opsFilter = 'actives';
     const filters = {
       actives: (o) => o.status === 'en_cours' || o.status === 'planifiee',
+      miennes: (o) => !!roleIn(o, self),
       archives: (o) => o.status === 'terminee' || o.status === 'annulee',
-      toutes: () => true,
     };
     const debriefOf = new Map(debriefs.filter((d) => d.operationId).map((d) => [d.operationId, d]));
     const pendingDebriefs = ops.filter((o) => o.status === 'terminee' && !debriefOf.has(o.id)).length;
+    const tabs = [
+      ['actives', `Actives (${ops.filter(filters.actives).length})`],
+      ['planning', 'Planning'],
+      ['miennes', `Mes missions (${ops.filter(filters.miennes).length})`],
+      ['archives', `Archives (${ops.filter(filters.archives).length})`],
+      ['debriefs', `Débriefings (${debriefs.length})${pendingDebriefs ? ` · ${pendingDebriefs} à rédiger` : ''}`],
+    ];
+    if (canCommand) tabs.push(['nouvelle', editingOp ? 'Modifier l’ordre' : '+ Nouvel ordre']);
 
     root.innerHTML = `
       <div class="fim-hero">
         <div class="fim-hero-eyebrow">Commandement FIM · ordres de mission et rapports après action</div>
         <h2>Opérations</h2>
-        <p>Chaque intervention est enregistrée avec son nom de code, son unité, sa priorité et ses règles d'engagement. Une fois clôturée, elle se termine par un débriefing : ce qui s'est passé, ce qui a coûté, ce qu'on change.</p>
+        <p>Le commandement émet les ordres : chef d'opération, équipe, heure, point de ralliement et règles d'engagement. Pendant l'opération, chaque opérateur alimente le journal de bord. Une fois clôturée, elle se termine par un débriefing.</p>
       </div>
-      ${subTabs([
-        ['actives', `Actives (${ops.filter(filters.actives).length})`],
-        ['archives', `Archives (${ops.filter(filters.archives).length})`],
-        ['toutes', `Toutes (${ops.length})`],
-        ['debriefs', `Débriefings (${debriefs.length})${pendingDebriefs ? ` · ${pendingDebriefs} à rédiger` : ''}`],
-        ['nouvelle', '+ Nouvel ordre'],
-      ], opsFilter, 'data-f')}
+      ${subTabs(tabs, opsFilter, 'data-f')}
       <div id="fim-ops-body"></div>
     `;
     root.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.f !== 'nouvelle') editingOp = null;
       opsFilter = b.dataset.f;
       loadOperations();
     }));
@@ -1023,32 +1341,70 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     }
     setSide(
       [[String(ops.filter((o) => o.status === 'en_cours').length), 'En cours'], [String(ops.filter((o) => o.status === 'planifiee').length), 'Planifiées']],
-      ops.slice(0, 5).map((o) => [STATUS_META[o.status]?.label || o.status, `${o.codeName} · ${unitLabel(o.unit)}`])
+      ops.filter(filters.actives).slice(0, 5).map((o) => [STATUS_META[o.status]?.label || o.status, `${o.codeName} · ${unitLabel(o.unit)}`])
     );
     if (opsFilter === 'nouvelle') {
-      body.innerHTML = opForm();
-      bindOpForm();
+      const op = editingOp ? ops.find((o) => o.id === editingOp) : null;
+      body.innerHTML = opForm(op, agents);
+      bindOpForm(op, agents);
       return;
     }
-    const base = ops.filter(filters[opsFilter] || filters.actives);
+    const ctx = { canCommand, self, debriefOf };
+    if (opsFilter === 'planning') {
+      renderPlanning(body, ops, ctx);
+      return;
+    }
+    const base = ops.filter(filters[opsFilter] || filters.actives)
+      .sort((a, b) => (a.status === 'en_cours' ? 0 : 1) - (b.status === 'en_cours' ? 0 : 1) || (b.createdAt || 0) - (a.createdAt || 0));
     const renderList = () => {
       const q = norm(opsSearch);
-      const list = q ? base.filter((o) => [o.codeName, unitLabel(o.unit), o.zone, o.target, o.assigned, o.authorCharacterName].some((x) => norm(x).includes(q))) : base;
+      const list = q ? base.filter((o) => [o.codeName, unitLabel(o.unit), o.zone, o.target, o.assigned, o.leader, o.rallyPoint, o.authorCharacterName].some((x) => norm(x).includes(q))) : base;
       document.getElementById('fim-ops-list').innerHTML = list.length
-        ? list.map((o) => opCard(o, canCommand, debriefOf.get(o.id))).join('')
-        : '<div class="empty-row">Aucune opération dans cette liste.</div>';
-      bindOpCards();
+        ? list.map((o) => opCard(o, ctx)).join('')
+        : `<div class="empty-row">${opsFilter === 'miennes' ? 'Tu n’es affecté à aucune opération.' : 'Aucune opération dans cette liste.'}</div>`;
+      bindOpCards(document.getElementById('fim-ops-list'));
     };
     body.innerHTML = `
-      <input type="text" id="fim-ops-search" class="fim-search" placeholder="Rechercher : nom de code, unité, zone, cible, opérateur…" value="${esc(opsSearch)}">
+      <input type="text" id="fim-ops-search" class="fim-search" placeholder="Rechercher : nom de code, unité, chef, zone, cible, opérateur…" value="${esc(opsSearch)}">
       <div id="fim-ops-list"></div>`;
     document.getElementById('fim-ops-search').addEventListener('input', (e) => { opsSearch = e.target.value; renderList(); });
     renderList();
   }
 
-  function bindOpCards() {
-    const body = document.getElementById('fim-ops-list');
-    body.querySelectorAll('[data-op-status]').forEach((b) => b.addEventListener('click', async () => {
+  // Planning : opérations en cours, puis planifiées jour par jour.
+  function renderPlanning(body, ops, ctx) {
+    const live = ops.filter((o) => o.status === 'en_cours');
+    const planned = ops.filter((o) => o.status === 'planifiee');
+    const dated = planned.filter((o) => o.scheduledAt).sort((a, b) => a.scheduledAt - b.scheduledAt);
+    const undated = planned.filter((o) => !o.scheduledAt);
+    const dayKey = (t) => new Date(t).toDateString();
+    const today = dayKey(Date.now());
+    const tomorrow = dayKey(Date.now() + 86400000);
+    const days = [];
+    dated.forEach((o) => {
+      const k = dayKey(o.scheduledAt);
+      let g = days.find((d) => d.k === k);
+      if (!g) days.push((g = { k, t: o.scheduledAt, ops: [] }));
+      g.ops.push(o);
+    });
+    const dayLabel = (g) => (g.k === today ? 'Aujourd’hui' : g.k === tomorrow ? 'Demain' : new Date(g.t).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }));
+    const row = (o) => `
+      <div class="fim-plan-row" style="--u:${unitColor(o.unit)}">
+        <span class="time">${o.scheduledAt ? new Date(o.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—'}</span>
+        <span class="nm">${esc(o.codeName)}</span>
+        <span class="meta">${esc(unitLabel(o.unit))}${o.leader ? ` · chef ${esc(withCallsign(o.leader))}` : ''}${o.rallyPoint ? ` · ralliement ${esc(o.rallyPoint)}` : ''} · ${(o.team || []).length || '?'} op.</span>
+        ${roleIn(o, ctx.self) ? `<span class="fim-pill" style="--c:#4FD895">${esc(roleIn(o, ctx.self))}</span>` : ''}
+        ${pill(PRIORITY_META[o.priority] || PRIORITY_META.routine)}
+      </div>`;
+    body.innerHTML = `
+      ${live.length ? `<div class="fim-plan-day"><h3 style="color:var(--warn)">● En cours</h3>${live.map(row).join('')}</div>` : ''}
+      ${days.map((g) => `<div class="fim-plan-day"><h3>${esc(dayLabel(g))}</h3>${g.ops.map(row).join('')}</div>`).join('')}
+      ${undated.length ? `<div class="fim-plan-day"><h3>Sans horaire</h3>${undated.map(row).join('')}</div>` : ''}
+      ${!live.length && !planned.length ? '<div class="empty-row">Aucune opération planifiée.</div>' : ''}`;
+  }
+
+  function bindOpCards(box) {
+    box.querySelectorAll('[data-op-status]').forEach((b) => b.addEventListener('click', async () => {
       const next = b.dataset.opStatus;
       const note = next === 'annulee' || next === 'terminee' ? prompt('Note (facultative) :') || '' : '';
       try {
@@ -1059,7 +1415,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
     }));
-    body.querySelectorAll('[data-op-delete]').forEach((b) => b.addEventListener('click', async () => {
+    box.querySelectorAll('[data-op-delete]').forEach((b) => b.addEventListener('click', async () => {
       if (!confirm('Supprimer définitivement cet ordre de mission ?')) return;
       try {
         await window.apiFetch(`/api/rp/fim/operations/${encodeURIComponent(b.dataset.id)}`, { method: 'DELETE' });
@@ -1069,15 +1425,47 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
     }));
-    body.querySelectorAll('[data-op-debrief]').forEach((b) => b.addEventListener('click', () => {
+    box.querySelectorAll('[data-op-edit]').forEach((b) => b.addEventListener('click', () => {
+      editingOp = b.dataset.id;
+      opsFilter = 'nouvelle';
+      loadOperations();
+    }));
+    box.querySelectorAll('[data-op-debrief]').forEach((b) => b.addEventListener('click', () => {
       pendingDebriefOp = b.dataset.id;
       opsFilter = 'debriefs';
       loadOperations();
     }));
-    body.querySelectorAll('[data-op-see-debrief]').forEach((b) => b.addEventListener('click', () => {
+    box.querySelectorAll('[data-op-see-debrief]').forEach((b) => b.addEventListener('click', () => {
       focusDebrief = b.dataset.id;
       opsFilter = 'debriefs';
       loadOperations();
+    }));
+    box.querySelectorAll('[data-journal-toggle]').forEach((b) => b.addEventListener('click', () => {
+      const id = b.dataset.journalToggle;
+      if (openJournals.has(id)) openJournals.delete(id); else openJournals.add(id);
+      loadOperations();
+    }));
+    box.querySelectorAll('[data-journal-form]').forEach((form) => form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = form.dataset.journalForm;
+      const text = form.querySelector('input').value.trim();
+      if (!text) return;
+      try {
+        await window.apiFetch(`/api/rp/fim/operations/${encodeURIComponent(id)}/journal`, { method: 'POST', body: JSON.stringify({ kind: form.querySelector('select').value, text }) });
+        openJournals.add(id);
+        loadOperations();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    }));
+    box.querySelectorAll('[data-journal-del]').forEach((b) => b.addEventListener('click', async () => {
+      if (!confirm('Retirer cette entrée du journal ?')) return;
+      try {
+        await window.apiFetch(`/api/rp/fim/operations/${encodeURIComponent(b.dataset.op)}/journal/${encodeURIComponent(b.dataset.journalDel)}`, { method: 'DELETE' });
+        loadOperations();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
     }));
   }
 
@@ -1094,66 +1482,179 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     return `<div class="fim-op-meta" style="margin:10px 0 0; flex-wrap:wrap; align-items:center;">Présents en jeu ${list.map((x) => `<span class="fim-chip u" style="--u:${unitColor(x.unit)}">${esc(x.name)} · ${fr(x.minutes, 0)} min</span>`).join(' ')}</div>`;
   }
 
-  function opCard(o, canCommand, debrief) {
+  function journalBlock(o, ctx) {
+    const entries = [...(o.journal || [])].sort((a, b) => b.at - a.at);
+    const open = openJournals.has(o.id) || o.status === 'en_cours';
+    const canWrite = o.status === 'en_cours' || o.status === 'planifiee';
+    if (!entries.length && !canWrite) return '';
+    const shown = open ? entries : entries.slice(0, 2);
+    return `
+      <div class="fim-journal">
+        <div class="fim-journal-head"><span>Journal de bord · ${entries.length} entrée${entries.length > 1 ? 's' : ''}</span>${entries.length > 2 && o.status !== 'en_cours' ? `<button type="button" class="fim-link" data-journal-toggle="${esc(o.id)}">${open ? 'Réduire' : 'Tout voir'}</button>` : ''}</div>
+        ${shown.map((e) => `
+          <div class="fim-journal-row">
+            <span class="t">${new Date(e.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+            ${pill(JOURNAL_META[e.kind] || JOURNAL_META.info)}
+            <span class="x">${esc(e.text)}</span>
+            <span class="by">${esc(withCallsign(e.by))}</span>
+            ${ctx.canCommand ? `<button type="button" class="fim-x" title="Retirer" data-journal-del="${esc(e.id)}" data-op="${esc(o.id)}">×</button>` : ''}
+          </div>`).join('')}
+        ${canWrite ? `<form class="fim-journal-form" data-journal-form="${esc(o.id)}">
+          <select>${Object.entries(JOURNAL_META).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}</select>
+          <input type="text" maxlength="500" placeholder="Ex : Contact avec SCP-939 couloir B, repli vers le sas…">
+          <button class="btn small" type="submit">Ajouter</button>
+        </form>` : ''}
+      </div>`;
+  }
+
+  function opCard(o, ctx) {
     const st = STATUS_META[o.status] || STATUS_META.planifiee;
     const pr = PRIORITY_META[o.priority] || PRIORITY_META.routine;
+    const debrief = ctx.debriefOf.get(o.id);
+    const mine = roleIn(o, ctx.self);
     const actions = [];
-    if (o.status === 'planifiee') actions.push(`<button class="btn small" data-op-status="en_cours" data-id="${esc(o.id)}">Lancer</button>`);
-    if (o.status === 'en_cours') actions.push(`<button class="btn small" data-op-status="terminee" data-id="${esc(o.id)}">Clôturer</button>`);
-    if (o.status === 'planifiee' || o.status === 'en_cours') actions.push(`<button class="btn ghost small" data-op-status="annulee" data-id="${esc(o.id)}">Annuler</button>`);
+    if (ctx.canCommand) {
+      if (o.status === 'planifiee') actions.push(`<button class="btn small" data-op-status="en_cours" data-id="${esc(o.id)}">Lancer</button>`);
+      if (o.status === 'en_cours') actions.push(`<button class="btn small" data-op-status="terminee" data-id="${esc(o.id)}">Clôturer</button>`);
+      if (o.status === 'planifiee' || o.status === 'en_cours') {
+        actions.push(`<button class="btn ghost small" data-op-edit data-id="${esc(o.id)}">Modifier</button>`);
+        actions.push(`<button class="btn ghost small" data-op-status="annulee" data-id="${esc(o.id)}">Annuler</button>`);
+      }
+    }
     if (o.status === 'terminee' && debrief) actions.push(`<button class="btn ghost small" data-op-see-debrief data-id="${esc(debrief.id)}">Voir le débriefing</button>`);
     else if (o.status === 'terminee') actions.push(`<button class="btn small" data-op-debrief data-id="${esc(o.id)}">Rédiger le débriefing</button>`);
-    if (canCommand) actions.push(`<button class="btn danger small" data-op-delete data-id="${esc(o.id)}">Supprimer</button>`);
+    if (ctx.canCommand) actions.push(`<button class="btn danger small" data-op-delete data-id="${esc(o.id)}">Supprimer</button>`);
+    const team = o.team || [];
     return `
-      <div class="fim-op" style="--u:${unitColor(o.unit)}">
+      <div class="fim-op${mine ? ' mine' : ''}" style="--u:${unitColor(o.unit)}">
         <div class="fim-op-top">
           <span class="fim-op-name">OPÉRATION ${esc(o.codeName)}</span>
+          ${mine ? `<span class="fim-pill" style="--c:#4FD895">Ma mission · ${esc(mine)}</span>` : ''}
           ${pill(pr)} ${pill(st)}${debrief ? ` ${pill({ label: `Débriefé · ${(OUTCOME_META[debrief.outcome] || OUTCOME_META.partiel).label}`, color: (OUTCOME_META[debrief.outcome] || OUTCOME_META.partiel).color })}` : ''}
         </div>
         <div class="fim-op-meta">
           <span>Unité <b>${esc(unitLabel(o.unit))}</b></span>
+          ${o.leader ? `<span>Chef <b>${esc(withCallsign(o.leader))}</b></span>` : ''}
+          ${o.scheduledAt ? `<span>Heure <b>${esc(fmtDate(o.scheduledAt))}</b> (${esc(relTime(o.scheduledAt))})</span>` : ''}
+          ${o.rallyPoint ? `<span>Ralliement <b>${esc(o.rallyPoint)}</b></span>` : ''}
           ${o.zone ? `<span>Zone <b>${esc(o.zone)}</b></span>` : ''}
           ${o.target ? `<span>Cible <b>${esc(o.target)}</b></span>` : ''}
           ${o.roe ? `<span>RDE <b>${esc(o.roe)}</b></span>` : ''}
-          <span>Émis par <b>${esc(o.authorCharacterName)}</b> · ${fmtDate(o.createdAt)}</span>
         </div>
         <div class="fim-op-body">${esc(o.objective)}</div>
-        ${o.assigned ? `<div class="fim-op-meta" style="margin:10px 0 0;">Affectés <b>${esc(o.assigned)}</b></div>` : ''}
+        ${team.length
+          ? `<div class="fim-op-team">${team.map((m) => `<span class="fim-chip${norm(m.name) === norm(ctx.self) ? ' me' : ''}">${esc(withCallsign(m.name))}${m.role ? ` · <i>${esc(m.role)}</i>` : ''}</span>`).join('')}</div>`
+          : o.assigned ? `<div class="fim-op-meta" style="margin:10px 0 0;">Affectés <b>${esc(o.assigned)}</b></div>` : ''}
         ${presenceLine(o)}
+        ${journalBlock(o, ctx)}
+        <div class="fim-op-foot">Émis par ${esc(o.authorCharacterName)} · ${fmtDate(o.createdAt)}${o.updatedBy ? ` · modifié par ${esc(o.updatedBy)}` : ''}</div>
         ${(o.statusLog || []).length > 1 ? `<div class="fim-op-log">${o.statusLog.map((l) => `${fmtDate(l.at)} — ${esc(STATUS_META[l.status]?.label || l.status)} par ${esc(l.by)}${l.note ? ` : ${esc(l.note)}` : ''}`).join('<br>')}</div>` : ''}
         ${actions.length ? `<div class="sci-card-actions">${actions.join('')}</div>` : ''}
       </div>`;
   }
 
-  function opForm() {
+  // Formulaire d'ordre (création ou modification) : équipe tirée du roster.
+  let formTeam = [];
+  function toLocalInput(t) {
+    if (!t) return '';
+    const d = new Date(t);
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function opForm(op, agents) {
+    formTeam = op ? (op.team || []).map((m) => ({ ...m })) : [];
+    const names = agents.map((a) => a.name || a.username).filter(Boolean).sort((a, b) => a.localeCompare(b, 'fr'));
+    const roes = ['RDE-0 Observation', 'RDE-1 Riposte', 'RDE-2 Neutralisation', 'RDE-3 Feu libre', 'RDE-Ω Omega'];
     return `
       <div class="subsection" style="margin-top:0;">
-        <h3>Émettre un ordre de mission</h3>
+        <h3>${op ? `Modifier l'ordre ${esc(op.codeName)}` : 'Émettre un ordre de mission'}</h3>
         <form id="fim-op-form">
+          <div class="fim-editor-section">Mission</div>
           <div class="field-grid">
-            <div class="field-row"><label>Nom de code *</label><input id="op-code" maxlength="60" placeholder="Ex : RENARD NOIR" required></div>
-            <div class="field-row"><label>Unité</label><select id="op-unit">${UNIT_OPTIONS.map((u) => `<option value="${u}">${esc(unitLabel(u))}</option>`).join('')}</select></div>
-            <div class="field-row"><label>Priorité</label><select id="op-priority">${Object.entries(PRIORITY_META).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}</select></div>
-            <div class="field-row"><label>Règles d'engagement</label><select id="op-roe">${['RDE-0 Observation', 'RDE-1 Riposte', 'RDE-2 Neutralisation', 'RDE-3 Feu libre', 'RDE-Ω Omega'].map((r, i) => `<option${i === 1 ? ' selected' : ''}>${r}</option>`).join('')}</select></div>
-            <div class="field-row"><label>Zone</label><input id="op-zone" maxlength="80" placeholder="Ex : Zone de confinement lourde"></div>
-            <div class="field-row"><label>Cible / entité</label><input id="op-target" maxlength="80" placeholder="Ex : SCP-939, cellule IC…" list="fim-scp-list"></div>
+            <div class="field-row"><label>Nom de code *</label><input id="op-code" maxlength="60" placeholder="Ex : RENARD NOIR" required value="${op ? esc(op.codeName) : ''}"></div>
+            <div class="field-row"><label>Unité</label><select id="op-unit">${UNIT_OPTIONS.map((u) => `<option value="${u}"${op && op.unit === u ? ' selected' : ''}>${esc(unitLabel(u))}</option>`).join('')}</select></div>
+            <div class="field-row"><label>Priorité</label><select id="op-priority">${Object.entries(PRIORITY_META).map(([k, m]) => `<option value="${k}"${op && op.priority === k ? ' selected' : ''}>${m.label}</option>`).join('')}</select></div>
+            <div class="field-row"><label>Règles d'engagement</label><select id="op-roe">${roes.map((r, i) => `<option${op ? (op.roe === r ? ' selected' : '') : i === 1 ? ' selected' : ''}>${r}</option>`).join('')}</select></div>
+            <div class="field-row"><label>Zone</label><input id="op-zone" maxlength="80" placeholder="Ex : Zone de confinement lourde" value="${op ? esc(op.zone || '') : ''}"></div>
+            <div class="field-row"><label>Cible / entité</label><input id="op-target" maxlength="80" placeholder="Ex : SCP-939, cellule IC…" list="fim-scp-list" value="${op ? esc(op.target || '') : ''}"></div>
+            <div class="field-row"><label>Heure prévue</label><input id="op-time" type="datetime-local" value="${op ? toLocalInput(op.scheduledAt) : ''}"></div>
+            <div class="field-row"><label>Point de ralliement</label><input id="op-rally" maxlength="120" placeholder="Ex : quai D-FIM, Gate A" value="${op ? esc(op.rallyPoint || '') : ''}"></div>
           </div>
           <datalist id="fim-scp-list">${SCPS.map((s) => `<option value="${s.id}">`).join('')}<option value="Insurrection du Chaos"><option value="Classe-D évadé"></datalist>
-          <div class="field-row"><label>Objectif et déroulé *</label><textarea id="op-objective" rows="6" maxlength="4000" placeholder="Objectif, point de regroupement, équipes, consignes particulières…" required></textarea></div>
-          <div class="field-row"><label>Opérateurs affectés</label><input id="op-assigned" maxlength="400" placeholder="Ex : RENARD-1 (chef), RENARD-2, K9"></div>
-          <button class="btn" type="submit">Émettre l'ordre</button>
+          <div class="field-row"><label>Objectif et déroulé *</label><textarea id="op-objective" rows="6" maxlength="4000" placeholder="Objectif, phases, consignes particulières…" required>${op ? esc(op.objective || '') : ''}</textarea></div>
+          <div class="fim-editor-section">Équipe</div>
+          <div class="field-row"><label>Chef d'opération</label><select id="op-leader"><option value="">— Aucun —</option>${names.map((n) => `<option value="${esc(n)}"${op && norm(op.leader) === norm(n) ? ' selected' : ''}>${esc(withCallsign(n))}</option>`).join('')}${op && op.leader && !names.some((n) => norm(n) === norm(op.leader)) ? `<option selected value="${esc(op.leader)}">${esc(op.leader)}</option>` : ''}</select></div>
+          <div class="field-row"><label>Opérateurs (clic pour ajouter)</label>
+            <input type="text" id="op-team-filter" placeholder="Filtrer le roster…" style="margin-bottom:8px;">
+            <div class="fim-picker" id="op-picker">${agents.map((a) => {
+              const n = a.name || a.username;
+              const u = unitFromAgent(a);
+              return `<button type="button" class="fim-chip u" style="--u:${u ? unitColor(u) : '#9297A8'}" data-pick="${esc(n)}">${esc(withCallsign(n))}${u ? ` · ${esc(unitLabel(u))}` : ''}</button>`;
+            }).join('')}</div>
+            <div style="display:flex; gap:8px; margin-top:8px;"><input type="text" id="op-team-extra" maxlength="80" placeholder="Hors roster : nom ou indicatif" style="flex:1;"><button class="btn ghost small" type="button" id="op-team-add">Ajouter</button></div>
+          </div>
+          <div id="op-team"></div>
+          <div style="display:flex; gap:10px; margin-top:16px;">
+            <button class="btn" type="submit">${op ? 'Enregistrer les modifications' : 'Émettre l’ordre'}</button>
+            ${op ? '<button class="btn ghost" type="button" id="op-cancel">Annuler</button>' : ''}
+          </div>
         </form>
       </div>`;
   }
-  function bindOpForm() {
+  function renderFormTeam() {
+    const box = document.getElementById('op-team');
+    if (!box) return;
+    box.innerHTML = formTeam.length
+      ? `<div class="fim-team-list">${formTeam.map((m, i) => `
+          <div class="fim-team-row">
+            <span class="nm">${esc(withCallsign(m.name))}</span>
+            <input type="text" maxlength="40" placeholder="Rôle (ex : tireur, médic, K9…)" value="${esc(m.role || '')}" data-role="${i}">
+            <button type="button" class="fim-x" data-unpick="${i}" title="Retirer">×</button>
+          </div>`).join('')}</div>`
+      : '<div class="empty-row" style="padding:12px;">Aucun opérateur dans l’équipe.</div>';
+    box.querySelectorAll('[data-role]').forEach((inp) => inp.addEventListener('input', () => { formTeam[+inp.dataset.role].role = inp.value; }));
+    box.querySelectorAll('[data-unpick]').forEach((b) => b.addEventListener('click', () => { formTeam.splice(+b.dataset.unpick, 1); renderFormTeam(); syncPicker(); }));
+  }
+  function syncPicker() {
+    document.querySelectorAll('#op-picker [data-pick]').forEach((b) => b.classList.toggle('picked', formTeam.some((m) => norm(m.name) === norm(b.dataset.pick))));
+  }
+  function bindOpForm(op) {
+    const addMember = (name) => {
+      const n = String(name || '').trim();
+      if (!n || formTeam.some((m) => norm(m.name) === norm(n))) return;
+      formTeam.push({ name: n, role: '' });
+      renderFormTeam();
+      syncPicker();
+    };
+    document.querySelectorAll('#op-picker [data-pick]').forEach((b) => b.addEventListener('click', () => {
+      const i = formTeam.findIndex((m) => norm(m.name) === norm(b.dataset.pick));
+      if (i >= 0) { formTeam.splice(i, 1); renderFormTeam(); syncPicker(); } else addMember(b.dataset.pick);
+    }));
+    document.getElementById('op-team-filter').addEventListener('input', (e) => {
+      const q = norm(e.target.value);
+      document.querySelectorAll('#op-picker [data-pick]').forEach((b) => { b.style.display = !q || norm(b.textContent).includes(q) ? '' : 'none'; });
+    });
+    const extra = document.getElementById('op-team-extra');
+    document.getElementById('op-team-add').addEventListener('click', () => { addMember(extra.value); extra.value = ''; });
+    extra.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addMember(extra.value); extra.value = ''; } });
+    document.getElementById('op-cancel')?.addEventListener('click', () => { editingOp = null; opsFilter = 'actives'; loadOperations(); });
+    renderFormTeam();
+    syncPicker();
     document.getElementById('fim-op-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const v = (id) => document.getElementById(id).value.trim();
-      const payload = { codeName: v('op-code'), unit: v('op-unit'), priority: v('op-priority'), roe: v('op-roe'), zone: v('op-zone'), target: v('op-target'), objective: v('op-objective'), assigned: v('op-assigned') };
+      const time = v('op-time');
+      const payload = {
+        codeName: v('op-code'), unit: v('op-unit'), priority: v('op-priority'), roe: v('op-roe'), zone: v('op-zone'), target: v('op-target'),
+        objective: v('op-objective'), leader: v('op-leader'), rallyPoint: v('op-rally'), scheduledAt: time ? new Date(time).getTime() : null,
+        team: formTeam.map((m) => ({ name: m.name, role: (m.role || '').trim() })),
+      };
       if (!payload.codeName || !payload.objective) { window.showToast('Nom de code et objectif obligatoires.', 'error'); return; }
       try {
-        await window.apiFetch('/api/rp/fim/operations', { method: 'POST', body: JSON.stringify(payload) });
-        window.showToast('Ordre de mission émis.', 'success');
+        if (op) await window.apiFetch(`/api/rp/fim/operations/${encodeURIComponent(op.id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
+        else await window.apiFetch('/api/rp/fim/operations', { method: 'POST', body: JSON.stringify(payload) });
+        window.showToast(op ? 'Ordre modifié.' : 'Ordre de mission émis.', 'success');
+        editingOp = null;
         opsFilter = 'actives';
         loadOperations();
       } catch (err) {
@@ -2771,6 +3272,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     load(tabId, deptId) {
       stopRefresh();
       mainOverride = null;
+      currentDeptId = deptId;
       startAlerts();
       if (tabId === 'fim-hq') loadHQ(deptId);
       else if (tabId === 'fim-ops') loadOperations();
