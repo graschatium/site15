@@ -1029,8 +1029,8 @@
       tabs.push({ id: 'sec-card-reader', label: 'Lecteur de carte', icon: 'monitor' });
     }
     if (deptId === FIM_DEPT_ID && window.FIM) {
-      // Onglets de l'intranet FIM : voir rp/fim.js
-      tabs.push(...window.FIM.tabs);
+      // Onglets de l'intranet FIM (voir rp/fim.js), en tête : le terminal s'ouvre sur le QG.
+      tabs.unshift(...window.FIM.tabs);
     }
 
     mainRoot.innerHTML = `
@@ -1102,7 +1102,7 @@
       });
     });
 
-    loadTerminalTab(deptId, 'bulletin');
+    loadTerminalTab(deptId, tabs[0].id);
   }
 
   function loadTerminalTab(deptId, tabId) {

@@ -77,6 +77,39 @@
   .fim-credit{ margin-top:28px; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); line-height:1.6; }
   .fim-credit a{ text-decoration:underline; }
   .fim-table td, .fim-table th{ font-size:12.5px; }
+  .fim-search{ width:100%; margin:0 0 14px; }
+  .fim-op.focus{ box-shadow:0 0 0 1px var(--accent); }
+  .fim-hq-units{ display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
+  .fim-hq-units .fim-chip.off{ opacity:.5; }
+  .fim-hq-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:14px; }
+  .fim-hq-card{ background:var(--panel); border:1px solid var(--line); border-radius:3px; padding:16px 18px; display:flex; flex-direction:column; gap:10px; }
+  .fim-hq-card-head{ display:flex; justify-content:space-between; align-items:center; }
+  .fim-hq-card-head h3{ font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-2); }
+  .fim-hq-card-head .count{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+  .fim-hq-card-body{ display:flex; flex-direction:column; gap:6px; flex:1; }
+  .fim-hq-foot{ display:flex; gap:8px; flex-wrap:wrap; padding-top:10px; border-top:1px dashed var(--line); }
+  .fim-hq-me{ display:flex; gap:12px; align-items:center; color:var(--u); }
+  .fim-hq-me-name{ font-family:'Space Grotesk', sans-serif; font-size:17px; font-weight:600; color:var(--ink); }
+  .fim-hq-me-sub{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); margin-top:3px; }
+  .fim-hq-kpis{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:4px; }
+  .fim-hq-kpis div{ background:var(--void-2); border-radius:3px; padding:8px 10px; }
+  .fim-hq-kpis b{ display:block; font-family:'JetBrains Mono', monospace; font-size:16px; }
+  .fim-hq-kpis span{ font-family:'JetBrains Mono', monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .fim-hq-row{ display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--void-2); border-left:2px solid var(--u); border-radius:2px; }
+  .fim-hq-row .nm{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:12px; letter-spacing:.04em; }
+  .fim-hq-row .meta{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); margin-right:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fim-hq-todo{ display:flex; flex-direction:column; gap:2px; text-align:left; cursor:pointer; color:inherit; font-family:'Inter', sans-serif; font-size:12.5px;
+    padding:9px 11px; background:var(--void-2); border:1px solid transparent; border-radius:2px; }
+  .fim-hq-todo:hover{ border-color:var(--accent); }
+  .fim-hq-todo small{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); }
+  .fim-hq .fim-medals{ margin-top:4px; }
+  .fim-staff{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .fim-staff th{ text-align:left; font-family:'JetBrains Mono', monospace; font-size:9.5px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); padding:8px 10px; border-bottom:1px solid var(--line); }
+  .fim-staff td{ padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  .fim-staff tr.unit-row td{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.08em; color:var(--u); background:color-mix(in srgb, var(--u) 7%, transparent); border-left:3px solid var(--u); }
+  .fim-staff .em{ display:inline-flex; width:22px; height:22px; border-radius:50%; align-items:center; justify-content:center; margin-right:3px; color:#E6B43C; border:1px solid rgba(230,180,60,.45); }
+  .fim-staff .em svg{ width:13px; height:13px; }
+  .fim-staff-wrap{ overflow-x:auto; background:var(--panel); border:1px solid var(--line); border-radius:3px; }
   @media (max-width:640px){ .fim-dossier{ padding:18px; } .fim-hero{ padding:18px; } }
   `;
   const styleEl = document.createElement('style');
@@ -567,8 +600,19 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         : '<div class="journal-entry"><span class="journal-text">Rien à signaler.</span></div>';
     }
   }
+  // Un onglet à sous-navigation (Unités, Savoir, Opérations) rend ses vues
+  // dans un conteneur à lui : mainEl() le renvoie tant qu'il est affiché.
+  let mainOverride = null;
   function mainEl() {
+    if (mainOverride && document.body.contains(mainOverride)) return mainOverride;
     return document.getElementById('terminal-main');
+  }
+  function subTabs(items, current, attr) {
+    return `<div class="fim-subnav">${items.map(([k, l]) => `<button type="button" ${attr}="${k}" class="${k === current ? 'active' : ''}">${l}</button>`).join('')}</div>`;
+  }
+  // Ouvre un onglet FIM du terminal (après avoir réglé sa vue).
+  function goTab(id) {
+    document.querySelector(`.terminal-tab[data-tab="${id}"]`)?.click();
   }
   function credit() {
     return `<div class="fim-credit">Contenu d'univers inspiré de la <a href="https://scp-wiki.wikidot.com/" target="_blank" rel="noopener">Fondation SCP</a> (CC BY-SA 3.0), adapté au Site-15.</div>`;
@@ -598,20 +642,120 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   }
 
   // ---------------------------------------------------------------
-  // Onglet Situation (en direct)
+  // Onglet QG : situation en direct + tableau de bord de l'opérateur
   // ---------------------------------------------------------------
-  async function loadSituation(silent) {
+  async function loadHQ(deptId) {
     const main = mainEl();
-    if (!silent) main.innerHTML = '<div class="center-msg">Connexion au réseau tactique…</div>';
+    main.innerHTML = '<div class="center-msg">Connexion au réseau tactique…</div>';
+    const safe = (pr, fallback) => pr.catch(() => fallback);
+    const [ops, debriefs, evalData, docs, dept] = await Promise.all([
+      safe(window.apiFetch('/api/rp/fim/operations'), { operations: [] }),
+      safe(window.apiFetch('/api/rp/fim/debriefs'), { debriefs: [] }),
+      safe(window.apiFetch('/api/rp/fim/evaluations'), { evaluations: [] }),
+      safe(window.apiFetch('/api/rp/fim/docs'), { documents: [] }),
+      safe(window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`), null),
+      loadRoleMembers(),
+    ]);
+    if (mainEl() !== main || !main.isConnected) return;
+    const operations = ops.operations || [];
+    const debriefList = debriefs.debriefs || [];
+    const evaluations = evalData.evaluations || [];
+    const isCommand = !!evalData.canEvaluate;
+    const self = evalData.self || '';
+    const agents = (dept?.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
+    const me = agents.find((a) => norm(a.name || a.username) === norm(self));
+    const myUnit = me ? unitFromAgent(me) : null;
+    // Le commandement reçoit toutes les évaluations : on garde les siennes.
+    const myEvals = isCommand ? evaluations.filter((e) => norm(e.agentName) === norm(self)) : evaluations;
+    const myAvg = avgOf(myEvals.map((e) => e.percent).filter((v) => v != null));
+    const activeOps = operations.filter((o) => o.status === 'en_cours' || o.status === 'planifiee')
+      .sort((a, b) => (a.status === 'en_cours' ? 0 : 1) - (b.status === 'en_cours' ? 0 : 1) || (b.createdAt || 0) - (a.createdAt || 0));
+    const debriefed = new Set(debriefList.map((d) => d.operationId).filter(Boolean));
+    const toDebrief = operations.filter((o) => o.status === 'terminee' && !debriefed.has(o.id));
+    const neverEvaluated = isCommand ? agents.filter((a) => norm(a.name || a.username) !== norm(self) && !evaluations.some((e) => norm(e.agentName) === norm(a.name || a.username))).length : 0;
+    const promos = isCommand ? [...new Set(evaluations.filter((e) => e.recommendation === 'promotion').map((e) => e.agentName))] : [];
+
+    const card = (title, count, inner, foot) => `
+      <div class="fim-hq-card">
+        <div class="fim-hq-card-head"><h3>${title}</h3>${count != null ? `<span class="count">${count}</span>` : ''}</div>
+        <div class="fim-hq-card-body">${inner}</div>
+        ${foot ? `<div class="fim-hq-foot">${foot}</div>` : ''}
+      </div>`;
+    const color = myUnit ? unitColor(myUnit) : 'var(--accent)';
+    const myCard = card('Mon dossier', null, `
+      <div class="fim-hq-me" style="--u:${color}">
+        ${myUnit ? crest((UNITS.find((u) => u.id === myUnit) || {}).letter || '?') : ''}
+        <div>
+          <div class="fim-hq-me-name">${esc(self || '—')}</div>
+          <div class="fim-hq-me-sub">${esc(me?.rank || 'Opérateur')} · ${myUnit ? `<span style="color:${color}">FIM ${esc(unitLabel(myUnit))}</span>` : 'sans unité'}</div>
+        </div>
+      </div>
+      <div class="fim-hq-kpis">
+        <div><b style="color:${pctColor(myAvg)}">${fmtPct(myAvg)}</b><span>Moyenne</span></div>
+        <div><b>${myEvals.length}</b><span>Évaluations</span></div>
+        <div><b>${earnedBrevets(myEvals).length}</b><span>Brevets</span></div>
+      </div>
+      ${medalsRow(myEvals)}`,
+      `<button class="btn ghost small" type="button" data-go="fim-evals">${isCommand ? 'Évaluations' : 'Mes évaluations'}</button>`);
+    const opsCard = card('Opérations actives', activeOps.length, activeOps.length
+      ? activeOps.slice(0, 5).map((o) => `
+        <div class="fim-hq-row" style="--u:${unitColor(o.unit)}">
+          <span class="nm">${esc(o.codeName)}</span>
+          <span class="meta">${esc(unitLabel(o.unit))}${o.zone ? ` · ${esc(o.zone)}` : ''}</span>
+          ${pill(STATUS_META[o.status] || STATUS_META.planifiee)}
+        </div>`).join('')
+      : '<div class="empty-row">Aucune opération en cours ou planifiée.</div>',
+      `<button class="btn ghost small" type="button" data-go="fim-ops" data-ops="actives">Toutes les opérations</button><button class="btn small" type="button" data-go="fim-ops" data-ops="nouvelle">+ Nouvel ordre</button>`);
+    const todo = [];
+    if (toDebrief.length) todo.push([`${toDebrief.length} opération(s) terminée(s) sans débriefing`, toDebrief.slice(0, 3).map((o) => o.codeName).join(', '), 'fim-ops', 'debriefs']);
+    if (isCommand && neverEvaluated) todo.push([`${neverEvaluated} opérateur(s) jamais évalué(s)`, 'Onglet Évaluations', 'fim-evals', '']);
+    if (isCommand && promos.length) todo.push([`${promos.length} opérateur(s) proposé(s) à la promotion`, promos.slice(0, 3).join(', '), 'fim-evals', '']);
+    const todoCard = card('À traiter', todo.length, todo.length
+      ? todo.map(([t, sub, tab, view]) => `<button class="fim-hq-todo" type="button" data-go="${tab}" data-ops="${view}"><span>${esc(t)}</span><small>${esc(sub)}</small></button>`).join('')
+      : '<div class="empty-row">Rien à traiter.</div>');
+    const debriefCard = card('Derniers débriefings', debriefList.length, debriefList.length
+      ? debriefList.slice(0, 4).map((d) => `
+        <div class="fim-hq-row" style="--u:${unitColor(d.unit)}">
+          <span class="nm" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(d.title)}</span>
+          <span class="meta">${esc(new Date(d.createdAt).toLocaleDateString('fr-FR'))}</span>
+          ${pill(OUTCOME_META[d.outcome] || OUTCOME_META.partiel)}
+        </div>`).join('')
+      : '<div class="empty-row">Aucun débriefing.</div>',
+      `<button class="btn ghost small" type="button" data-go="fim-ops" data-ops="debriefs">Tous les débriefings</button>`);
+    const notes = (docs.documents || []).slice(0, 4);
+    const notesCard = card('Notes du commandement', (docs.documents || []).length, notes.length
+      ? notes.map((d) => `<button class="fim-hq-todo" type="button" data-go="fim-library" data-doc="${esc(d.id)}"><span>${esc(d.title)}</span><small>${esc(d.authorCharacterName || '')} · ${esc(new Date(d.createdAt).toLocaleDateString('fr-FR'))}</small></button>`).join('')
+      : '<div class="empty-row">Aucune note publiée.</div>',
+      `<button class="btn ghost small" type="button" data-go="fim-library">Doctrine et fiches SCP</button>`);
+
+    main.innerHTML = `
+      <div id="fim-hq">
+        <div id="fim-live"><div class="center-msg">Connexion au réseau tactique…</div></div>
+        <div class="fim-hq-grid">${myCard}${opsCard}${todoCard}${debriefCard}${notesCard}</div>
+        <div id="fim-live-servers"></div>
+      </div>`;
+    main.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.ops) opsFilter = b.dataset.ops;
+      if (b.dataset.doc) { libView = 'doctrine'; docSelected = b.dataset.doc; }
+      goTab(b.dataset.go);
+    }));
+    await refreshLive(false);
+    if (!refreshTimer) refreshTimer = setInterval(() => refreshLive(true), 30000);
+  }
+
+  // Bandeau en direct du QG : code, brèches, unités déployées, serveurs.
+  async function refreshLive(silent) {
+    if (!document.getElementById('fim-live')) return stopRefresh();
     let data;
     try {
       data = await window.apiFetch('/api/rp/fim/situation');
     } catch (err) {
-      if (!silent) main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
+      const box = document.getElementById('fim-live');
+      if (box && !silent) box.innerHTML = `<div class="center-msg">Réseau tactique injoignable : ${esc(err.message)}</div>`;
       return;
     }
-    if (!document.getElementById('fim-situation') && silent) return stopRefresh();
-
+    const box = document.getElementById('fim-live');
+    if (!box) return stopRefresh();
     const servers = data.servers || [];
     const totals = {};
     let breaches = 0;
@@ -621,49 +765,36 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     });
     const worst = servers.reduce((acc, s) => (CODE_ORDER.indexOf(s.alertCode) > CODE_ORDER.indexOf(acc) ? s.alertCode : acc), 'VERT');
     const deployedCount = Object.values(totals).reduce((a, b) => a + b, 0);
-
     setSide(
       [[String(servers.length), 'Serveurs'], [String(deployedCount), 'FIM en jeu']],
       servers.flatMap((s) => s.breaches.map((b) => [s.alertCode || '—', `Brèche ${b}`])).slice(0, 5)
     );
-
     const worstMeta = CODES[worst] || CODES.VERT;
-    main.innerHTML = `
-      <div id="fim-situation">
-        <div class="fim-hero">
-          <div class="fim-hero-eyebrow">Réseau tactique FIM · actualisé toutes les 30 s</div>
-          <h2>Situation du Site-15</h2>
-          <p>État envoyé en direct par les serveurs de jeu : code d'alerte, brèches, protocoles et opérateurs FIM déployés.</p>
-          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <span class="fim-code" style="--c:${worstMeta.color}"><i></i>CODE ${esc(worst)}</span>
-            <span class="fim-chip">${breaches} brèche${breaches > 1 ? 's' : ''}</span>
-            <span class="fim-chip">${servers.reduce((a, s) => a + s.players, 0)} joueurs en jeu</span>
-            <button class="btn ghost small fim-alert-btn" id="fim-alert-btn" type="button" style="margin-left:auto;"></button>
-          </div>
-          <div class="fim-posture" style="--c:${worstMeta.color}">${worstMeta.posture}</div>
+    box.innerHTML = `
+      <div class="fim-hero">
+        <div class="fim-hero-eyebrow">QG FIM · réseau tactique actualisé toutes les 30 s</div>
+        <h2>Situation du Site-15</h2>
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <span class="fim-code" style="--c:${worstMeta.color}"><i></i>CODE ${esc(worst)}</span>
+          <span class="fim-chip">${breaches} brèche${breaches > 1 ? 's' : ''}</span>
+          <span class="fim-chip">${servers.length} serveur${servers.length > 1 ? 's' : ''} · ${servers.reduce((a, s) => a + s.players, 0)} joueurs</span>
+          <span class="fim-chip">${deployedCount} FIM en jeu</span>
+          <button class="btn ghost small fim-alert-btn" id="fim-alert-btn" type="button" style="margin-left:auto;"></button>
         </div>
-
-        <div class="record-block">
-          <div class="record-block-head"><h2>Unités</h2><span class="count">${deployedCount} déployé${deployedCount > 1 ? 's' : ''}</span></div>
-          <div class="fim-grid">
-            ${UNITS.map((u) => `
-              <div class="fim-unit-card" style="--u:${u.color}; cursor:default;">
-                <div class="fim-unit-top">${crest(u.letter)}<div><div class="fim-unit-code">${esc(u.name)}</div><div class="fim-unit-nick">${esc(u.nick)}</div></div></div>
-                <div class="fim-unit-foot"><span class="fim-live${totals[u.id] ? ' on' : ''}"><i></i>${totals[u.id] ? `${totals[u.id]} EN SERVICE` : 'EN RÉSERVE'}</span><span>${esc(u.callsign)}</span></div>
-              </div>`).join('')}
-          </div>
-        </div>
-
-        <div class="record-block">
-          <div class="record-block-head"><h2>Serveurs en ligne</h2><span class="count">${servers.length}</span></div>
-          ${servers.length ? servers.map(serverCard).join('') : '<div class="empty-row">Aucun serveur de jeu en ligne. Le réseau tactique reprendra dès qu\'un serveur ouvrira.</div>'}
-        </div>
-      </div>
-    `;
+        <div class="fim-posture" style="--c:${worstMeta.color}">${worstMeta.posture}</div>
+        <div class="fim-hq-units">${UNITS.map((u) => `<span class="fim-chip u${totals[u.id] ? '' : ' off'}" style="--u:${u.color}">${esc(u.name)} · ${totals[u.id] ? `${totals[u.id]} en service` : 'réserve'}</span>`).join('')}</div>
+      </div>`;
     const alertBtn = document.getElementById('fim-alert-btn');
     renderAlertButton(alertBtn);
     alertBtn.addEventListener('click', () => toggleAlerts(alertBtn));
-    if (!refreshTimer) refreshTimer = setInterval(() => loadSituation(true), 30000);
+    const srv = document.getElementById('fim-live-servers');
+    if (srv) {
+      srv.innerHTML = `
+        <div class="record-block" style="margin-top:24px;">
+          <div class="record-block-head"><h2>Serveurs en ligne</h2><span class="count">${servers.length}</span></div>
+          ${servers.length ? servers.map(serverCard).join('') : '<div class="empty-row">Aucun serveur de jeu en ligne. Le réseau tactique reprendra dès qu\'un serveur ouvrira.</div>'}
+        </div>`;
+    }
   }
 
   function serverCard(s) {
@@ -696,7 +827,28 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   // Onglet Unités
   // ---------------------------------------------------------------
   let selectedUnit = 'EPSILON-11';
-  async function loadUnits(deptId) {
+  let unitsView = 'bataille';
+  function loadUnits(deptId) {
+    const root = document.getElementById('terminal-main');
+    mainOverride = null;
+    root.innerHTML = `
+      <div class="fim-hero">
+        <div class="fim-hero-eyebrow">Commandement FIM · ordre de bataille</div>
+        <h2>Forces d'Intervention Mobiles du Site-15</h2>
+        <p>${UNITS.length} unités, chacune avec sa spécialité, son indicatif et ses règles. L'unité d'un opérateur vient de son rôle d'unité sur le Discord FIM (à défaut, de sa division dans le roster).</p>
+      </div>
+      ${subTabs([['bataille', 'Ordre de bataille'], ['effectifs', 'Effectifs']], unitsView, 'data-uv')}
+      <div id="fim-units-body"></div>`;
+    root.querySelectorAll('[data-uv]').forEach((b) => b.addEventListener('click', () => {
+      unitsView = b.dataset.uv;
+      loadUnits(deptId);
+    }));
+    mainOverride = document.getElementById('fim-units-body');
+    if (unitsView === 'effectifs') loadStaff(deptId);
+    else loadBattleOrder(deptId);
+  }
+
+  async function loadBattleOrder(deptId) {
     const main = mainEl();
     main.innerHTML = '<div class="center-msg">Chargement…</div>';
     let agents = [];
@@ -718,11 +870,6 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       const u = UNITS.find((x) => x.id === selectedUnit) || UNITS[1];
       const roster = byUnit[u.id] || [];
       main.innerHTML = `
-        <div class="fim-hero">
-          <div class="fim-hero-eyebrow">Commandement FIM · ordre de bataille</div>
-          <h2>Forces d'Intervention Mobiles du Site-15</h2>
-          <p>Quatre unités et un bataillon affilié. Chacune a sa spécialité, son indicatif et ses règles. Sélectionne une unité pour ouvrir son dossier.</p>
-        </div>
         <div class="fim-grid">
           ${UNITS.map((x) => `
             <button class="fim-unit-card${x.id === u.id ? ' active' : ''}" style="--u:${x.color}" data-unit="${x.id}" type="button">
@@ -741,7 +888,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
           <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 4px;">Opérateurs affectés</h3>
           ${roster.length
             ? `<div class="fim-roster">${roster.map((a) => `<span class="fim-chip u">${esc(a.rank ? `${a.rank} · ` : '')}${esc(a.name || a.username)}</span>`).join('')}</div>`
-            : `<div style="font-size:12.5px; color:var(--ink-faint);">Aucun opérateur rattaché à cette unité dans le roster${unassigned ? ` (${unassigned} opérateur(s) sans unité renseignée : la division de l'agent doit contenir le nom de l'unité, ex. « E-11 »)` : ''}.</div>`}
+            : `<div style="font-size:12.5px; color:var(--ink-faint);">Aucun opérateur rattaché à cette unité dans le roster${unassigned ? ` (${unassigned} opérateur(s) sans unité renseignée : il leur faut le rôle d'unité sur le Discord FIM, ou une division qui contient le nom de l'unité, ex. « E-11 »)` : ''}.</div>`}
         </div>
         ${credit()}
       `;
@@ -754,58 +901,153 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     render();
   }
 
-  // ---------------------------------------------------------------
-  // Onglet Opérations
-  // ---------------------------------------------------------------
-  let opsFilter = 'actives';
-  async function loadOperations() {
+  // Effectifs : tous les opérateurs actifs, rangés par unité.
+  let staffSearch = '';
+  async function loadStaff(deptId) {
     const main = mainEl();
     main.innerHTML = '<div class="center-msg">Chargement…</div>';
-    let data;
+    let agents = [];
+    let evalData = { evaluations: [] };
     try {
-      data = await window.apiFetch('/api/rp/fim/operations');
+      const [dept, ev] = await Promise.all([
+        window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`),
+        window.apiFetch('/api/rp/fim/evaluations').catch(() => evalData),
+        loadRoleMembers(),
+      ]);
+      agents = (dept.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
+      evalData = ev;
     } catch (err) {
       main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
       return;
     }
-    const ops = data.operations || [];
-    const canCommand = !!data.canCommand;
-    const active = ops.filter((o) => o.status === 'en_cours');
+    if (mainEl() !== main) return;
+    const isCommand = !!evalData.canEvaluate;
+    const evaluations = evalData.evaluations || [];
+    const people = agents.map((a) => {
+      const member = roleMemberOf(a);
+      const name = a.name || a.username;
+      const evals = evaluations.filter((e) => (member?.discordId && e.agentDiscordId === member.discordId) || norm(e.agentName) === norm(name));
+      return { name, rank: a.rank || '', unit: unitFromAgent(a), viaRole: !!member, discordName: member?.discordName || '', evals };
+    });
+    const groups = [...UNITS.map((u) => ({ id: u.id, label: `FIM ${u.name}${u.nick ? ` ${u.nick}` : ''}`, color: u.color })), { id: null, label: 'Sans unité', color: '#9297A8' }];
     setSide(
-      [[String(active.length), 'En cours'], [String(ops.filter((o) => o.status === 'planifiee').length), 'Planifiées']],
-      ops.slice(0, 5).map((o) => [STATUS_META[o.status]?.label || o.status, `${o.codeName} · ${unitLabel(o.unit)}`])
+      [[String(people.length), 'Opérateurs'], [String(people.filter((p) => !p.unit).length), 'Sans unité']],
+      UNITS.map((u) => [u.callsign, `${u.name} · ${people.filter((p) => p.unit === u.id).length}`])
     );
+
+    main.innerHTML = `
+      <input type="text" id="fim-staff-search" class="fim-search" placeholder="Rechercher un opérateur, un grade, une unité…" value="${esc(staffSearch)}">
+      <div class="fim-staff-wrap"><table class="fim-staff"><thead><tr>
+        <th>Opérateur</th><th>Grade</th><th>Brevets</th>${isCommand ? '<th>Moyenne</th><th>Dernière éval.</th>' : ''}<th>Unité</th>
+      </tr></thead><tbody id="fim-staff-body"></tbody></table></div>
+      <div style="margin-top:10px; font-size:11.5px; color:var(--ink-faint);">« Rôle Discord » : unité lue sur le rôle d'unité du Discord FIM (compte Roblox lié). Sinon, l'unité vient de la division du roster.${isCommand ? '' : ' Les moyennes et brevets des autres opérateurs sont réservés au commandement.'}</div>`;
+    const render = () => {
+      const q = norm(staffSearch);
+      const shown = q ? people.filter((p) => [p.name, p.rank, p.discordName, p.unit && unitLabel(p.unit)].some((x) => norm(x).includes(q))) : people;
+      const cols = isCommand ? 6 : 4;
+      document.getElementById('fim-staff-body').innerHTML = groups.map((g) => {
+        const rows = shown.filter((p) => p.unit === g.id).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+        if (!rows.length) return '';
+        return `<tr class="unit-row" style="--u:${g.color}"><td colspan="${cols}">${esc(g.label.toUpperCase())} · ${rows.length}</td></tr>` + rows.map((p) => {
+          const avg = avgOf(p.evals.map((e) => e.percent).filter((v) => v != null));
+          const last = p.evals.reduce((acc, e) => Math.max(acc, e.createdAt || 0), 0);
+          const brevets = earnedBrevets(p.evals);
+          brevets.forEach((e) => diplomaRegistry.set(e.id, e));
+          return `<tr>
+            <td><b>${esc(p.name)}</b>${p.discordName ? `<div style="font-size:11px; color:var(--ink-faint);">${esc(p.discordName)}</div>` : ''}</td>
+            <td>${esc(p.rank || '—')}</td>
+            <td>${brevets.length ? brevets.map((e) => `<button type="button" class="em" data-diploma="${esc(e.id)}" title="${esc(certOf(e).title)}" style="background:none; cursor:pointer;">${emblemSvg(certOf(e).emblem)}</button>`).join('') : '<span style="color:var(--ink-faint);">—</span>'}</td>
+            ${isCommand ? `<td style="font-family:'JetBrains Mono', monospace; color:${pctColor(avg)}">${fmtPct(avg)}${trendBadge(p.evals)}</td><td style="font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint);">${last ? new Date(last).toLocaleDateString('fr-FR') : 'Jamais'}</td>` : ''}
+            <td>${p.unit ? `<span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>${p.viaRole ? ' <span style="font-size:10.5px; color:var(--ink-faint);">rôle Discord</span>' : ''}` : '<span style="color:var(--ink-faint);">—</span>'}</td>
+          </tr>`;
+        }).join('');
+      }).join('') || `<tr><td colspan="${cols}" class="empty-row">Aucun opérateur.</td></tr>`;
+    };
+    document.getElementById('fim-staff-search').addEventListener('input', (e) => { staffSearch = e.target.value; render(); });
+    render();
+  }
+
+  // ---------------------------------------------------------------
+  // Onglet Opérations
+  // ---------------------------------------------------------------
+  let opsFilter = 'actives';
+  let opsSearch = '';
+  async function loadOperations() {
+    const root = document.getElementById('terminal-main');
+    mainOverride = null;
+    root.innerHTML = '<div class="center-msg">Chargement…</div>';
+    let ops = [];
+    let debriefs = [];
+    let canCommand = false;
+    try {
+      const [o, d] = await Promise.all([window.apiFetch('/api/rp/fim/operations'), window.apiFetch('/api/rp/fim/debriefs').catch(() => ({ debriefs: [] }))]);
+      ops = o.operations || [];
+      debriefs = d.debriefs || [];
+      canCommand = !!o.canCommand;
+    } catch (err) {
+      root.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
+      return;
+    }
     const filters = {
       actives: (o) => o.status === 'en_cours' || o.status === 'planifiee',
       archives: (o) => o.status === 'terminee' || o.status === 'annulee',
       toutes: () => true,
     };
-    const list = ops.filter(filters[opsFilter] || filters.actives);
+    const debriefOf = new Map(debriefs.filter((d) => d.operationId).map((d) => [d.operationId, d]));
+    const pendingDebriefs = ops.filter((o) => o.status === 'terminee' && !debriefOf.has(o.id)).length;
 
-    main.innerHTML = `
+    root.innerHTML = `
       <div class="fim-hero">
-        <div class="fim-hero-eyebrow">Commandement FIM · ordres de mission</div>
+        <div class="fim-hero-eyebrow">Commandement FIM · ordres de mission et rapports après action</div>
         <h2>Opérations</h2>
-        <p>Chaque intervention est enregistrée ici avec son nom de code, son unité, sa priorité et ses règles d'engagement. Le statut est mis à jour sur le terrain, et chaque changement est journalisé.</p>
+        <p>Chaque intervention est enregistrée avec son nom de code, son unité, sa priorité et ses règles d'engagement. Une fois clôturée, elle se termine par un débriefing : ce qui s'est passé, ce qui a coûté, ce qu'on change.</p>
       </div>
-      <div class="fim-subnav">
-        ${[['actives', `Actives (${ops.filter(filters.actives).length})`], ['archives', `Archives (${ops.filter(filters.archives).length})`], ['toutes', `Toutes (${ops.length})`], ['nouvelle', '+ Nouvel ordre']]
-          .map(([k, l]) => `<button type="button" data-f="${k}" class="${k === opsFilter ? 'active' : ''}">${l}</button>`).join('')}
-      </div>
+      ${subTabs([
+        ['actives', `Actives (${ops.filter(filters.actives).length})`],
+        ['archives', `Archives (${ops.filter(filters.archives).length})`],
+        ['toutes', `Toutes (${ops.length})`],
+        ['debriefs', `Débriefings (${debriefs.length})${pendingDebriefs ? ` · ${pendingDebriefs} à rédiger` : ''}`],
+        ['nouvelle', '+ Nouvel ordre'],
+      ], opsFilter, 'data-f')}
       <div id="fim-ops-body"></div>
     `;
-    main.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => {
+    root.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => {
       opsFilter = b.dataset.f;
       loadOperations();
     }));
 
     const body = document.getElementById('fim-ops-body');
+    if (opsFilter === 'debriefs') {
+      renderDebriefs(body, debriefs, ops);
+      return;
+    }
+    setSide(
+      [[String(ops.filter((o) => o.status === 'en_cours').length), 'En cours'], [String(ops.filter((o) => o.status === 'planifiee').length), 'Planifiées']],
+      ops.slice(0, 5).map((o) => [STATUS_META[o.status]?.label || o.status, `${o.codeName} · ${unitLabel(o.unit)}`])
+    );
     if (opsFilter === 'nouvelle') {
       body.innerHTML = opForm();
       bindOpForm();
       return;
     }
-    body.innerHTML = list.length ? list.map((o) => opCard(o, canCommand)).join('') : '<div class="empty-row">Aucune opération dans cette liste.</div>';
+    const base = ops.filter(filters[opsFilter] || filters.actives);
+    const renderList = () => {
+      const q = norm(opsSearch);
+      const list = q ? base.filter((o) => [o.codeName, unitLabel(o.unit), o.zone, o.target, o.assigned, o.authorCharacterName].some((x) => norm(x).includes(q))) : base;
+      document.getElementById('fim-ops-list').innerHTML = list.length
+        ? list.map((o) => opCard(o, canCommand, debriefOf.get(o.id))).join('')
+        : '<div class="empty-row">Aucune opération dans cette liste.</div>';
+      bindOpCards();
+    };
+    body.innerHTML = `
+      <input type="text" id="fim-ops-search" class="fim-search" placeholder="Rechercher : nom de code, unité, zone, cible, opérateur…" value="${esc(opsSearch)}">
+      <div id="fim-ops-list"></div>`;
+    document.getElementById('fim-ops-search').addEventListener('input', (e) => { opsSearch = e.target.value; renderList(); });
+    renderList();
+  }
+
+  function bindOpCards() {
+    const body = document.getElementById('fim-ops-list');
     body.querySelectorAll('[data-op-status]').forEach((b) => b.addEventListener('click', async () => {
       const next = b.dataset.opStatus;
       const note = next === 'annulee' || next === 'terminee' ? prompt('Note (facultative) :') || '' : '';
@@ -829,7 +1071,13 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     }));
     body.querySelectorAll('[data-op-debrief]').forEach((b) => b.addEventListener('click', () => {
       pendingDebriefOp = b.dataset.id;
-      document.querySelector('.terminal-tab[data-tab="fim-debriefs"]')?.click();
+      opsFilter = 'debriefs';
+      loadOperations();
+    }));
+    body.querySelectorAll('[data-op-see-debrief]').forEach((b) => b.addEventListener('click', () => {
+      focusDebrief = b.dataset.id;
+      opsFilter = 'debriefs';
+      loadOperations();
     }));
   }
 
@@ -846,20 +1094,21 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     return `<div class="fim-op-meta" style="margin:10px 0 0; flex-wrap:wrap; align-items:center;">Présents en jeu ${list.map((x) => `<span class="fim-chip u" style="--u:${unitColor(x.unit)}">${esc(x.name)} · ${fr(x.minutes, 0)} min</span>`).join(' ')}</div>`;
   }
 
-  function opCard(o, canCommand) {
+  function opCard(o, canCommand, debrief) {
     const st = STATUS_META[o.status] || STATUS_META.planifiee;
     const pr = PRIORITY_META[o.priority] || PRIORITY_META.routine;
     const actions = [];
     if (o.status === 'planifiee') actions.push(`<button class="btn small" data-op-status="en_cours" data-id="${esc(o.id)}">Lancer</button>`);
     if (o.status === 'en_cours') actions.push(`<button class="btn small" data-op-status="terminee" data-id="${esc(o.id)}">Clôturer</button>`);
     if (o.status === 'planifiee' || o.status === 'en_cours') actions.push(`<button class="btn ghost small" data-op-status="annulee" data-id="${esc(o.id)}">Annuler</button>`);
-    if (o.status === 'terminee') actions.push(`<button class="btn ghost small" data-op-debrief data-id="${esc(o.id)}">Rédiger le débriefing</button>`);
+    if (o.status === 'terminee' && debrief) actions.push(`<button class="btn ghost small" data-op-see-debrief data-id="${esc(debrief.id)}">Voir le débriefing</button>`);
+    else if (o.status === 'terminee') actions.push(`<button class="btn small" data-op-debrief data-id="${esc(o.id)}">Rédiger le débriefing</button>`);
     if (canCommand) actions.push(`<button class="btn danger small" data-op-delete data-id="${esc(o.id)}">Supprimer</button>`);
     return `
       <div class="fim-op" style="--u:${unitColor(o.unit)}">
         <div class="fim-op-top">
           <span class="fim-op-name">OPÉRATION ${esc(o.codeName)}</span>
-          ${pill(pr)} ${pill(st)}
+          ${pill(pr)} ${pill(st)}${debrief ? ` ${pill({ label: `Débriefé · ${(OUTCOME_META[debrief.outcome] || OUTCOME_META.partiel).label}`, color: (OUTCOME_META[debrief.outcome] || OUTCOME_META.partiel).color })}` : ''}
         </div>
         <div class="fim-op-meta">
           <span>Unité <b>${esc(unitLabel(o.unit))}</b></span>
@@ -914,22 +1163,12 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   }
 
   // ---------------------------------------------------------------
-  // Onglet Débriefings
+  // Débriefings (vue de l'onglet Opérations)
   // ---------------------------------------------------------------
   let pendingDebriefOp = null;
-  async function loadDebriefs() {
-    const main = mainEl();
-    main.innerHTML = '<div class="center-msg">Chargement…</div>';
-    let debriefs = [];
-    let ops = [];
-    try {
-      const [d, o] = await Promise.all([window.apiFetch('/api/rp/fim/debriefs'), window.apiFetch('/api/rp/fim/operations')]);
-      debriefs = d.debriefs || [];
-      ops = o.operations || [];
-    } catch (err) {
-      main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
-      return;
-    }
+  let focusDebrief = null;
+  let debriefSearch = '';
+  function renderDebriefs(body, debriefs, ops) {
     const success = debriefs.filter((d) => d.outcome === 'succes').length;
     setSide(
       [[String(debriefs.length), 'Débriefings'], [debriefs.length ? `${Math.round((success / debriefs.length) * 100)}%` : '—', 'Succès']],
@@ -938,14 +1177,19 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const preOp = ops.find((o) => o.id === pendingDebriefOp);
     pendingDebriefOp = null;
     const opName = (id) => ops.find((o) => o.id === id)?.codeName;
+    const debriefed = new Set(debriefs.map((d) => d.operationId).filter(Boolean));
+    const todo = ops.filter((o) => o.status === 'terminee' && !debriefed.has(o.id));
 
-    main.innerHTML = `
-      <div class="fim-hero">
-        <div class="fim-hero-eyebrow">Rapports après action</div>
-        <h2>Débriefings</h2>
-        <p>Après chaque opération : ce qui s'est passé, ce qui a coûté, ce qu'on change. Les leçons alimentent la doctrine.</p>
+    body.innerHTML = `
+      ${todo.length ? `<div class="fim-hq-card" style="margin-bottom:18px;">
+        <div class="fim-hq-card-head"><h3>Opérations terminées sans débriefing</h3><span class="count">${todo.length}</span></div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">${todo.map((o) => `<button class="btn ghost small" type="button" data-write="${esc(o.id)}">${esc(o.codeName)}</button>`).join('')}</div>
+      </div>` : ''}
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
+        <input type="text" id="fim-db-search" class="fim-search" style="flex:1; margin:0;" placeholder="Rechercher : titre, unité, entité, participant…" value="${esc(debriefSearch)}">
+        <button class="btn small" type="button" id="fim-db-toggle">${preOp ? 'Fermer le formulaire' : '+ Rédiger un débriefing'}</button>
       </div>
-      <div class="subsection" style="margin:0 0 24px;">
+      <div class="subsection" id="fim-db-formbox" style="margin:0 0 24px;${preOp ? '' : ' display:none;'}">
         <h3>${preOp ? `Débriefing de l'opération ${esc(preOp.codeName)}` : 'Rédiger un débriefing'}</h3>
         <form id="fim-db-form">
           <div class="field-grid">
@@ -963,28 +1207,51 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
           <button class="btn" type="submit">Enregistrer le débriefing</button>
         </form>
       </div>
-      <div class="record-block">
-        <div class="record-block-head"><h2>Archives</h2><span class="count">${debriefs.length}</span></div>
-        ${debriefs.length ? debriefs.map((d) => `
-          <div class="fim-op" style="--u:${unitColor(d.unit)}">
-            <div class="fim-op-top"><span class="fim-op-name" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(d.title)}</span>${pill(OUTCOME_META[d.outcome] || OUTCOME_META.partiel)}</div>
-            <div class="fim-op-meta">
-              <span>Unité <b>${esc(unitLabel(d.unit))}</b></span>
-              ${d.operationId && opName(d.operationId) ? `<span>Opération <b>${esc(opName(d.operationId))}</b></span>` : ''}
-              ${d.scp ? `<span>Contre <b>${esc(d.scp)}</b></span>` : ''}
-              ${d.losses ? `<span>Pertes <b>${esc(d.losses)}</b></span>` : ''}
-              ${d.participants ? `<span>Participants <b>${esc(d.participants)}</b></span>` : ''}
-              <span>${esc(d.authorCharacterName)} · ${fmtDate(d.createdAt)}</span>
-            </div>
-            <div class="fim-op-body">${esc(d.summary)}</div>
-            ${d.lessons ? `<div class="fim-op-log" style="color:var(--ink-dim); font-family:'Inter', sans-serif; font-size:12.5px;"><b style="font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--accent-2); letter-spacing:.08em;">LEÇONS</b><br>${esc(d.lessons)}</div>` : ''}
-          </div>`).join('') : '<div class="empty-row">Aucun débriefing enregistré.</div>'}
-      </div>
+      <div id="fim-db-list"></div>
     `;
+
+    const renderList = () => {
+      const q = norm(debriefSearch);
+      const list = q ? debriefs.filter((d) => [d.title, unitLabel(d.unit), d.scp, d.participants, d.authorCharacterName, opName(d.operationId)].some((x) => norm(x).includes(q))) : debriefs;
+      document.getElementById('fim-db-list').innerHTML = list.length ? list.map((d) => `
+        <div class="fim-op${d.id === focusDebrief ? ' focus' : ''}" style="--u:${unitColor(d.unit)}" data-debrief-id="${esc(d.id)}">
+          <div class="fim-op-top"><span class="fim-op-name" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(d.title)}</span>${pill(OUTCOME_META[d.outcome] || OUTCOME_META.partiel)}</div>
+          <div class="fim-op-meta">
+            <span>Unité <b>${esc(unitLabel(d.unit))}</b></span>
+            ${d.operationId && opName(d.operationId) ? `<span>Opération <b>${esc(opName(d.operationId))}</b></span>` : ''}
+            ${d.scp ? `<span>Contre <b>${esc(d.scp)}</b></span>` : ''}
+            ${d.losses ? `<span>Pertes <b>${esc(d.losses)}</b></span>` : ''}
+            ${d.participants ? `<span>Participants <b>${esc(d.participants)}</b></span>` : ''}
+            <span>${esc(d.authorCharacterName)} · ${fmtDate(d.createdAt)}</span>
+          </div>
+          <div class="fim-op-body">${esc(d.summary)}</div>
+          ${d.lessons ? `<div class="fim-op-log" style="color:var(--ink-dim); font-family:'Inter', sans-serif; font-size:12.5px;"><b style="font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--accent-2); letter-spacing:.08em;">LEÇONS</b><br>${esc(d.lessons)}</div>` : ''}
+        </div>`).join('') : '<div class="empty-row">Aucun débriefing.</div>';
+    };
+    renderList();
+    if (focusDebrief) {
+      document.querySelector(`[data-debrief-id="${CSS.escape(focusDebrief)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      focusDebrief = null;
+    }
+    document.getElementById('fim-db-search').addEventListener('input', (e) => { debriefSearch = e.target.value; renderList(); });
+    const formBox = document.getElementById('fim-db-formbox');
+    const toggle = document.getElementById('fim-db-toggle');
+    toggle.addEventListener('click', () => {
+      const open = formBox.style.display === 'none';
+      formBox.style.display = open ? '' : 'none';
+      toggle.textContent = open ? 'Fermer le formulaire' : '+ Rédiger un débriefing';
+    });
+    body.querySelectorAll('[data-write]').forEach((b) => b.addEventListener('click', () => {
+      pendingDebriefOp = b.dataset.write;
+      renderDebriefs(body, debriefs, ops);
+      document.getElementById('fim-db-formbox')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
     document.getElementById('db-op').addEventListener('change', (e) => {
       const op = ops.find((o) => o.id === e.target.value);
       const box = document.getElementById('db-participants');
       if (op && presenceList(op).length && !box.value.trim()) box.value = presenceText(op);
+      if (op && !document.getElementById('db-title').value.trim()) document.getElementById('db-title').value = `Opération ${op.codeName}`;
+      if (op) document.getElementById('db-unit').value = op.unit;
     });
     document.getElementById('fim-db-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -994,7 +1261,8 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       try {
         await window.apiFetch('/api/rp/fim/debriefs', { method: 'POST', body: JSON.stringify(payload) });
         window.showToast('Débriefing enregistré.', 'success');
-        loadDebriefs();
+        opsFilter = 'debriefs';
+        loadOperations();
       } catch (err) {
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
@@ -1002,7 +1270,26 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   }
 
   // ---------------------------------------------------------------
-  // Onglet Reconfinement (fiches SCP)
+  // Onglet Savoir : doctrine (et notes du commandement) + fiches SCP
+  // ---------------------------------------------------------------
+  let libView = 'doctrine';
+  function loadLibrary() {
+    const root = document.getElementById('terminal-main');
+    mainOverride = null;
+    root.innerHTML = `
+      ${subTabs([['doctrine', 'Doctrine et notes'], ['scp', 'Fiches de reconfinement']], libView, 'data-lv')}
+      <div id="fim-lib-body"></div>`;
+    root.querySelectorAll('[data-lv]').forEach((b) => b.addEventListener('click', () => {
+      libView = b.dataset.lv;
+      loadLibrary();
+    }));
+    mainOverride = document.getElementById('fim-lib-body');
+    if (libView === 'scp') loadContainment();
+    else loadDoctrine();
+  }
+
+  // ---------------------------------------------------------------
+  // Fiches de reconfinement (vue de l'onglet Savoir)
   // ---------------------------------------------------------------
   let selectedScp = 'SCP-173';
   function loadContainment() {
@@ -1059,7 +1346,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
 |---|---|---|
 ${CODE_ORDER.map((k) => `| **${k}** | ${CODES[k].desc} | ${CODES[k].posture.replace(/<\/?b>/g, '**')} |`).join('\n')}
 
-Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situation*.`;
+Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   }
 
   async function loadDoctrine() {
@@ -2385,7 +2672,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
   }
   async function alertTick() {
     // Le guetteur ne tourne que tant qu'un terminal FIM est affiché.
-    if (!alertsOn() || !document.querySelector('.terminal-tab[data-tab="fim-situation"]')) { stopAlerts(); return; }
+    if (!alertsOn() || !document.querySelector('.terminal-tab[data-tab="fim-hq"]')) { stopAlerts(); return; }
     let data;
     try { data = await window.apiFetch('/api/rp/fim/situation'); } catch (e) { return; }
     const state = {};
@@ -2475,23 +2762,20 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
   // ---------------------------------------------------------------
   window.FIM = {
     tabs: [
-      { id: 'fim-situation', label: 'Situation', icon: 'siren' },
-      { id: 'fim-units', label: 'Unités', icon: 'shield' },
+      { id: 'fim-hq', label: 'QG', icon: 'siren' },
       { id: 'fim-ops', label: 'Opérations', icon: 'radio' },
-      { id: 'fim-debriefs', label: 'Débriefings', icon: 'document' },
-      { id: 'fim-containment', label: 'Reconfinement', icon: 'alertTriangle' },
-      { id: 'fim-doctrine', label: 'Doctrine', icon: 'folder' },
+      { id: 'fim-units', label: 'Unités', icon: 'shield' },
+      { id: 'fim-library', label: 'Savoir', icon: 'folder' },
       { id: 'fim-evals', label: 'Évaluations', icon: 'badge' },
     ],
     load(tabId, deptId) {
       stopRefresh();
+      mainOverride = null;
       startAlerts();
-      if (tabId === 'fim-situation') loadSituation(false);
-      else if (tabId === 'fim-units') loadUnits(deptId);
+      if (tabId === 'fim-hq') loadHQ(deptId);
       else if (tabId === 'fim-ops') loadOperations();
-      else if (tabId === 'fim-debriefs') loadDebriefs();
-      else if (tabId === 'fim-containment') loadContainment();
-      else if (tabId === 'fim-doctrine') loadDoctrine();
+      else if (tabId === 'fim-units') loadUnits(deptId);
+      else if (tabId === 'fim-library') loadLibrary();
       else if (tabId === 'fim-evals') loadEvaluations(deptId);
     },
     stop: stopRefresh,
