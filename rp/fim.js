@@ -140,6 +140,43 @@
   .fim-staff .em{ display:inline-flex; width:22px; height:22px; border-radius:50%; align-items:center; justify-content:center; margin-right:3px; color:#E6B43C; border:1px solid rgba(230,180,60,.45); }
   .fim-staff .em svg{ width:13px; height:13px; }
   .fim-staff tr.clickable{ cursor:pointer; }
+  .fim-attention{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:8px; }
+  .fim-attn{ display:flex; flex-direction:column; gap:3px; text-align:left; cursor:pointer; color:inherit; font-family:'Inter', sans-serif; font-size:12.5px; padding:10px 12px;
+    background:var(--void-2); border:1px solid transparent; border-left:3px solid #5AA9FF; border-radius:2px; }
+  .fim-attn.warn{ border-left-color:#F0A83C; } .fim-attn.bad{ border-left-color:#F0525A; }
+  .fim-attn:hover{ border-color:var(--accent); }
+  .fim-attn small{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); }
+  .fim-org{ display:flex; flex-direction:column; gap:14px; }
+  .fim-org-level-label{ font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:8px; }
+  .fim-org-row{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:10px; }
+  .fim-org-card{ background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--accent); border-radius:3px; padding:14px 16px; display:flex; flex-direction:column; gap:6px; }
+  .fim-org-card.lvl1{ border-top-color:#E6B43C; background:linear-gradient(160deg, rgba(230,180,60,0.08), var(--panel) 55%); }
+  .fim-org-card.lvl2{ border-top-color:#B07CFF; }
+  .fim-org-card.vacant{ border-style:dashed; border-top-style:solid; opacity:.8; }
+  .fim-org-card.me{ box-shadow:0 0 0 1px rgba(79,216,149,0.5) inset; }
+  .fim-org-title{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent-2); }
+  .fim-org-card.lvl1 .fim-org-title{ color:#E6B43C; }
+  .fim-holder{ display:block; font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; }
+  .fim-holder-sub{ display:block; font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); margin-top:2px; }
+  .fim-vacant{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--warn); }
+  .fim-org-interim{ font-size:11.5px; color:var(--ink-dim); } .fim-org-interim b{ font-weight:600; }
+  .fim-org-desc{ font-size:12px; color:var(--ink-faint); line-height:1.55; }
+  .fim-org-edit{ background:var(--void-2); border-radius:3px; padding:12px; margin-bottom:10px; }
+  .fim-org-edit-top{ display:grid; grid-template-columns:1fr 190px auto; gap:8px; align-items:center; }
+  .fim-chain{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:10px; }
+  .fim-chain-unit{ background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--u); border-radius:3px; padding:12px 14px; }
+  .fim-chain-head{ display:flex; gap:10px; align-items:center; color:var(--u); margin-bottom:8px; }
+  .fim-chain-head .fim-crest{ width:30px; height:34px; }
+  .fim-chain-head b{ display:block; color:var(--ink); font-size:13px; } .fim-chain-head small{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); }
+  .fim-directive.unread{ box-shadow:inset 0 0 0 1px rgba(240,168,60,0.45); }
+  .fim-ack{ display:flex; align-items:center; gap:10px; margin-top:10px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+  .fim-ack b{ color:var(--ink); font-weight:600; } .fim-ack.ok{ color:#4FD895; }
+  .fim-check{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-dim); margin:6px 0; cursor:pointer; }
+  .fim-check input{ width:auto; }
+  .fim-hq-alert{ display:flex; align-items:center; gap:14px; justify-content:space-between; flex-wrap:wrap; margin-bottom:14px; padding:12px 16px; border-radius:3px;
+    border:1px solid rgba(240,168,60,0.5); background:rgba(240,168,60,0.07); }
+  .fim-hq-alert b{ display:block; font-size:13.5px; } .fim-hq-alert small{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+  @media (max-width:640px){ .fim-org-edit-top{ grid-template-columns:1fr; } }
   .fim-editor-row.fim-fact-row{ grid-template-columns:1fr 1.6fr auto; }
   .fim-unit-cmd{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
   .fim-unit-cmd b{ color:var(--ink-dim); font-weight:500; }
@@ -791,12 +828,13 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const main = mainEl();
     main.innerHTML = '<div class="center-msg">Connexion au réseau tactique…</div>';
     const safe = (pr, fallback) => pr.catch(() => fallback);
-    const [ops, debriefs, evalData, docs, agents] = await Promise.all([
+    const [ops, debriefs, evalData, docs, agents, dirData] = await Promise.all([
       safe(window.apiFetch('/api/rp/fim/operations'), { operations: [] }),
       safe(window.apiFetch('/api/rp/fim/debriefs'), { debriefs: [] }),
       safe(window.apiFetch('/api/rp/fim/evaluations'), { evaluations: [] }),
       safe(window.apiFetch('/api/rp/fim/docs'), { documents: [] }),
       loadRoster(),
+      safe(window.apiFetch('/api/rp/fim/directives'), { directives: [] }),
     ]);
     if (mainEl() !== main || !main.isConnected) return;
     const operations = ops.operations || [];
@@ -813,6 +851,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const activeOps = operations.filter((o) => o.status === 'en_cours' || o.status === 'planifiee')
       .sort((a, b) => (a.status === 'en_cours' ? 0 : 1) - (b.status === 'en_cours' ? 0 : 1) || (a.scheduledAt || Infinity) - (b.scheduledAt || Infinity));
     const myMissions = activeOps.filter((o) => roleIn(o, self));
+    const toRead = unreadDirectives(dirData.directives || [], dirData.selfKey || '', myUnit);
     const myFile = personnel.get(personKey(self)) || {};
     const myMinutes = operations.reduce((acc, o) => acc + presenceMinutes(o, self), 0);
     const debriefed = new Set(debriefList.map((d) => d.operationId).filter(Boolean));
@@ -884,6 +923,10 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     main.innerHTML = `
       <div id="fim-hq">
         <div id="fim-live"><div class="center-msg">Connexion au réseau tactique…</div></div>
+        ${toRead.length ? `<div class="fim-hq-alert">
+          <div><b>${toRead.length} directive${toRead.length > 1 ? 's' : ''} de la Direction à lire</b><small>${toRead.slice(0, 3).map((d) => esc(d.title)).join(' · ')}</small></div>
+          <button class="btn small" type="button" id="fim-hq-read">Lire maintenant</button>
+        </div>` : ''}
         <div class="fim-hq-grid">${myCard}${missionsCard}${opsCard}${todoCard}${debriefCard}${notesCard}</div>
         <div id="fim-live-servers"></div>
       </div>`;
@@ -892,6 +935,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       if (b.dataset.doc) { libView = 'doctrine'; docSelected = b.dataset.doc; }
       goTab(b.dataset.go);
     }));
+    document.getElementById('fim-hq-read')?.addEventListener('click', () => { unitsView = 'direction'; directionView = 'lire'; goTab('fim-units'); });
     await refreshLive(false);
     if (!refreshTimer) refreshTimer = setInterval(() => refreshLive(true), 30000);
   }
@@ -990,14 +1034,15 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         <h2>Forces d'Intervention Mobiles du Site-15</h2>
         <p>${UNITS.length} unités, chacune avec sa spécialité, son indicatif et ses règles${unitsCanManage ? ' : en tant qu’officier, tu peux modifier leurs fiches, en créer ou en archiver' : ''}. L'unité d'un opérateur vient de l'unité imposée dans son dossier, sinon de son rôle d'unité sur le Discord FIM, sinon de sa division.</p>
       </div>
-      ${subTabs([['bataille', 'Ordre de bataille'], ['effectifs', 'Effectifs et dossiers'], ['activite', 'Activité']], unitsView, 'data-uv')}
+      ${subTabs([['direction', 'Direction'], ['bataille', 'Ordre de bataille'], ['effectifs', 'Effectifs et dossiers'], ['activite', 'Activité']], unitsView, 'data-uv')}
       <div id="fim-units-body"></div>`;
     root.querySelectorAll('[data-uv]').forEach((b) => b.addEventListener('click', () => {
       unitsView = b.dataset.uv;
       loadUnits(deptId);
     }));
     mainOverride = document.getElementById('fim-units-body');
-    if (unitsView === 'effectifs') loadStaff();
+    if (unitsView === 'direction') loadDirection();
+    else if (unitsView === 'effectifs') loadStaff();
     else if (unitsView === 'activite') loadActivity();
     else loadBattleOrder();
   }
@@ -1198,6 +1243,363 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         if (x.isNew) await window.apiFetch('/api/rp/fim/units', { method: 'POST', body: JSON.stringify(payload) });
         else await window.apiFetch(`/api/rp/fim/units/${encodeURIComponent(x.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
         done(x.isNew ? 'Unité créée.' : 'Unité enregistrée.', x.id);
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // Direction : organigramme, chaîne de commandement, directives
+  // ---------------------------------------------------------------
+  const DIRECTIVE_KIND_META = {
+    directive: { label: 'Directive', color: '#6E76FF' },
+    note: { label: 'Note de service', color: '#5AA9FF' },
+    decision: { label: 'Décision', color: '#4FD895' },
+    circulaire: { label: 'Circulaire', color: '#B07CFF' },
+  };
+  const DIRECTIVE_PRIORITY_META = {
+    normale: { label: 'Normale', color: '#9297A8' },
+    importante: { label: 'Importante', color: '#F0A83C' },
+    critique: { label: 'Critique', color: '#F0525A' },
+  };
+  const LEVEL_LABELS = { 1: 'Direction', 2: 'Direction adjointe', 3: 'État-major' };
+  const OFFICER_RE = /directeur|commandant|capitaine|lieutenant|chef|officier|major/i;
+  let directionView = 'lire';
+  let orgEditing = null;
+  let directiveEditing = null;
+  const openAcks = new Set();
+
+  // Une directive concerne-t-elle cet opérateur (toutes les FIM ou son unité) ?
+  const directiveFor = (d, unit) => !d.audience || d.audience === 'ALL' || d.audience === unit;
+  const directiveExpired = (d) => !!d.expiresAt && d.expiresAt < Date.now();
+  function unreadDirectives(directives, selfKey, unit) {
+    return directives.filter((d) => !d.archived && !directiveExpired(d) && d.requireAck && directiveFor(d, unit) && !(d.acks || {})[selfKey]);
+  }
+
+  async function loadDirection() {
+    const main = mainEl();
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+    let org = { positions: [] };
+    let canManage = false;
+    let directives = [];
+    let selfKey = '';
+    let agents = [];
+    let evalData = {};
+    let ops = [];
+    let debriefs = [];
+    try {
+      const [dir, dv, roster, ev, o, db] = await Promise.all([
+        window.apiFetch('/api/rp/fim/direction'),
+        window.apiFetch('/api/rp/fim/directives').catch(() => ({ directives: [] })),
+        loadRoster(),
+        window.apiFetch('/api/rp/fim/evaluations').catch(() => ({})),
+        window.apiFetch('/api/rp/fim/operations').catch(() => ({ operations: [] })),
+        window.apiFetch('/api/rp/fim/debriefs').catch(() => ({ debriefs: [] })),
+      ]);
+      org = dir.org || org;
+      canManage = !!dir.canManage;
+      directives = dv.directives || [];
+      selfKey = dv.selfKey || '';
+      agents = roster;
+      evalData = ev;
+      ops = o.operations || [];
+      debriefs = db.debriefs || [];
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
+      return;
+    }
+    if (mainEl() !== main) return;
+    const self = evalData.self || '';
+    const me = agents.find((a) => norm(a.name || a.username) === norm(self));
+    const myUnit = me ? unitFromAgent(me) : null;
+    const nameOf = (a) => a.name || a.username;
+    const agentByName = (n) => agents.find((a) => norm(nameOf(a)) === norm(n));
+    const holderChip = (n) => {
+      if (!n) return '<span class="fim-vacant">Poste vacant</span>';
+      const a = agentByName(n);
+      const u = a ? unitFromAgent(a) : null;
+      return `<span class="fim-holder">${esc(withCallsign(n))}</span>${a?.rank ? `<span class="fim-holder-sub">${esc(a.rank)}${u ? ` · ${esc(unitLabel(u))}` : ''}</span>` : ''}`;
+    };
+    const unread = unreadDirectives(directives, selfKey, myUnit);
+    setSide(
+      [[String(org.positions.filter((p) => p.holder).length), 'Postes pourvus'], [String(unread.length), 'À lire']],
+      directives.filter((d) => !d.archived).slice(0, 5).map((d) => [(DIRECTIVE_KIND_META[d.kind] || DIRECTIVE_KIND_META.directive).label, d.title])
+    );
+
+    if (orgEditing) { renderOrgEditor(main, agents); return; }
+    if (directiveEditing) { renderDirectiveForm(main); return; }
+
+    // --- Points d'attention (commandement) ---
+    let attention = '';
+    if (canManage) {
+      const items = [];
+      const byUnit = {};
+      agents.forEach((a) => { const u = unitFromAgent(a); if (u) byUnit[u] = (byUnit[u] || 0) + 1; });
+      UNITS.filter((u) => u.targetSize && (byUnit[u.id] || 0) < u.targetSize).forEach((u) => items.push(['warn', `FIM ${u.name} en sous-effectif`, `${byUnit[u.id] || 0} / ${u.targetSize} opérateurs`, 'bataille']));
+      UNITS.filter((u) => !u.commander).forEach((u) => items.push(['info', `FIM ${u.name} sans chef d'unité`, 'À désigner dans la fiche de l’unité', 'bataille']));
+      const noUnit = agents.filter((a) => !unitFromAgent(a));
+      if (noUnit.length) items.push(['warn', `${noUnit.length} opérateur(s) sans unité`, noUnit.slice(0, 4).map(nameOf).join(', '), 'effectifs']);
+      const vacant = org.positions.filter((p) => !p.holder);
+      if (vacant.length) items.push(['info', `${vacant.length} poste(s) vacant(s) à la Direction`, vacant.slice(0, 3).map((p) => p.title).join(', '), 'direction']);
+      const evaluations = evalData.evaluations || [];
+      if (evalData.canEvaluate) {
+        const never = agents.filter((a) => norm(nameOf(a)) !== norm(self) && !evaluations.some((e) => norm(e.agentName) === norm(nameOf(a))));
+        if (never.length) items.push(['info', `${never.length} opérateur(s) jamais évalué(s)`, never.slice(0, 4).map(nameOf).join(', '), 'evals']);
+      }
+      const warnings = [...personnel.values()].flatMap((p) => (p.notes || []).filter((n) => n.kind === 'avertissement' && n.at > Date.now() - 30 * 86400000).map(() => p.name));
+      if (warnings.length) items.push(['bad', `${warnings.length} avertissement(s) ces 30 derniers jours`, [...new Set(warnings)].slice(0, 4).join(', '), 'effectifs']);
+      const debriefed = new Set(debriefs.map((d) => d.operationId).filter(Boolean));
+      const noDebrief = ops.filter((o) => o.status === 'terminee' && !debriefed.has(o.id));
+      if (noDebrief.length) items.push(['warn', `${noDebrief.length} opération(s) sans débriefing`, noDebrief.slice(0, 3).map((o) => o.codeName).join(', '), 'debriefs']);
+      const lowRead = directives.filter((d) => !d.archived && !directiveExpired(d) && d.requireAck).map((d) => {
+        const aud = agents.filter((a) => directiveFor(d, unitFromAgent(a)));
+        const read = aud.filter((a) => (d.acks || {})[personKey(nameOf(a))]).length;
+        return { d, aud: aud.length, read };
+      }).filter((x) => x.aud && x.read / x.aud < 0.5 && Date.now() - (x.d.createdAt || 0) > 86400000);
+      lowRead.forEach((x) => items.push(['warn', `Directive peu lue : ${x.d.title}`, `${x.read} / ${x.aud} lecteurs après ${Math.round((Date.now() - x.d.createdAt) / 86400000)} j`, 'direction']));
+      attention = `
+        <div class="fim-hq-card" style="margin-bottom:18px;">
+          <div class="fim-hq-card-head"><h3>Points d'attention de la Direction</h3><span class="count">${items.length}</span></div>
+          ${items.length ? `<div class="fim-attention">${items.map(([lvl, t, sub, go]) => `<button type="button" class="fim-attn ${lvl}" data-attn="${go}"><span>${esc(t)}</span><small>${esc(sub)}</small></button>`).join('')}</div>` : '<div class="empty-row">Aucun point d’attention : effectifs, évaluations et débriefings sont à jour.</div>'}
+        </div>`;
+    }
+
+    // --- Organigramme ---
+    const levels = [1, 2, 3].map((lvl) => ({ lvl, list: org.positions.filter((p) => (p.level || 3) === lvl) })).filter((g) => g.list.length);
+    const orgHtml = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Organigramme de la Direction</h2>${canManage ? '<button class="btn ghost small" type="button" id="fim-org-edit">Modifier l’organigramme</button>' : `<span class="count">${org.positions.length}</span>`}</div>
+        ${org.isDefault ? `<div style="font-size:12px; color:var(--ink-faint); margin-bottom:10px;">Organigramme type : aucun titulaire n'est encore désigné.${canManage ? ' Clique sur « Modifier l’organigramme » pour nommer les titulaires et adapter les postes.' : ''}</div>` : ''}
+        <div class="fim-org">
+          ${levels.map((g) => `
+            <div class="fim-org-level">
+              <div class="fim-org-level-label">${esc(LEVEL_LABELS[g.lvl])}</div>
+              <div class="fim-org-row">${g.list.map((p) => `
+                <div class="fim-org-card lvl${g.lvl}${p.holder ? '' : ' vacant'}${norm(p.holder) === norm(self) ? ' me' : ''}">
+                  <div class="fim-org-title">${esc(p.title)}</div>
+                  <div class="fim-org-holder">${holderChip(p.holder)}</div>
+                  ${p.interim ? `<div class="fim-org-interim">Intérim : <b>${esc(withCallsign(p.interim))}</b></div>` : ''}
+                  ${p.description ? `<div class="fim-org-desc">${esc(p.description)}</div>` : ''}
+                </div>`).join('')}</div>
+            </div>`).join('')}
+        </div>
+        ${org.updatedBy ? `<div class="fim-op-foot">Organigramme mis à jour par ${esc(org.updatedBy)} · ${fmtDate(org.updatedAt)}</div>` : ''}
+      </div>`;
+
+    // --- Chaîne de commandement ---
+    const officers = agents.filter((a) => OFFICER_RE.test(a.rank || '')).sort((a, b) => (a.rank || '').localeCompare(b.rank || '', 'fr') || nameOf(a).localeCompare(nameOf(b), 'fr'));
+    const chainHtml = `
+      <div class="record-block" style="margin-top:24px;">
+        <div class="record-block-head"><h2>Chaîne de commandement</h2><span class="count">${UNITS.length} unités · ${officers.length} officier${officers.length > 1 ? 's' : ''}</span></div>
+        <div class="fim-chain">
+          ${UNITS.map((u) => `
+            <div class="fim-chain-unit" style="--u:${u.color}">
+              <div class="fim-chain-head">${crest(u.letter)}<div><b>FIM ${esc(u.name)}</b><small>${esc(u.callsign || '')}</small></div></div>
+              <div class="fim-chain-cmd">${u.commander ? holderChip(u.commander) : '<span class="fim-vacant">Chef d’unité à désigner</span>'}</div>
+            </div>`).join('')}
+        </div>
+        ${officers.length ? `<div class="fim-editor-section">Officiers</div><div class="fim-roster">${officers.map((a) => { const u = unitFromAgent(a); return `<span class="fim-chip u" style="--u:${u ? unitColor(u) : '#9297A8'}">${esc(a.rank)} · ${esc(withCallsign(nameOf(a)))}</span>`; }).join('')}</div>` : ''}
+      </div>`;
+
+    // --- Directives ---
+    const visible = directives.filter((d) => canManage || directiveFor(d, myUnit));
+    const views = {
+      lire: (d) => !d.archived && !directiveExpired(d) && d.requireAck && directiveFor(d, myUnit) && !(d.acks || {})[selfKey],
+      vigueur: (d) => !d.archived && !directiveExpired(d),
+      archives: (d) => d.archived || directiveExpired(d),
+    };
+    if (directionView === 'lire' && !visible.some(views.lire)) directionView = 'vigueur';
+    const shown = visible.filter(views[directionView] || views.vigueur).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.createdAt || 0) - (a.createdAt || 0));
+    const directiveCard = (d) => {
+      const kind = DIRECTIVE_KIND_META[d.kind] || DIRECTIVE_KIND_META.directive;
+      const prio = DIRECTIVE_PRIORITY_META[d.priority] || DIRECTIVE_PRIORITY_META.normale;
+      const acked = !!(d.acks || {})[selfKey];
+      const concerned = directiveFor(d, myUnit);
+      let ackHtml = '';
+      if (d.requireAck) {
+        if (canManage) {
+          const aud = agents.filter((a) => directiveFor(d, unitFromAgent(a)));
+          const readers = aud.filter((a) => (d.acks || {})[personKey(nameOf(a))]);
+          const missing = aud.filter((a) => !(d.acks || {})[personKey(nameOf(a))]);
+          const pct = aud.length ? Math.round((readers.length / aud.length) * 100) : 0;
+          ackHtml = `
+            <div class="fim-ack">
+              <span class="fim-gauge" style="--u:${pct >= 80 ? '#4FD895' : pct >= 50 ? '#F0A83C' : '#F0525A'}; max-width:160px;"><i style="width:${pct}%"></i></span>
+              <span>Lu par <b>${readers.length} / ${aud.length}</b></span>
+              ${missing.length ? `<button type="button" class="fim-link" data-ack-toggle="${esc(d.id)}">${openAcks.has(d.id) ? 'Masquer' : 'Qui n’a pas lu ?'}</button>` : ''}
+            </div>
+            ${openAcks.has(d.id) && missing.length ? `<div class="fim-roster" style="margin-top:6px;">${missing.map((a) => `<span class="fim-chip">${esc(withCallsign(nameOf(a)))}</span>`).join('')}</div>` : ''}`;
+        }
+        if (concerned) ackHtml += acked
+          ? `<div class="fim-ack ok">✓ Lu le ${esc(fmtDate(d.acks[selfKey].at))}</div>`
+          : `<button class="btn small" type="button" data-ack="${esc(d.id)}" style="margin-top:10px;">J'ai lu et compris</button>`;
+      }
+      return `
+        <div class="fim-op fim-directive${!acked && d.requireAck && concerned && !d.archived ? ' unread' : ''}" style="--u:${prio.color}">
+          <div class="fim-op-top">
+            <span class="fim-op-name" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${d.pinned ? '📌 ' : ''}${esc(d.title)}</span>
+            ${pill(kind)} ${d.priority !== 'normale' ? pill(prio) : ''} ${directiveExpired(d) ? pill({ label: 'Expirée', color: '#565B6B' }) : ''}${d.archived ? pill({ label: 'Archivée', color: '#565B6B' }) : ''}
+          </div>
+          <div class="fim-op-meta">
+            <span>Destinataires <b>${!d.audience || d.audience === 'ALL' ? 'Toutes les FIM' : `FIM ${esc(unitLabel(d.audience))}`}</b></span>
+            <span>Par <b>${esc(d.authorCharacterName)}</b> · ${fmtDate(d.createdAt)}</span>
+            ${d.expiresAt ? `<span>Jusqu'au <b>${esc(new Date(d.expiresAt).toLocaleDateString('fr-FR'))}</b></span>` : ''}
+          </div>
+          <div class="sci-body-rendered fim-table">${window.renderMarkdown(d.body || '')}</div>
+          ${ackHtml}
+          ${canManage ? `<div class="sci-card-actions">
+            <button class="btn ghost small" type="button" data-dir-edit="${esc(d.id)}">Modifier</button>
+            <button class="btn ghost small" type="button" data-dir-archive="${esc(d.id)}" data-v="${d.archived ? '0' : '1'}">${d.archived ? 'Désarchiver' : 'Archiver'}</button>
+            <button class="btn danger small" type="button" data-dir-del="${esc(d.id)}">Supprimer</button>
+          </div>` : ''}
+        </div>`;
+    };
+    const dirHtml = `
+      <div class="record-block" style="margin-top:24px;" id="fim-directives">
+        <div class="record-block-head"><h2>Directives et notes de service</h2>${canManage ? '<button class="btn small" type="button" id="fim-dir-new">+ Nouvelle directive</button>' : ''}</div>
+        ${subTabs([['lire', `À lire (${visible.filter(views.lire).length})`], ['vigueur', `En vigueur (${visible.filter(views.vigueur).length})`], ['archives', `Archives (${visible.filter(views.archives).length})`]], directionView, 'data-dv')}
+        ${shown.length ? shown.map(directiveCard).join('') : `<div class="empty-row">${directionView === 'lire' ? 'Tu es à jour : aucune directive à lire.' : 'Aucune directive.'}</div>`}
+      </div>`;
+
+    main.innerHTML = `${attention}${orgHtml}${chainHtml}${dirHtml}`;
+
+    main.querySelectorAll('[data-attn]').forEach((b) => b.addEventListener('click', () => {
+      const go = b.dataset.attn;
+      if (go === 'bataille' || go === 'effectifs') { unitsView = go; loadUnits(currentDeptId); }
+      else if (go === 'evals') goTab('fim-evals');
+      else if (go === 'debriefs') { opsFilter = 'debriefs'; goTab('fim-ops'); }
+      else document.getElementById(go === 'direction' ? 'fim-directives' : '')?.scrollIntoView({ behavior: 'smooth' });
+    }));
+    document.getElementById('fim-org-edit')?.addEventListener('click', () => { orgEditing = org.positions.map((p) => ({ ...p })); loadDirection(); });
+    document.getElementById('fim-dir-new')?.addEventListener('click', () => { directiveEditing = { isNew: true, kind: 'directive', priority: 'normale', audience: 'ALL', requireAck: true, pinned: false, title: '', body: '', announce: true }; loadDirection(); });
+    main.querySelectorAll('[data-dv]').forEach((b) => b.addEventListener('click', () => { directionView = b.dataset.dv; loadDirection(); }));
+    main.querySelectorAll('[data-ack-toggle]').forEach((b) => b.addEventListener('click', () => {
+      const id = b.dataset.ackToggle;
+      if (openAcks.has(id)) openAcks.delete(id); else openAcks.add(id);
+      loadDirection();
+    }));
+    const call = async (url, opts, msg) => {
+      try {
+        await window.apiFetch(url, opts);
+        if (msg) window.showToast(msg, 'success');
+        loadDirection();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    };
+    main.querySelectorAll('[data-ack]').forEach((b) => b.addEventListener('click', () => call(`/api/rp/fim/directives/${encodeURIComponent(b.dataset.ack)}/ack`, { method: 'POST' }, 'Lecture confirmée.')));
+    main.querySelectorAll('[data-dir-archive]').forEach((b) => b.addEventListener('click', () => call(`/api/rp/fim/directives/${encodeURIComponent(b.dataset.dirArchive)}`, { method: 'PATCH', body: JSON.stringify({ archived: b.dataset.v === '1' }) }, b.dataset.v === '1' ? 'Directive archivée.' : 'Directive remise en vigueur.')));
+    main.querySelectorAll('[data-dir-del]').forEach((b) => b.addEventListener('click', () => {
+      if (confirm('Supprimer définitivement cette directive et ses accusés de lecture ?')) call(`/api/rp/fim/directives/${encodeURIComponent(b.dataset.dirDel)}`, { method: 'DELETE' }, 'Directive supprimée.');
+    }));
+    main.querySelectorAll('[data-dir-edit]').forEach((b) => b.addEventListener('click', () => {
+      const d = directives.find((x) => x.id === b.dataset.dirEdit);
+      if (d) { directiveEditing = { ...d }; loadDirection(); }
+    }));
+  }
+
+  function renderOrgEditor(main, agents) {
+    const names = agents.map((a) => a.name || a.username).filter(Boolean).sort((a, b) => a.localeCompare(b, 'fr'));
+    const select = (id, value, empty) => `<select data-${id}>${`<option value="">${empty}</option>`}${names.map((n) => `<option value="${esc(n)}"${norm(n) === norm(value) ? ' selected' : ''}>${esc(withCallsign(n))}</option>`).join('')}${value && !names.some((n) => norm(n) === norm(value)) ? `<option selected value="${esc(value)}">${esc(value)}</option>` : ''}</select>`;
+    main.innerHTML = `
+      <div class="subsection" style="margin-top:0;">
+        <h3>Organigramme de la Direction</h3>
+        <div style="font-size:12px; color:var(--ink-faint); margin-bottom:14px;">Chaque poste a un niveau (Direction, Direction adjointe, État-major), un titulaire, un intérim facultatif et une description des responsabilités.</div>
+        <div id="fim-org-rows">${orgEditing.map((p, i) => `
+          <div class="fim-org-edit" data-row="${i}">
+            <div class="fim-org-edit-top">
+              <input data-title maxlength="60" placeholder="Intitulé du poste" value="${esc(p.title)}">
+              <select data-level>${[1, 2, 3].map((l) => `<option value="${l}"${(p.level || 3) === l ? ' selected' : ''}>${LEVEL_LABELS[l]}</option>`).join('')}</select>
+              <div class="fim-icon-btns">
+                <button type="button" data-up="${i}" ${i === 0 ? 'disabled' : ''}>↑</button>
+                <button type="button" data-down="${i}" ${i === orgEditing.length - 1 ? 'disabled' : ''}>↓</button>
+                <button type="button" data-del="${i}">×</button>
+              </div>
+            </div>
+            <div class="field-grid" style="margin-top:8px;">
+              <div class="field-row" style="margin:0;"><label>Titulaire</label>${select('holder', p.holder, '— Poste vacant —')}</div>
+              <div class="field-row" style="margin:0;"><label>Intérim</label>${select('interim', p.interim, '— Aucun —')}</div>
+            </div>
+            <textarea data-desc rows="2" maxlength="400" placeholder="Responsabilités du poste" style="margin-top:8px;">${esc(p.description || '')}</textarea>
+          </div>`).join('')}</div>
+        <button class="btn ghost small" type="button" id="fim-org-add" style="margin:4px 0 16px;">+ Ajouter un poste</button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" type="button" id="fim-org-save">Enregistrer l'organigramme</button>
+          <button class="btn ghost" type="button" id="fim-org-cancel">Annuler</button>
+        </div>
+      </div>`;
+    const read = () => {
+      orgEditing = [...document.querySelectorAll('#fim-org-rows [data-row]')].map((row, i) => ({
+        ...orgEditing[i],
+        title: row.querySelector('[data-title]').value,
+        level: +row.querySelector('[data-level]').value,
+        holder: row.querySelector('[data-holder]').value,
+        interim: row.querySelector('[data-interim]').value,
+        description: row.querySelector('[data-desc]').value,
+      }));
+    };
+    const redraw = () => renderOrgEditor(main, agents);
+    main.querySelectorAll('[data-up]').forEach((b) => b.addEventListener('click', () => { read(); const i = +b.dataset.up; [orgEditing[i - 1], orgEditing[i]] = [orgEditing[i], orgEditing[i - 1]]; redraw(); }));
+    main.querySelectorAll('[data-down]').forEach((b) => b.addEventListener('click', () => { read(); const i = +b.dataset.down; [orgEditing[i + 1], orgEditing[i]] = [orgEditing[i], orgEditing[i + 1]]; redraw(); }));
+    main.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () => { read(); orgEditing.splice(+b.dataset.del, 1); redraw(); }));
+    document.getElementById('fim-org-add').addEventListener('click', () => { read(); orgEditing.push({ title: '', level: 3, holder: '', interim: '', description: '' }); redraw(); });
+    document.getElementById('fim-org-cancel').addEventListener('click', () => { orgEditing = null; loadDirection(); });
+    document.getElementById('fim-org-save').addEventListener('click', async () => {
+      read();
+      try {
+        await window.apiFetch('/api/rp/fim/direction', { method: 'PUT', body: JSON.stringify({ positions: orgEditing.filter((p) => p.title.trim()) }) });
+        window.showToast('Organigramme enregistré.', 'success');
+        orgEditing = null;
+        loadDirection();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  function renderDirectiveForm(main) {
+    const d = directiveEditing;
+    main.innerHTML = `
+      <div class="subsection" style="margin-top:0;">
+        <h3>${d.isNew ? 'Nouvelle directive' : 'Modifier la directive'}</h3>
+        <form id="fim-dir-form">
+          <div class="field-row"><label>Titre *</label><input id="dir-title" maxlength="120" required value="${esc(d.title)}"></div>
+          <div class="field-grid">
+            <div class="field-row"><label>Type</label><select id="dir-kind">${Object.entries(DIRECTIVE_KIND_META).map(([k, m]) => `<option value="${k}"${d.kind === k ? ' selected' : ''}>${m.label}</option>`).join('')}</select></div>
+            <div class="field-row"><label>Priorité</label><select id="dir-priority">${Object.entries(DIRECTIVE_PRIORITY_META).map(([k, m]) => `<option value="${k}"${d.priority === k ? ' selected' : ''}>${m.label}</option>`).join('')}</select></div>
+            <div class="field-row"><label>Destinataires</label><select id="dir-audience"><option value="ALL">Toutes les FIM</option>${UNITS.map((u) => `<option value="${u.id}"${d.audience === u.id ? ' selected' : ''}>FIM ${esc(u.name)}</option>`).join('')}</select></div>
+            <div class="field-row"><label>En vigueur jusqu'au</label><input id="dir-expires" type="date" value="${d.expiresAt ? new Date(d.expiresAt).toISOString().slice(0, 10) : ''}"></div>
+          </div>
+          <div class="field-row"><label>Contenu (Markdown) *</label><textarea id="dir-body" rows="12" maxlength="8000" required placeholder="Objet, consignes, entrée en vigueur…">${esc(d.body)}</textarea></div>
+          <label class="fim-check"><input type="checkbox" id="dir-ack"${d.requireAck !== false ? ' checked' : ''}> Demander un accusé de lecture aux destinataires</label>
+          <label class="fim-check"><input type="checkbox" id="dir-pin"${d.pinned ? ' checked' : ''}> Épingler en tête de liste</label>
+          ${d.isNew ? '<label class="fim-check"><input type="checkbox" id="dir-announce" checked> Annoncer sur Discord (si le salon est configuré)</label>' : ''}
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <button class="btn" type="submit">${d.isNew ? 'Publier' : 'Enregistrer'}</button>
+            <button class="btn ghost" type="button" id="dir-cancel">Annuler</button>
+          </div>
+        </form>
+      </div>`;
+    document.getElementById('dir-cancel').addEventListener('click', () => { directiveEditing = null; loadDirection(); });
+    document.getElementById('fim-dir-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = (id) => document.getElementById(id).value;
+      const exp = v('dir-expires');
+      const payload = {
+        title: v('dir-title').trim(), kind: v('dir-kind'), priority: v('dir-priority'), audience: v('dir-audience'), body: v('dir-body'),
+        expiresAt: exp ? new Date(`${exp}T23:59:59`).getTime() : null,
+        requireAck: document.getElementById('dir-ack').checked, pinned: document.getElementById('dir-pin').checked,
+        announce: document.getElementById('dir-announce')?.checked !== false,
+      };
+      if (!payload.title || !payload.body.trim()) { window.showToast('Titre et contenu obligatoires.', 'error'); return; }
+      try {
+        if (d.isNew) await window.apiFetch('/api/rp/fim/directives', { method: 'POST', body: JSON.stringify(payload) });
+        else await window.apiFetch(`/api/rp/fim/directives/${encodeURIComponent(d.id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
+        window.showToast(d.isNew ? 'Directive publiée.' : 'Directive modifiée.', 'success');
+        directiveEditing = null;
+        directionView = 'vigueur';
+        loadDirection();
       } catch (err) {
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
