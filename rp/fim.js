@@ -228,7 +228,8 @@ Sigma-9, les « Valkyries », est une **petite unité aérienne** de la Fondatio
 Elle n'agit presque jamais seule : on l'appelle quand une opération a besoin de **voir de haut**, de **couvrir** une équipe ou de **poursuivre** une cible qui échappe au sol.
 
 ## Au Site-15
-- Le Site ne disposant pas d'appareils en permanence, Sigma-9 opère depuis la **surface, les toits et les points hauts** : c'est l'**œil au-dessus** des autres FIM.
+- Fournit les **pilotes et équipages** des appareils FIM : transport de troupes, largage, appui aérien.
+- Au sol, opère depuis la **surface, les toits et les points hauts** : c'est l'**œil au-dessus** des autres FIM.
 - **Surveillance** des abords, de la **Gate A** et des accès extérieurs pendant les alertes ; guidage des équipes au sol par radio.
 - **Couverture** des évacuations, des convois et des transferts par la surface.
 - Déploiement prioritaire lorsqu'une **anomalie volante** ou une entité s'échappe **à l'extérieur** du Site.
