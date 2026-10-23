@@ -216,6 +216,16 @@ Xi-8 est un bataillon affilié aux FIM, dédié à **l'acquisition et/ou la dest
 > « La chair ne passera pas. »
 `,
     },
+    {
+      id: 'SIGMA-9', letter: 'Σ', name: 'Sigma-9', nick: '', color: '#38C6D9',
+      callsign: 'SIGMA', motto: '', match: ['SIGMA-9', 'SIGMA', 'S-9'],
+      role: "Unité FIM du Site-15.",
+      facts: { Autorité: 'Commandement FIM', Indicatif: 'SIGMA' },
+      body: `
+## Mission
+Fiche de l'unité à compléter par le Commandement FIM.
+`,
+    },
   ];
 
   // Fiches de reconfinement — adaptées au comportement réel des SCP du jeu.
@@ -503,7 +513,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     partiel: { label: 'Succès partiel', color: '#F0A83C' },
     echec: { label: 'Échec', color: '#F0525A' },
   };
-  const UNIT_OPTIONS = ['EPSILON-11', 'NU-7', 'BETA-7', 'ALPHA-1', 'XI-8', 'INTER-UNITÉS'];
+  const UNIT_OPTIONS = ['EPSILON-11', 'NU-7', 'BETA-7', 'ALPHA-1', 'XI-8', 'SIGMA-9', 'INTER-UNITÉS'];
 
   // ---------------------------------------------------------------
   // Outils
@@ -537,7 +547,19 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   function credit() {
     return `<div class="fim-credit">Contenu d'univers inspiré de la <a href="https://scp-wiki.wikidot.com/" target="_blank" rel="noopener">Fondation SCP</a> (CC BY-SA 3.0), adapté au Site-15.</div>`;
   }
+  // Membres des rôles Discord d'unité, par pseudo Roblox : le rôle fait foi
+  // pour l'unité et donne l'ID Discord d'un agent du roster.
+  let roleMembers = new Map();
+  async function loadRoleMembers() {
+    try {
+      const r = await window.apiFetch('/api/rp/fim/unit-members');
+      roleMembers = new Map((r.members || []).filter((m) => m.robloxUsername).map((m) => [norm(m.robloxUsername), m]));
+    } catch (err) { /* garde la dernière liste */ }
+  }
+  const roleMemberOf = (agent) => roleMembers.get(norm(agent.robloxUsername || agent.username)) || null;
   function unitFromAgent(agent) {
+    const fromRole = roleMemberOf(agent);
+    if (fromRole) return fromRole.unit;
     const hay = `${agent.division || ''} ${agent.rank || ''}`.toUpperCase();
     const unit = UNITS.find((u) => u.match.some((m) => hay.includes(m)));
     return unit ? unit.id : null;
@@ -653,7 +675,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     main.innerHTML = '<div class="center-msg">Chargement…</div>';
     let agents = [];
     try {
-      const data = await window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`);
+      const [data] = await Promise.all([window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`), loadRoleMembers()]);
       agents = (data.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
     } catch (err) {
       agents = [];
@@ -686,7 +708,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         <div class="fim-dossier" style="--u:${u.color}">
           <div class="fim-dossier-head" style="color:${u.color}">
             ${crest(u.letter)}
-            <div style="color:var(--ink)"><h3>FIM ${esc(u.name)} <span style="color:${u.color}">${esc(u.nick)}</span></h3><div class="fim-motto">« ${esc(u.motto)} »</div></div>
+            <div style="color:var(--ink)"><h3>FIM ${esc(u.name)} <span style="color:${u.color}">${esc(u.nick)}</span></h3>${u.motto ? `<div class="fim-motto">« ${esc(u.motto)} »</div>` : ''}</div>
           </div>
           <div class="fim-facts">${Object.entries(u.facts).map(([k, v]) => `<div class="fim-fact"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join('')}</div>
           <div class="sci-body-rendered">${window.renderMarkdown(u.body)}</div>
@@ -1390,6 +1412,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
         window.apiFetch('/api/rp/fim/evaluations'),
         window.apiFetch('/api/rp/fim/eval-grids').catch(() => ({ grids: [] })),
         window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`).catch(() => null),
+        loadRoleMembers(),
       ]);
       data = d;
       grids = g.grids || [];
@@ -1460,23 +1483,29 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *Situat
     const people = new Map();
     agents.forEach((a) => {
       const name = a.name || a.username;
-      if (name) people.set(norm(name), { name, unit: unitFromAgent(a), evals: [], tags: ['FIM'] });
+      const member = roleMemberOf(a);
+      if (name) people.set(norm(name), { name, unit: unitFromAgent(a), evals: [], tags: ['FIM'], username: a.username, discordId: member?.discordId, discordName: member?.discordName });
     });
+    const keyByUsername = new Map([...people.entries()].filter(([, p]) => p.username).map(([k, p]) => [norm(p.username), k]));
     // Membres des rôles Discord évaluables (ex : ERI), qu'ils soient FIM ou non.
     (extra.people || []).forEach((x) => {
-      const key = norm(x.name);
+      const key = (x.robloxUsername && keyByUsername.get(norm(x.robloxUsername))) || norm(x.name);
       if (!key) return;
       const existing = people.get(key);
       if (existing) {
         existing.tags = [...new Set([...existing.tags, ...x.roles])];
         existing.discordId = x.discordId;
         existing.discordName = existing.discordName || x.discordName;
-      } else people.set(key, { name: x.name, unit: x.deptId === 'fim_mmqbs55q2vge' ? unitFromAgent(x) : null, evals: [], tags: x.roles, discordName: x.discordName, discordId: x.discordId });
+        existing.unit = x.unit || existing.unit;
+      } else people.set(key, { name: x.name, unit: x.unit || (x.deptId === 'fim_mmqbs55q2vge' ? unitFromAgent(x) : null), evals: [], tags: x.roles, discordName: x.discordName, discordId: x.discordId });
     });
-    // Une évaluation suit la personne par son ID Discord si connu (le nom RP peut changer).
+    // Une évaluation suit la personne par son ID Discord si connu (le nom RP
+    // peut changer), sinon par nom RP ou pseudo Discord.
     const keyByDiscord = new Map([...people.entries()].filter(([, p]) => p.discordId).map(([k, p]) => [p.discordId, k]));
+    const keyByDiscordName = new Map([...people.entries()].filter(([, p]) => p.discordName).map(([k, p]) => [norm(p.discordName), k]));
     evaluations.forEach((e) => {
-      const key = (e.agentDiscordId && keyByDiscord.get(e.agentDiscordId)) || norm(e.agentName);
+      const key = (e.agentDiscordId && keyByDiscord.get(e.agentDiscordId))
+        || (people.has(norm(e.agentName)) ? norm(e.agentName) : keyByDiscordName.get(norm(e.agentName)) || norm(e.agentName));
       if (!people.has(key)) people.set(key, { name: e.agentName, unit: e.unit !== 'INTER-UNITÉS' ? e.unit : null, evals: [], tags: [], former: true });
       people.get(key).evals.push(e);
     });
