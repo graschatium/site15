@@ -217,13 +217,38 @@ Xi-8 est un bataillon affilié aux FIM, dédié à **l'acquisition et/ou la dest
 `,
     },
     {
-      id: 'SIGMA-9', letter: 'Σ', name: 'Sigma-9', nick: '', color: '#38C6D9',
-      callsign: 'SIGMA', motto: '', match: ['SIGMA-9', 'SIGMA', 'S-9'],
-      role: "Unité FIM du Site-15.",
-      facts: { Autorité: 'Commandement FIM', Indicatif: 'SIGMA' },
+      id: 'SIGMA-9', letter: 'Σ', name: 'Sigma-9', nick: '« Valkyries »', color: '#38C6D9',
+      callsign: 'VALKYRIE', motto: 'NOUS TOMBONS DU CIEL', match: ['SIGMA-9', 'SIGMA', 'S-9', 'VALKYRIE'],
+      role: "Petite unité aérienne : appui des opérations au sol et lutte contre les anomalies volantes.",
+      facts: { Autorité: 'Commandement FIM', Spécialité: 'Appui aérien, observation, anomalies volantes', Effectif: 'Petite unité', Accréditation: 'Niveau 4', Indicatif: 'VALKYRIE', Déploiement: "Sur demande d'appui ou menace aérienne" },
       body: `
 ## Mission
-Fiche de l'unité à compléter par le Commandement FIM.
+Sigma-9, les « Valkyries », est une **petite unité aérienne** de la Fondation. Elle apporte un **appui aérien aux opérations au sol** et combat les **anomalies volantes** que les autres unités ne peuvent pas atteindre.
+
+Elle n'agit presque jamais seule : on l'appelle quand une opération a besoin de **voir de haut**, de **couvrir** une équipe ou de **poursuivre** une cible qui échappe au sol.
+
+## Au Site-15
+- Le Site ne disposant pas d'appareils en permanence, Sigma-9 opère depuis la **surface, les toits et les points hauts** : c'est l'**œil au-dessus** des autres FIM.
+- **Surveillance** des abords, de la **Gate A** et des accès extérieurs pendant les alertes ; guidage des équipes au sol par radio.
+- **Couverture** des évacuations, des convois et des transferts par la surface.
+- Déploiement prioritaire lorsqu'une **anomalie volante** ou une entité s'échappe **à l'extérieur** du Site.
+- Appui des autres unités : repère les cibles pour Nu-7, ouvre la voie à Epsilon-11, surveille les zones d'exclusion de Bêta-7.
+
+## Spécialités
+- Observation, repérage et guidage (radio, marquage des positions).
+- Tir de précision et tir d'appui à longue distance.
+- Intervention rapide par le haut : arrivée et extraction par les toits et les accès de surface.
+- Lutte contre les cibles aériennes et les entités qui se déplacent hors de portée du sol.
+
+## Règles propres
+- Une Valkyrie **ne descend pas** au contact sans ordre : sa place est au-dessus, pas dans le couloir.
+- Toute position d'observation est annoncée sur le canal FIM, jamais sur les canaux publics.
+- Pas de tir d'appui au-dessus d'une équipe amie sans **confirmation radio** du chef d'équipe.
+
+## Dossiers connus
+Unité citée dans le confinement de plusieurs anomalies aériennes ou en altitude, dont **SCP-526**, **SCP-1262** et **SCP-2069**.
+
+> « Quand vous entendez les Valkyries, c'est qu'on vous a déjà vus. »
 `,
     },
   ];
