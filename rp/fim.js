@@ -1898,6 +1898,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   let opsFilter = 'actives';
   let opsSearch = '';
   let editingOp = null;
+  let copyOp = null;
   const openJournals = new Set();
   const JOURNAL_META = {
     info: { label: 'Info', color: '#9297A8' },
@@ -1959,7 +1960,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       <div id="fim-ops-body"></div>
     `;
     root.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => {
-      if (b.dataset.f !== 'nouvelle') editingOp = null;
+      if (b.dataset.f !== 'nouvelle') { editingOp = null; copyOp = null; }
       opsFilter = b.dataset.f;
       loadOperations();
     }));
@@ -1975,7 +1976,9 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     );
     if (opsFilter === 'nouvelle') {
       const op = editingOp ? ops.find((o) => o.id === editingOp) : null;
-      body.innerHTML = opForm(op, agents);
+      const tpl = !op && copyOp ? ops.find((o) => o.id === copyOp) : null;
+      copyOp = null;
+      body.innerHTML = opForm(op, agents, tpl);
       bindOpForm(op, agents);
       return;
     }
@@ -1992,7 +1995,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       document.getElementById('fim-ops-list').innerHTML = list.length
         ? list.map((o) => opCard(o, ctx)).join('')
         : `<div class="empty-row">${opsFilter === 'miennes' ? 'Tu n’es affecté à aucune opération.' : 'Aucune opération dans cette liste.'}</div>`;
-      bindOpCards(document.getElementById('fim-ops-list'));
+      bindOpCards(document.getElementById('fim-ops-list'), ops);
     };
     body.innerHTML = `
       <input type="text" id="fim-ops-search" class="fim-search" placeholder="Rechercher : nom de code, unité, chef, zone, cible, opérateur…" value="${esc(opsSearch)}">
@@ -2033,7 +2036,50 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       ${!live.length && !planned.length ? '<div class="empty-row">Aucune opération planifiée.</div>' : ''}`;
   }
 
-  function bindOpCards(box) {
+  // Ordre de mission au format papier (nouvelle fenêtre + impression).
+  function printOrder(o) {
+    const w = window.open('', '_blank');
+    if (!w) { window.showToast('Autorise les fenêtres surgissantes pour imprimer.', 'error'); return; }
+    const row = (k, v) => (v ? `<tr><th>${k}</th><td>${esc(v)}</td></tr>` : '');
+    const team = (o.team || []).map((m) => `<li>${esc(withCallsign(m.name))}${m.role ? ` — <i>${esc(m.role)}</i>` : ''}</li>`).join('');
+    w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Ordre ${esc(o.codeName)}</title>
+      <style>
+        body{font-family:Georgia,serif;color:#111;max-width:760px;margin:32px auto;padding:0 24px;line-height:1.5}
+        .head{display:flex;justify-content:space-between;border-bottom:3px double #111;padding-bottom:10px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.08em}
+        h1{font-size:26px;letter-spacing:.06em;margin:22px 0 4px}
+        .cls{display:inline-block;border:2px solid #a00;color:#a00;font-family:'Courier New',monospace;font-weight:bold;padding:2px 10px;letter-spacing:.15em;font-size:12px}
+        table{border-collapse:collapse;width:100%;margin:18px 0}
+        th{text-align:left;width:190px;font-family:'Courier New',monospace;font-size:12px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid #ccc;vertical-align:top}
+        td{padding:6px 8px;border-bottom:1px solid #ccc}
+        h2{font-family:'Courier New',monospace;font-size:13px;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid #111;margin-top:26px}
+        .obj{white-space:pre-wrap}
+        .sign{margin-top:48px;display:flex;justify-content:space-between;font-size:13px}
+        .sign div{border-top:1px solid #111;padding-top:6px;width:42%}
+      </style></head><body>
+      <div class="head"><span>FONDATION SCP · SITE-15 · FORCES D'INTERVENTION MOBILES</span><span>${esc(fmtDate(o.createdAt))}</span></div>
+      <h1>ORDRE DE MISSION — OPÉRATION ${esc(o.codeName)}</h1>
+      <span class="cls">CONFIDENTIEL · ${esc((PRIORITY_META[o.priority] || PRIORITY_META.routine).label.toUpperCase())}</span>
+      <table>
+        ${row('Unité', unitLabel(o.unit))}
+        ${row('Statut', STATUS_META[o.status]?.label || o.status)}
+        ${row("Chef d'opération", o.leader ? withCallsign(o.leader) : '')}
+        ${row('Heure prévue', o.scheduledAt ? fmtDate(o.scheduledAt) : '')}
+        ${row('Point de ralliement', o.rallyPoint)}
+        ${row('Zone', o.zone)}
+        ${row('Cible / entité', o.target)}
+        ${row("Règles d'engagement", o.roe)}
+      </table>
+      <h2>Objectif et déroulé</h2>
+      <div class="obj">${esc(o.objective)}</div>
+      ${team ? `<h2>Équipe (${(o.team || []).length})</h2><ul>${team}</ul>` : o.assigned ? `<h2>Affectés</h2><p>${esc(o.assigned)}</p>` : ''}
+      <div class="sign"><div>Émis par ${esc(o.authorCharacterName)}</div><div>Visa du chef d'opération</div></div>
+      <script>window.onload = () => window.print();<\/script>
+      </body></html>`);
+    w.document.close();
+  }
+
+  function bindOpCards(box, ops) {
+    box._ops = ops || box._ops || [];
     box.querySelectorAll('[data-op-status]').forEach((b) => b.addEventListener('click', async () => {
       const next = b.dataset.opStatus;
       const note = next === 'annulee' || next === 'terminee' ? prompt('Note (facultative) :') || '' : '';
@@ -2059,6 +2105,16 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       editingOp = b.dataset.id;
       opsFilter = 'nouvelle';
       loadOperations();
+    }));
+    box.querySelectorAll('[data-op-copy]').forEach((b) => b.addEventListener('click', () => {
+      editingOp = null;
+      copyOp = b.dataset.id;
+      opsFilter = 'nouvelle';
+      loadOperations();
+    }));
+    box.querySelectorAll('[data-op-print]').forEach((b) => b.addEventListener('click', () => {
+      const o = (box._ops || []).find((x) => x.id === b.dataset.id);
+      if (o) printOrder(o);
     }));
     box.querySelectorAll('[data-op-debrief]').forEach((b) => b.addEventListener('click', () => {
       pendingDebriefOp = b.dataset.id;
@@ -2153,6 +2209,8 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     }
     if (o.status === 'terminee' && debrief) actions.push(`<button class="btn ghost small" data-op-see-debrief data-id="${esc(debrief.id)}">Voir le débriefing</button>`);
     else if (o.status === 'terminee') actions.push(`<button class="btn small" data-op-debrief data-id="${esc(o.id)}">Rédiger le débriefing</button>`);
+    actions.push(`<button class="btn ghost small" data-op-print data-id="${esc(o.id)}">Imprimer</button>`);
+    if (ctx.canCommand) actions.push(`<button class="btn ghost small" data-op-copy data-id="${esc(o.id)}">Dupliquer</button>`);
     if (ctx.canCommand) actions.push(`<button class="btn danger small" data-op-delete data-id="${esc(o.id)}">Supprimer</button>`);
     const team = o.team || [];
     return `
@@ -2191,13 +2249,15 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const p = (n) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
   }
-  function opForm(op, agents) {
+  // tpl : ordre recopié (Dupliquer) — mêmes champs, mais création d'un nouvel ordre.
+  function opForm(editOp, agents, tpl) {
+    const op = editOp || (tpl ? { ...tpl, codeName: `${tpl.codeName} II`.slice(0, 60), scheduledAt: null } : null);
     formTeam = op ? (op.team || []).map((m) => ({ ...m })) : [];
     const names = agents.map((a) => a.name || a.username).filter(Boolean).sort((a, b) => a.localeCompare(b, 'fr'));
     const roes = ['RDE-0 Observation', 'RDE-1 Riposte', 'RDE-2 Neutralisation', 'RDE-3 Feu libre', 'RDE-Ω Omega'];
     return `
       <div class="subsection" style="margin-top:0;">
-        <h3>${op ? `Modifier l'ordre ${esc(op.codeName)}` : 'Émettre un ordre de mission'}</h3>
+        <h3>${editOp ? `Modifier l'ordre ${esc(editOp.codeName)}` : tpl ? `Nouvel ordre d'après ${esc(tpl.codeName)}` : 'Émettre un ordre de mission'}</h3>
         <form id="fim-op-form">
           <div class="fim-editor-section">Mission</div>
           <div class="field-grid">
@@ -2225,7 +2285,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
           </div>
           <div id="op-team"></div>
           <div style="display:flex; gap:10px; margin-top:16px;">
-            <button class="btn" type="submit">${op ? 'Enregistrer les modifications' : 'Émettre l’ordre'}</button>
+            <button class="btn" type="submit">${editOp ? 'Enregistrer les modifications' : 'Émettre l’ordre'}</button>
             ${op ? '<button class="btn ghost" type="button" id="op-cancel">Annuler</button>' : ''}
           </div>
         </form>
@@ -2297,6 +2357,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   // Débriefings (vue de l'onglet Opérations)
   // ---------------------------------------------------------------
   let pendingDebriefOp = null;
+  let editingDebrief = null;
   let focusDebrief = null;
   let debriefSearch = '';
   function renderDebriefs(body, debriefs, ops) {
@@ -2305,8 +2366,12 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       [[String(debriefs.length), 'Débriefings'], [debriefs.length ? `${Math.round((success / debriefs.length) * 100)}%` : '—', 'Succès']],
       debriefs.slice(0, 5).map((d) => [new Date(d.createdAt).toLocaleDateString('fr-FR'), d.title])
     );
-    const preOp = ops.find((o) => o.id === pendingDebriefOp);
+    const ed = editingDebrief ? debriefs.find((d) => d.id === editingDebrief) : null;
+    editingDebrief = null;
+    const preOp = ed ? null : ops.find((o) => o.id === pendingDebriefOp);
     pendingDebriefOp = null;
+    const formOpen = !!(preOp || ed);
+    const val = (k) => (ed ? esc(ed[k] || '') : '');
     const opName = (id) => ops.find((o) => o.id === id)?.codeName;
     const debriefed = new Set(debriefs.map((d) => d.operationId).filter(Boolean));
     const todo = ops.filter((o) => o.status === 'terminee' && !debriefed.has(o.id));
@@ -2318,24 +2383,25 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       </div>` : ''}
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">
         <input type="text" id="fim-db-search" class="fim-search" style="flex:1; margin:0;" placeholder="Rechercher : titre, unité, entité, participant…" value="${esc(debriefSearch)}">
-        <button class="btn small" type="button" id="fim-db-toggle">${preOp ? 'Fermer le formulaire' : '+ Rédiger un débriefing'}</button>
+        <button class="btn small" type="button" id="fim-db-toggle">${formOpen ? 'Fermer le formulaire' : '+ Rédiger un débriefing'}</button>
       </div>
-      <div class="subsection" id="fim-db-formbox" style="margin:0 0 24px;${preOp ? '' : ' display:none;'}">
-        <h3>${preOp ? `Débriefing de l'opération ${esc(preOp.codeName)}` : 'Rédiger un débriefing'}</h3>
+      <div class="subsection" id="fim-db-formbox" style="margin:0 0 24px;${formOpen ? '' : ' display:none;'}">
+        <h3>${ed ? `Modifier le débriefing « ${esc(ed.title)} »` : preOp ? `Débriefing de l'opération ${esc(preOp.codeName)}` : 'Rédiger un débriefing'}</h3>
         <form id="fim-db-form">
           <div class="field-grid">
-            <div class="field-row"><label>Titre *</label><input id="db-title" maxlength="120" required value="${preOp ? `Opération ${esc(preOp.codeName)}` : ''}"></div>
-            <div class="field-row"><label>Opération liée</label><select id="db-op"><option value="">— Aucune —</option>${ops.map((o) => `<option value="${esc(o.id)}"${preOp && preOp.id === o.id ? ' selected' : ''}>${esc(o.codeName)} (${esc(STATUS_META[o.status]?.label || o.status)})</option>`).join('')}</select></div>
-            <div class="field-row"><label>Unité</label><select id="db-unit">${UNIT_OPTIONS.map((u) => `<option value="${u}"${preOp && preOp.unit === u ? ' selected' : ''}>${esc(unitLabel(u))}</option>`).join('')}</select></div>
-            <div class="field-row"><label>Résultat</label><select id="db-outcome">${Object.entries(OUTCOME_META).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}</select></div>
-            <div class="field-row"><label>Entité / adversaire</label><input id="db-scp" maxlength="60" list="fim-scp-list2" value="${preOp ? esc(preOp.target || '') : ''}"></div>
-            <div class="field-row"><label>Pertes et blessés</label><input id="db-losses" maxlength="200" placeholder="Ex : 1 blessé léger, aucun mort"></div>
+            <div class="field-row"><label>Titre *</label><input id="db-title" maxlength="120" required value="${ed ? val('title') : preOp ? `Opération ${esc(preOp.codeName)}` : ''}"></div>
+            <div class="field-row"><label>Opération liée</label><select id="db-op"><option value="">— Aucune —</option>${ops.map((o) => `<option value="${esc(o.id)}"${(preOp && preOp.id === o.id) || (ed && ed.operationId === o.id) ? ' selected' : ''}>${esc(o.codeName)} (${esc(STATUS_META[o.status]?.label || o.status)})</option>`).join('')}</select></div>
+            <div class="field-row"><label>Unité</label><select id="db-unit">${UNIT_OPTIONS.map((u) => `<option value="${u}"${(preOp && preOp.unit === u) || (ed && ed.unit === u) ? ' selected' : ''}>${esc(unitLabel(u))}</option>`).join('')}</select></div>
+            <div class="field-row"><label>Résultat</label><select id="db-outcome">${Object.entries(OUTCOME_META).map(([k, m]) => `<option value="${k}"${ed && ed.outcome === k ? ' selected' : ''}>${m.label}</option>`).join('')}</select></div>
+            <div class="field-row"><label>Entité / adversaire</label><input id="db-scp" maxlength="60" list="fim-scp-list2" value="${ed ? val('scp') : preOp ? esc(preOp.target || '') : ''}"></div>
+            <div class="field-row"><label>Pertes et blessés</label><input id="db-losses" maxlength="200" placeholder="Ex : 1 blessé léger, aucun mort" value="${val('losses')}"></div>
           </div>
           <datalist id="fim-scp-list2">${SCPS.map((s) => `<option value="${s.id}">`).join('')}<option value="Insurrection du Chaos"></datalist>
-          <div class="field-row"><label>Participants${preOp && presenceList(preOp).length ? ' (pré-rempli : présents en jeu)' : ''}</label><textarea id="db-participants" rows="2" maxlength="1000" placeholder="Ex : RENARD-1 (chef), RENARD-2…">${preOp ? esc(presenceText(preOp)) : ''}</textarea></div>
-          <div class="field-row"><label>Déroulé *</label><textarea id="db-summary" rows="6" maxlength="6000" required></textarea></div>
-          <div class="field-row"><label>Leçons et recommandations</label><textarea id="db-lessons" rows="3" maxlength="3000"></textarea></div>
-          <button class="btn" type="submit">Enregistrer le débriefing</button>
+          <div class="field-row"><label>Participants${preOp && presenceList(preOp).length ? ' (pré-rempli : présents en jeu)' : ''}</label><textarea id="db-participants" rows="2" maxlength="1000" placeholder="Ex : RENARD-1 (chef), RENARD-2…">${ed ? val('participants') : preOp ? esc(presenceText(preOp)) : ''}</textarea></div>
+          <div class="field-row"><label>Déroulé *</label><textarea id="db-summary" rows="6" maxlength="6000" required>${val('summary')}</textarea></div>
+          <div class="field-row"><label>Leçons et recommandations</label><textarea id="db-lessons" rows="3" maxlength="3000">${val('lessons')}</textarea></div>
+          <button class="btn" type="submit">${ed ? 'Enregistrer les modifications' : 'Enregistrer le débriefing'}</button>
+          ${ed ? '<button class="btn ghost" type="button" id="db-cancel-edit">Annuler</button>' : ''}
         </form>
       </div>
       <div id="fim-db-list"></div>
@@ -2357,9 +2423,31 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
           </div>
           <div class="fim-op-body">${esc(d.summary)}</div>
           ${d.lessons ? `<div class="fim-op-log" style="color:var(--ink-dim); font-family:'Inter', sans-serif; font-size:12.5px;"><b style="font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--accent-2); letter-spacing:.08em;">LEÇONS</b><br>${esc(d.lessons)}</div>` : ''}
+          ${d.updatedBy ? `<div class="fim-op-meta"><span>Modifié par ${esc(d.updatedBy)} · ${fmtDate(d.updatedAt)}</span></div>` : ''}
+          ${d.canEdit ? `<div class="sci-card-actions"><button class="btn ghost small" type="button" data-db-edit="${esc(d.id)}">Modifier</button><button class="btn danger small" type="button" data-db-del="${esc(d.id)}">Supprimer</button></div>` : ''}
         </div>`).join('') : '<div class="empty-row">Aucun débriefing.</div>';
     };
     renderList();
+    document.getElementById('fim-db-list').addEventListener('click', async (e) => {
+      const edit = e.target.closest('[data-db-edit]');
+      const del = e.target.closest('[data-db-del]');
+      if (edit) {
+        editingDebrief = edit.dataset.dbEdit;
+        renderDebriefs(body, debriefs, ops);
+        document.getElementById('fim-db-formbox')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (del) {
+        if (!confirm('Supprimer définitivement ce débriefing ?')) return;
+        try {
+          await window.apiFetch(`/api/rp/fim/debriefs/${encodeURIComponent(del.dataset.dbDel)}`, { method: 'DELETE' });
+          window.showToast('Débriefing supprimé.', 'success');
+          opsFilter = 'debriefs';
+          loadOperations();
+        } catch (err) {
+          window.showToast(`Erreur : ${err.message}`, 'error');
+        }
+      }
+    });
+    document.getElementById('db-cancel-edit')?.addEventListener('click', () => renderDebriefs(body, debriefs, ops));
     if (focusDebrief) {
       document.querySelector(`[data-debrief-id="${CSS.escape(focusDebrief)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       focusDebrief = null;
@@ -2390,8 +2478,9 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       const payload = { title: v('db-title'), operationId: v('db-op'), unit: v('db-unit'), outcome: v('db-outcome'), scp: v('db-scp'), losses: v('db-losses'), participants: v('db-participants'), summary: v('db-summary'), lessons: v('db-lessons') };
       if (!payload.title || !payload.summary) { window.showToast('Titre et déroulé obligatoires.', 'error'); return; }
       try {
-        await window.apiFetch('/api/rp/fim/debriefs', { method: 'POST', body: JSON.stringify(payload) });
-        window.showToast('Débriefing enregistré.', 'success');
+        if (ed) await window.apiFetch(`/api/rp/fim/debriefs/${encodeURIComponent(ed.id)}`, { method: 'PATCH', body: JSON.stringify(payload) });
+        else await window.apiFetch('/api/rp/fim/debriefs', { method: 'POST', body: JSON.stringify(payload) });
+        window.showToast(ed ? 'Débriefing modifié.' : 'Débriefing enregistré.', 'success');
         opsFilter = 'debriefs';
         loadOperations();
       } catch (err) {
