@@ -140,6 +140,12 @@
   .fim-staff .em{ display:inline-flex; width:22px; height:22px; border-radius:50%; align-items:center; justify-content:center; margin-right:3px; color:#E6B43C; border:1px solid rgba(230,180,60,.45); }
   .fim-staff .em svg{ width:13px; height:13px; }
   .fim-staff tr.clickable{ cursor:pointer; }
+  .fim-editor-row.fim-fact-row{ grid-template-columns:1fr 1.6fr auto; }
+  .fim-unit-cmd{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); }
+  .fim-unit-cmd b{ color:var(--ink-dim); font-weight:500; }
+  .fim-gauge{ flex:1; height:5px; background:var(--void-2); border-radius:3px; overflow:hidden; margin-right:8px; max-width:120px; }
+  .fim-gauge i{ display:block; height:100%; background:var(--u); }
+  .fim-unit-foot{ gap:6px; }
   .fim-staff tr.clickable:hover td{ background:var(--panel-raised); }
   .fim-staff tr.sel td{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
   .fim-note{ border-left:2px solid var(--c); background:var(--void-2); border-radius:2px; padding:9px 12px; margin-bottom:8px; }
@@ -323,6 +329,52 @@ Unité citée dans le confinement de plusieurs anomalies aériennes ou en altitu
 `,
     },
   ];
+
+  // Fiches d'origine. Le commandement peut les redéfinir ou ajouter des
+  // unités depuis l'intranet (/api/rp/fim/units) : UNITS est alors recalculé.
+  const BASE_UNITS = UNITS.map((u) => ({ ...u, facts: { ...u.facts }, match: [...u.match] }));
+  const UNIT_FIELDS = ['name', 'letter', 'nick', 'color', 'callsign', 'motto', 'role', 'facts', 'body', 'commander', 'targetSize', 'discordRoleId'];
+  let unitDocs = [];
+  let unitsCanManage = false;
+  let unitDefsAt = 0;
+  function applyUnitDocs() {
+    const docs = new Map(unitDocs.map((d) => [d.id, d]));
+    const merged = [];
+    BASE_UNITS.forEach((base, i) => {
+      const doc = docs.get(base.id);
+      if (doc?.archived) return;
+      const u = { ...base, facts: { ...base.facts }, match: [...base.match], order: (i + 1) * 10, edited: !!doc?.name };
+      if (doc?.name) {
+        UNIT_FIELDS.forEach((k) => { if (doc[k] !== undefined) u[k] = doc[k]; });
+        if (Array.isArray(doc.match) && doc.match.length) u.match = [...new Set([...doc.match, ...base.match])];
+        if (doc.order) u.order = doc.order;
+      }
+      merged.push(u);
+    });
+    unitDocs.filter((d) => !d.archived && d.name && !BASE_UNITS.some((b) => b.id === d.id)).forEach((d) => {
+      merged.push({ id: d.id, facts: {}, body: '', nick: '', motto: '', role: '', ...d, match: [...new Set([...(d.match || []), d.id])], order: d.order || 1000, custom: true });
+    });
+    merged.sort((a, b) => a.order - b.order);
+    UNITS.splice(0, UNITS.length, ...merged);
+    UNIT_OPTIONS.splice(0, UNIT_OPTIONS.length, ...UNITS.map((u) => u.id), 'INTER-UNITÉS');
+  }
+  // Unités archivées (pour les restaurer) : d'origine ou ajoutées.
+  function archivedUnits() {
+    return unitDocs.filter((d) => d.archived).map((d) => {
+      const base = BASE_UNITS.find((b) => b.id === d.id);
+      return { id: d.id, name: d.name || base?.name || d.id, color: d.color || base?.color || '#9297A8' };
+    });
+  }
+  async function loadUnitDefs(force) {
+    if (!force && Date.now() - unitDefsAt < 60000) return;
+    try {
+      const r = await window.apiFetch('/api/rp/fim/units');
+      unitDocs = r.units || [];
+      unitsCanManage = !!r.canManage;
+      unitDefsAt = Date.now();
+      applyUnitDocs();
+    } catch (err) { /* garde les fiches d'origine */ }
+  }
 
   // Fiches de reconfinement — adaptées au comportement réel des SCP du jeu.
   const SCPS = [
@@ -710,7 +762,15 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     } catch (err) { /* garde la dernière liste */ }
   }
   const roleMemberOf = (agent) => roleMembers.get(norm(agent.robloxUsername || agent.username)) || null;
+  // Unité d'un agent : imposée par le commandement, sinon rôle Discord,
+  // sinon mot-clé de l'unité dans sa division ou son grade.
+  function unitOverrideOf(agent) {
+    const id = personnel.get(personKey(agent.name || agent.username))?.unitOverride;
+    return id && UNITS.some((u) => u.id === id) ? id : null;
+  }
   function unitFromAgent(agent) {
+    const forced = unitOverrideOf(agent);
+    if (forced) return forced;
     const fromRole = roleMemberOf(agent);
     if (fromRole) return fromRole.unit;
     const hay = `${agent.division || ''} ${agent.rank || ''}`.toUpperCase();
@@ -928,7 +988,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       <div class="fim-hero">
         <div class="fim-hero-eyebrow">Commandement FIM · ordre de bataille</div>
         <h2>Forces d'Intervention Mobiles du Site-15</h2>
-        <p>${UNITS.length} unités, chacune avec sa spécialité, son indicatif et ses règles. L'unité d'un opérateur vient de son rôle d'unité sur le Discord FIM (à défaut, de sa division dans le roster).</p>
+        <p>${UNITS.length} unités, chacune avec sa spécialité, son indicatif et ses règles${unitsCanManage ? ' : en tant qu’officier, tu peux modifier leurs fiches, en créer ou en archiver' : ''}. L'unité d'un opérateur vient de l'unité imposée dans son dossier, sinon de son rôle d'unité sur le Discord FIM, sinon de sa division.</p>
       </div>
       ${subTabs([['bataille', 'Ordre de bataille'], ['effectifs', 'Effectifs et dossiers'], ['activite', 'Activité']], unitsView, 'data-uv')}
       <div id="fim-units-body"></div>`;
@@ -939,16 +999,15 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     mainOverride = document.getElementById('fim-units-body');
     if (unitsView === 'effectifs') loadStaff();
     else if (unitsView === 'activite') loadActivity();
-    else loadBattleOrder(deptId);
+    else loadBattleOrder();
   }
 
-  async function loadBattleOrder(deptId) {
+  async function loadBattleOrder() {
     const main = mainEl();
     main.innerHTML = '<div class="center-msg">Chargement…</div>';
     let agents = [];
     try {
-      const [data] = await Promise.all([window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`), loadRoleMembers()]);
-      agents = (data.dept?.agents || []).filter((a) => (a.status || 'actif') === 'actif');
+      agents = await loadRoster();
     } catch (err) {
       agents = [];
     }
@@ -961,28 +1020,48 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     setSide([[String(agents.length), 'Opérateurs'], [String(UNITS.length), 'Unités']], UNITS.map((u) => [u.callsign, `${u.name} · ${(byUnit[u.id] || []).length} opérateur(s)`]));
 
     const render = () => {
-      const u = UNITS.find((x) => x.id === selectedUnit) || UNITS[1];
+      if (unitEditing) { renderUnitEditor(main, agents); return; }
+      const u = UNITS.find((x) => x.id === selectedUnit) || UNITS[0];
+      if (!u) { main.innerHTML = '<div class="empty-row">Aucune unité active.</div>'; return; }
       const roster = byUnit[u.id] || [];
+      const archived = archivedUnits();
+      const gauge = (x) => {
+        const n = (byUnit[x.id] || []).length;
+        if (!x.targetSize) return `<span>${n} opérateur(s)</span>`;
+        const pct = Math.min(100, Math.round((n / x.targetSize) * 100));
+        return `<span class="fim-gauge" title="${n} / ${x.targetSize}"><i style="width:${pct}%"></i></span><span>${n}/${x.targetSize}</span>`;
+      };
       main.innerHTML = `
+        ${unitsCanManage ? `<div style="display:flex; gap:8px; justify-content:flex-end; margin:-4px 0 12px; flex-wrap:wrap;">
+          ${archived.length ? `<select id="fim-unit-restore" style="width:auto;"><option value="">Restaurer une unité archivée…</option>${archived.map((a) => `<option value="${esc(a.id)}">${esc(a.name)} (${esc(a.id)})</option>`).join('')}</select>` : ''}
+          <button class="btn small" type="button" id="fim-unit-new">+ Nouvelle unité</button>
+        </div>` : ''}
         <div class="fim-grid">
           ${UNITS.map((x) => `
             <button class="fim-unit-card${x.id === u.id ? ' active' : ''}" style="--u:${x.color}" data-unit="${x.id}" type="button">
               <div class="fim-unit-top">${crest(x.letter)}<div><div class="fim-unit-code">${esc(x.name)}</div><div class="fim-unit-nick">${esc(x.nick)}</div></div></div>
               <div class="fim-unit-role">${esc(x.role)}</div>
-              <div class="fim-unit-foot"><span>${(byUnit[x.id] || []).length} opérateur(s)</span><span>${esc(x.callsign)}</span></div>
+              ${x.commander ? `<div class="fim-unit-cmd">Chef d'unité <b>${esc(withCallsign(x.commander))}</b></div>` : ''}
+              <div class="fim-unit-foot">${gauge(x)}<span>${esc(x.callsign)}</span></div>
             </button>`).join('')}
         </div>
         <div class="fim-dossier" style="--u:${u.color}">
           <div class="fim-dossier-head" style="color:${u.color}">
             ${crest(u.letter)}
-            <div style="color:var(--ink)"><h3>FIM ${esc(u.name)} <span style="color:${u.color}">${esc(u.nick)}</span></h3>${u.motto ? `<div class="fim-motto">« ${esc(u.motto)} »</div>` : ''}</div>
+            <div style="color:var(--ink); flex:1;"><h3>FIM ${esc(u.name)} <span style="color:${u.color}">${esc(u.nick)}</span></h3>${u.motto ? `<div class="fim-motto">« ${esc(u.motto)} »</div>` : ''}</div>
+            ${unitsCanManage ? `<button class="btn ghost small" type="button" id="fim-unit-edit">Modifier l'unité</button>` : ''}
           </div>
-          <div class="fim-facts">${Object.entries(u.facts).map(([k, v]) => `<div class="fim-fact"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join('')}</div>
-          <div class="sci-body-rendered">${window.renderMarkdown(u.body)}</div>
-          <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 4px;">Opérateurs affectés</h3>
+          <div class="fim-facts">
+            ${u.commander ? `<div class="fim-fact"><b>Chef d'unité</b><span>${esc(withCallsign(u.commander))}</span></div>` : ''}
+            ${u.targetSize ? `<div class="fim-fact"><b>Effectif</b><span>${roster.length} / ${u.targetSize}</span></div>` : ''}
+            ${Object.entries(u.facts || {}).map(([k, v]) => `<div class="fim-fact"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join('')}
+          </div>
+          <div class="sci-body-rendered">${window.renderMarkdown(u.body || '')}</div>
+          <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 4px;">Opérateurs affectés · ${roster.length}</h3>
           ${roster.length
-            ? `<div class="fim-roster">${roster.map((a) => `<span class="fim-chip u">${esc(a.rank ? `${a.rank} · ` : '')}${esc(a.name || a.username)}</span>`).join('')}</div>`
-            : `<div style="font-size:12.5px; color:var(--ink-faint);">Aucun opérateur rattaché à cette unité dans le roster${unassigned ? ` (${unassigned} opérateur(s) sans unité renseignée : il leur faut le rôle d'unité sur le Discord FIM, ou une division qui contient le nom de l'unité, ex. « E-11 »)` : ''}.</div>`}
+            ? `<div class="fim-roster">${roster.map((a) => `<span class="fim-chip u">${esc(a.rank ? `${a.rank} · ` : '')}${esc(withCallsign(a.name || a.username))}</span>`).join('')}</div>`
+            : `<div style="font-size:12.5px; color:var(--ink-faint);">Aucun opérateur rattaché à cette unité${unassigned ? ` (${unassigned} opérateur(s) sans unité : rôle d'unité sur le Discord FIM, unité imposée dans son dossier, ou division qui contient un mot-clé de l'unité)` : ''}.</div>`}
+          ${u.updatedBy && u.edited ? `<div class="fim-op-foot">Fiche modifiée par ${esc(u.updatedBy)} · ${fmtDate(u.updatedAt)}</div>` : ''}
         </div>
         ${credit()}
       `;
@@ -991,8 +1070,138 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         render();
         main.querySelector('.fim-dossier')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }));
+      document.getElementById('fim-unit-edit')?.addEventListener('click', () => { unitEditing = { ...u, factsList: Object.entries(u.facts || {}).map(([k, v]) => ({ k, v })), match: [...(u.match || [])] }; render(); });
+      document.getElementById('fim-unit-new')?.addEventListener('click', () => {
+        unitEditing = { isNew: true, id: '', name: '', letter: '', nick: '', color: '#6E76FF', callsign: '', motto: '', role: '', factsList: [{ k: 'Autorité', v: 'Commandement FIM' }], body: '## Mission\n\n## Au Site-15\n- \n\n## Règles propres\n- ', match: [], commander: '', targetSize: 0, discordRoleId: '', order: (UNITS.length + 1) * 10 };
+        render();
+      });
+      document.getElementById('fim-unit-restore')?.addEventListener('change', async (e) => {
+        const id = e.target.value;
+        if (!id) return;
+        try {
+          await window.apiFetch(`/api/rp/fim/units/${encodeURIComponent(id)}/archive`, { method: 'PATCH', body: JSON.stringify({ archived: false }) });
+          window.showToast('Unité restaurée.', 'success');
+          await loadUnitDefs(true);
+          selectedUnit = id;
+          loadBattleOrder();
+        } catch (err) {
+          window.showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
     };
     render();
+  }
+
+  // Éditeur d'unité (commandement) : fiche complète, mots-clés, rôle Discord.
+  let unitEditing = null;
+  function renderUnitEditor(main, agents) {
+    const u = unitEditing;
+    const names = agents.map((a) => a.name || a.username).filter(Boolean).sort((a, b) => a.localeCompare(b, 'fr'));
+    const facts = u.factsList || [];
+    const isBase = BASE_UNITS.some((b) => b.id === u.id);
+    main.innerHTML = `
+      <div class="subsection" style="margin-top:0; --u:${esc(u.color)}">
+        <h3>${u.isNew ? 'Nouvelle unité' : `Modifier FIM ${esc(u.name)}`}</h3>
+        <form id="fim-unit-form">
+          <div class="fim-editor-section">Identité</div>
+          <div class="field-grid">
+            <div class="field-row"><label>Code *</label><input id="un-id" maxlength="20" placeholder="Ex : OMEGA-7" value="${esc(u.id)}" ${u.isNew ? '' : 'disabled'}></div>
+            <div class="field-row"><label>Nom *</label><input id="un-name" maxlength="40" placeholder="Ex : Oméga-7" value="${esc(u.name)}" required></div>
+            <div class="field-row"><label>Surnom</label><input id="un-nick" maxlength="60" placeholder="Ex : « La Boîte de Pandore »" value="${esc(u.nick || '')}"></div>
+            <div class="field-row"><label>Devise</label><input id="un-motto" maxlength="80" value="${esc(u.motto || '')}"></div>
+            <div class="field-row"><label>Lettre de l'écusson</label><input id="un-letter" maxlength="2" value="${esc(u.letter || '')}"></div>
+            <div class="field-row"><label>Couleur</label><div style="display:flex; gap:8px;"><input id="un-color" type="color" value="${esc(u.color || '#6E76FF')}" style="width:56px; padding:2px;"><input id="un-color-hex" maxlength="7" value="${esc(u.color || '#6E76FF')}" style="flex:1;"></div></div>
+            <div class="field-row"><label>Indicatif radio</label><input id="un-callsign" maxlength="20" placeholder="Ex : PANDORE" value="${esc(u.callsign || '')}"></div>
+            <div class="field-row"><label>Ordre d'affichage</label><input id="un-order" type="number" min="0" max="10000" value="${esc(u.order || 0)}"></div>
+          </div>
+          <div class="field-row"><label>Rôle (résumé sur la carte)</label><input id="un-role" maxlength="300" value="${esc(u.role || '')}"></div>
+          <div class="fim-editor-section">Commandement et effectif</div>
+          <div class="field-grid">
+            <div class="field-row"><label>Chef d'unité</label><select id="un-commander"><option value="">— Aucun —</option>${names.map((n) => `<option value="${esc(n)}"${norm(n) === norm(u.commander) ? ' selected' : ''}>${esc(withCallsign(n))}</option>`).join('')}${u.commander && !names.some((n) => norm(n) === norm(u.commander)) ? `<option selected value="${esc(u.commander)}">${esc(u.commander)}</option>` : ''}</select></div>
+            <div class="field-row"><label>Effectif cible</label><input id="un-target" type="number" min="0" max="500" value="${esc(u.targetSize || 0)}"></div>
+          </div>
+          <div class="fim-editor-section">Rattachement des opérateurs</div>
+          <div class="field-grid">
+            <div class="field-row"><label>ID du rôle Discord de l'unité</label><input id="un-role-id" maxlength="25" placeholder="Ex : 1470988716502679669" value="${esc(u.discordRoleId || '')}"></div>
+            <div class="field-row"><label>Mots-clés (division, équipe en jeu)</label><input id="un-match" maxlength="220" placeholder="Ex : OMEGA-7, O-7, PANDORE" value="${esc((u.match || []).join(', '))}"></div>
+          </div>
+          <div style="font-size:11.5px; color:var(--ink-faint); margin:-6px 0 6px;">Le rôle Discord rattache automatiquement ses membres à l'unité. Les mots-clés servent pour la division du roster et pour reconnaître l'équipe en jeu (onglet QG, relevé de présence).</div>
+          <div class="fim-editor-section">Fiche</div>
+          <div id="un-facts">${facts.map(({ k, v }, i) => `<div class="fim-editor-row fim-fact-row" data-fact="${i}"><input maxlength="30" placeholder="Intitulé" value="${esc(k)}"><input maxlength="80" placeholder="Valeur" value="${esc(v)}"><button type="button" class="fim-x" data-fact-del="${i}">×</button></div>`).join('')}</div>
+          <button type="button" class="btn ghost small" id="un-fact-add" style="margin-bottom:12px;">+ Ligne</button>
+          <div class="field-row"><label>Dossier (Markdown, {{texte}} = caviardé)</label><textarea id="un-body" rows="14" maxlength="12000">${esc(u.body || '')}</textarea></div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn" type="submit">${u.isNew ? 'Créer l’unité' : 'Enregistrer'}</button>
+            <button class="btn ghost" type="button" id="un-cancel">Annuler</button>
+            ${!u.isNew && isBase && u.edited ? '<button class="btn ghost" type="button" id="un-reset">Revenir à la fiche d’origine</button>' : ''}
+            ${!u.isNew ? '<button class="btn danger" type="button" id="un-archive" style="margin-left:auto;">Archiver l’unité</button>' : ''}
+          </div>
+        </form>
+      </div>`;
+    const readFacts = () => [...document.querySelectorAll('#un-facts [data-fact]')].map((row) => ({ k: row.children[0].value.trim(), v: row.children[1].value.trim() }));
+    const color = document.getElementById('un-color');
+    const hex = document.getElementById('un-color-hex');
+    color.addEventListener('input', () => { hex.value = color.value; });
+    hex.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(hex.value)) color.value = hex.value; });
+    document.getElementById('un-fact-add').addEventListener('click', () => { snapshot(); unitEditing.factsList = [...readFacts(), { k: '', v: '' }]; renderUnitEditor(main, agents); });
+    main.querySelectorAll('[data-fact-del]').forEach((b) => b.addEventListener('click', () => {
+      snapshot();
+      const list = readFacts();
+      list.splice(+b.dataset.factDel, 1);
+      unitEditing.factsList = list;
+      renderUnitEditor(main, agents);
+    }));
+    // Garde la saisie en cours quand l'éditeur est redessiné.
+    function snapshot() {
+      const v = (id) => document.getElementById(id).value;
+      Object.assign(unitEditing, {
+        id: u.isNew ? v('un-id').trim().toUpperCase() : u.id, name: v('un-name'), nick: v('un-nick'), motto: v('un-motto'), letter: v('un-letter'),
+        color: hex.value, callsign: v('un-callsign'), order: +v('un-order') || 0, role: v('un-role'), commander: v('un-commander'),
+        targetSize: +v('un-target') || 0, discordRoleId: v('un-role-id').trim(), match: v('un-match').split(',').map((m) => m.trim()).filter(Boolean), body: v('un-body'),
+      });
+    }
+    const done = async (msg, id) => {
+      window.showToast(msg, 'success');
+      unitEditing = null;
+      await loadUnitDefs(true);
+      if (id) selectedUnit = id;
+      loadBattleOrder();
+    };
+    document.getElementById('un-cancel').addEventListener('click', () => { unitEditing = null; loadBattleOrder(); });
+    document.getElementById('un-archive')?.addEventListener('click', async () => {
+      if (!confirm(`Archiver FIM ${u.name} ? Elle disparaît des listes ; ses anciens ordres et évaluations restent consultables. Elle pourra être restaurée.`)) return;
+      try {
+        await window.apiFetch(`/api/rp/fim/units/${encodeURIComponent(u.id)}/archive`, { method: 'PATCH', body: JSON.stringify({ archived: true }) });
+        selectedUnit = null;
+        done('Unité archivée.');
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+    document.getElementById('un-reset')?.addEventListener('click', async () => {
+      if (!confirm('Revenir à la fiche d’origine de cette unité ? Les modifications du commandement seront perdues.')) return;
+      const base = BASE_UNITS.find((b) => b.id === u.id);
+      try {
+        await window.apiFetch(`/api/rp/fim/units/${encodeURIComponent(u.id)}`, { method: 'PUT', body: JSON.stringify({ ...base, facts: Object.entries(base.facts).map(([k, v]) => ({ k, v })), match: [], order: 0, discordRoleId: u.discordRoleId || '', commander: u.commander || '', targetSize: u.targetSize || 0 }) });
+        done('Fiche d’origine rétablie.', u.id);
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+    document.getElementById('fim-unit-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      snapshot();
+      const x = unitEditing;
+      if (!x.name.trim() || (x.isNew && !x.id)) { window.showToast('Code et nom obligatoires.', 'error'); return; }
+      const payload = { ...x, facts: readFacts().filter((r) => r.k && r.v), factsList: undefined };
+      try {
+        if (x.isNew) await window.apiFetch('/api/rp/fim/units', { method: 'POST', body: JSON.stringify(payload) });
+        else await window.apiFetch(`/api/rp/fim/units/${encodeURIComponent(x.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
+        done(x.isNew ? 'Unité créée.' : 'Unité enregistrée.', x.id);
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
   }
 
   // Effectifs : tous les opérateurs actifs, rangés par unité, avec leur dossier.
@@ -1032,7 +1241,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       const evals = evaluations.filter((e) => (member?.discordId && e.agentDiscordId === member.discordId) || norm(e.agentName) === norm(name));
       const missions = ops.filter((o) => roleIn(o, name) || presenceMinutes(o, name) > 0);
       const minutes = ops.reduce((acc, o) => acc + presenceMinutes(o, name), 0);
-      return { name, rank: a.rank || '', unit: unitFromAgent(a), viaRole: !!member, discordName: member?.discordName || '', evals, missions, minutes, file: personnel.get(personKey(name)) || {} };
+      return { name, rank: a.rank || '', unit: unitFromAgent(a), viaRole: !!member && !unitOverrideOf(a), forced: !!unitOverrideOf(a), discordName: member?.discordName || '', evals, missions, minutes, file: personnel.get(personKey(name)) || {} };
     });
     const groups = [...UNITS.map((u) => ({ id: u.id, label: `FIM ${u.name}${u.nick ? ` ${u.nick}` : ''}`, color: u.color })), { id: null, label: 'Sans unité', color: '#9297A8' }];
     setSide(
@@ -1082,6 +1291,15 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
               <input type="text" id="fim-callsign" maxlength="24" placeholder="Ex : VALKYRIE-1" value="${esc(p.file.callsign || '')}" style="flex:1;">
               <button class="btn small" type="submit">Enregistrer</button>
             </form>` : ''}
+          ${isCommand ? `
+            <div class="fim-editor-section">Unité</div>
+            <form id="fim-unit-override-form" style="display:flex; gap:8px; max-width:520px; flex-wrap:wrap;">
+              <select id="fim-unit-override" style="flex:1; min-width:220px;">
+                <option value="">Automatique (rôle Discord, puis division)</option>
+                ${UNITS.map((x) => `<option value="${x.id}"${p.file.unitOverride === x.id ? ' selected' : ''}>Imposer : FIM ${esc(x.name)}</option>`).join('')}
+              </select>
+              <button class="btn small" type="submit">Appliquer</button>
+            </form>` : ''}
           <div class="fim-editor-section">Missions</div>
           ${missions.length ? missions.slice(0, 12).map((o) => `
             <div class="fim-hq-row" style="--u:${unitColor(o.unit)}; margin-bottom:6px;">
@@ -1111,6 +1329,16 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         try {
           await window.apiFetch('/api/rp/fim/personnel/callsign', { method: 'PATCH', body: JSON.stringify({ name: p.name, callsign: document.getElementById('fim-callsign').value.trim() }) });
           window.showToast('Indicatif enregistré.', 'success');
+          loadStaff();
+        } catch (err) {
+          window.showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      document.getElementById('fim-unit-override-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          await window.apiFetch('/api/rp/fim/personnel/unit', { method: 'PATCH', body: JSON.stringify({ name: p.name, unit: document.getElementById('fim-unit-override').value }) });
+          window.showToast('Unité mise à jour.', 'success');
           loadStaff();
         } catch (err) {
           window.showToast(`Erreur : ${err.message}`, 'error');
@@ -1157,7 +1385,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
             <td>${brevets.length ? brevets.map((e) => `<button type="button" class="em" data-diploma="${esc(e.id)}" title="${esc(certOf(e).title)}" style="background:none; cursor:pointer;">${emblemSvg(certOf(e).emblem)}</button>`).join('') : '<span style="color:var(--ink-faint);">—</span>'}</td>
             <td style="font-family:'JetBrains Mono', monospace; font-size:11.5px;">${p.missions.length}${p.minutes ? ` · ${fr(p.minutes / 60, 1)} h` : ''}</td>
             ${isCommand ? `<td style="font-family:'JetBrains Mono', monospace; color:${pctColor(avg)}">${fmtPct(avg)}${trendBadge(p.evals)}</td>` : ''}
-            <td>${p.unit ? `<span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>${p.viaRole ? ' <span style="font-size:10.5px; color:var(--ink-faint);">rôle Discord</span>' : ''}` : '<span style="color:var(--ink-faint);">—</span>'}</td>
+            <td>${p.unit ? `<span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>${p.forced ? ' <span style="font-size:10.5px; color:var(--warn);">imposée</span>' : p.viaRole ? ' <span style="font-size:10.5px; color:var(--ink-faint);">rôle Discord</span>' : ''}` : '<span style="color:var(--ink-faint);">—</span>'}</td>
           </tr>`;
         }).join('');
       }).join('') || `<tr><td colspan="${cols}" class="empty-row">Aucun opérateur.</td></tr>`;
@@ -2227,6 +2455,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         window.apiFetch('/api/rp/fim/eval-grids').catch(() => ({ grids: [] })),
         window.apiFetch(`/api/rp/depts/${encodeURIComponent(deptId)}`).catch(() => null),
         loadRoleMembers(),
+        loadPersonnel(),
       ]);
       data = d;
       grids = g.grids || [];
@@ -3269,11 +3498,15 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       { id: 'fim-library', label: 'Savoir', icon: 'folder' },
       { id: 'fim-evals', label: 'Évaluations', icon: 'badge' },
     ],
-    load(tabId, deptId) {
+    async load(tabId, deptId) {
       stopRefresh();
       mainOverride = null;
       currentDeptId = deptId;
       startAlerts();
+      const main = document.getElementById('terminal-main');
+      if (main && !unitDefsAt) main.innerHTML = '<div class="center-msg">Chargement…</div>';
+      await loadUnitDefs();
+      if (!document.querySelector(`.terminal-tab.active[data-tab="${tabId}"]`)) return;
       if (tabId === 'fim-hq') loadHQ(deptId);
       else if (tabId === 'fim-ops') loadOperations();
       else if (tabId === 'fim-units') loadUnits(deptId);
