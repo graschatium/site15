@@ -3033,6 +3033,246 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   }
 
   // ---------------------------------------------------------------
+  // Onglet Cours (supports déposés par le commandement, rangés comme les
+  // grilles d'évaluation : formation, combat, unités, passages de grade)
+  // ---------------------------------------------------------------
+  let courseSel = null; // { kind: 'grid' | 'course' | 'new' | 'edit', id }
+  let courseData = { courses: [], grids: [], canManage: false };
+  const COURSE_GROUPS = [
+    { key: 'grade', label: 'Passages de grade', test: (id) => id.startsWith('grade_') },
+    { key: 'form', label: 'Formation de base', test: (id) => id.startsWith('form_') },
+    { key: 'combat', label: 'Combat rapproché', test: (id) => id === 'cqc' || id === 'cqb' },
+    { key: 'unit', label: "Qualifications d'unité", test: (id) => id.startsWith('unit_') },
+    { key: 'other', label: 'Autres grilles', test: () => true },
+  ];
+  const courseGroupOf = (gridId) => COURSE_GROUPS.find((g) => g.test(gridId));
+
+  async function loadCourses() {
+    const main = mainEl();
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+    try {
+      const d = await window.apiFetch('/api/rp/fim/courses');
+      courseData = { courses: d.courses || [], grids: d.grids || [], canManage: !!d.canManage };
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
+      return;
+    }
+    const live = courseData.courses.filter((c) => !c.archived);
+    setSide([[String(live.length), 'Cours'], [String(courseData.grids.length), 'Dossiers']], live.slice(0, 5).map((c) => [new Date(c.updatedAt || c.createdAt).toLocaleDateString('fr-FR'), c.title]));
+    if (!courseSel) courseSel = { kind: 'grid', id: courseData.grids.find((g) => g.id.startsWith('grade_'))?.id || courseData.grids[0]?.id };
+
+    main.innerHTML = `
+      <div class="fim-hero">
+        <div class="fim-hero-eyebrow">Commandement FIM · centre de formation</div>
+        <h2>Cours</h2>
+        <p>Les supports de cours rangés comme les évaluations : chaque dossier reprend le programme de sa grille (ce sur quoi tu seras évalué) et les cours déposés par le commandement.</p>
+      </div>
+      <div class="wiki-layout">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Cours FIM</span><span class="count">${live.length}</span></div>
+          ${courseData.canManage ? '<button class="btn small" id="fim-course-new" type="button" style="width:100%; margin-top:10px;">+ Déposer un cours</button>' : ''}
+          <input type="text" id="fim-course-search" class="fim-search" placeholder="Rechercher un cours…" style="width:100%; margin-top:10px;">
+          <div class="wiki-toc-list" id="fim-course-toc"></div>
+        </div>
+        <div class="wiki-article" id="fim-course-article"></div>
+      </div>`;
+    document.getElementById('fim-course-new')?.addEventListener('click', () => {
+      courseSel = { kind: 'new', id: courseSel?.kind === 'grid' ? courseSel.id : '' };
+      renderCourseToc();
+      renderCourseArticle();
+    });
+    document.getElementById('fim-course-search').addEventListener('input', (e) => renderCourseToc(e.target.value));
+    renderCourseToc();
+    renderCourseArticle();
+  }
+
+  function renderCourseToc(query = '') {
+    const list = document.getElementById('fim-course-toc');
+    if (!list) return;
+    const q = norm(query);
+    const visible = courseData.courses.filter((c) => !q || norm(`${c.title} ${c.summary || ''} ${c.category || ''}`).includes(q));
+    const head = (label) => `<div style="font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); padding:10px 10px 4px;">${esc(label)}</div>`;
+    const item = (sel, title, meta, extra = '') => `<button class="wiki-toc-item${courseSel?.kind === sel.kind && courseSel?.id === sel.id ? ' active' : ''}" data-csel="${sel.kind}:${esc(sel.id)}" type="button"${extra}><span class="wiki-toc-title">${esc(title)}</span><span class="wiki-toc-meta">${esc(meta)}</span></button>`;
+    let html = '';
+    for (const group of COURSE_GROUPS) {
+      const grids = courseData.grids.filter((g) => courseGroupOf(g.id) === group);
+      const rows = grids.map((g) => {
+        const cs = visible.filter((c) => c.gridId === g.id);
+        if (q && !cs.length && !norm(g.name).includes(q)) return '';
+        return item({ kind: 'grid', id: g.id }, g.name.replace(/^[^·]*·\s*/, ''), `${cs.filter((c) => !c.archived).length} cours`)
+          + cs.map((c) => item({ kind: 'course', id: c.id }, `↳ ${c.title}`, c.archived ? 'Archivé' : '', ' style="padding-left:22px;"')).join('');
+      }).join('');
+      if (rows) html += head(group.label) + rows;
+    }
+    const gridIds = new Set(courseData.grids.map((g) => g.id));
+    const free = {};
+    visible.filter((c) => !c.gridId || !gridIds.has(c.gridId)).forEach((c) => (free[c.category || 'Cours libres'] = free[c.category || 'Cours libres'] || []).push(c));
+    Object.entries(free).forEach(([cat, cs]) => { html += head(cat) + cs.map((c) => item({ kind: 'course', id: c.id }, c.title, c.archived ? 'Archivé' : c.authorName)).join(''); });
+    list.innerHTML = html || '<div class="empty-row">Aucun résultat.</div>';
+    list.querySelectorAll('[data-csel]').forEach((b) => b.addEventListener('click', () => {
+      const [kind, ...rest] = b.dataset.csel.split(':');
+      courseSel = { kind, id: rest.join(':') };
+      renderCourseToc(document.getElementById('fim-course-search')?.value || '');
+      renderCourseArticle();
+    }));
+  }
+
+  function courseCard(c) {
+    return `<button type="button" class="fim-grid-card" data-copen="${esc(c.id)}" style="text-align:left; cursor:pointer;">
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;"><h4 style="margin-right:auto;">${esc(c.title)}</h4>${c.archived ? '<span class="fim-pill">Archivé</span>' : ''}${c.duration ? `<span class="fim-pill">${c.duration} min</span>` : ''}</div>
+      ${c.summary ? `<p>${esc(c.summary)}</p>` : ''}
+      <div class="fim-op-meta" style="margin:0;"><span>Par <b>${esc(c.authorName || '—')}</b></span><span>${fmtDate(c.updatedAt || c.createdAt)}</span>${(c.links || []).length ? `<span><b>${c.links.length}</b> lien(s)</span>` : ''}</div>
+    </button>`;
+  }
+
+  function renderCourseArticle() {
+    const article = document.getElementById('fim-course-article');
+    if (!article) return;
+    const sel = courseSel || {};
+    if (sel.kind === 'new' || sel.kind === 'edit') { renderCourseEditor(article, sel.kind === 'edit' ? courseData.courses.find((c) => c.id === sel.id) : null, sel.kind === 'new' ? sel.id : ''); return; }
+    const bindCards = () => article.querySelectorAll('[data-copen]').forEach((b) => b.addEventListener('click', () => { courseSel = { kind: 'course', id: b.dataset.copen }; renderCourseToc(); renderCourseArticle(); }));
+
+    if (sel.kind === 'grid') {
+      const g = courseData.grids.find((x) => x.id === sel.id);
+      if (!g) { article.innerHTML = '<div class="wiki-empty"><div class="wiki-empty-title">Cours FIM</div><p>Sélectionne un dossier.</p></div>'; return; }
+      const cs = courseData.courses.filter((c) => c.gridId === g.id);
+      const total = g.criteria.reduce((a, c) => a + c.weight, 0) || 1;
+      article.innerHTML = `
+        <div class="wiki-article-head"><span class="fim-pill" style="--c:var(--accent-2)">${esc(courseGroupOf(g.id).label)}</span>${g.pathway ? '<span class="fim-pill" style="--c:#B07CFF">Parcours ERI</span>' : ''}</div>
+        <h2 class="wiki-article-title">${esc(g.name)}</h2>
+        ${g.description ? `<p style="color:var(--ink-dim); font-size:13px; line-height:1.6; margin-bottom:16px;">${esc(g.description)}</p>` : ''}
+        <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:8px 0 10px;">Programme de l'évaluation</h3>
+        <div class="sci-body-rendered fim-table">${window.renderMarkdown(`| Point évalué | Ce qui est attendu | Poids |\n|---|---|---|\n${g.criteria.map((c) => `| **${c.label.replace(/\|/g, '/')}** | ${(c.hint || '—').replace(/\|/g, '/')} | ${Math.round((c.weight / total) * 100)} % |`).join('\n')}`)}</div>
+        <p style="font-size:12px; color:var(--ink-faint); margin:8px 0 22px;">Avis « Conforme » à partir de <b>${esc(String(g.thresholds?.conforme ?? 55))} %</b>, « Excellent » à partir de <b>${esc(String(g.thresholds?.excellent ?? 80))} %</b>.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px;">Cours (${cs.filter((c) => !c.archived).length})</h3>
+          ${courseData.canManage ? '<button class="btn small" id="fim-course-add" type="button">+ Déposer un cours ici</button>' : ''}
+        </div>
+        <div class="fim-grid">${cs.length ? cs.map(courseCard).join('') : '<div class="empty-row">Aucun cours déposé pour ce dossier.</div>'}</div>`;
+      document.getElementById('fim-course-add')?.addEventListener('click', () => { courseSel = { kind: 'new', id: g.id }; renderCourseToc(); renderCourseArticle(); });
+      bindCards();
+      return;
+    }
+
+    const c = courseData.courses.find((x) => x.id === sel.id);
+    if (!c) { article.innerHTML = '<div class="wiki-empty"><div class="wiki-empty-title">Cours FIM</div><p>Sélectionne un cours.</p></div>'; return; }
+    const g = courseData.grids.find((x) => x.id === c.gridId);
+    article.innerHTML = `
+      <div class="wiki-article-head">
+        ${g ? `<span class="fim-pill" style="--c:var(--accent-2)">${esc(courseGroupOf(g.id).label)}</span>` : `<span class="fim-pill">${esc(c.category || 'Cours libre')}</span>`}
+        ${c.duration ? `<span class="fim-pill">${c.duration} min</span>` : ''}
+        ${c.archived ? '<span class="fim-pill">Archivé</span>' : ''}
+      </div>
+      <h2 class="wiki-article-title">${esc(c.title)}</h2>
+      <div class="post-card-meta" style="margin-bottom:${c.summary ? 10 : 20}px;">${esc(c.authorName || '—')} — ${fmtDate(c.createdAt)}${c.updatedBy ? ` · modifié par ${esc(c.updatedBy)} le ${fmtDate(c.updatedAt)}` : ''}</div>
+      ${c.summary ? `<p style="color:var(--ink-dim); font-size:13px; line-height:1.6; margin-bottom:18px;">${esc(c.summary)}</p>` : ''}
+      ${g ? `<button type="button" class="btn ghost small" id="fim-course-grid" style="margin-bottom:18px;">Évaluation associée : ${esc(g.name)} →</button>` : ''}
+      ${c.content ? `<div class="sci-body-rendered fim-table">${window.renderMarkdown(c.content)}</div>` : ''}
+      ${(c.links || []).length ? `<h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 10px;">Documents et liens</h3>
+        <div style="display:flex; flex-direction:column; gap:6px;">${c.links.map((l) => `<a class="btn ghost small" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" style="justify-content:flex-start;">↗ ${esc(l.label)}</a>`).join('')}</div>` : ''}
+      ${courseData.canManage ? `<div class="sci-card-actions" style="margin-top:24px;">
+        <button class="btn ghost small" id="fim-course-edit">Modifier</button>
+        <button class="btn ghost small" id="fim-course-arch">${c.archived ? 'Restaurer' : 'Archiver'}</button>
+        <button class="btn danger small" id="fim-course-del">Supprimer</button></div>` : ''}`;
+    document.getElementById('fim-course-grid')?.addEventListener('click', () => { courseSel = { kind: 'grid', id: g.id }; renderCourseToc(); renderCourseArticle(); });
+    document.getElementById('fim-course-edit')?.addEventListener('click', () => { courseSel = { kind: 'edit', id: c.id }; renderCourseArticle(); });
+    document.getElementById('fim-course-arch')?.addEventListener('click', async () => {
+      try {
+        await window.apiFetch(`/api/rp/fim/courses/${encodeURIComponent(c.id)}`, { method: 'PUT', body: JSON.stringify({ archived: !c.archived }) });
+        window.showToast(c.archived ? 'Cours restauré.' : 'Cours archivé : seul le commandement le voit encore.', 'success');
+        loadCourses();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+    document.getElementById('fim-course-del')?.addEventListener('click', async () => {
+      if (!confirm('Supprimer définitivement ce cours ?')) return;
+      try {
+        await window.apiFetch(`/api/rp/fim/courses/${encodeURIComponent(c.id)}`, { method: 'DELETE' });
+        window.showToast('Cours supprimé.', 'success');
+        courseSel = g ? { kind: 'grid', id: g.id } : null;
+        loadCourses();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  function renderCourseEditor(article, c, presetGrid) {
+    const gridId = c ? c.gridId || '' : presetGrid || '';
+    const options = COURSE_GROUPS.map((group) => {
+      const gs = courseData.grids.filter((g) => courseGroupOf(g.id) === group);
+      return gs.length ? `<optgroup label="${esc(group.label)}">${gs.map((g) => `<option value="${esc(g.id)}"${g.id === gridId ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</optgroup>` : '';
+    }).join('');
+    const cats = [...new Set(courseData.courses.map((x) => x.category).filter(Boolean))];
+    article.innerHTML = `
+      <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">${c ? 'Modifier le cours' : 'Déposer un cours'}</h3>
+      <form id="fim-course-form">
+        <div class="field-row"><label>Titre *</label><input id="fc-title" maxlength="120" required value="${c ? esc(c.title) : ''}"></div>
+        <div class="field-grid">
+          <div class="field-row"><label>Dossier (évaluation associée)</label><select id="fc-grid"><option value="">Aucun : cours libre</option>${options}</select></div>
+          <div class="field-row"><label>Durée (minutes)</label><input id="fc-duration" type="number" min="0" max="600" value="${c?.duration || ''}" placeholder="facultatif"></div>
+        </div>
+        <div class="field-row" id="fc-cat-row"><label>Catégorie (cours libre)</label><input id="fc-cat" maxlength="40" list="fc-cats" value="${c ? esc(c.category || '') : ''}" placeholder="Ex : Recrues, Officiers, Culture SCP…"><datalist id="fc-cats">${cats.map((x) => `<option value="${esc(x)}">`).join('')}</datalist></div>
+        <div class="field-row"><label>Résumé</label><input id="fc-summary" maxlength="300" value="${c ? esc(c.summary || '') : ''}" placeholder="Une phrase affichée sur la carte du cours"></div>
+        <div class="field-row"><label style="display:flex; justify-content:space-between; align-items:center;">Contenu (Markdown, {{texte}} = caviardé)<button type="button" class="btn ghost small" id="fc-preview-btn">Aperçu</button></label>
+          <textarea id="fc-content" rows="16">${c ? esc(c.content || '') : ''}</textarea>
+          <div id="fc-preview" class="sci-body-rendered fim-table" style="display:none; border:1px solid var(--line); padding:14px; min-height:120px;"></div>
+        </div>
+        <div class="field-row"><label>Documents et liens (un par ligne : Libellé | https://…)</label><textarea id="fc-links" rows="4" placeholder="Support PDF | https://drive.google.com/…&#10;Vidéo de démonstration | https://youtube.com/…">${c ? esc((c.links || []).map((l) => `${l.label} | ${l.url}`).join('\n')) : ''}</textarea></div>
+        <div style="display:flex; gap:10px;"><button class="btn" type="submit">${c ? 'Enregistrer' : 'Déposer'}</button><button class="btn ghost" type="button" id="fc-cancel">Annuler</button></div>
+      </form>`;
+    const gridSel = document.getElementById('fc-grid');
+    const syncCat = () => { document.getElementById('fc-cat-row').style.display = gridSel.value ? 'none' : ''; };
+    gridSel.addEventListener('change', syncCat);
+    syncCat();
+    document.getElementById('fc-preview-btn').addEventListener('click', (e) => {
+      const ta = document.getElementById('fc-content');
+      const pv = document.getElementById('fc-preview');
+      const show = pv.style.display === 'none';
+      if (show) pv.innerHTML = window.renderMarkdown(ta.value || '*Rien à afficher.*');
+      pv.style.display = show ? '' : 'none';
+      ta.style.display = show ? 'none' : '';
+      e.target.textContent = show ? 'Modifier' : 'Aperçu';
+    });
+    document.getElementById('fc-cancel').addEventListener('click', () => {
+      courseSel = c ? { kind: 'course', id: c.id } : (gridId ? { kind: 'grid', id: gridId } : null);
+      loadCourses();
+    });
+    document.getElementById('fim-course-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const links = document.getElementById('fc-links').value.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => {
+        const i = line.lastIndexOf('|');
+        return i >= 0 ? { label: line.slice(0, i).trim(), url: line.slice(i + 1).trim() } : { label: '', url: line };
+      });
+      const bad = links.filter((l) => !/^https:\/\/\S+$/i.test(l.url));
+      if (bad.length) { window.showToast(`Lien invalide (https obligatoire) : ${bad[0].url || bad[0].label}`, 'error'); return; }
+      const payload = {
+        title: document.getElementById('fc-title').value.trim(),
+        gridId: gridSel.value || null,
+        category: gridSel.value ? '' : document.getElementById('fc-cat').value.trim(),
+        duration: Number(document.getElementById('fc-duration').value) || 0,
+        summary: document.getElementById('fc-summary').value.trim(),
+        content: document.getElementById('fc-content').value.trim(),
+        links,
+      };
+      try {
+        if (c) {
+          await window.apiFetch(`/api/rp/fim/courses/${encodeURIComponent(c.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
+          courseSel = { kind: 'course', id: c.id };
+        } else {
+          const r = await window.apiFetch('/api/rp/fim/courses', { method: 'POST', body: JSON.stringify(payload) });
+          courseSel = { kind: 'course', id: r.id };
+        }
+        window.showToast(c ? 'Cours modifié.' : 'Cours déposé.', 'success');
+        loadCourses();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------
   // Onglet Évaluations (officiers : grilles configurables + notation ;
   // opérateurs : lecture de leurs propres évaluations)
   // ---------------------------------------------------------------
@@ -4527,6 +4767,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       { id: 'fim-ops', label: 'Opérations', icon: 'radio' },
       { id: 'fim-units', label: 'Unités', icon: 'shield' },
       { id: 'fim-library', label: 'Savoir', icon: 'folder' },
+      { id: 'fim-courses', label: 'Cours', icon: 'document' },
       { id: 'fim-evals', label: 'Évaluations', icon: 'badge' },
     ],
     async load(tabId, deptId) {
@@ -4542,6 +4783,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       else if (tabId === 'fim-ops') loadOperations();
       else if (tabId === 'fim-units') loadUnits(deptId);
       else if (tabId === 'fim-library') loadLibrary();
+      else if (tabId === 'fim-courses') loadCourses();
       else if (tabId === 'fim-evals') loadEvaluations(deptId);
       markSeen(tabId);
       refreshBadges(tabId).catch(() => {});
