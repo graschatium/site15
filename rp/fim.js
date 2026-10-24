@@ -191,6 +191,31 @@
   .fim-note-text{ font-size:12.5px; color:var(--ink-dim); line-height:1.6; margin-top:6px; white-space:pre-wrap; }
   .fim-staff-wrap{ overflow-x:auto; background:var(--panel); border:1px solid var(--line); border-radius:3px; }
   @media (max-width:640px){ .fim-dossier{ padding:18px; } .fim-hero{ padding:18px; } }
+  .fim-rsvp{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px; font-size:11.5px; color:var(--ink-faint); }
+  .fim-rsvp button{ font:600 11px 'JetBrains Mono', monospace; letter-spacing:.04em; padding:5px 10px; border:1px solid var(--line); background:transparent; color:var(--ink-dim); border-radius:3px; cursor:pointer; }
+  .fim-rsvp button.on{ border-color:var(--c); color:var(--c); background:color-mix(in srgb, var(--c) 12%, transparent); }
+  .fim-loss{ margin-top:8px; font-size:11.5px; color:#F0525A; font-family:'JetBrains Mono', monospace; }
+  .fim-badge{ display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:8px; background:#F0525A; color:#fff; font:700 10px 'JetBrains Mono', monospace; vertical-align:middle; }
+  .fim-gsearch{ position:relative; margin:0 0 18px; }
+  .fim-gsearch-res{ position:absolute; left:0; right:0; top:100%; z-index:30; background:var(--panel); border:1px solid var(--line); border-radius:3px; max-height:360px; overflow:auto; box-shadow:0 12px 30px rgba(0,0,0,.35); }
+  .fim-gsearch-res button{ display:flex; gap:10px; width:100%; text-align:left; padding:9px 12px; background:none; border:0; border-bottom:1px solid var(--line); color:var(--ink); cursor:pointer; font-size:13px; }
+  .fim-gsearch-res button:hover{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .fim-gsearch-res small{ font:600 10px 'JetBrains Mono', monospace; color:var(--accent-2); letter-spacing:.08em; min-width:92px; padding-top:2px; }
+  .fim-training{ border-left:3px solid var(--u, var(--accent)); }
+  .fim-audit-row{ display:grid; grid-template-columns:120px 1fr; gap:10px; padding:7px 0; border-bottom:1px dashed var(--line); font-size:12.5px; }
+  .fim-audit-row .t{ font:11px 'JetBrains Mono', monospace; color:var(--ink-faint); }
+  @media (max-width:640px){
+    .fim-audit-row{ grid-template-columns:1fr; gap:2px; }
+    .fim-journal-form{ flex-wrap:wrap; }
+    .fim-journal-form input{ min-width:0; flex:1 1 100%; }
+    .fim-op-top{ flex-wrap:wrap; }
+    .sci-card-actions{ flex-wrap:wrap; }
+    .fim-subnav{ overflow-x:auto; flex-wrap:nowrap; }
+    .fim-subnav button{ white-space:nowrap; }
+    .fim-journal-row{ flex-wrap:wrap; }
+    .fim-journal-row .x{ flex:1 1 100%; order:5; }
+    .fim-journal-row .by{ margin-left:auto; }
+  }
   `;
   const styleEl = document.createElement('style');
   styleEl.textContent = STYLE;
@@ -699,6 +724,21 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     echec: { label: 'Échec', color: '#F0525A' },
   };
   const UNIT_OPTIONS = ['EPSILON-11', 'NU-7', 'BETA-7', 'ALPHA-1', 'XI-8', 'SIGMA-9', 'INTER-UNITÉS'];
+  // Lieux du Site-15 proposés pour la zone et le point de ralliement.
+  const SITE_PLACES = ['Gate A', 'Gate B', 'Réception (Secteur 1)', 'Zone de confinement légère', 'Zone de confinement lourde', 'Bloc Classe-D', 'Cantine', 'Infirmerie', 'Poste de contrôle', 'Checkpoint', 'Zone de détention', 'Quai D-FIM', 'Métro — Secteur 1', 'Métro — Secteur 3', 'Abri', 'Salle du réacteur', 'Archives [REDACTED]', 'Héliport', 'Extérieur du site'];
+  // Modèles d'ordres fournis d'office (en plus de ceux du commandement).
+  const BASE_TEMPLATES = [
+    { id: 'base-939', label: 'Reconfinement SCP-939', codeName: 'ÉCHO', unit: 'EPSILON-11', priority: 'critique', roe: 'RDE-2 Neutralisation', zone: 'Zone de confinement lourde', target: 'SCP-939', rallyPoint: 'Checkpoint', objective: "Phase 1 : sécuriser le sas de la ZCL.\nPhase 2 : progression en binômes, silence radio sauf contact (SCP-939 imite les voix).\nPhase 3 : repousser l'entité dans sa cellule, verrouiller, rapport de reconfinement.", team: [] },
+    { id: 'base-gatea', label: 'Défense de la Gate A', codeName: 'REMPART', unit: 'NU-7', priority: 'prioritaire', roe: 'RDE-1 Riposte', zone: 'Gate A', target: 'Insurrection du Chaos', rallyPoint: 'Gate A', objective: 'Tenir la Gate A et le parking. Tireurs en hauteur, équipe de réaction au sas. Aucune sortie de Classe-D. Rapport toutes les 5 minutes.', team: [] },
+    { id: 'base-raid', label: 'Contre-raid IC', codeName: 'FAUCON', unit: 'INTER-UNITÉS', priority: 'critique', roe: 'RDE-2 Neutralisation', zone: 'Secteur 2', target: 'Insurrection du Chaos', rallyPoint: 'Poste de contrôle', objective: "Repérer et neutraliser le groupe de l'IC. Priorité : protéger les objets anomaux et le personnel. Récupérer tout matériel volé.", team: [] },
+    { id: 'base-evasion', label: 'Recherche de Classe-D évadés', codeName: 'BATTUE', unit: 'EPSILON-11', priority: 'prioritaire', roe: 'RDE-1 Riposte', zone: 'Extérieur du site', target: 'Classe-D évadé', rallyPoint: 'Gate A', objective: 'Ratisser les abords du site par secteurs, ramener les évadés en détention. Usage de la force létale seulement en cas de menace armée.', team: [] },
+  ];
+  const RSVP_META = {
+    present: { label: 'Présent', color: '#4FD895' },
+    retard: { label: 'En retard', color: '#F0A83C' },
+    absent: { label: 'Absent', color: '#F0525A' },
+  };
+  let opTemplates = [];
 
   // ---------------------------------------------------------------
   // Outils
@@ -828,15 +868,17 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const main = mainEl();
     main.innerHTML = '<div class="center-msg">Connexion au réseau tactique…</div>';
     const safe = (pr, fallback) => pr.catch(() => fallback);
-    const [ops, debriefs, evalData, docs, agents, dirData] = await Promise.all([
+    const [ops, debriefs, evalData, docs, agents, dirData, trData] = await Promise.all([
       safe(window.apiFetch('/api/rp/fim/operations'), { operations: [] }),
       safe(window.apiFetch('/api/rp/fim/debriefs'), { debriefs: [] }),
       safe(window.apiFetch('/api/rp/fim/evaluations'), { evaluations: [] }),
       safe(window.apiFetch('/api/rp/fim/docs'), { documents: [] }),
       loadRoster(),
       safe(window.apiFetch('/api/rp/fim/directives'), { directives: [] }),
+      safe(window.apiFetch('/api/rp/fim/trainings'), { trainings: [] }),
     ]);
     if (mainEl() !== main || !main.isConnected) return;
+    const upcomingTrainings = (trData.trainings || []).filter((t) => t.status === 'planifiee' && t.at > Date.now() - 3600000).sort((a, b) => a.at - b.at);
     const operations = ops.operations || [];
     const debriefList = debriefs.debriefs || [];
     const evaluations = evalData.evaluations || [];
@@ -901,7 +943,12 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const todo = [];
     if (toDebrief.length) todo.push([`${toDebrief.length} opération(s) terminée(s) sans débriefing`, toDebrief.slice(0, 3).map((o) => o.codeName).join(', '), 'fim-ops', 'debriefs']);
     if (isCommand && neverEvaluated) todo.push([`${neverEvaluated} opérateur(s) jamais évalué(s)`, 'Onglet Évaluations', 'fim-evals', '']);
-    if (isCommand && promos.length) todo.push([`${promos.length} opérateur(s) proposé(s) à la promotion`, promos.slice(0, 3).join(', '), 'fim-evals', '']);
+    if (isCommand && promos.length) todo.push([`${promos.length} opérateur(s) proposé(s) à la promotion`, promos.slice(0, 3).join(', '), 'fim-units', 'activite']);
+    const myRsvpMissing = myMissions.filter((o) => o.status === 'planifiee' && !(o.rsvp || {})[personKey(self)]);
+    if (myRsvpMissing.length) todo.push([`${myRsvpMissing.length} ordre(s) sans ta réponse`, myRsvpMissing.slice(0, 3).map((o) => o.codeName).join(', '), 'fim-ops', 'miennes']);
+    const trKey = trData.selfKey || personKey(self);
+    const openTr = upcomingTrainings.filter((t) => !(t.signups || {})[trKey]);
+    if (openTr.length) todo.push([`${openTr.length} formation(s) ouverte(s) à l'inscription`, openTr.slice(0, 2).map((t) => t.title).join(', '), 'fim-evals', 'trainings']);
     const todoCard = card('À traiter', todo.length, todo.length
       ? todo.map(([t, sub, tab, view]) => `<button class="fim-hq-todo" type="button" data-go="${tab}" data-ops="${view}"><span>${esc(t)}</span><small>${esc(sub)}</small></button>`).join('')
       : '<div class="empty-row">Rien à traiter.</div>');
@@ -922,6 +969,10 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
 
     main.innerHTML = `
       <div id="fim-hq">
+        <div class="fim-gsearch">
+          <input type="text" id="fim-gsearch" class="fim-search" style="margin:0;" placeholder="Recherche globale : opération, opérateur, indicatif, directive, doctrine, SCP…" autocomplete="off">
+          <div class="fim-gsearch-res" id="fim-gsearch-res" hidden></div>
+        </div>
         <div id="fim-live"><div class="center-msg">Connexion au réseau tactique…</div></div>
         ${toRead.length ? `<div class="fim-hq-alert">
           <div><b>${toRead.length} directive${toRead.length > 1 ? 's' : ''} de la Direction à lire</b><small>${toRead.slice(0, 3).map((d) => esc(d.title)).join(' · ')}</small></div>
@@ -931,13 +982,46 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         <div id="fim-live-servers"></div>
       </div>`;
     main.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.go === 'fim-units' && b.dataset.ops) { unitsView = b.dataset.ops; goTab('fim-units'); return; }
+      if (b.dataset.go === 'fim-evals' && b.dataset.ops === 'trainings') { evalView = 'trainings'; goTab('fim-evals'); return; }
       if (b.dataset.ops) opsFilter = b.dataset.ops;
       if (b.dataset.doc) { libView = 'doctrine'; docSelected = b.dataset.doc; }
       goTab(b.dataset.go);
     }));
     document.getElementById('fim-hq-read')?.addEventListener('click', () => { unitsView = 'direction'; directionView = 'lire'; goTab('fim-units'); });
+    bindGlobalSearch({ operations, debriefs: debriefList, agents, directives: dirData.directives || [], docs: docs.documents || [], trainings: trData.trainings || [] });
     await refreshLive(false);
     if (!refreshTimer) refreshTimer = setInterval(() => refreshLive(true), 30000);
+  }
+
+  // Recherche globale du QG : un champ, tous les contenus de l'intranet.
+  function bindGlobalSearch(src) {
+    const input = document.getElementById('fim-gsearch');
+    const res = document.getElementById('fim-gsearch-res');
+    if (!input) return;
+    const items = [
+      ...src.operations.map((o) => ({ kind: 'Opération', label: `${o.codeName} · ${unitLabel(o.unit)} · ${STATUS_META[o.status]?.label || ''}`, hay: [o.codeName, o.zone, o.target, o.leader, o.objective, ...(o.team || []).map((m) => m.name)], go: () => { opsFilter = o.status === 'terminee' || o.status === 'annulee' ? 'archives' : 'actives'; opsSearch = o.codeName; goTab('fim-ops'); } })),
+      ...src.debriefs.map((d) => ({ kind: 'Débriefing', label: d.title, hay: [d.title, d.scp, d.participants, d.summary], go: () => { opsFilter = 'debriefs'; focusDebrief = d.id; goTab('fim-ops'); } })),
+      ...src.agents.map((a) => { const n = a.name || a.username; return { kind: 'Opérateur', label: `${withCallsign(n)}${a.rank ? ` · ${a.rank}` : ''}`, hay: [n, a.username, a.rank, callsignOf(n)], go: () => { unitsView = 'effectifs'; staffSelected = n; goTab('fim-units'); } }; }),
+      ...src.directives.map((d) => ({ kind: 'Directive', label: d.title, hay: [d.title, d.body], go: () => { unitsView = 'direction'; directionView = d.archived ? 'archives' : 'vigueur'; goTab('fim-units'); } })),
+      ...src.docs.map((d) => ({ kind: 'Note', label: d.title, hay: [d.title, d.content], go: () => { libView = 'doctrine'; docSelected = d.id; goTab('fim-library'); } })),
+      ...DOCTRINE.map((d) => ({ kind: 'Doctrine', label: d.title, hay: [d.title], go: () => { libView = 'doctrine'; docSelected = d.id; goTab('fim-library'); } })),
+      ...SCPS.map((x) => ({ kind: 'Fiche SCP', label: `${x.id}${x.name ? ` · ${x.name}` : ''}`, hay: [x.id, x.name], go: () => { libView = 'scp'; goTab('fim-library'); } })),
+      ...src.trainings.map((t) => ({ kind: 'Formation', label: `${t.title} · ${fmtDate(t.at)}`, hay: [t.title, t.instructor, t.place], go: () => { evalView = 'trainings'; goTab('fim-evals'); } })),
+      ...UNITS.map((u) => ({ kind: 'Unité', label: `FIM ${u.name}${u.nick ? ` ${u.nick}` : ''}`, hay: [u.id, u.name, u.nick, u.callsign], go: () => { unitsView = 'bataille'; selectedUnit = u.id; goTab('fim-units'); } })),
+    ];
+    let found = [];
+    const show = () => {
+      const q = norm(input.value);
+      if (q.length < 2) { res.hidden = true; return; }
+      found = items.filter((it) => it.hay.some((h) => norm(h).includes(q))).slice(0, 14);
+      res.innerHTML = found.length ? found.map((it, i) => `<button type="button" data-i="${i}"><small>${esc(it.kind.toUpperCase())}</small><span>${esc(it.label)}</span></button>`).join('') : '<div class="empty-row">Aucun résultat.</div>';
+      res.hidden = false;
+      res.querySelectorAll('[data-i]').forEach((b) => b.addEventListener('click', () => { res.hidden = true; found[+b.dataset.i].go(); }));
+    };
+    input.addEventListener('input', show);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && found[0]) { e.preventDefault(); res.hidden = true; found[0].go(); } if (e.key === 'Escape') res.hidden = true; });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.fim-gsearch')) res.hidden = true; });
   }
 
   // Bandeau en direct du QG : code, brèches, unités déployées, serveurs.
@@ -1462,7 +1546,8 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         ${shown.length ? shown.map(directiveCard).join('') : `<div class="empty-row">${directionView === 'lire' ? 'Tu es à jour : aucune directive à lire.' : 'Aucune directive.'}</div>`}
       </div>`;
 
-    main.innerHTML = `${attention}${orgHtml}${chainHtml}${dirHtml}`;
+    main.innerHTML = `${attention}${orgHtml}${chainHtml}${dirHtml}<div id="fim-dir-extra"></div>`;
+    loadDirectionExtra(canManage);
 
     main.querySelectorAll('[data-attn]').forEach((b) => b.addEventListener('click', () => {
       const go = b.dataset.attn;
@@ -1497,6 +1582,42 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       const d = directives.find((x) => x.id === b.dataset.dirEdit);
       if (d) { directiveEditing = { ...d }; loadDirection(); }
     }));
+  }
+
+  // Bas de la Direction : passations de postes (tous) et audit (commandement).
+  let auditFilter = '';
+  async function loadDirectionExtra(canManage) {
+    const box = document.getElementById('fim-dir-extra');
+    const [hist, audit] = await Promise.all([
+      window.apiFetch('/api/rp/fim/direction/history').then((r) => r.history || []).catch(() => []),
+      canManage ? window.apiFetch('/api/rp/fim/audit').then((r) => r.entries || []).catch(() => null) : Promise.resolve(null),
+    ]);
+    if (!box || !box.isConnected) return;
+    const histHtml = `
+      <div class="record-block" style="margin-top:24px;">
+        <div class="record-block-head"><h2>Historique des postes</h2><span class="count">${hist.length}</span></div>
+        ${hist.length ? hist.slice(0, 30).map((h) => `<div class="fim-audit-row">
+          <span class="t">${esc(fmtDate(h.at))}</span>
+          <span><b>${esc(h.title)}</b>${h.field === 'interim' ? ' (intérim)' : ''} : ${h.from ? `${esc(h.from)} → ` : ''}${h.to ? `<b>${esc(h.to)}</b>` : '<i>poste libéré</i>'} <span style="color:var(--ink-faint);">· par ${esc(h.by)}</span></span>
+        </div>`).join('') : '<div class="empty-row">Aucune passation enregistrée.</div>'}
+      </div>`;
+    const renderAudit = () => {
+      const q = norm(auditFilter);
+      const list = (audit || []).filter((e) => !q || [e.action, e.target, e.by, e.details].some((x) => norm(x).includes(q)));
+      return list.length ? list.slice(0, 150).map((e) => `<div class="fim-audit-row">
+          <span class="t">${esc(fmtDate(e.at))}</span>
+          <span><b>${esc(e.action)}</b>${e.target ? ` · ${esc(e.target)}` : ''} <span style="color:var(--ink-faint);">par ${esc(e.by)}</span>${e.details ? `<div style="font-size:11.5px; color:var(--ink-dim);">${esc(e.details)}</div>` : ''}</span>
+        </div>`).join('') : '<div class="empty-row">Aucune entrée.</div>';
+    };
+    const auditHtml = audit ? `
+      <div class="record-block" style="margin-top:24px;">
+        <div class="record-block-head"><h2>Journal d'audit</h2><span class="count">${audit.length}</span></div>
+        <p style="font-size:12px; color:var(--ink-faint); margin:0 0 10px;">Suppressions, archivages, changements d'unité, d'indicatif et de dossiers, visibles du commandement seulement.</p>
+        <input type="text" id="fim-audit-search" class="fim-search" placeholder="Filtrer : action, cible, auteur…" value="${esc(auditFilter)}">
+        <div id="fim-audit-list">${renderAudit()}</div>
+      </div>` : '';
+    box.innerHTML = histHtml + auditHtml;
+    document.getElementById('fim-audit-search')?.addEventListener('input', (e) => { auditFilter = e.target.value; document.getElementById('fim-audit-list').innerHTML = renderAudit(); });
   }
 
   function renderOrgEditor(main, agents) {
@@ -1614,6 +1735,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     avertissement: { label: 'Avertissement', color: '#F0525A' },
     observation: { label: 'Observation', color: '#5AA9FF' },
   };
+  let staffActivity = new Map();
   async function loadStaff() {
     const main = mainEl();
     main.innerHTML = '<div class="center-msg">Chargement…</div>';
@@ -1637,6 +1759,12 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const isCommand = !!evalData.canEvaluate;
     const self = evalData.self || '';
     const evaluations = evalData.evaluations || [];
+    if (isCommand && !staffActivity.size) {
+      window.apiFetch('/api/rp/fim/activity').then((r) => {
+        staffActivity = new Map((r.people || []).map((x) => [norm(x.name), x]));
+        if (staffSelected && mainEl() === main) loadStaff();
+      }).catch(() => {});
+    }
     const people = agents.map((a) => {
       const member = roleMemberOf(a);
       const name = a.name || a.username;
@@ -1684,6 +1812,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
             <div class="fim-fact"><b>Temps en opération</b><span>${p.minutes ? `${fr(p.minutes / 60, 1)} h` : '—'}</span></div>
             <div class="fim-fact"><b>Brevets</b><span>${earnedBrevets(p.evals).length}</span></div>
             ${isCommand || isSelf ? `<div class="fim-fact"><b>Moyenne</b><span style="color:${pctColor(avg)}">${fmtPct(avg)} · ${p.evals.length} éval.</span></div>` : ''}
+            ${isCommand && staffActivity.has(norm(p.name)) ? (() => { const a = staffActivity.get(norm(p.name)); return `<div class="fim-fact"><b>En jeu FIM (30 j)</b><span>${fmtHours(a.fim30)}${a.lastSeenFim ? ` · vu ${esc(relTime(a.lastSeenFim))}` : ' · pas vu'}</span></div>`; })() : ''}
             ${canSeeNotes ? `<div class="fim-fact"><b>Félicitations / avert.</b><span>${notes.filter((n) => n.kind === 'felicitation').length} / ${notes.filter((n) => n.kind === 'avertissement').length}</span></div>` : ''}
           </div>
           ${medalsRow(p.evals)}
@@ -1827,6 +1956,17 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const since = activityPeriod ? Date.now() - activityPeriod * 86400000 : 0;
     const inPeriod = (t) => (t || 0) >= since;
     const pOps = ops.filter((o) => inPeriod(o.scheduledAt || o.createdAt));
+    const durationOf = (o) => {
+      const log = o.statusLog || [];
+      const a = log.find((l) => l.status === 'en_cours')?.at;
+      const b = [...log].reverse().find((l) => l.status === 'terminee')?.at;
+      return a && b && b > a ? (b - a) / 60000 : null;
+    };
+    const topTarget = (list) => {
+      const c = {};
+      list.forEach((o) => { if (o.target) c[o.target] = (c[o.target] || 0) + 1; });
+      return Object.entries(c).sort((x, y) => y[1] - x[1])[0]?.[0] || '—';
+    };
     const pDebriefs = debriefs.filter((d) => inPeriod(d.createdAt));
     const rate = (list) => (list.length ? Math.round((list.filter((d) => d.outcome === 'succes').length / list.length) * 100) : null);
     const minutesByUnit = {};
@@ -1873,6 +2013,9 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
               <div><b>${uo.length}</b><span>Opérations</span></div>
               <div><b style="color:${r == null ? 'var(--ink-faint)' : pctColor(r)}">${r == null ? '—' : `${r}%`}</b><span>Succès</span></div>
               <div><b>${fr((minutesByUnit[u.id] || 0) / 60, 1)} h</b><span>En jeu</span></div>
+              <div><b>${(() => { const d = uo.map(durationOf).filter((x) => x != null); return d.length ? `${Math.round(avgOf(d))} min` : '—'; })()}</b><span>Durée moy.</span></div>
+              <div><b style="color:${uo.some((o) => (o.casualties || []).length) ? '#F0525A' : 'inherit'}">${uo.reduce((a, o) => a + (o.casualties || []).length, 0)}</b><span>Pertes</span></div>
+              <div><b style="font-size:12px;">${esc(topTarget(uo))}</b><span>Cible fréquente</span></div>
             </div>
           </div>`;
         }).join('')}
@@ -1888,8 +2031,117 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
             <td style="font-family:'JetBrains Mono', monospace;">${p.led || '—'}</td>
           </tr>`).join('')}
         </tbody></table></div>` : '<div class="empty-row">Aucune activité sur cette période.</div>'}
-      </div>`;
+      </div>
+      <div class="sci-card-actions" style="margin-top:16px;">
+        <button class="btn ghost small" type="button" id="fim-csv-ops">Exporter les opérations (CSV)</button>
+        <button class="btn ghost small" type="button" id="fim-csv-debriefs">Exporter les débriefings (CSV)</button>
+        <button class="btn ghost small" type="button" id="fim-csv-evals" style="display:none;">Exporter les évaluations (CSV)</button>
+      </div>
+      <div id="fim-activity-cmd"></div>`;
     main.querySelectorAll('[data-period]').forEach((b) => b.addEventListener('click', () => { activityPeriod = +b.dataset.period; loadActivity(); }));
+    const period = activityPeriod ? `${activityPeriod}j` : 'tout';
+    document.getElementById('fim-csv-ops').addEventListener('click', () => downloadCsv(`fim-operations-${period}.csv`,
+      ['Nom de code', 'Unité', 'Statut', 'Priorité', 'Heure prévue', 'Chef', 'Équipe', 'Zone', 'Cible', 'Durée (min)', 'Pertes', 'Émis par', 'Créé le'],
+      pOps.map((o) => [o.codeName, unitLabel(o.unit), STATUS_META[o.status]?.label || o.status, PRIORITY_META[o.priority]?.label || o.priority, o.scheduledAt ? fmtDate(o.scheduledAt) : '', o.leader || '', (o.team || []).map((m) => m.name).join(' / '), o.zone || '', o.target || '', durationOf(o) != null ? Math.round(durationOf(o)) : '', (o.casualties || []).length, o.authorCharacterName || '', fmtDate(o.createdAt)])));
+    document.getElementById('fim-csv-debriefs').addEventListener('click', () => downloadCsv(`fim-debriefings-${period}.csv`,
+      ['Titre', 'Unité', 'Résultat', 'Entité', 'Pertes', 'Participants', 'Auteur', 'Date'],
+      pDebriefs.map((d) => [d.title, unitLabel(d.unit), OUTCOME_META[d.outcome]?.label || d.outcome, d.scp || '', d.losses || '', d.participants || '', d.authorCharacterName || '', fmtDate(d.createdAt)])));
+    loadActivityCommand(since, period);
+  }
+
+  // CSV lisible par Excel (séparateur ; et BOM UTF-8).
+  function downloadCsv(filename, header, rows) {
+    const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const csv = '\ufeff' + [header, ...rows].map((r) => r.map(cell).join(';')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  // Partie commandement de l'onglet Activité : inactivité, suggestions de
+  // promotion, rapport de la semaine, export des évaluations.
+  const fmtHours = (sec) => (sec ? `${fr(sec / 3600, 1)} h` : '—');
+  async function loadActivityCommand(since, period) {
+    const box = document.getElementById('fim-activity-cmd');
+    let act;
+    let weekly;
+    let evals = [];
+    let ops = [];
+    try {
+      [act, weekly, evals, ops] = await Promise.all([
+        window.apiFetch('/api/rp/fim/activity'),
+        window.apiFetch('/api/rp/fim/weekly').catch(() => null),
+        window.apiFetch('/api/rp/fim/evaluations').then((r) => r.evaluations || []).catch(() => []),
+        window.apiFetch('/api/rp/fim/operations').then((r) => r.operations || []).catch(() => []),
+      ]);
+    } catch (err) {
+      return; // pas du commandement : rien à afficher
+    }
+    if (!box || !box.isConnected) return;
+    const evBtn = document.getElementById('fim-csv-evals');
+    if (evBtn) {
+      evBtn.style.display = '';
+      evBtn.addEventListener('click', () => downloadCsv(`fim-evaluations-${period}.csv`,
+        ['Opérateur', 'Grille', 'Unité', 'Contexte', 'Score (%)', 'Avis', 'Recommandation', 'Brevet', 'Évaluateur', 'Date'],
+        evals.filter((e) => (e.createdAt || 0) >= since).map((e) => [e.agentName, e.grid?.name || 'Standard FIM', unitLabel(e.unit), CONTEXT_LABELS[e.context] || e.context || '', e.percent != null ? fr(e.percent, 1) : '', VERDICT_META[e.verdict]?.label || e.verdict || '', RECO_META[e.recommendation]?.label || e.recommendation || '', e.certified ? 'oui' : '', e.evaluatorName || '', fmtDate(e.createdAt)])));
+    }
+    const now = act.now || Date.now();
+    const days = (t) => (t ? Math.floor((now - t) / 86400000) : null);
+    const people = act.people || [];
+    const inactive = people.filter((p) => !p.lastSeenFim || days(p.lastSeenFim) >= 14).sort((a, b) => (a.lastSeenFim || 0) - (b.lastSeenFim || 0));
+    // Suggestions : au moins 5 missions et 75 % de moyenne, ou recommandation explicite.
+    const promo = people.map((p) => {
+      const ev = evals.filter((e) => norm(e.agentName) === norm(p.name));
+      const avg = avgOf(ev.map((e) => e.percent).filter((v) => v != null));
+      const missions = ops.filter((o) => roleIn(o, p.name) || presenceMinutes(o, p.name) > 0).length;
+      const reco = ev.some((e) => e.recommendation === 'promotion');
+      return { ...p, avg, missions, reco, evals: ev.length };
+    }).filter((p) => p.reco || (p.missions >= 5 && p.avg != null && p.avg >= 75)).sort((a, b) => (b.avg || 0) - (a.avg || 0));
+    box.innerHTML = `
+      <div class="record-block" style="margin-top:24px;">
+        <div class="record-block-head"><h2>Suivi d'inactivité</h2><span class="count">${inactive.length}</span></div>
+        <p style="font-size:12px; color:var(--ink-faint); margin:0 0 10px;">Temps passé en jeu dans une équipe FIM (relevé par le jeu). Inactif = aucune présence FIM depuis 14 jours ou plus.</p>
+        <div class="fim-staff-wrap"><table class="fim-staff"><thead><tr><th>Opérateur</th><th>Unité</th><th>FIM 7 j</th><th>FIM 30 j</th><th>Tout le jeu 30 j</th><th>Dernière présence FIM</th></tr></thead><tbody>
+          ${[...people].sort((a, b) => (a.lastSeenFim || 0) - (b.lastSeenFim || 0)).map((p) => {
+            const d = days(p.lastSeenFim);
+            const c = d == null ? '#F0525A' : d >= 14 ? '#F0525A' : d >= 7 ? '#F0A83C' : '#4FD895';
+            return `<tr>
+              <td><b>${esc(withCallsign(p.name))}</b>${p.linked ? '' : ' <span style="font-size:10.5px; color:var(--warn);" title="Pas de compte Roblox lié à Discord">non lié</span>'}<div style="font-size:11px; color:var(--ink-faint);">${esc(p.rank || '')}</div></td>
+              <td>${p.unit ? `<span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>` : '—'}</td>
+              <td style="font-family:'JetBrains Mono', monospace;">${fmtHours(p.fim7)}</td>
+              <td style="font-family:'JetBrains Mono', monospace;">${fmtHours(p.fim30)}</td>
+              <td style="font-family:'JetBrains Mono', monospace; color:var(--ink-faint);">${fmtHours(p.total30)}</td>
+              <td style="font-family:'JetBrains Mono', monospace; color:${c};">${d == null ? 'plus de 30 j' : d === 0 ? "aujourd'hui" : `il y a ${d} j`}</td>
+            </tr>`;
+          }).join('') || '<tr><td colspan="6" class="empty-row">Aucun opérateur.</td></tr>'}
+        </tbody></table></div>
+      </div>
+      <div class="record-block" style="margin-top:24px;">
+        <div class="record-block-head"><h2>Promotions à étudier</h2><span class="count">${promo.length}</span></div>
+        <p style="font-size:12px; color:var(--ink-faint); margin:0 0 10px;">Proposés par une évaluation, ou au moins 5 missions avec 75 % de moyenne.</p>
+        ${promo.length ? promo.map((p) => `<div class="fim-hq-row" style="--u:${p.unit ? unitColor(p.unit) : 'var(--accent)'}; margin-bottom:6px;">
+          <span class="nm" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(withCallsign(p.name))}</span>
+          <span class="meta">${esc(p.rank || '')} · ${p.missions} mission${p.missions > 1 ? 's' : ''} · moyenne ${fmtPct(p.avg)} sur ${p.evals} éval.</span>
+          ${p.reco ? pill({ label: 'Proposé', color: '#4FD895' }) : pill({ label: 'Critères atteints', color: '#5AA9FF' })}
+        </div>`).join('') : '<div class="empty-row">Aucun opérateur ne remplit les critères pour le moment.</div>'}
+      </div>
+      ${weekly ? `<div class="record-block" style="margin-top:24px;">
+        <div class="record-block-head"><h2>Rapport de la semaine</h2><span class="count">7 j</span></div>
+        <p style="font-size:12px; color:var(--ink-faint); margin:0 0 10px;">Posté automatiquement chaque lundi à 10 h dans le salon des ordres du Discord.</p>
+        <div class="fim-hq-kpis" style="grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));">
+          <div><b>${weekly.created}</b><span>Ordres émis</span></div>
+          <div><b>${weekly.closed}</b><span>Clôturées</span></div>
+          <div><b>${weekly.debriefs}</b><span>Débriefings</span></div>
+          <div><b>${weekly.debriefs ? `${Math.round((weekly.success / weekly.debriefs) * 100)} %` : '—'}</b><span>Succès</span></div>
+          <div><b>${weekly.evaluations}</b><span>Évaluations</span></div>
+          <div><b>${weekly.certs.length}</b><span>Brevets</span></div>
+        </div>
+        ${weekly.certs.length ? `<div class="fim-roster" style="margin-top:10px;">${weekly.certs.map((c) => `<span class="fim-chip">🎖 ${esc(c.name)} — ${esc(c.title)}</span>`).join('')}</div>` : ''}
+        ${weekly.top.length ? `<div class="fim-roster" style="margin-top:8px;">${weekly.top.map((t) => `<span class="fim-chip">${esc(t.name)} · ${t.minutes} min</span>`).join('')}</div>` : ''}
+      </div>` : ''}`;
   }
 
   // ---------------------------------------------------------------
@@ -1975,8 +2227,9 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       ops.filter(filters.actives).slice(0, 5).map((o) => [STATUS_META[o.status]?.label || o.status, `${o.codeName} · ${unitLabel(o.unit)}`])
     );
     if (opsFilter === 'nouvelle') {
+      opTemplates = await window.apiFetch('/api/rp/fim/op-templates').then((r) => r.templates || []).catch(() => []);
       const op = editingOp ? ops.find((o) => o.id === editingOp) : null;
-      const tpl = !op && copyOp ? ops.find((o) => o.id === copyOp) : null;
+      const tpl = !op && copyOp ? ops.find((o) => o.id === copyOp) || [...BASE_TEMPLATES, ...opTemplates].find((t) => t.id === copyOp) : null;
       copyOp = null;
       body.innerHTML = opForm(op, agents, tpl);
       bindOpForm(op, agents);
@@ -2106,6 +2359,15 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       opsFilter = 'nouvelle';
       loadOperations();
     }));
+    box.querySelectorAll('[data-rsvp]').forEach((b) => b.addEventListener('click', async () => {
+      try {
+        await window.apiFetch(`/api/rp/fim/operations/${encodeURIComponent(b.dataset.id)}/rsvp`, { method: 'POST', body: JSON.stringify({ status: b.dataset.rsvp }) });
+        window.showToast('Réponse enregistrée.', 'success');
+        loadOperations();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    }));
     box.querySelectorAll('[data-op-copy]').forEach((b) => b.addEventListener('click', () => {
       editingOp = null;
       copyOp = b.dataset.id;
@@ -2193,6 +2455,20 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       </div>`;
   }
 
+  // Réponses de l'équipe à un ordre planifié ou en cours.
+  function rsvpBlock(o, ctx, mine) {
+    const answers = Object.values(o.rsvp || {});
+    const open = o.status === 'planifiee' || o.status === 'en_cours';
+    if (!answers.length && !(open && mine)) return '';
+    const myAnswer = (o.rsvp || {})[personKey(ctx.self)]?.status;
+    const count = (k) => answers.filter((a) => a.status === k).length;
+    return `<div class="fim-rsvp">
+      <span>Réponses</span>
+      ${Object.entries(RSVP_META).map(([k, m]) => (count(k) ? `<span class="fim-chip" style="color:${m.color}" title="${esc(answers.filter((a) => a.status === k).map((a) => a.name).join(', '))}">${m.label} · ${count(k)}</span>` : '')).join('')}
+      ${open && mine ? `<span style="margin-left:auto;">Ma réponse</span>${Object.entries(RSVP_META).map(([k, m]) => `<button type="button" class="${myAnswer === k ? 'on' : ''}" style="--c:${m.color}" data-rsvp="${k}" data-id="${esc(o.id)}">${m.label}</button>`).join('')}` : ''}
+    </div>`;
+  }
+
   function opCard(o, ctx) {
     const st = STATUS_META[o.status] || STATUS_META.planifiee;
     const pr = PRIORITY_META[o.priority] || PRIORITY_META.routine;
@@ -2234,6 +2510,8 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
           ? `<div class="fim-op-team">${team.map((m) => `<span class="fim-chip${norm(m.name) === norm(ctx.self) ? ' me' : ''}">${esc(withCallsign(m.name))}${m.role ? ` · <i>${esc(m.role)}</i>` : ''}</span>`).join('')}</div>`
           : o.assigned ? `<div class="fim-op-meta" style="margin:10px 0 0;">Affectés <b>${esc(o.assigned)}</b></div>` : ''}
         ${presenceLine(o)}
+        ${rsvpBlock(o, ctx, mine)}
+        ${(o.casualties || []).length ? `<div class="fim-loss">PERTES · ${o.casualties.map((c) => `${esc(c.name)} ${c.kind === 'death' ? '✝' : '(à terre)'}`).join(' · ')}</div>` : ''}
         ${journalBlock(o, ctx)}
         <div class="fim-op-foot">Émis par ${esc(o.authorCharacterName)} · ${fmtDate(o.createdAt)}${o.updatedBy ? ` · modifié par ${esc(o.updatedBy)}` : ''}</div>
         ${(o.statusLog || []).length > 1 ? `<div class="fim-op-log">${o.statusLog.map((l) => `${fmtDate(l.at)} — ${esc(STATUS_META[l.status]?.label || l.status)} par ${esc(l.by)}${l.note ? ` : ${esc(l.note)}` : ''}`).join('<br>')}</div>` : ''}
@@ -2251,25 +2529,31 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   }
   // tpl : ordre recopié (Dupliquer) — mêmes champs, mais création d'un nouvel ordre.
   function opForm(editOp, agents, tpl) {
-    const op = editOp || (tpl ? { ...tpl, codeName: `${tpl.codeName} II`.slice(0, 60), scheduledAt: null } : null);
+    const op = editOp || (tpl ? { ...tpl, codeName: tpl.label ? tpl.codeName : `${tpl.codeName} II`.slice(0, 60), scheduledAt: null } : null);
+    const allTemplates = [...BASE_TEMPLATES, ...opTemplates];
     formTeam = op ? (op.team || []).map((m) => ({ ...m })) : [];
     const names = agents.map((a) => a.name || a.username).filter(Boolean).sort((a, b) => a.localeCompare(b, 'fr'));
     const roes = ['RDE-0 Observation', 'RDE-1 Riposte', 'RDE-2 Neutralisation', 'RDE-3 Feu libre', 'RDE-Ω Omega'];
     return `
       <div class="subsection" style="margin-top:0;">
-        <h3>${editOp ? `Modifier l'ordre ${esc(editOp.codeName)}` : tpl ? `Nouvel ordre d'après ${esc(tpl.codeName)}` : 'Émettre un ordre de mission'}</h3>
+        <h3>${editOp ? `Modifier l'ordre ${esc(editOp.codeName)}` : tpl ? (tpl.label ? `Nouvel ordre · modèle « ${esc(tpl.label)} »` : `Nouvel ordre d'après ${esc(tpl.codeName)}`) : 'Émettre un ordre de mission'}</h3>
         <form id="fim-op-form">
+          ${editOp ? '' : `<div class="field-row" style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+            <div style="flex:1; min-width:220px;"><label>Partir d'un modèle</label><select id="op-template"><option value="">— Ordre vierge —</option>${allTemplates.map((t) => `<option value="${esc(t.id)}"${tpl && tpl.id === t.id ? ' selected' : ''}>${esc(t.label)}${t.createdBy ? ` · ${esc(t.createdBy)}` : ''}</option>`).join('')}</select></div>
+            ${opTemplates.length ? '<button class="btn ghost small" type="button" id="op-template-del">Supprimer ce modèle</button>' : ''}
+          </div>`}
           <div class="fim-editor-section">Mission</div>
           <div class="field-grid">
             <div class="field-row"><label>Nom de code *</label><input id="op-code" maxlength="60" placeholder="Ex : RENARD NOIR" required value="${op ? esc(op.codeName) : ''}"></div>
             <div class="field-row"><label>Unité</label><select id="op-unit">${UNIT_OPTIONS.map((u) => `<option value="${u}"${op && op.unit === u ? ' selected' : ''}>${esc(unitLabel(u))}</option>`).join('')}</select></div>
             <div class="field-row"><label>Priorité</label><select id="op-priority">${Object.entries(PRIORITY_META).map(([k, m]) => `<option value="${k}"${op && op.priority === k ? ' selected' : ''}>${m.label}</option>`).join('')}</select></div>
             <div class="field-row"><label>Règles d'engagement</label><select id="op-roe">${roes.map((r, i) => `<option${op ? (op.roe === r ? ' selected' : '') : i === 1 ? ' selected' : ''}>${r}</option>`).join('')}</select></div>
-            <div class="field-row"><label>Zone</label><input id="op-zone" maxlength="80" placeholder="Ex : Zone de confinement lourde" value="${op ? esc(op.zone || '') : ''}"></div>
+            <div class="field-row"><label>Zone</label><input id="op-zone" maxlength="80" list="fim-places" placeholder="Ex : Zone de confinement lourde" value="${op ? esc(op.zone || '') : ''}"></div>
             <div class="field-row"><label>Cible / entité</label><input id="op-target" maxlength="80" placeholder="Ex : SCP-939, cellule IC…" list="fim-scp-list" value="${op ? esc(op.target || '') : ''}"></div>
             <div class="field-row"><label>Heure prévue</label><input id="op-time" type="datetime-local" value="${op ? toLocalInput(op.scheduledAt) : ''}"></div>
-            <div class="field-row"><label>Point de ralliement</label><input id="op-rally" maxlength="120" placeholder="Ex : quai D-FIM, Gate A" value="${op ? esc(op.rallyPoint || '') : ''}"></div>
+            <div class="field-row"><label>Point de ralliement</label><input id="op-rally" maxlength="120" list="fim-places" placeholder="Ex : quai D-FIM, Gate A" value="${op ? esc(op.rallyPoint || '') : ''}"></div>
           </div>
+          <datalist id="fim-places">${SITE_PLACES.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
           <datalist id="fim-scp-list">${SCPS.map((s) => `<option value="${s.id}">`).join('')}<option value="Insurrection du Chaos"><option value="Classe-D évadé"></datalist>
           <div class="field-row"><label>Objectif et déroulé *</label><textarea id="op-objective" rows="6" maxlength="4000" placeholder="Objectif, phases, consignes particulières…" required>${op ? esc(op.objective || '') : ''}</textarea></div>
           <div class="fim-editor-section">Équipe</div>
@@ -2287,6 +2571,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
           <div style="display:flex; gap:10px; margin-top:16px;">
             <button class="btn" type="submit">${editOp ? 'Enregistrer les modifications' : 'Émettre l’ordre'}</button>
             ${op ? '<button class="btn ghost" type="button" id="op-cancel">Annuler</button>' : ''}
+            <button class="btn ghost" type="button" id="op-save-template" style="margin-left:auto;">Enregistrer comme modèle</button>
           </div>
         </form>
       </div>`;
@@ -2328,6 +2613,34 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     document.getElementById('op-team-add').addEventListener('click', () => { addMember(extra.value); extra.value = ''; });
     extra.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addMember(extra.value); extra.value = ''; } });
     document.getElementById('op-cancel')?.addEventListener('click', () => { editingOp = null; opsFilter = 'actives'; loadOperations(); });
+    document.getElementById('op-template')?.addEventListener('change', (e) => { copyOp = e.target.value || null; loadOperations(); });
+    document.getElementById('op-template-del')?.addEventListener('click', async () => {
+      const id = document.getElementById('op-template').value;
+      if (!opTemplates.some((t) => t.id === id)) { window.showToast('Choisis un modèle enregistré par le commandement (les modèles fournis ne se suppriment pas).', 'error'); return; }
+      if (!confirm('Supprimer ce modèle d’ordre ?')) return;
+      try {
+        await window.apiFetch(`/api/rp/fim/op-templates/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        window.showToast('Modèle supprimé.', 'success');
+        copyOp = null;
+        loadOperations();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+    document.getElementById('op-save-template').addEventListener('click', async () => {
+      const label = prompt('Nom du modèle (ex : Reconfinement SCP-096) :');
+      if (!label || !label.trim()) return;
+      const v = (id) => document.getElementById(id).value.trim();
+      try {
+        await window.apiFetch('/api/rp/fim/op-templates', { method: 'POST', body: JSON.stringify({
+          label: label.trim(), codeName: v('op-code'), unit: v('op-unit'), priority: v('op-priority'), roe: v('op-roe'), zone: v('op-zone'), target: v('op-target'),
+          objective: v('op-objective'), leader: v('op-leader'), rallyPoint: v('op-rally'), team: formTeam.map((m) => ({ name: m.name, role: (m.role || '').trim() })),
+        }) });
+        window.showToast('Modèle enregistré.', 'success');
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
     renderFormTeam();
     syncPicker();
     document.getElementById('fim-op-form').addEventListener('submit', async (e) => {
@@ -2360,6 +2673,29 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   let editingDebrief = null;
   let focusDebrief = null;
   let debriefSearch = '';
+  // Déroulé proposé d'après le journal de bord et le relevé du jeu.
+  function autoSummary(o) {
+    const log = o.statusLog || [];
+    const start = log.find((l) => l.status === 'en_cours')?.at;
+    const end = [...log].reverse().find((l) => l.status === 'terminee')?.at;
+    const lines = [];
+    if (start) lines.push(`Lancée le ${fmtDate(start)}${end ? `, clôturée le ${fmtDate(end)} (${Math.max(1, Math.round((end - start) / 60000))} min)` : ''}.`);
+    if (o.objective) lines.push(`Objectif : ${o.objective.split('\n')[0]}`);
+    const journal = [...(o.journal || [])].sort((a, b) => a.at - b.at);
+    if (journal.length) {
+      lines.push('', 'Chronologie :');
+      journal.forEach((e) => lines.push(`- ${new Date(e.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} [${(JOURNAL_META[e.kind] || JOURNAL_META.info).label}] ${e.text}`));
+    }
+    return lines.join('\n');
+  }
+  function autoLosses(o) {
+    const list = o.casualties || [];
+    if (!list.length) return '';
+    const deaths = list.filter((c) => c.kind === 'death').length;
+    const downs = list.length - deaths;
+    return [deaths ? `${deaths} tué${deaths > 1 ? 's' : ''}` : '', downs ? `${downs} à terre` : ''].filter(Boolean).join(', ') + ` (${[...new Set(list.map((c) => c.name))].join(', ')})`;
+  }
+
   function renderDebriefs(body, debriefs, ops) {
     const success = debriefs.filter((d) => d.outcome === 'succes').length;
     setSide(
@@ -2394,11 +2730,11 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
             <div class="field-row"><label>Unité</label><select id="db-unit">${UNIT_OPTIONS.map((u) => `<option value="${u}"${(preOp && preOp.unit === u) || (ed && ed.unit === u) ? ' selected' : ''}>${esc(unitLabel(u))}</option>`).join('')}</select></div>
             <div class="field-row"><label>Résultat</label><select id="db-outcome">${Object.entries(OUTCOME_META).map(([k, m]) => `<option value="${k}"${ed && ed.outcome === k ? ' selected' : ''}>${m.label}</option>`).join('')}</select></div>
             <div class="field-row"><label>Entité / adversaire</label><input id="db-scp" maxlength="60" list="fim-scp-list2" value="${ed ? val('scp') : preOp ? esc(preOp.target || '') : ''}"></div>
-            <div class="field-row"><label>Pertes et blessés</label><input id="db-losses" maxlength="200" placeholder="Ex : 1 blessé léger, aucun mort" value="${val('losses')}"></div>
+            <div class="field-row"><label>Pertes et blessés</label><input id="db-losses" maxlength="200" placeholder="Ex : 1 blessé léger, aucun mort" value="${ed ? val('losses') : preOp ? esc(autoLosses(preOp).slice(0, 200)) : ''}"></div>
           </div>
           <datalist id="fim-scp-list2">${SCPS.map((s) => `<option value="${s.id}">`).join('')}<option value="Insurrection du Chaos"></datalist>
           <div class="field-row"><label>Participants${preOp && presenceList(preOp).length ? ' (pré-rempli : présents en jeu)' : ''}</label><textarea id="db-participants" rows="2" maxlength="1000" placeholder="Ex : RENARD-1 (chef), RENARD-2…">${ed ? val('participants') : preOp ? esc(presenceText(preOp)) : ''}</textarea></div>
-          <div class="field-row"><label>Déroulé *</label><textarea id="db-summary" rows="6" maxlength="6000" required>${val('summary')}</textarea></div>
+          <div class="field-row"><label>Déroulé *</label><textarea id="db-summary" rows="8" maxlength="6000" required>${ed ? val('summary') : preOp ? esc(autoSummary(preOp).slice(0, 6000)) : ''}</textarea></div>
           <div class="field-row"><label>Leçons et recommandations</label><textarea id="db-lessons" rows="3" maxlength="3000">${val('lessons')}</textarea></div>
           <button class="btn" type="submit">${ed ? 'Enregistrer les modifications' : 'Enregistrer le débriefing'}</button>
           ${ed ? '<button class="btn ghost" type="button" id="db-cancel-edit">Annuler</button>' : ''}
@@ -2471,6 +2807,9 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       if (op && presenceList(op).length && !box.value.trim()) box.value = presenceText(op);
       if (op && !document.getElementById('db-title').value.trim()) document.getElementById('db-title').value = `Opération ${op.codeName}`;
       if (op) document.getElementById('db-unit').value = op.unit;
+      if (op && !document.getElementById('db-summary').value.trim()) document.getElementById('db-summary').value = autoSummary(op);
+      if (op && op.target && !document.getElementById('db-scp').value.trim()) document.getElementById('db-scp').value = op.target;
+      if (op && !document.getElementById('db-losses').value.trim()) document.getElementById('db-losses').value = autoLosses(op).slice(0, 200);
     });
     document.getElementById('fim-db-form').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -2963,6 +3302,24 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     }
     const evaluations = data.evaluations || [];
 
+    if (evalView === 'trainings') {
+      main.innerHTML = `
+        <div class="fim-hero">
+          <div class="fim-hero-eyebrow">Commandement FIM · centre de formation</div>
+          <h2>Formations</h2>
+          <p>Sessions publiées par le commandement : inscris-toi, puis l'instructeur évalue les inscrits avec la grille de la session (les brevets sont délivrés automatiquement).</p>
+        </div>
+        <div class="fim-subnav">
+          <button type="button" data-ev-view="people">${data.canEvaluate ? 'Opérateurs' : 'Mes évaluations'}</button>
+          ${data.canEvaluate ? `<button type="button" data-ev-view="grids">Grilles & barèmes (${grids.filter((g) => !g.archived).length})</button>` : ''}
+          <button type="button" data-ev-view="trainings" class="active">Formations</button>
+        </div>
+        <div id="fim-eval-body"></div>`;
+      main.querySelectorAll('[data-ev-view]').forEach((b) => b.addEventListener('click', () => { evalView = b.dataset.evView; gridEditing = null; loadEvaluations(deptId); }));
+      renderTrainings(document.getElementById('fim-eval-body'), grids, data, deptId);
+      return;
+    }
+
     // Vue opérateur : ses propres évaluations uniquement.
     if (!data.canEvaluate) {
       const me = agents.find((a) => norm(a.name || a.username) === norm(data.self));
@@ -2978,6 +3335,10 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
             <h2>Mes évaluations</h2>
             <p>Les évaluations rédigées par tes officiers après les opérations, exercices et revues périodiques. Seul le commandement peut en rédiger.</p>
           </div>
+          <div class="fim-subnav">
+            <button type="button" class="active">Mes évaluations</button>
+            <button type="button" data-ev-view="trainings">Formations</button>
+          </div>
           <div class="fim-eval-profile" style="--u:${color}">
             <div style="display:flex; justify-content:flex-end; margin:-8px 0 6px;"><button class="btn ghost small" id="fim-export-btn" type="button">Exporter ma fiche</button></div>
             ${profileBlock(data.self || '—', unitId, evaluations, gv, color, choices)}
@@ -2986,6 +3347,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           </div>`;
         document.getElementById('fim-profile-grid')?.addEventListener('change', (ev) => { evalGridView.self = ev.target.value; render(); });
         document.getElementById('fim-export-btn').addEventListener('click', () => exportFiche({ name: data.self, unit: unitId, tags: [] }, evaluations, null, []));
+        main.querySelector('[data-ev-view="trainings"]').addEventListener('click', () => { evalView = 'trainings'; loadEvaluations(deptId); });
       };
       render();
       return;
@@ -3000,6 +3362,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       <div class="fim-subnav">
         <button type="button" data-ev-view="people" class="${evalView === 'people' ? 'active' : ''}">Opérateurs</button>
         <button type="button" data-ev-view="grids" class="${evalView === 'grids' ? 'active' : ''}">Grilles & barèmes (${grids.filter((g) => !g.archived).length})</button>
+        <button type="button" data-ev-view="trainings">Formations</button>
       </div>
       <div id="fim-eval-body"></div>`;
     main.querySelectorAll('[data-ev-view]').forEach((b) => b.addEventListener('click', () => {
@@ -3010,6 +3373,123 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     const body = document.getElementById('fim-eval-body');
     if (evalView === 'grids') renderGrids(body, grids, evaluations, deptId);
     else renderPeople(body, data, grids, evaluations, agents, extra, proposals, deptId);
+  }
+
+  // ---------------- Formations ----------------
+  let trainingEditing = null;
+  const TRAINING_STATUS = {
+    planifiee: { label: 'Inscriptions ouvertes', color: '#4FD895' },
+    terminee: { label: 'Terminée', color: '#9297A8' },
+    annulee: { label: 'Annulée', color: '#F0525A' },
+  };
+  async function renderTrainings(body, grids, data, deptId) {
+    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+    let r;
+    try {
+      r = await window.apiFetch('/api/rp/fim/trainings');
+    } catch (err) {
+      body.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
+      return;
+    }
+    const canManage = !!r.canManage;
+    const selfKey = r.selfKey || personKey(data.self);
+    const list = r.trainings || [];
+    const now = Date.now();
+    const upcoming = list.filter((t) => t.status === 'planifiee' && (t.at || 0) > now - 86400000).sort((a, b) => a.at - b.at);
+    const past = list.filter((t) => !upcoming.includes(t));
+    const gridName = (id) => grids.find((g) => g.id === id)?.name || (id === 'standard' ? 'Standard FIM' : '');
+    setSide([[String(upcoming.length), 'À venir'], [String(upcoming.filter((t) => (t.signups || {})[selfKey]).length), 'Inscrit']], upcoming.slice(0, 5).map((t) => [new Date(t.at).toLocaleDateString('fr-FR'), t.title]));
+    if (trainingEditing) {
+      const t = trainingEditing;
+      body.innerHTML = `
+        <div class="subsection" style="margin-top:0;">
+          <h3>${t.id ? `Modifier « ${esc(t.title)} »` : 'Publier une formation'}</h3>
+          <form id="fim-tr-form">
+            <div class="field-grid">
+              <div class="field-row"><label>Intitulé *</label><input id="tr-title" maxlength="100" required value="${esc(t.title || '')}" placeholder="Ex : Formation tireur d'élite — session 3"></div>
+              <div class="field-row"><label>Date et heure *</label><input id="tr-at" type="datetime-local" required value="${t.at ? toLocalInput(t.at) : ''}"></div>
+              <div class="field-row"><label>Grille d'évaluation</label><select id="tr-grid"><option value="">— Aucune —</option>${grids.filter((g) => !g.archived).map((g) => `<option value="${esc(g.id)}"${t.gridId === g.id ? ' selected' : ''}>${esc(g.name)}${g.certificate?.enabled ? ' · brevet' : ''}</option>`).join('')}</select></div>
+              <div class="field-row"><label>Lieu</label><input id="tr-place" maxlength="120" list="fim-places" value="${esc(t.place || '')}" placeholder="Ex : stand de tir"></div>
+              <div class="field-row"><label>Instructeur</label><input id="tr-instructor" maxlength="80" value="${esc(t.instructor || data.self || '')}"></div>
+              <div class="field-row"><label>Places (0 = illimité)</label><input id="tr-seats" type="number" min="0" max="100" value="${t.seats || 0}"></div>
+            </div>
+            <datalist id="fim-places">${SITE_PLACES.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
+            <div class="field-row"><label>Programme</label><textarea id="tr-desc" rows="4" maxlength="2000">${esc(t.description || '')}</textarea></div>
+            <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin:6px 0 14px;"><input type="checkbox" id="tr-eri"${t.openToERI !== false ? ' checked' : ''} style="width:auto;"> Ouverte aux candidats ERI</label>
+            <div style="display:flex; gap:10px;"><button class="btn" type="submit">${t.id ? 'Enregistrer' : 'Publier (annoncée sur Discord)'}</button><button class="btn ghost" type="button" id="tr-cancel">Annuler</button></div>
+          </form>
+        </div>`;
+      document.getElementById('tr-cancel').addEventListener('click', () => { trainingEditing = null; renderTrainings(body, grids, data, deptId); });
+      document.getElementById('fim-tr-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const v = (id) => document.getElementById(id).value.trim();
+        const payload = { title: v('tr-title'), at: v('tr-at') ? new Date(v('tr-at')).getTime() : null, gridId: v('tr-grid'), place: v('tr-place'), instructor: v('tr-instructor'), seats: Number(v('tr-seats')) || 0, description: v('tr-desc'), openToERI: document.getElementById('tr-eri').checked };
+        try {
+          if (t.id) await window.apiFetch(`/api/rp/fim/trainings/${encodeURIComponent(t.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
+          else await window.apiFetch('/api/rp/fim/trainings', { method: 'POST', body: JSON.stringify(payload) });
+          window.showToast(t.id ? 'Formation modifiée.' : 'Formation publiée.', 'success');
+          trainingEditing = null;
+          renderTrainings(body, grids, data, deptId);
+        } catch (err) {
+          window.showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+      return;
+    }
+    const card = (t) => {
+      const signups = Object.values(t.signups || {}).sort((a, b) => a.at - b.at);
+      const mine = !!(t.signups || {})[selfKey];
+      const full = t.seats && signups.length >= t.seats;
+      const st = TRAINING_STATUS[t.status] || TRAINING_STATUS.planifiee;
+      const g = gridName(t.gridId);
+      return `<div class="fim-op fim-training" style="--u:${st.color}">
+        <div class="fim-op-top"><span class="fim-op-name" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(t.title)}</span>${pill(st)}${mine ? ' ' + pill({ label: 'Inscrit', color: '#5AA9FF' }) : ''}</div>
+        <div class="fim-op-meta">
+          <span>Le <b>${esc(fmtDate(t.at))}</b> (${esc(relTime(t.at))})</span>
+          ${t.place ? `<span>Lieu <b>${esc(t.place)}</b></span>` : ''}
+          ${t.instructor ? `<span>Instructeur <b>${esc(withCallsign(t.instructor))}</b></span>` : ''}
+          ${g ? `<span>Grille <b>${esc(g)}</b></span>` : ''}
+          <span>Places <b>${signups.length}${t.seats ? ` / ${t.seats}` : ''}</b></span>
+          ${t.openToERI ? '<span><b style="color:#B07CFF">Ouverte aux ERI</b></span>' : ''}
+        </div>
+        ${t.description ? `<div class="fim-op-body">${esc(t.description)}</div>` : ''}
+        ${signups.length ? `<div class="fim-op-team">${signups.map((x) => `<span class="fim-chip">${esc(withCallsign(x.name))}${canManage && t.gridId ? ` <button type="button" class="fim-link" data-tr-eval="${esc(x.name)}" data-grid="${esc(t.gridId)}">évaluer</button>` : ''}</span>`).join('')}</div>` : ''}
+        <div class="sci-card-actions">
+          ${t.status === 'planifiee' ? (mine ? `<button class="btn ghost small" type="button" data-tr-join="0" data-id="${esc(t.id)}">Me désinscrire</button>` : full ? '<span class="post-card-meta">Session complète</span>' : `<button class="btn small" type="button" data-tr-join="1" data-id="${esc(t.id)}">M'inscrire</button>`) : ''}
+          ${canManage ? `
+            <button class="btn ghost small" type="button" data-tr-edit="${esc(t.id)}">Modifier</button>
+            ${t.status === 'planifiee' ? `<button class="btn ghost small" type="button" data-tr-status="terminee" data-id="${esc(t.id)}">Marquer terminée</button><button class="btn ghost small" type="button" data-tr-status="annulee" data-id="${esc(t.id)}">Annuler</button>` : `<button class="btn ghost small" type="button" data-tr-status="planifiee" data-id="${esc(t.id)}">Rouvrir</button>`}
+            <button class="btn danger small" type="button" data-tr-del="${esc(t.id)}">Supprimer</button>` : ''}
+        </div>
+      </div>`;
+    };
+    body.innerHTML = `
+      ${canManage ? '<div style="display:flex; justify-content:flex-end; margin-bottom:14px;"><button class="btn small" type="button" id="fim-tr-new">+ Publier une formation</button></div>' : ''}
+      <div class="record-block"><div class="record-block-head"><h2>À venir</h2><span class="count">${upcoming.length}</span></div>
+        ${upcoming.length ? upcoming.map(card).join('') : '<div class="empty-row">Aucune formation prévue.</div>'}</div>
+      ${past.length ? `<div class="record-block" style="margin-top:24px;"><div class="record-block-head"><h2>Passées et annulées</h2><span class="count">${past.length}</span></div>${past.slice(0, 15).map(card).join('')}</div>` : ''}`;
+    const reload = () => renderTrainings(body, grids, data, deptId);
+    const act = async (url, opts, ok) => {
+      try {
+        await window.apiFetch(url, opts);
+        if (ok) window.showToast(ok, 'success');
+        reload();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    };
+    document.getElementById('fim-tr-new')?.addEventListener('click', () => { trainingEditing = { openToERI: true }; reload(); });
+    body.querySelectorAll('[data-tr-join]').forEach((b) => b.addEventListener('click', () => act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.id)}/signup`, { method: 'POST', body: JSON.stringify({ join: b.dataset.trJoin === '1' }) }, b.dataset.trJoin === '1' ? 'Inscription enregistrée.' : 'Désinscription enregistrée.')));
+    body.querySelectorAll('[data-tr-status]').forEach((b) => b.addEventListener('click', () => act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.id)}/status`, { method: 'POST', body: JSON.stringify({ status: b.dataset.trStatus }) }, 'Formation mise à jour.')));
+    body.querySelectorAll('[data-tr-del]').forEach((b) => b.addEventListener('click', () => { if (confirm('Supprimer cette formation et ses inscriptions ?')) act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.trDel)}`, { method: 'DELETE' }, 'Formation supprimée.'); }));
+    body.querySelectorAll('[data-tr-edit]').forEach((b) => b.addEventListener('click', () => { trainingEditing = list.find((t) => t.id === b.dataset.trEdit) || null; reload(); }));
+    body.querySelectorAll('[data-tr-eval]').forEach((b) => b.addEventListener('click', () => {
+      evalSelected = b.dataset.trEval;
+      lastGridId = b.dataset.grid;
+      evalFormOpen = true;
+      evalView = 'people';
+      loadEvaluations(deptId);
+    }));
   }
 
   // ---------------- Vue officier : opérateurs ----------------
@@ -3964,6 +4444,12 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
             </div>
           </div>
           ${pathwayBlock(data.pathway || { modules: [], total: 0, done: 0 }, data.proposals || [], { canPropose: false })}
+          ${(data.trainings || []).length ? `<div class="record-block" style="margin-top:18px;"><div class="record-block-head"><h2>Formations ouvertes</h2><span class="count">${data.trainings.length}</span></div>
+            ${data.trainings.map((t) => { const n = Object.keys(t.signups || {}).length; const mine = !!(t.signups || {})[data.selfKey]; return `<div class="fim-hq-row" style="--u:#B07CFF; margin-bottom:6px;">
+              <span class="nm" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(t.title)}</span>
+              <span class="meta">${esc(fmtDate(t.at))}${t.place ? ` · ${esc(t.place)}` : ''} · ${n}${t.seats ? `/${t.seats}` : ''} inscrit${n > 1 ? 's' : ''}</span>
+              <button class="btn small${mine ? ' ghost' : ''}" type="button" data-eri-join="${mine ? '0' : '1'}" data-id="${esc(t.id)}">${mine ? 'Me désinscrire' : "M'inscrire"}</button>
+            </div>`; }).join('')}</div>` : ''}
           <div class="fim-eval-profile" style="--u:#B07CFF; margin-top:18px;">
             ${profileBlock(data.name, null, evals, gv, '#B07CFF', choices, data.roles)}
             <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 12px;">Historique</h3>
@@ -3974,8 +4460,62 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       root.querySelector('#eri-back')?.addEventListener('click', onBack);
       root.querySelector('#fim-profile-grid')?.addEventListener('change', (e) => { gridId = e.target.value; render(); });
       root.querySelector('#eri-export').addEventListener('click', () => exportFiche({ name: data.name, unit: null, tags: data.roles, discordName: data.discordName }, evals, data.pathway, data.proposals));
+      root.querySelectorAll('[data-eri-join]').forEach((b) => b.addEventListener('click', async () => {
+        try {
+          await window.apiFetch(`/api/rp/eri/trainings/${encodeURIComponent(b.dataset.id)}/signup`, { method: 'POST', body: JSON.stringify({ join: b.dataset.eriJoin === '1' }) });
+          window.showToast(b.dataset.eriJoin === '1' ? 'Inscription enregistrée.' : 'Désinscription enregistrée.', 'success');
+          const fresh = await checkEri();
+          if (fresh) { Object.assign(data, fresh); render(); }
+        } catch (err) {
+          window.showToast(`Erreur : ${err.message}`, 'error');
+        }
+      }));
     };
     render();
+  }
+
+  // ---------------------------------------------------------------
+  // Pastilles des onglets : nouveautés depuis la dernière visite
+  // ---------------------------------------------------------------
+  const SEEN_KEY = 'fim_seen_v1';
+  function seenMap() {
+    try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}'); } catch (e) { return {}; }
+  }
+  function markSeen(tabId) {
+    const m = seenMap();
+    m[tabId] = Date.now();
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(m)); } catch (e) { /* stockage indisponible */ }
+    setBadge(tabId, 0);
+  }
+  function setBadge(tabId, n) {
+    const tab = document.querySelector(`.terminal-tab[data-tab="${tabId}"]`);
+    if (!tab) return;
+    let b = tab.querySelector('.fim-badge');
+    if (!n) { b?.remove(); return; }
+    if (!b) { b = document.createElement('span'); b.className = 'fim-badge'; tab.appendChild(b); }
+    b.textContent = n > 9 ? '9+' : String(n);
+  }
+  let badgesAt = 0;
+  async function refreshBadges(activeTab) {
+    if (Date.now() - badgesAt < 60000) return;
+    badgesAt = Date.now();
+    const safe = (pr, fb) => pr.catch(() => fb);
+    const [o, d, e, t] = await Promise.all([
+      safe(window.apiFetch('/api/rp/fim/operations'), { operations: [] }),
+      safe(window.apiFetch('/api/rp/fim/directives'), { directives: [] }),
+      safe(window.apiFetch('/api/rp/fim/evaluations'), { evaluations: [] }),
+      safe(window.apiFetch('/api/rp/fim/trainings'), { trainings: [] }),
+    ]);
+    const seen = seenMap();
+    const self = e.self || '';
+    const since = (tab) => seen[tab] || Date.now() - 3 * 86400000;
+    const ops = (o.operations || []).filter((x) => (x.updatedAt || x.createdAt || 0) > since('fim-ops') && (x.status === 'planifiee' || x.status === 'en_cours'));
+    const myUnit = null;
+    const unread = unreadDirectives(d.directives || [], d.selfKey || '', myUnit).length;
+    const mineEvals = (e.evaluations || []).filter((x) => norm(x.agentName) === norm(self) && (x.createdAt || 0) > since('fim-evals')).length;
+    const newTr = (t.trainings || []).filter((x) => x.status === 'planifiee' && (x.createdAt || 0) > since('fim-evals')).length;
+    const counts = { 'fim-ops': ops.length, 'fim-units': unread, 'fim-evals': mineEvals + newTr };
+    Object.entries(counts).forEach(([tab, n]) => setBadge(tab, tab === activeTab && tab !== 'fim-units' ? 0 : n));
   }
 
   // ---------------------------------------------------------------
@@ -4003,6 +4543,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       else if (tabId === 'fim-units') loadUnits(deptId);
       else if (tabId === 'fim-library') loadLibrary();
       else if (tabId === 'fim-evals') loadEvaluations(deptId);
+      markSeen(tabId);
+      refreshBadges(tabId).catch(() => {});
     },
     stop: stopRefresh,
     checkEri,
