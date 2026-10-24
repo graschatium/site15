@@ -1032,6 +1032,9 @@
       // Onglets de l'intranet FIM (voir rp/fim.js), en tête : le terminal s'ouvre sur le QG.
       tabs.unshift(...window.FIM.tabs);
     }
+    // Dossiers des personnages créés en jeu : onglet retiré plus bas si
+    // l'utilisateur n'est pas à la direction de ce département.
+    if (DOSSIER_DEPTS.has(deptId)) tabs.push({ id: 'dossiers', label: 'Dossiers', icon: 'people' });
 
     mainRoot.innerHTML = `
       <div class="terminal-screen">
@@ -1103,11 +1106,136 @@
     });
 
     loadTerminalTab(deptId, tabs[0].id);
+
+    if (DOSSIER_DEPTS.has(deptId)) {
+      fetchDossiers().then((data) => {
+        if ((data.deptIds || []).includes(deptId)) {
+          const pending = (data.characters || []).filter((c) => c.deptId === deptId && c.status === 'en_attente').length;
+          const tab = mainRoot.querySelector('.terminal-tab[data-tab="dossiers"]');
+          if (tab && pending) tab.insertAdjacentHTML('beforeend', ` <span class="count">${pending}</span>`);
+        } else {
+          mainRoot.querySelector('.terminal-tab[data-tab="dossiers"]')?.remove();
+        }
+      }).catch(() => mainRoot.querySelector('.terminal-tab[data-tab="dossiers"]')?.remove());
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Dossiers — personnages créés depuis le menu du jeu, validés par la
+  // direction du département (routes /api/rp/dossiers, characterRoutes.js
+  // côté bot). Classe-D validés automatiquement : visibles mais sans action.
+  // -----------------------------------------------------------------
+  const DOSSIER_DEPTS = new Set([SECURITY_DEPT_ID, MEDICAL_DEPT_ID, SCIENCE_DEPT_ID, ADMIN_DEPT_ID, 'classe_d_mmqbk7ziqke2']);
+
+  function fetchDossiers() {
+    return apiFetch('/api/rp/dossiers');
+  }
+
+  function dossierDate(ms) {
+    return ms ? new Date(ms).toLocaleDateString('fr-FR') : '—';
+  }
+
+  async function loadDossiers(deptId) {
+    const main = document.getElementById('terminal-main');
+    main.innerHTML = '<div class="center-msg">Chargement…</div>';
+    let data;
+    try {
+      data = await fetchDossiers();
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">Erreur : ${escapeHtml(err.message)}</div>`;
+      return;
+    }
+    if (!(data.deptIds || []).includes(deptId)) {
+      main.innerHTML = '<div class="center-msg">Réservé à la direction du département.</div>';
+      return;
+    }
+    const list = (data.characters || []).filter((c) => c.deptId === deptId);
+    const pending = list.filter((c) => c.status === 'en_attente');
+    const active = list.filter((c) => c.status === 'actif');
+    const closed = list.filter((c) => c.status === 'refuse' || c.status === 'mort');
+    const fullName = (c) => `${c.firstName} ${c.lastName}`.trim() || c.rosterName;
+
+    document.getElementById('stat-grid').innerHTML = `
+      <div class="stat-cell"><div class="stat-value">${pending.length}</div><div class="stat-label">En attente</div></div>
+      <div class="stat-cell"><div class="stat-value">${active.length}</div><div class="stat-label">Actifs</div></div>
+    `;
+    document.getElementById('journal-panel').innerHTML = list.length
+      ? list.slice(0, 4).map((c) => `<div class="journal-entry"><span class="journal-time">${dossierDate(c.decidedAt || c.createdAt)}</span><span class="journal-text">${escapeHtml(fullName(c))} — ${escapeHtml(c.statusLabel)}</span></div>`).join('')
+      : '<div class="journal-entry"><span class="journal-text">Aucun dossier.</span></div>';
+
+    main.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Dossiers en attente</h2><span class="count">${pending.length}</span></div>
+        ${pending.length ? pending.map((c) => `
+          <div class="post-card" data-id="${escapeHtml(c.id)}">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(fullName(c))}</span><span class="post-card-meta">${c.age ? `${c.age} ans — ` : ''}joueur ${escapeHtml(c.username)} — déposé le ${dossierDate(c.createdAt)}</span></div>
+            ${c.background ? `<div class="post-card-body">${escapeHtml(c.background)}</div>` : '<div class="post-card-meta">Pas de parcours renseigné.</div>'}
+            <div class="field-row" style="margin-top:10px;"><label>Motif (envoyé au joueur en cas de refus)</label><input type="text" class="dossier-reason" maxlength="300"></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn small dossier-accept" type="button">Valider</button>
+              <button class="btn danger small dossier-refuse" type="button">Refuser</button>
+            </div>
+          </div>`).join('') : '<div class="empty-row">Aucun dossier en attente.</div>'}
+      </div>
+      <div class="record-block">
+        <div class="record-block-head"><h2>Personnages actifs</h2><span class="count">${active.length}</span></div>
+        ${active.length ? active.map((c) => `
+          <div class="post-card" data-id="${escapeHtml(c.id)}">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(fullName(c))}</span><span class="post-card-meta">Perso n°${c.number} — joueur ${escapeHtml(c.username)} — ${Number(c.money || 0).toLocaleString('fr-FR')} crédits RP</span></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">
+              <input type="number" class="dossier-money" placeholder="+500 / -200" style="width:130px;">
+              <button class="btn ghost small dossier-money-btn" type="button">Ajuster l'argent</button>
+              <input type="text" class="dossier-death-reason" placeholder="Circonstances du décès" maxlength="300" style="flex:1;min-width:160px;">
+              <button class="btn danger small dossier-death" type="button">Déclarer mort</button>
+            </div>
+          </div>`).join('') : '<div class="empty-row">Aucun personnage actif créé en jeu.</div>'}
+      </div>
+      <div class="record-block">
+        <div class="record-block-head"><h2>Historique</h2><span class="count">${closed.length}</span></div>
+        ${closed.length ? closed.map((c) => `
+          <div class="post-card">
+            <div class="post-card-head"><span class="post-card-title">${escapeHtml(fullName(c))}</span><span class="post-card-meta">${escapeHtml(c.statusLabel)} par ${escapeHtml(c.decidedBy || '—')} le ${dossierDate(c.decidedAt)}</span></div>
+            ${c.reason || c.deathReason ? `<div class="post-card-meta">${escapeHtml(c.deathReason || c.reason)}</div>` : ''}
+          </div>`).join('') : '<div class="empty-row">Aucun dossier refusé ni personnage décédé.</div>'}
+      </div>
+    `;
+
+    const act = async (card, path, body, done) => {
+      try {
+        await apiFetch(`/api/rp/dossiers/${encodeURIComponent(card.dataset.id)}/${path}`, { method: 'POST', body: JSON.stringify(body) });
+        showToast(done, 'success');
+        loadDossiers(deptId);
+      } catch (err) {
+        showToast(`Erreur : ${err.message}`, 'error');
+      }
+    };
+    main.querySelectorAll('.dossier-accept').forEach((btn) => btn.addEventListener('click', () => {
+      const card = btn.closest('.post-card');
+      act(card, 'decision', { decision: 'accept', reason: card.querySelector('.dossier-reason').value.trim() }, 'Dossier validé.');
+    }));
+    main.querySelectorAll('.dossier-refuse').forEach((btn) => btn.addEventListener('click', () => {
+      const card = btn.closest('.post-card');
+      const reason = card.querySelector('.dossier-reason').value.trim();
+      if (!reason) { showToast('Indique un motif de refus.', 'error'); return; }
+      act(card, 'decision', { decision: 'refuse', reason }, 'Dossier refusé.');
+    }));
+    main.querySelectorAll('.dossier-money-btn').forEach((btn) => btn.addEventListener('click', () => {
+      const card = btn.closest('.post-card');
+      const delta = Math.round(Number(card.querySelector('.dossier-money').value));
+      if (!delta) { showToast('Indique un montant (négatif pour retirer).', 'error'); return; }
+      act(card, 'money', { delta }, 'Solde mis à jour.');
+    }));
+    main.querySelectorAll('.dossier-death').forEach((btn) => btn.addEventListener('click', () => {
+      const card = btn.closest('.post-card');
+      if (!confirm('Déclarer ce personnage mort ? Il ne pourra plus être joué.')) return;
+      act(card, 'death', { reason: card.querySelector('.dossier-death-reason').value.trim() }, 'Personnage déclaré mort.');
+    }));
   }
 
   function loadTerminalTab(deptId, tabId) {
     window.FIM?.stop();
-    if (tabId.startsWith('fim-')) window.FIM?.load(tabId, deptId);
+    if (tabId === 'dossiers') loadDossiers(deptId);
+    else if (tabId.startsWith('fim-')) window.FIM?.load(tabId, deptId);
     else if (tabId === 'bulletin' || tabId === 'effectifs') loadDeptData(deptId, tabId);
     else if (tabId === 'rdv') loadMedicalModule();
     else if (tabId === 'sec-reports') loadSecurityReports();
