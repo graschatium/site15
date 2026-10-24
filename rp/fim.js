@@ -3099,15 +3099,15 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       const rows = grids.map((g) => {
         const cs = visible.filter((c) => c.gridId === g.id);
         if (q && !cs.length && !norm(g.name).includes(q)) return '';
-        return item({ kind: 'grid', id: g.id }, g.name.replace(/^[^·]*·\s*/, ''), `${cs.filter((c) => !c.archived).length} cours`)
-          + cs.map((c) => item({ kind: 'course', id: c.id }, `↳ ${c.title}`, c.archived ? 'Archivé' : '', ' style="padding-left:22px;"')).join('');
+        return item({ kind: 'grid', id: g.id }, g.name.replace(/^[^·]*·\s*/, ''), `${cs.filter((c) => !c.hidden).length} cours`)
+          + cs.map((c) => item({ kind: 'course', id: c.id }, `↳ ${c.title}`, c.hidden ? 'Masqué' : '', ' style="padding-left:22px;"')).join('');
       }).join('');
       if (rows) html += head(group.label) + rows;
     }
     const gridIds = new Set(courseData.grids.map((g) => g.id));
     const free = {};
     visible.filter((c) => !c.gridId || !gridIds.has(c.gridId)).forEach((c) => (free[c.category || 'Cours libres'] = free[c.category || 'Cours libres'] || []).push(c));
-    Object.entries(free).forEach(([cat, cs]) => { html += head(cat) + cs.map((c) => item({ kind: 'course', id: c.id }, c.title, c.archived ? 'Archivé' : c.authorName)).join(''); });
+    Object.entries(free).forEach(([cat, cs]) => { html += head(cat) + cs.map((c) => item({ kind: 'course', id: c.id }, c.title, c.hidden ? 'Masqué' : c.authorName)).join(''); });
     list.innerHTML = html || '<div class="empty-row">Aucun résultat.</div>';
     list.querySelectorAll('[data-csel]').forEach((b) => b.addEventListener('click', () => {
       const [kind, ...rest] = b.dataset.csel.split(':');
@@ -3117,9 +3117,30 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     }));
   }
 
+  // Markdown du site + liens internes [[Titre d'un cours ou d'un dossier]].
+  function courseMarkdown(md) {
+    return window.renderMarkdown(md).replace(/\[\[([^\]<>]{1,120})\]\]/g, (all, raw) => {
+      const q = norm(raw.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
+      const c = courseData.courses.find((x) => norm(x.title) === q);
+      const g = !c && courseData.grids.find((x) => norm(x.name) === q || norm(x.name.replace(/^[^·]*·\s*/, '')) === q);
+      if (!c && !g) return `<span title="Aucun cours ou dossier ne porte ce titre" style="border-bottom:1px dashed var(--ink-faint);">${raw}</span>`;
+      return `<a href="#" data-clink="${c ? 'course' : 'grid'}:${esc(c ? c.id : g.id)}" style="color:var(--accent-2); font-weight:600;">${raw}</a>`;
+    });
+  }
+  function bindCourseLinks(root) {
+    root.querySelectorAll('[data-clink]').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const [kind, ...rest] = a.dataset.clink.split(':');
+      courseSel = { kind, id: rest.join(':') };
+      renderCourseToc(document.getElementById('fim-course-search')?.value || '');
+      renderCourseArticle();
+      document.getElementById('fim-course-article')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }));
+  }
+
   function courseCard(c) {
     return `<button type="button" class="fim-grid-card" data-copen="${esc(c.id)}" style="text-align:left; cursor:pointer;">
-      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;"><h4 style="margin-right:auto;">${esc(c.title)}</h4>${c.archived ? '<span class="fim-pill">Archivé</span>' : ''}${c.duration ? `<span class="fim-pill">${c.duration} min</span>` : ''}</div>
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;"><h4 style="margin-right:auto;">${esc(c.title)}</h4>${c.hidden ? '<span class="fim-pill" style="--c:var(--warn)">Masqué</span>' : ''}${c.duration ? `<span class="fim-pill">${c.duration} min</span>` : ''}</div>
       ${c.summary ? `<p>${esc(c.summary)}</p>` : ''}
       <div class="fim-op-meta" style="margin:0;"><span>Par <b>${esc(c.authorName || '—')}</b></span><span>${fmtDate(c.updatedAt || c.createdAt)}</span>${(c.links || []).length ? `<span><b>${c.links.length}</b> lien(s)</span>` : ''}</div>
     </button>`;
@@ -3145,7 +3166,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         <div class="sci-body-rendered fim-table">${window.renderMarkdown(`| Point évalué | Ce qui est attendu | Poids |\n|---|---|---|\n${g.criteria.map((c) => `| **${c.label.replace(/\|/g, '/')}** | ${(c.hint || '—').replace(/\|/g, '/')} | ${Math.round((c.weight / total) * 100)} % |`).join('\n')}`)}</div>
         <p style="font-size:12px; color:var(--ink-faint); margin:8px 0 22px;">Avis « Conforme » à partir de <b>${esc(String(g.thresholds?.conforme ?? 55))} %</b>, « Excellent » à partir de <b>${esc(String(g.thresholds?.excellent ?? 80))} %</b>.</p>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px;">Cours (${cs.filter((c) => !c.archived).length})</h3>
+          <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px;">Cours (${cs.filter((c) => !c.hidden).length})</h3>
           ${courseData.canManage ? '<button class="btn small" id="fim-course-add" type="button">+ Déposer un cours ici</button>' : ''}
         </div>
         <div class="fim-grid">${cs.length ? cs.map(courseCard).join('') : '<div class="empty-row">Aucun cours déposé pour ce dossier.</div>'}</div>`;
@@ -3157,29 +3178,34 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     const c = courseData.courses.find((x) => x.id === sel.id);
     if (!c) { article.innerHTML = '<div class="wiki-empty"><div class="wiki-empty-title">Cours FIM</div><p>Sélectionne un cours.</p></div>'; return; }
     const g = courseData.grids.find((x) => x.id === c.gridId);
+    // Fiches liées dans les deux sens (ce cours vers d'autres, d'autres vers lui)
+    const related = courseData.courses.filter((x) => x.id !== c.id && ((c.related || []).includes(x.id) || (x.related || []).includes(c.id)));
     article.innerHTML = `
       <div class="wiki-article-head">
         ${g ? `<span class="fim-pill" style="--c:var(--accent-2)">${esc(courseGroupOf(g.id).label)}</span>` : `<span class="fim-pill">${esc(c.category || 'Cours libre')}</span>`}
         ${c.duration ? `<span class="fim-pill">${c.duration} min</span>` : ''}
-        ${c.archived ? '<span class="fim-pill">Archivé</span>' : ''}
+        ${c.hidden ? '<span class="fim-pill" style="--c:var(--warn)">Masqué aux FIM</span>' : ''}
       </div>
       <h2 class="wiki-article-title">${esc(c.title)}</h2>
       <div class="post-card-meta" style="margin-bottom:${c.summary ? 10 : 20}px;">${esc(c.authorName || '—')} — ${fmtDate(c.createdAt)}${c.updatedBy ? ` · modifié par ${esc(c.updatedBy)} le ${fmtDate(c.updatedAt)}` : ''}</div>
       ${c.summary ? `<p style="color:var(--ink-dim); font-size:13px; line-height:1.6; margin-bottom:18px;">${esc(c.summary)}</p>` : ''}
       ${g ? `<button type="button" class="btn ghost small" id="fim-course-grid" style="margin-bottom:18px;">Évaluation associée : ${esc(g.name)} →</button>` : ''}
-      ${c.content ? `<div class="sci-body-rendered fim-table">${window.renderMarkdown(c.content)}</div>` : ''}
+      ${c.content ? `<div class="sci-body-rendered fim-table">${courseMarkdown(c.content)}</div>` : ''}
       ${(c.links || []).length ? `<h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 10px;">Documents et liens</h3>
         <div style="display:flex; flex-direction:column; gap:6px;">${c.links.map((l) => `<a class="btn ghost small" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" style="justify-content:flex-start;">↗ ${esc(l.label)}</a>`).join('')}</div>` : ''}
+      ${related.length ? `<h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 10px;">Voir aussi</h3><div class="fim-grid">${related.map(courseCard).join('')}</div>` : ''}
       ${courseData.canManage ? `<div class="sci-card-actions" style="margin-top:24px;">
         <button class="btn ghost small" id="fim-course-edit">Modifier</button>
-        <button class="btn ghost small" id="fim-course-arch">${c.archived ? 'Restaurer' : 'Archiver'}</button>
+        <button class="btn ghost small" id="fim-course-arch">${c.hidden ? 'Afficher aux FIM' : 'Masquer aux FIM'}</button>
         <button class="btn danger small" id="fim-course-del">Supprimer</button></div>` : ''}`;
+    bindCards();
+    bindCourseLinks(article);
     document.getElementById('fim-course-grid')?.addEventListener('click', () => { courseSel = { kind: 'grid', id: g.id }; renderCourseToc(); renderCourseArticle(); });
     document.getElementById('fim-course-edit')?.addEventListener('click', () => { courseSel = { kind: 'edit', id: c.id }; renderCourseArticle(); });
     document.getElementById('fim-course-arch')?.addEventListener('click', async () => {
       try {
-        await window.apiFetch(`/api/rp/fim/courses/${encodeURIComponent(c.id)}`, { method: 'PUT', body: JSON.stringify({ archived: !c.archived }) });
-        window.showToast(c.archived ? 'Cours restauré.' : 'Cours archivé : seul le commandement le voit encore.', 'success');
+        await window.apiFetch(`/api/rp/fim/courses/${encodeURIComponent(c.id)}`, { method: 'PUT', body: JSON.stringify({ hidden: !c.hidden }) });
+        window.showToast(c.hidden ? 'Cours affiché aux FIM.' : 'Cours masqué : seul le commandement le voit.', 'success');
         loadCourses();
       } catch (err) {
         window.showToast(`Erreur : ${err.message}`, 'error');
@@ -3205,6 +3231,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       return gs.length ? `<optgroup label="${esc(group.label)}">${gs.map((g) => `<option value="${esc(g.id)}"${g.id === gridId ? ' selected' : ''}>${esc(g.name)}</option>`).join('')}</optgroup>` : '';
     }).join('');
     const cats = [...new Set(courseData.courses.map((x) => x.category).filter(Boolean))];
+    const others = courseData.courses.filter((x) => x.id !== c?.id);
     article.innerHTML = `
       <h3 style="font-family:'Space Grotesk', sans-serif; font-size:16px; margin-bottom:16px;">${c ? 'Modifier le cours' : 'Déposer un cours'}</h3>
       <form id="fim-course-form">
@@ -3219,6 +3246,12 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           <textarea id="fc-content" rows="16">${c ? esc(c.content || '') : ''}</textarea>
           <div id="fc-preview" class="sci-body-rendered fim-table" style="display:none; border:1px solid var(--line); padding:14px; min-height:120px;"></div>
         </div>
+        <div class="field-row"><label>Fiches liées (« Voir aussi », affichées dans les deux cours)</label>
+          <input type="text" id="fc-rel-search" class="fim-search" placeholder="Filtrer les cours…" style="width:100%; margin-bottom:6px;">
+          <div id="fc-related" style="max-height:180px; overflow:auto; border:1px solid var(--line); padding:6px 10px;">${others.length ? others.map((x) => `<label style="display:flex; gap:8px; align-items:center; padding:3px 0; font-size:12.5px; text-transform:none; letter-spacing:0;" data-rel-hay="${esc(norm(x.title))}"><input type="checkbox" value="${esc(x.id)}"${(c?.related || []).includes(x.id) ? ' checked' : ''}> ${esc(x.title)}${x.hidden ? ' <span style="color:var(--ink-faint);">(masqué)</span>' : ''}</label>`).join('') : '<span style="font-size:12px; color:var(--ink-faint);">Aucun autre cours pour le moment.</span>'}</div>
+          <span style="font-size:11.5px; color:var(--ink-faint);">Dans le texte, <b>[[Titre d'un cours]]</b> ou <b>[[Passage · Caporal]]</b> crée un lien cliquable vers ce cours ou ce dossier.</span>
+        </div>
+        <div class="field-row"><label style="display:flex; gap:8px; align-items:center; text-transform:none; letter-spacing:0;"><input type="checkbox" id="fc-visible"${c?.hidden ? '' : ' checked'}> Afficher ce cours aux FIM (décoché : visible du commandement seulement)</label></div>
         <div class="field-row"><label>Documents et liens (un par ligne : Libellé | https://…)</label><textarea id="fc-links" rows="4" placeholder="Support PDF | https://drive.google.com/…&#10;Vidéo de démonstration | https://youtube.com/…">${c ? esc((c.links || []).map((l) => `${l.label} | ${l.url}`).join('\n')) : ''}</textarea></div>
         <div style="display:flex; gap:10px;"><button class="btn" type="submit">${c ? 'Enregistrer' : 'Déposer'}</button><button class="btn ghost" type="button" id="fc-cancel">Annuler</button></div>
       </form>`;
@@ -3226,11 +3259,15 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     const syncCat = () => { document.getElementById('fc-cat-row').style.display = gridSel.value ? 'none' : ''; };
     gridSel.addEventListener('change', syncCat);
     syncCat();
+    document.getElementById('fc-rel-search').addEventListener('input', (e) => {
+      const q = norm(e.target.value);
+      article.querySelectorAll('[data-rel-hay]').forEach((l) => { l.style.display = !q || l.dataset.relHay.includes(q) ? '' : 'none'; });
+    });
     document.getElementById('fc-preview-btn').addEventListener('click', (e) => {
       const ta = document.getElementById('fc-content');
       const pv = document.getElementById('fc-preview');
       const show = pv.style.display === 'none';
-      if (show) pv.innerHTML = window.renderMarkdown(ta.value || '*Rien à afficher.*');
+      if (show) { pv.innerHTML = courseMarkdown(ta.value || '*Rien à afficher.*'); bindCourseLinks(pv); }
       pv.style.display = show ? '' : 'none';
       ta.style.display = show ? 'none' : '';
       e.target.textContent = show ? 'Modifier' : 'Aperçu';
@@ -3255,6 +3292,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         summary: document.getElementById('fc-summary').value.trim(),
         content: document.getElementById('fc-content').value.trim(),
         links,
+        related: [...article.querySelectorAll('#fc-related input:checked')].map((x) => x.value),
+        hidden: !document.getElementById('fc-visible').checked,
       };
       try {
         if (c) {
