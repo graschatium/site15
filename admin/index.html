@@ -3044,7 +3044,8 @@
       </div>
     `;
 
-    results.innerHTML = identityBlock + charactersBlock + sanctionsBlock + absencesBlock;
+    results.innerHTML = identityBlock + charactersBlock + '<div id="dossier-rpchars"></div>' + sanctionsBlock + absencesBlock;
+    loadDossierRpCharacters(robloxUsername);
 
     results.querySelectorAll('.copy-command-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
@@ -3076,6 +3077,66 @@
         }
       });
     }
+  }
+
+  // Personnages RP créés en jeu (menu « Vos personnages ») : liste + renommage
+  // (bot : /api/admin/characters, réservé aux admins).
+  const RP_STATUS_CLASS = { actif: 'actif', en_attente: 'inactif', refuse: 'archivé', mort: 'archivé' };
+  async function loadDossierRpCharacters(robloxUsername) {
+    const box = document.getElementById('dossier-rpchars');
+    if (!box) return;
+    let data;
+    try {
+      data = await apiFetch(`/api/admin/characters?username=${encodeURIComponent(robloxUsername)}`);
+    } catch (err) {
+      box.innerHTML = `<div class="record-block"><div class="record-block-head"><h2>Personnages RP (jeu)</h2></div><div class="empty-row">Erreur : ${escapeHtml(err.message)}</div></div>`;
+      return;
+    }
+    const list = data.characters || [];
+    box.innerHTML = `
+      <div class="record-block">
+        <div class="record-block-head"><h2>Personnages RP (jeu)</h2><span class="count">${list.length}</span></div>
+        ${
+          list.length
+            ? `<table>
+                <thead><tr><th>N°</th><th>Département</th><th>Prénom</th><th>Nom</th><th>Statut</th><th></th></tr></thead>
+                <tbody>
+                  ${list
+                    .map(
+                      (c) => `
+                    <tr data-id="${escapeHtml(c.id)}">
+                      <td class="mono-cell">${escapeHtml(String(c.number || '—'))}</td>
+                      <td>${escapeHtml(c.deptName || c.deptId)}</td>
+                      <td><input type="text" class="rp-first" maxlength="24" value="${escapeHtml(c.firstName || '')}" style="width:130px;"></td>
+                      <td><input type="text" class="rp-last" maxlength="24" value="${escapeHtml(c.lastName || '')}" style="width:150px;"></td>
+                      <td><span class="status-pill status-${RP_STATUS_CLASS[c.status] || 'actif'}">${escapeHtml(c.statusLabel || c.status)}</span></td>
+                      <td><button class="btn ghost small rp-rename-btn" type="button">Renommer</button></td>
+                    </tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>`
+            : '<div class="empty-row">Aucun personnage créé en jeu pour ce pseudo.</div>'
+        }
+      </div>
+    `;
+    box.querySelectorAll('.rp-rename-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('tr');
+        const firstName = row.querySelector('.rp-first').value.trim();
+        const lastName = row.querySelector('.rp-last').value.trim();
+        if (firstName.length < 2 || lastName.length < 2) { showToast('Prénom et nom : 2 lettres au moins.', 'error'); return; }
+        btn.disabled = true;
+        try {
+          await apiFetch(`/api/admin/characters/${encodeURIComponent(row.dataset.id)}/rename`, { method: 'POST', body: JSON.stringify({ firstName, lastName, byName: (context.roleLabels || [])[0] ? `Console (${context.roleLabels[0]})` : 'Console staff' }) });
+          showToast('Personnage renommé.', 'success');
+          loadDossierRpCharacters(robloxUsername);
+        } catch (err) {
+          btn.disabled = false;
+          showToast(`Erreur : ${err.message}`, 'error');
+        }
+      });
+    });
   }
 
   // -----------------------------------------------------------------

@@ -1175,6 +1175,11 @@
               <button class="btn small dossier-accept" type="button">Valider</button>
               <button class="btn danger small dossier-refuse" type="button">Refuser</button>
             </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">
+              <input type="text" class="dossier-first" placeholder="Prénom" maxlength="24" value="${escapeHtml(c.firstName || '')}" style="width:140px;">
+              <input type="text" class="dossier-last" placeholder="Nom" maxlength="24" value="${escapeHtml(c.lastName || '')}" style="width:160px;">
+              <button class="btn ghost small dossier-rename" type="button">Renommer</button>
+            </div>
           </div>`).join('') : '<div class="empty-row">Aucun dossier en attente.</div>'}
       </div>
       <div class="record-block">
@@ -1187,6 +1192,11 @@
               <button class="btn ghost small dossier-money-btn" type="button">Ajuster l'argent</button>
               <input type="text" class="dossier-death-reason" placeholder="Circonstances du décès" maxlength="300" style="flex:1;min-width:160px;">
               <button class="btn danger small dossier-death" type="button">Déclarer mort</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px;">
+              <input type="text" class="dossier-first" placeholder="Prénom" maxlength="24" value="${escapeHtml(c.firstName || '')}" style="width:140px;">
+              <input type="text" class="dossier-last" placeholder="Nom" maxlength="24" value="${escapeHtml(c.lastName || '')}" style="width:160px;">
+              <button class="btn ghost small dossier-rename" type="button">Renommer</button>
             </div>
           </div>`).join('') : '<div class="empty-row">Aucun personnage actif créé en jeu.</div>'}
       </div>
@@ -1224,6 +1234,13 @@
       const delta = Math.round(Number(card.querySelector('.dossier-money').value));
       if (!delta) { showToast('Indique un montant (négatif pour retirer).', 'error'); return; }
       act(card, 'money', { delta }, 'Solde mis à jour.');
+    }));
+    main.querySelectorAll('.dossier-rename').forEach((btn) => btn.addEventListener('click', () => {
+      const card = btn.closest('.post-card');
+      const firstName = card.querySelector('.dossier-first').value.trim();
+      const lastName = card.querySelector('.dossier-last').value.trim();
+      if (firstName.length < 2 || lastName.length < 2) { showToast('Prénom et nom : 2 lettres au moins.', 'error'); return; }
+      act(card, 'rename', { firstName, lastName }, 'Personnage renommé.');
     }));
     main.querySelectorAll('.dossier-death').forEach((btn) => btn.addEventListener('click', () => {
       const card = btn.closest('.post-card');
