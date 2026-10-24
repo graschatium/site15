@@ -3117,14 +3117,16 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     }));
   }
 
-  // Markdown du site + liens internes [[Titre d'un cours ou d'un dossier]].
+  // Markdown du site + liens internes [[Titre d'un cours ou d'un dossier]]
+  // ou [[Titre|texte affiché]].
   function courseMarkdown(md) {
-    return window.renderMarkdown(md).replace(/\[\[([^\]<>]{1,120})\]\]/g, (all, raw) => {
+    return window.renderMarkdown(md).replace(/\[\[([^\]<>]{1,160})\]\]/g, (all, inner) => {
+      const [raw, label = raw] = inner.split('|');
       const q = norm(raw.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&'));
       const c = courseData.courses.find((x) => norm(x.title) === q);
       const g = !c && courseData.grids.find((x) => norm(x.name) === q || norm(x.name.replace(/^[^·]*·\s*/, '')) === q);
-      if (!c && !g) return `<span title="Aucun cours ou dossier ne porte ce titre" style="border-bottom:1px dashed var(--ink-faint);">${raw}</span>`;
-      return `<a href="#" data-clink="${c ? 'course' : 'grid'}:${esc(c ? c.id : g.id)}" style="color:var(--accent-2); font-weight:600;">${raw}</a>`;
+      if (!c && !g) return `<span title="Aucun cours ou dossier ne porte ce titre" style="border-bottom:1px dashed var(--ink-faint);">${label}</span>`;
+      return `<a href="#" data-clink="${c ? 'course' : 'grid'}:${esc(c ? c.id : g.id)}" style="color:var(--accent-2); font-weight:600;">${label}</a>`;
     });
   }
   function bindCourseLinks(root) {
