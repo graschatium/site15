@@ -3481,7 +3481,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   function printSeance(c) {
     const w = window.open('', '_blank');
     if (!w) { window.showToast('Autorise les fenêtres pop-up pour imprimer.', 'error'); return; }
-    w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche de séance — ${esc(c.title)}</title>
+    w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><base href="${esc(location.href)}"><title>Fiche de séance — ${esc(c.title)}</title>
       <style>
         body{ font-family:Arial, sans-serif; color:#111; max-width:780px; margin:24px auto; padding:0 16px; font-size:13px; line-height:1.55; }
         h2{ font-size:20px; margin:6px 0 10px; } h3{ font-size:14px; margin:20px 0 6px; border-bottom:1px solid #999; padding-bottom:3px; text-transform:uppercase; letter-spacing:.04em; }
@@ -3498,96 +3498,323 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   }
 
   function ensureTrainerStyle() {
-  if (!document.getElementById('fim-present-style')) {
+    if (document.getElementById('fim-present-style')) return;
     const st = document.createElement('style');
     st.id = 'fim-present-style';
     st.textContent = `
-      .fim-present{ position:fixed; inset:0; z-index:9999; background:var(--void, #0B0C10); display:flex; flex-direction:column; color:var(--ink, #E8EAF0); }
-      .fim-present-bar{ display:flex; align-items:center; gap:10px; padding:10px 18px; border-bottom:1px solid var(--line); font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); }
-      .fim-present-bar b{ color:var(--ink); font-family:'Space Grotesk', sans-serif; font-size:14px; margin-right:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-      .fim-present-main{ flex:1; display:flex; min-height:0; }
-      .fim-present-slide{ flex:1; overflow:auto; padding:5vh 7vw; }
-      .fim-present-slide h1{ font-family:'Space Grotesk', sans-serif; font-size:clamp(26px, 4vw, 46px); margin:0 0 18px; line-height:1.15; }
-      .fim-present-slide .sci-body-rendered{ font-size:clamp(15px, 1.6vw, 21px); line-height:1.65; }
+      .fim-present{ position:fixed; inset:0; z-index:9999; background:var(--void, #0B0C10); display:flex; flex-direction:column; color:var(--ink, #E8EAF0); user-select:none; }
+      .fim-present.laser, .fim-present.laser *{ cursor:none !important; }
+      .fim-present-progress{ height:3px; background:var(--line); }
+      .fim-present-progress i{ display:block; height:100%; background:var(--accent-2); transition:width .25s; }
+      .fim-present-bar{ display:flex; align-items:center; gap:8px; padding:8px 16px; border-bottom:1px solid var(--line); font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); flex-wrap:wrap; }
+      .fim-present-bar b{ color:var(--ink); font-family:'Space Grotesk', sans-serif; font-size:14px; margin-right:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:40vw; }
+      .fim-present-bar .late{ color:var(--bad, #F0525A); }
+      .fim-present-bar .score{ color:var(--good, #4FD895); }
+      .fim-present-main{ flex:1; display:flex; min-height:0; position:relative; }
+      .fim-present-slide{ flex:1; overflow:auto; padding:4.5vh 7vw; animation:fimSlideIn .25s ease-out; }
+      @keyframes fimSlideIn{ from{ opacity:0; transform:translateX(14px); } to{ opacity:1; transform:none; } }
+      .fim-present-slide h1{ font-family:'Space Grotesk', sans-serif; font-size:clamp(24px, 3.6vw, 44px); margin:0 0 6px; line-height:1.15; }
+      .fim-present-slide .part{ font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-2); margin-bottom:16px; }
+      .fim-present-slide .sci-body-rendered{ font-size:clamp(15px, 1.6vw, 22px); line-height:1.65; }
       .fim-present-slide .sci-body-rendered pre{ font-size:clamp(11px, 1.1vw, 15px); }
-      .fim-present-cover{ display:flex; flex-direction:column; justify-content:center; height:100%; }
+      .fim-present-slide .sci-body-rendered img{ max-width:100%; max-height:66vh; margin:8px auto; border:none; cursor:zoom-in; }
+      .fim-present-slide .sci-body-rendered img.zoom{ max-height:none; width:100%; cursor:zoom-out; }
+      .fim-present-slide .sci-body-rendered img + em, .fim-present-slide .sci-body-rendered p > em:only-child{ display:block; text-align:center; color:var(--ink-faint); font-size:.8em; }
+      .fim-frag{ opacity:.08; transition:opacity .25s; }
+      .fim-frag.on{ opacity:1; }
+      .fim-present-cover{ display:flex; flex-direction:column; justify-content:center; min-height:100%; }
       .fim-present-cover .eyebrow{ font-family:'JetBrains Mono', monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-2); font-size:13px; margin-bottom:14px; }
+      .fim-present-cover h1{ font-size:clamp(30px, 5vw, 62px); }
       .fim-present-cover p{ font-size:clamp(16px, 1.8vw, 22px); color:var(--ink-dim); max-width:900px; }
+      .fim-present-cover .meta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+      .fim-present-agenda{ columns:2 320px; column-gap:40px; padding:0; list-style:none; counter-reset:ag; font-size:clamp(15px, 1.6vw, 21px); }
+      .fim-present-agenda li{ counter-increment:ag; break-inside:avoid; padding:7px 0 7px 46px; position:relative; border-bottom:1px solid var(--line); }
+      .fim-present-agenda li::before{ content:counter(ag, decimal-leading-zero); position:absolute; left:0; font-family:'JetBrains Mono', monospace; color:var(--accent-2); }
       .fim-present-q{ font-size:clamp(20px, 2.6vw, 34px); line-height:1.4; font-family:'Space Grotesk', sans-serif; }
       .fim-present-a{ margin-top:4vh; font-size:clamp(18px, 2.2vw, 28px); color:var(--good, #4FD895); border-left:3px solid currentColor; padding-left:16px; }
+      .fim-present-big{ font-family:'Space Grotesk', sans-serif; font-size:clamp(40px, 7vw, 90px); font-weight:700; line-height:1.05; }
       .fim-present-notes{ width:min(380px, 34vw); border-left:1px solid var(--line); overflow:auto; padding:18px; background:var(--void-2); }
       .fim-present-notes h4{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 10px; }
-      .fim-present-nav{ display:flex; justify-content:space-between; align-items:center; padding:10px 18px; border-top:1px solid var(--line); gap:10px; }
-      .fim-present-dots{ display:flex; gap:4px; flex-wrap:wrap; justify-content:center; }
-      .fim-present-dots i{ width:7px; height:7px; background:var(--line); display:block; }
-      .fim-present-dots i.on{ background:var(--accent-2); }
+      .fim-present-nav{ display:flex; justify-content:space-between; align-items:center; padding:8px 16px; border-top:1px solid var(--line); gap:10px; }
+      .fim-present-nav .help{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); text-align:center; }
+      .fim-present-black{ position:absolute; inset:0; background:#000; z-index:3; display:flex; align-items:center; justify-content:center; color:#333; font-family:'JetBrains Mono', monospace; font-size:12px; }
+      .fim-present-overview{ position:absolute; inset:0; z-index:4; background:var(--void, #0B0C10); overflow:auto; padding:24px; display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:10px; align-content:start; }
+      .fim-present-overview button{ text-align:left; background:var(--void-2); border:1px solid var(--line); color:var(--ink); padding:12px; min-height:84px; font-family:'Space Grotesk', sans-serif; font-size:13px; cursor:pointer; }
+      .fim-present-overview button.on{ border-color:var(--accent-2); }
+      .fim-present-overview button span{ display:block; font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--accent-2); margin-bottom:6px; }
+      .fim-present-laser{ position:fixed; width:16px; height:16px; margin:-8px 0 0 -8px; border-radius:50%; background:#F0525A; box-shadow:0 0 14px 4px rgba(240,82,90,.7); pointer-events:none; z-index:10000; display:none; }
       .fim-seance-h{ font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 10px; }
       .fim-seance-quiz{ padding-left:20px; font-size:13px; color:var(--ink-dim); }
       .fim-seance-quiz li{ margin-bottom:8px; }
       .fim-seance-quiz em{ display:block; color:var(--good, #4FD895); font-style:normal; font-size:12.5px; }
-      @media (max-width: 760px){ .fim-present-notes{ position:absolute; inset:auto 0 56px 0; width:auto; max-height:45vh; border-left:none; border-top:1px solid var(--line); } }`;
+      @media (max-width: 760px){
+        .fim-present-notes{ position:absolute; inset:auto 0 0 0; width:auto; max-height:45vh; border-left:none; border-top:1px solid var(--line); z-index:2; }
+        .fim-present-nav .help{ display:none; }
+        .fim-present-slide{ padding:3vh 5vw; }
+      }`;
     document.head.appendChild(st);
   }
+
+  // Découpe le corps d'une section trop longue en plusieurs diapositives, aux
+  // lignes vides, sans couper un schéma ; une image a sa diapositive à elle.
+  function chunkBody(body, max = 1000) {
+    const blocks = [];
+    let cur = [];
+    let fence = false;
+    for (const line of body.split('\n')) {
+      if (/^```/.test(line.trim())) fence = !fence;
+      if (!fence && !line.trim()) { if (cur.length) { blocks.push(cur.join('\n')); cur = []; } continue; }
+      cur.push(line);
+    }
+    if (cur.length) blocks.push(cur.join('\n'));
+    const chunks = [];
+    let acc = '';
+    for (const b of blocks) {
+      const isImg = /^!\[/.test(b.trim());
+      if (acc && (isImg || acc.length + b.length > max)) { chunks.push(acc); acc = ''; }
+      if (isImg) { chunks.push(b); continue; }
+      acc = acc ? `${acc}\n\n${b}` : b;
+    }
+    if (acc.trim()) chunks.push(acc);
+    return chunks.length ? chunks : [body];
   }
 
-  // Présentation plein écran : diaporama (une diapositive par section) ou
-  // quiz projeté (question, puis réponse révélée). Clavier : ← → Espace,
-  // N = notes, F = plein écran, Échap = quitter.
+  function buildSlides(c, mode) {
+    if (mode === 'quiz') {
+      const qs = courseQuiz(c.content);
+      if (!qs.length) return [];
+      return [
+        { kind: 'quizcover', title: 'Quiz' },
+        ...qs.map((x, i) => ({ kind: 'quiz', title: `Question ${i + 1} / ${qs.length}`, q: x.q, a: x.a, n: i })),
+        { kind: 'score', title: 'Résultat' },
+      ];
+    }
+    // Les exercices d'instructeur restent dans la fiche de séance et le quiz
+    // a son propre mode (proposé sur la dernière diapositive).
+    const sections = courseSections(c.content).filter((s) => (s.title !== 'Introduction' || s.body) && !/instructeur|quiz|questions de révision/i.test(s.title));
+    const slides = [{ kind: 'cover', title: c.title }];
+    const agenda = sections.map((s) => s.title).filter((t) => t !== 'Introduction');
+    if (agenda.length > 2) slides.push({ kind: 'agenda', title: 'Au programme', items: agenda });
+    for (const s of sections) {
+      for (const sub of splitSubsections(s)) {
+        const parts = chunkBody(sub.body);
+        parts.forEach((body, k) => slides.push({ kind: 'section', title: sub.title, body, part: parts.length > 1 ? `${k + 1} / ${parts.length}` : '' }));
+      }
+    }
+    const keep = (c.content.match(/^> \*\*À retenir\s*:\*\*(.+)$/m) || [])[1];
+    slides.push({ kind: 'end', title: 'Questions ?', keep: keep ? keep.trim() : '' });
+    return slides;
+  }
+
+  // Présentation plein écran. Diaporama : une diapositive par section (les
+  // longues sont découpées), points révélés un par un. Quiz : question, réponse,
+  // score du groupe. Clavier : ← → Espace · P progressif · O vue d'ensemble ·
+  // V vue présentateur · N notes · B écran noir · L pointeur laser · F plein
+  // écran · 1/2 bonne/mauvaise réponse (quiz) · Échap quitter.
   function openPresentation(c, mode) {
-    const slides = mode === 'quiz'
-      ? courseQuiz(c.content).map((x, i, all) => ({ kind: 'quiz', title: `Question ${i + 1} / ${all.length}`, q: x.q, a: x.a }))
-      : [{ kind: 'cover' }, ...courseSections(c.content).flatMap((s) => splitSubsections(s).map((x) => ({ kind: 'section', ...x })))];
+    let slides = buildSlides(c, mode);
     if (!slides.length) { window.showToast('Rien à présenter dans ce cours.', 'error'); return; }
     ensureTrainerStyle();
     const ov = document.createElement('div');
     ov.className = 'fim-present';
     document.body.appendChild(ov);
-    let i = 0;
-    let revealed = false;
-    let notes = false;
-    const started = Date.now();
-    const clock = () => { const s = Math.floor((Date.now() - started) / 1000); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+    const laserDot = document.createElement('div');
+    laserDot.className = 'fim-present-laser';
+    document.body.appendChild(laserDot);
+    const st = { i: 0, shown: 0, revealed: false, notes: false, progressive: true, black: false, overview: false, laser: false, score: {}, started: Date.now() };
+    let presenter = null;
+    const fmt = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+    const target = (c.duration || 0) * 60000;
+    const clockHtml = () => {
+      const el = Date.now() - st.started;
+      return `<span data-pv-clock class="${target && el > target ? 'late' : ''}">${fmt(el)}${target ? ` / ${fmt(target)}` : ''}</span>`;
+    };
+    const scoreText = () => { const v = Object.values(st.score); return `${v.filter(Boolean).length} / ${v.length}`; };
+    const frags = () => [...ov.querySelectorAll('.fim-frag')];
+
+    const slideHtml = (s) => {
+      if (s.kind === 'cover') {
+        const g = courseData.grids.find((x) => x.id === c.gridId);
+        return `<div class="fim-present-cover"><div class="eyebrow">Formation FIM · Site-15${g ? ` · ${esc(courseGroupOf(g.id).label)}` : ''}</div><h1>${esc(c.title)}</h1>${c.summary ? `<p>${esc(c.summary)}</p>` : ''}
+          <div class="meta">${c.duration ? `<span class="fim-pill">${c.duration} min</span>` : ''}${g ? `<span class="fim-pill" style="--c:var(--accent-2)">Évaluation : ${esc(g.name)}</span>` : ''}${courseQuiz(c.content).length ? `<span class="fim-pill" style="--c:var(--good)">${courseQuiz(c.content).length} questions de quiz</span>` : ''}</div></div>`;
+      }
+      if (s.kind === 'agenda') return `<h1>${esc(s.title)}</h1><div class="part">${s.items.length} parties</div><ol class="fim-present-agenda">${s.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ol>`;
+      if (s.kind === 'end') return `<div class="fim-present-cover"><div class="eyebrow">Fin de la séance</div><div class="fim-present-big">Questions ?</div>${s.keep ? `<p style="margin-top:26px; border-left:3px solid var(--accent-2); padding-left:16px;"><b>À retenir :</b> ${esc(s.keep.replace(/\*\*/g, ''))}</p>` : ''}
+        <div class="meta">${courseQuiz(c.content).length ? '<button class="btn" data-pv="toquiz">Lancer le quiz</button>' : ''}<button class="btn ghost" data-pv="close">Terminer</button></div></div>`;
+      if (s.kind === 'quizcover') return `<div class="fim-present-cover"><div class="eyebrow">${esc(c.title)}</div><div class="fim-present-big">Quiz</div><p>${slides.length - 2} questions. Répondez à voix haute, le formateur révèle la réponse puis compte les points (1 = juste, 2 = faux).</p></div>`;
+      if (s.kind === 'score') {
+        const v = Object.values(st.score);
+        const ok = v.filter(Boolean).length;
+        const pct = v.length ? Math.round((ok / v.length) * 100) : 0;
+        return `<div class="fim-present-cover"><div class="eyebrow">Résultat du quiz</div><div class="fim-present-big" style="color:${pct >= 80 ? 'var(--good)' : pct >= 55 ? 'var(--warn)' : 'var(--bad)'}">${ok} / ${v.length}</div><p>${v.length ? `${pct} % de bonnes réponses.` : 'Aucune réponse notée.'} ${pct >= 80 ? 'Prêt pour l’évaluation.' : pct >= 55 ? 'Quelques points à revoir.' : 'Reprendre le cours avant l’évaluation.'}</p>
+          <div class="meta"><button class="btn ghost" data-pv="restart">Recommencer</button><button class="btn" data-pv="close">Terminer</button></div></div>`;
+      }
+      if (s.kind === 'quiz') {
+        const mark = st.score[s.n];
+        return `<h1 style="font-size:clamp(16px, 1.8vw, 24px); color:var(--ink-faint);">${esc(s.title)}</h1><div class="fim-present-q">${window.renderMarkdown(s.q)}</div>
+          ${st.revealed ? `<div class="fim-present-a">${esc(s.a)}</div>
+            <div class="sci-card-actions" style="margin-top:3vh;"><button class="btn ${mark === true ? '' : 'ghost'}" data-pv="ok">✓ Juste (1)</button><button class="btn ${mark === false ? 'danger' : 'ghost'}" data-pv="ko">✗ Faux (2)</button></div>`
+            : '<button class="btn" data-pv="reveal" style="margin-top:4vh;">Révéler la réponse (Espace)</button>'}`;
+      }
+      return `<h1>${esc(s.title)}</h1>${s.part ? `<div class="part">Partie ${esc(s.part)}</div>` : '<div class="part"></div>'}<div class="sci-body-rendered fim-table">${courseMarkdown(s.body)}</div>`;
+    };
+
+    const renderPresenter = () => {
+      if (!presenter || presenter.closed) { presenter = null; return; }
+      const s = slides[st.i];
+      const n = slides[st.i + 1];
+      const left = frags().filter((f) => !f.classList.contains('on')).length;
+      presenter.document.getElementById('pv').innerHTML = `
+        <div class="top"><b>${st.i + 1} / ${slides.length}</b> · ${clockHtml()}${mode === 'quiz' ? ` · score ${scoreText()}` : ''}</div>
+        <h2>${esc(s.title || '')}</h2>
+        ${s.kind === 'quiz' ? `<p class="ans">Réponse : ${esc(s.a)}</p>` : ''}
+        ${left ? `<p class="dim">${left} point(s) encore masqué(s) sur cette diapositive</p>` : ''}
+        <p class="dim">Suivante : <b>${esc(n ? n.title || n.kind : 'fin')}</b></p>
+        <div class="btns"><button data-k="ArrowLeft">← Précédent</button><button data-k="ArrowRight">Suivant →</button><button data-k="b">Écran noir</button></div>
+        <h3>Notes du formateur</h3>
+        <div class="notes">${c.trainerNotes ? window.renderMarkdown(c.trainerNotes) : '<p class="dim">Aucune note pour ce cours.</p>'}</div>`;
+    };
+
     const render = () => {
-      const s = slides[i];
-      let inner;
-      if (s.kind === 'cover') inner = `<div class="fim-present-cover"><div class="eyebrow">Formation FIM · Site-15${c.duration ? ` · ${c.duration} min` : ''}</div><h1>${esc(c.title)}</h1>${c.summary ? `<p>${esc(c.summary)}</p>` : ''}</div>`;
-      else if (s.kind === 'quiz') inner = `<h1 style="font-size:clamp(18px, 2vw, 26px); color:var(--ink-faint);">${esc(s.title)}</h1><div class="fim-present-q">${window.renderMarkdown(s.q)}</div>${revealed ? `<div class="fim-present-a">${esc(s.a)}</div>` : '<button class="btn" data-pv="reveal" style="margin-top:4vh;">Révéler la réponse (Espace)</button>'}`;
-      else inner = `<h1>${esc(s.title)}</h1><div class="sci-body-rendered fim-table">${courseMarkdown(s.body)}</div>`;
+      const s = slides[st.i];
+      ov.classList.toggle('laser', st.laser);
       ov.innerHTML = `
-        <div class="fim-present-bar"><b>${esc(c.title)}</b><span>${i + 1} / ${slides.length}</span><span data-pv-clock>${clock()}</span>
-          ${c.trainerNotes ? `<button class="btn ghost small" data-pv="notes">${notes ? 'Masquer les notes' : 'Notes (N)'}</button>` : ''}
-          <button class="btn ghost small" data-pv="full">Plein écran (F)</button><button class="btn ghost small" data-pv="close">Quitter (Échap)</button></div>
-        <div class="fim-present-main"><div class="fim-present-slide">${inner}</div>${notes && c.trainerNotes ? `<div class="fim-present-notes"><h4>Notes du formateur</h4><div class="sci-body-rendered">${window.renderMarkdown(c.trainerNotes)}</div></div>` : ''}</div>
-        <div class="fim-present-nav"><button class="btn ghost small" data-pv="prev"${i === 0 ? ' disabled' : ''}>← Précédent</button>
-          <div class="fim-present-dots">${slides.length <= 40 ? slides.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('') : ''}</div>
-          <button class="btn small" data-pv="next">${i === slides.length - 1 && (s.kind !== 'quiz' || revealed) ? 'Terminer' : 'Suivant →'}</button></div>`;
-      ov.querySelectorAll('.fim-present-slide [data-clink], .fim-present-slide a[href="#"]').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
+        <div class="fim-present-progress"><i style="width:${((st.i + 1) / slides.length) * 100}%"></i></div>
+        <div class="fim-present-bar"><b>${esc(c.title)}</b><span>${st.i + 1} / ${slides.length}</span>${clockHtml()}${mode === 'quiz' ? `<span class="score">Score ${scoreText()}</span>` : ''}
+          <button class="btn ghost small" data-pv="overview" title="Vue d'ensemble (O)">Plan</button>
+          ${mode === 'quiz' ? '' : `<button class="btn ghost small" data-pv="progressive" title="Révélation progressive (P)">${st.progressive ? 'Progressif ✓' : 'Progressif'}</button>`}
+          ${c.trainerNotes ? `<button class="btn ghost small" data-pv="notes" title="Notes (N)">${st.notes ? 'Notes ✓' : 'Notes'}</button>` : ''}
+          <button class="btn ghost small" data-pv="presenter" title="Vue présentateur dans une autre fenêtre (V)">Présentateur</button>
+          <button class="btn ghost small" data-pv="laser" title="Pointeur laser (L)">${st.laser ? 'Laser ✓' : 'Laser'}</button>
+          <button class="btn ghost small" data-pv="full" title="Plein écran (F)">Plein écran</button>
+          <button class="btn ghost small" data-pv="close" title="Quitter (Échap)">✕</button></div>
+        <div class="fim-present-main">
+          <div class="fim-present-slide">${slideHtml(s)}</div>
+          ${st.notes && c.trainerNotes ? `<div class="fim-present-notes"><h4>Notes du formateur</h4><div class="sci-body-rendered">${window.renderMarkdown(c.trainerNotes)}</div></div>` : ''}
+          ${st.black ? '<div class="fim-present-black" data-pv="black">Écran noir · B pour reprendre</div>' : ''}
+          ${st.overview ? `<div class="fim-present-overview">${slides.map((x, k) => `<button data-go="${k}" class="${k === st.i ? 'on' : ''}"><span>${String(k + 1).padStart(2, '0')}${x.part ? ` · ${esc(x.part)}` : ''}</span>${esc(x.kind === 'cover' ? 'Couverture' : x.title || '')}</button>`).join('')}</div>` : ''}
+        </div>
+        <div class="fim-present-nav"><button class="btn ghost small" data-pv="prev"${st.i === 0 ? ' disabled' : ''}>← Précédent</button>
+          <span class="help">← → / Espace · P progressif · O plan · V présentateur · N notes · B noir · L laser · F plein écran · Échap</span>
+          <button class="btn small" data-pv="next">${st.i === slides.length - 1 ? 'Terminer' : 'Suivant →'}</button></div>`;
+      ov.querySelectorAll('.fim-present-slide a[href="#"]').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
+      ov.querySelectorAll('.fim-present-slide .sci-body-rendered img').forEach((img) => img.addEventListener('click', () => img.classList.toggle('zoom')));
+      // Révélation progressive : éléments de premier niveau (listes, lignes de tableau)
+      if (s.kind === 'section' && st.progressive) {
+        const items = ov.querySelectorAll('.fim-present-slide .sci-body-rendered > ul > li, .fim-present-slide .sci-body-rendered > ol > li, .fim-present-slide .sci-body-rendered > table > tbody > tr');
+        if (items.length > 1) items.forEach((el, k) => { el.classList.add('fim-frag'); if (k < st.shown) el.classList.add('on'); });
+      }
+      renderPresenter();
     };
-    const close = () => { document.removeEventListener('keydown', onKey); clearInterval(timer); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); ov.remove(); };
+
+    const go = (k, opts = {}) => {
+      st.i = Math.max(0, Math.min(slides.length - 1, k));
+      st.revealed = false;
+      st.overview = false;
+      st.shown = opts.all ? 999 : 0;
+      render();
+    };
+    const close = () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousemove', onMove);
+      clearInterval(timer);
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      if (presenter && !presenter.closed) presenter.close();
+      laserDot.remove();
+      ov.remove();
+    };
     const next = () => {
-      if (slides[i].kind === 'quiz' && !revealed) { revealed = true; render(); return; }
-      if (i === slides.length - 1) { close(); return; }
-      i += 1; revealed = false; render();
+      const s = slides[st.i];
+      if (st.overview) { st.overview = false; render(); return; }
+      const hidden = frags().filter((f) => !f.classList.contains('on'));
+      if (hidden.length) { st.shown += 1; hidden[0].classList.add('on'); renderPresenter(); return; }
+      if (s.kind === 'quiz' && !st.revealed) { st.revealed = true; render(); return; }
+      if (st.i === slides.length - 1) { close(); return; }
+      go(st.i + 1);
     };
-    const prev = () => { if (i > 0) { i -= 1; revealed = false; render(); } };
+    const prev = () => { if (st.i > 0) go(st.i - 1, { all: true }); };
+    const mark = (v) => { const s = slides[st.i]; if (s.kind === 'quiz' && st.revealed) { st.score[s.n] = v; render(); } };
+    const openPresenter = () => {
+      if (presenter && !presenter.closed) { presenter.focus(); return; }
+      presenter = window.open('', 'fim-presenter', 'width=560,height=720');
+      if (!presenter) { window.showToast('Autorise les fenêtres pop-up pour la vue présentateur.', 'error'); return; }
+      presenter.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Vue présentateur — ${esc(c.title)}</title><style>
+        body{ background:#0E1016; color:#E8EAF0; font-family:'Segoe UI', Arial, sans-serif; margin:0; padding:18px; font-size:15px; line-height:1.5; }
+        .top{ font-family:Consolas, monospace; color:#9297A8; } .top b{ color:#E8EAF0; } .late{ color:#F0525A; }
+        h2{ font-size:22px; margin:10px 0; } h3{ font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:#9297A8; border-top:1px solid #2A2E3A; padding-top:12px; margin-top:16px; }
+        .dim{ color:#9297A8; } .ans{ color:#4FD895; font-size:18px; } .btns{ display:flex; gap:8px; margin:12px 0; }
+        button{ background:#151821; color:#E8EAF0; border:1px solid #2A2E3A; padding:10px 14px; font-size:14px; cursor:pointer; flex:1; }
+        .notes{ background:#151821; border:1px solid #2A2E3A; padding:12px; } .notes p{ margin:6px 0; }
+      </style></head><body><div id="pv"></div></body></html>`);
+      presenter.document.close();
+      presenter.document.addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b) onKey({ key: b.dataset.k, preventDefault() {}, target: {} }); });
+      presenter.document.addEventListener('keydown', onKey);
+      renderPresenter();
+    };
     const act = (a) => {
       if (a === 'next' || a === 'reveal') next();
       else if (a === 'prev') prev();
       else if (a === 'close') close();
-      else if (a === 'notes') { notes = !notes; render(); }
+      else if (a === 'ok') mark(true);
+      else if (a === 'ko') mark(false);
+      else if (a === 'notes') { st.notes = !st.notes; render(); }
+      else if (a === 'progressive') { st.progressive = !st.progressive; st.shown = 0; render(); }
+      else if (a === 'overview') { st.overview = !st.overview; render(); }
+      else if (a === 'black') { st.black = !st.black; render(); }
+      else if (a === 'laser') { st.laser = !st.laser; laserDot.style.display = 'none'; render(); }
+      else if (a === 'presenter') openPresenter();
+      else if (a === 'restart') { st.score = {}; go(0); }
+      else if (a === 'toquiz') { mode = 'quiz'; slides = buildSlides(c, 'quiz'); st.score = {}; go(0); }
       else if (a === 'full') { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else ov.requestFullscreen?.().catch(() => {}); }
     };
-    ov.addEventListener('click', (e) => { const b = e.target.closest('[data-pv]'); if (b) act(b.dataset.pv); });
+    ov.addEventListener('click', (e) => {
+      const g = e.target.closest('[data-go]');
+      if (g) { go(Number(g.dataset.go)); return; }
+      const b = e.target.closest('[data-pv]');
+      if (b) act(b.dataset.pv);
+    });
     const onKey = (e) => {
-      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
-      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
-      else if (e.key === 'Escape' && !document.fullscreenElement) close();
-      else if (e.key === 'n' || e.key === 'N') act('notes');
-      else if (e.key === 'f' || e.key === 'F') act('full');
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
+      const k = e.key;
+      if (k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'Enter') { e.preventDefault(); next(); }
+      else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace') { e.preventDefault(); prev(); }
+      else if (k === 'Home') go(0);
+      else if (k === 'End') go(slides.length - 1, { all: true });
+      else if (k === 'Escape') { if (st.overview) act('overview'); else if (st.black) act('black'); else if (!document.fullscreenElement) close(); }
+      else if (/^[nN]$/.test(k)) act('notes');
+      else if (/^[fF]$/.test(k)) act('full');
+      else if (/^[pP]$/.test(k) && mode !== 'quiz') act('progressive');
+      else if (/^[oOgG]$/.test(k)) act('overview');
+      else if (/^[bB.]$/.test(k)) act('black');
+      else if (/^[lL]$/.test(k)) act('laser');
+      else if (/^[vV]$/.test(k)) act('presenter');
+      else if (k === '1') mark(true);
+      else if (k === '2') mark(false);
     };
+    const onMove = (e) => {
+      if (!st.laser) return;
+      laserDot.style.display = 'block';
+      laserDot.style.left = `${e.clientX}px`;
+      laserDot.style.top = `${e.clientY}px`;
+    };
+    // Balayage tactile (tablette) : gauche = suivant, droite = précédent
+    let touchX = null;
+    ov.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+    ov.addEventListener('touchend', (e) => {
+      if (touchX == null) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(dx) > 60) { if (dx < 0) next(); else prev(); }
+    });
     document.addEventListener('keydown', onKey);
-    const timer = setInterval(() => { const el = ov.querySelector('[data-pv-clock]'); if (el) el.textContent = clock(); }, 1000);
+    document.addEventListener('mousemove', onMove);
+    const timer = setInterval(() => {
+      const html = clockHtml();
+      const el = ov.querySelector('[data-pv-clock]');
+      if (el) el.outerHTML = html;
+      const pel = presenter && !presenter.closed && presenter.document.querySelector('[data-pv-clock]');
+      if (pel) pel.outerHTML = html;
+    }, 1000);
     render();
   }
 
