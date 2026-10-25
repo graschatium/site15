@@ -3037,6 +3037,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   // grilles d'évaluation : formation, combat, unités, passages de grade)
   // ---------------------------------------------------------------
   let courseSel = null; // { kind: 'grid' | 'course' | 'new' | 'edit', id }
+  let courseView = 'read'; // 'read' (cours) ou 'trainer' (espace formateur)
+  let trainerSel = null; // id du cours ouvert dans l'espace formateur
   let courseData = { courses: [], grids: [], canManage: false };
   const COURSE_GROUPS = [
     { key: 'grade', label: 'Passages de grade', test: (id) => id.startsWith('grade_') },
@@ -3067,7 +3069,9 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         <h2>Cours</h2>
         <p>Les supports de cours rangés comme les évaluations : chaque dossier reprend le programme de sa grille (ce sur quoi tu seras évalué) et les cours déposés par le commandement.</p>
       </div>
-      <div class="wiki-layout">
+      ${courseData.canManage ? subTabs([['read', 'Cours'], ['trainer', 'Espace formateur']], courseView, 'data-cview') : ''}
+      <div id="fim-trainer-body"></div>
+      <div class="wiki-layout" id="fim-course-layout">
         <div class="wiki-toc">
           <div class="wiki-toc-head"><span class="record-block-head-title">Cours FIM</span><span class="count">${live.length}</span></div>
           ${courseData.canManage ? '<button class="btn small" id="fim-course-new" type="button" style="width:100%; margin-top:10px;">+ Déposer un cours</button>' : ''}
@@ -3082,6 +3086,12 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       renderCourseArticle();
     });
     document.getElementById('fim-course-search').addEventListener('input', (e) => renderCourseToc(e.target.value));
+    main.querySelectorAll('[data-cview]').forEach((b) => b.addEventListener('click', () => { courseView = b.dataset.cview; loadCourses(); }));
+    if (courseView === 'trainer' && courseData.canManage) {
+      document.getElementById('fim-course-layout').style.display = 'none';
+      renderTrainer(document.getElementById('fim-trainer-body'));
+      return;
+    }
     renderCourseToc();
     renderCourseArticle();
   }
@@ -3197,6 +3207,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         <div style="display:flex; flex-direction:column; gap:6px;">${c.links.map((l) => `<a class="btn ghost small" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" style="justify-content:flex-start;">↗ ${esc(l.label)}</a>`).join('')}</div>` : ''}
       ${related.length ? `<h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 10px;">Voir aussi</h3><div class="fim-grid">${related.map(courseCard).join('')}</div>` : ''}
       ${courseData.canManage ? `<div class="sci-card-actions" style="margin-top:24px;">
+        <button class="btn small" id="fim-course-present">▶ Présenter</button>
+        <button class="btn ghost small" id="fim-course-seance">Fiche de séance</button>
         <button class="btn ghost small" id="fim-course-edit">Modifier</button>
         <button class="btn ghost small" id="fim-course-arch">${c.hidden ? 'Afficher aux FIM' : 'Masquer aux FIM'}</button>
         <button class="btn danger small" id="fim-course-del">Supprimer</button></div>` : ''}`;
@@ -3204,6 +3216,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     bindCourseLinks(article);
     document.getElementById('fim-course-grid')?.addEventListener('click', () => { courseSel = { kind: 'grid', id: g.id }; renderCourseToc(); renderCourseArticle(); });
     document.getElementById('fim-course-edit')?.addEventListener('click', () => { courseSel = { kind: 'edit', id: c.id }; renderCourseArticle(); });
+    document.getElementById('fim-course-present')?.addEventListener('click', () => openPresentation(c, 'slides'));
+    document.getElementById('fim-course-seance')?.addEventListener('click', () => { courseView = 'trainer'; trainerSel = c.id; loadCourses(); });
     document.getElementById('fim-course-arch')?.addEventListener('click', async () => {
       try {
         await window.apiFetch(`/api/rp/fim/courses/${encodeURIComponent(c.id)}`, { method: 'PUT', body: JSON.stringify({ hidden: !c.hidden }) });
@@ -3248,6 +3262,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           <textarea id="fc-content" rows="16">${c ? esc(c.content || '') : ''}</textarea>
           <div id="fc-preview" class="sci-body-rendered fim-table" style="display:none; border:1px solid var(--line); padding:14px; min-height:120px;"></div>
         </div>
+        <div class="field-row"><label>Notes du formateur (Markdown, visibles du commandement seulement : déroulé oral, démonstrations, pièges)</label><textarea id="fc-notes" rows="6" placeholder="Accroche, déroulé minuté, démonstration à faire, questions à poser…">${c ? esc(c.trainerNotes || '') : ''}</textarea></div>
         <div class="field-row"><label>Fiches liées (« Voir aussi », affichées dans les deux cours)</label>
           <input type="text" id="fc-rel-search" class="fim-search" placeholder="Filtrer les cours…" style="width:100%; margin-bottom:6px;">
           <div id="fc-related" style="max-height:180px; overflow:auto; border:1px solid var(--line); padding:6px 10px;">${others.length ? others.map((x) => `<label style="display:flex; gap:8px; align-items:center; padding:3px 0; font-size:12.5px; text-transform:none; letter-spacing:0;" data-rel-hay="${esc(norm(x.title))}"><input type="checkbox" value="${esc(x.id)}"${(c?.related || []).includes(x.id) ? ' checked' : ''}> ${esc(x.title)}${x.hidden ? ' <span style="color:var(--ink-faint);">(masqué)</span>' : ''}</label>`).join('') : '<span style="font-size:12px; color:var(--ink-faint);">Aucun autre cours pour le moment.</span>'}</div>
@@ -3293,6 +3308,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         duration: Number(document.getElementById('fc-duration').value) || 0,
         summary: document.getElementById('fc-summary').value.trim(),
         content: document.getElementById('fc-content').value.trim(),
+        trainerNotes: document.getElementById('fc-notes').value.trim(),
         links,
         related: [...article.querySelectorAll('#fc-related input:checked')].map((x) => x.value),
         hidden: !document.getElementById('fc-visible').checked,
@@ -3311,6 +3327,268 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
     });
+  }
+
+  // ---------------------------------------------------------------
+  // Espace formateur : fiches de séance, présentation plein écran et quiz
+  // projeté, à partir du contenu des cours (sections « ## » et réponses {{ }}).
+  // ---------------------------------------------------------------
+  const NON_TALK = /quiz|questions de révision|exercice|à retenir|auto-évaluation|barème/i;
+
+  // Découpe un cours en sections « ## » (hors blocs de code).
+  function courseSections(md) {
+    const sections = [];
+    let cur = { title: '', lines: [] };
+    let fence = false;
+    for (const line of String(md || '').split('\n')) {
+      if (/^```/.test(line.trim())) fence = !fence;
+      if (!fence && /^##\s+/.test(line)) {
+        if (cur.title || cur.lines.join('').trim()) sections.push(cur);
+        cur = { title: line.replace(/^##\s+/, '').trim(), lines: [] };
+      } else cur.lines.push(line);
+    }
+    if (cur.title || cur.lines.join('').trim()) sections.push(cur);
+    return sections.map((x) => ({ title: x.title || 'Introduction', body: x.lines.join('\n').trim() }));
+  }
+
+  // Questions / réponses : toute ligne avec {{réponse}} ; si la réponse est
+  // seule sur sa ligne, la question est le paragraphe qui précède.
+  function courseQuiz(md) {
+    const out = [];
+    let para = [];
+    let fence = false;
+    for (const raw of String(md || '').split('\n')) {
+      const line = raw.trim();
+      if (/^```/.test(line)) { fence = !fence; para = []; continue; }
+      if (fence) continue;
+      if (!line || /^#/.test(line) || /^\|/.test(line)) { para = []; continue; }
+      const answers = [...line.matchAll(/\{\{(.+?)\}\}/g)].map((m) => m[1]);
+      if (!answers.length) { para.push(line.replace(/^[-*]\s+|^\d+\.\s+/, '')); continue; }
+      const before = line.replace(/\{\{.+?\}\}/g, '').replace(/^[-*]\s+|^\d+\.\s+/, '').trim();
+      const q = before || para.join(' ');
+      if (q) out.push({ q, a: answers.join(' ') });
+      para = [];
+    }
+    return out;
+  }
+
+  // Une section avec des sous-parties « ### » donne une diapositive par
+  // sous-partie (plus l'introduction de la section si elle existe).
+  function splitSubsections(sec) {
+    const parts = [];
+    let cur = { title: sec.title, lines: [] };
+    let fence = false;
+    for (const line of sec.body.split('\n')) {
+      if (/^```/.test(line.trim())) fence = !fence;
+      if (!fence && /^###\s+/.test(line)) {
+        if (cur.lines.join('').trim()) parts.push(cur);
+        cur = { title: `${sec.title} — ${line.replace(/^###\s+/, '').trim()}`, lines: [] };
+      } else cur.lines.push(line);
+    }
+    if (cur.lines.join('').trim() || !parts.length) parts.push(cur);
+    return parts.map((x) => ({ title: x.title, body: x.lines.join('\n').trim() }));
+  }
+
+  function seancePlan(c) {
+    const talk = courseSections(c.content).filter((s) => !NON_TALK.test(s.title));
+    const quiz = courseQuiz(c.content);
+    const total = Math.max(10, c.duration || 20);
+    const quizMin = quiz.length ? Math.max(3, Math.round(total * 0.15)) : 0;
+    const weight = talk.reduce((a, s) => a + Math.max(200, s.body.length), 0) || 1;
+    const rows = talk.map((s) => ({ title: s.title, min: Math.max(1, Math.round(((total - quizMin) * Math.max(200, s.body.length)) / weight)) }));
+    if (quizMin) rows.push({ title: `Quiz (${quiz.length} questions)`, min: quizMin });
+    return rows;
+  }
+
+  function seanceHtml(c, forPrint) {
+    const g = courseData.grids.find((x) => x.id === c.gridId);
+    const plan = seancePlan(c);
+    const exercises = courseSections(c.content).filter((s) => /exercice/i.test(s.title));
+    const quiz = courseQuiz(c.content);
+    const md = (t) => (forPrint ? window.renderMarkdown(t) : courseMarkdown(t));
+    let at = 0;
+    return `
+      <div class="wiki-article-head"><span class="fim-pill" style="--c:#D4AF55">Fiche de séance</span>${c.duration ? `<span class="fim-pill">${c.duration} min</span>` : ''}${g ? `<span class="fim-pill" style="--c:var(--accent-2)">${esc(g.name)}</span>` : ''}</div>
+      <h2 class="wiki-article-title">${esc(c.title)}</h2>
+      ${c.summary ? `<p style="color:var(--ink-dim); font-size:13px; line-height:1.6;"><b>Objectif :</b> ${esc(c.summary)}</p>` : ''}
+      <h3 class="fim-seance-h">Plan minuté</h3>
+      <div class="sci-body-rendered fim-table">${window.renderMarkdown(`| Début | Durée | Séquence |\n|---|---|---|\n${plan.map((r) => { const line = `| ${at} min | ${r.min} min | ${r.title.replace(/\|/g, '/')} |`; at += r.min; return line; }).join('\n')}`)}</div>
+      <h3 class="fim-seance-h">Notes du formateur</h3>
+      ${c.trainerNotes ? `<div class="sci-body-rendered fim-table">${md(c.trainerNotes)}</div>` : '<p style="font-size:12.5px; color:var(--ink-faint);">Aucune note. Ajoute ton déroulé oral dans « Modifier » → Notes du formateur.</p>'}
+      ${g ? `<h3 class="fim-seance-h">Ce qui sera évalué</h3><div class="sci-body-rendered fim-table">${window.renderMarkdown(g.criteria.map((x) => `- **${x.label}**${x.weight !== 1 ? ` (×${x.weight})` : ''} : ${x.hint || ''}`).join('\n'))}</div>` : ''}
+      ${exercises.map((s) => `<h3 class="fim-seance-h">${esc(s.title)}</h3><div class="sci-body-rendered fim-table">${md(s.body)}</div>`).join('')}
+      ${quiz.length ? `<h3 class="fim-seance-h">Questions à poser (${quiz.length})</h3>
+        <ol class="fim-seance-quiz">${quiz.map((x) => `<li><span>${window.renderMarkdown(x.q).replace(/^<p>|<\/p>\s*$/g, '')}</span><em>→ ${esc(x.a)}</em></li>`).join('')}</ol>` : ''}`;
+  }
+
+  async function renderTrainer(body) {
+    ensureTrainerStyle();
+    body.innerHTML = '<div class="center-msg">Chargement…</div>';
+    const tr = await window.apiFetch('/api/rp/fim/trainings').catch(() => ({ trainings: [] }));
+    const now = Date.now();
+    const upcoming = (tr.trainings || []).filter((t) => t.status === 'planifiee' && (t.at || 0) > now - 86400000).sort((a, b) => a.at - b.at).slice(0, 6);
+    const courses = courseData.courses;
+    if (!trainerSel || !courses.some((c) => c.id === trainerSel)) trainerSel = (courses.find((c) => upcoming.some((t) => t.gridId && t.gridId === c.gridId)) || courses[0])?.id || null;
+    const groupLabel = (c) => { const g = courseData.grids.find((x) => x.id === c.gridId); return g ? courseGroupOf(g.id).label : (c.category || 'Cours libres'); };
+    const groups = {};
+    courses.forEach((c) => (groups[groupLabel(c)] = groups[groupLabel(c)] || []).push(c));
+
+    body.innerHTML = `
+      <div class="fim-trainer-sessions">
+        <h3 class="fim-seance-h" style="margin-top:0;">Prochaines formations</h3>
+        ${upcoming.length ? `<div class="fim-grid">${upcoming.map((t) => {
+          const cs = courses.filter((c) => t.gridId && c.gridId === t.gridId);
+          return `<div class="fim-grid-card">
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;"><h4 style="margin-right:auto;">${esc(t.title)}</h4><span class="fim-pill">${Object.keys(t.signups || {}).length} inscrit(s)</span></div>
+            <div class="fim-op-meta" style="margin:0;"><span>${fmtDate(t.at)}</span>${t.place ? `<span>${esc(t.place)}</span>` : ''}${t.instructor ? `<span>Instructeur <b>${esc(t.instructor)}</b></span>` : ''}</div>
+            ${cs.length ? `<div class="sci-card-actions" style="margin-top:6px;">${cs.map((c) => `<button class="btn ghost small" data-tsel="${esc(c.id)}">Préparer : ${esc(c.title)}</button>`).join('')}</div>` : '<p style="font-size:12px; color:var(--ink-faint);">Aucun cours rattaché à la grille de cette session.</p>'}
+          </div>`;
+        }).join('')}</div>` : '<div class="empty-row">Aucune formation planifiée (onglet Évaluations → Formations).</div>'}
+      </div>
+      <div class="wiki-layout" style="margin-top:18px;">
+        <div class="wiki-toc">
+          <div class="wiki-toc-head"><span class="record-block-head-title">Séances</span><span class="count">${courses.length}</span></div>
+          <div class="wiki-toc-list">${Object.entries(groups).map(([label, cs]) => `
+            <div style="font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); padding:10px 10px 4px;">${esc(label)}</div>
+            ${cs.map((c) => `<button class="wiki-toc-item${c.id === trainerSel ? ' active' : ''}" data-tsel="${esc(c.id)}" type="button"><span class="wiki-toc-title">${esc(c.title)}</span><span class="wiki-toc-meta">${c.duration ? `${c.duration} min · ` : ''}${courseQuiz(c.content).length} questions${c.trainerNotes ? ' · notes' : ''}</span></button>`).join('')}`).join('')}
+          </div>
+        </div>
+        <div class="wiki-article" id="fim-trainer-article"></div>
+      </div>`;
+    body.querySelectorAll('[data-tsel]').forEach((b) => b.addEventListener('click', () => { trainerSel = b.dataset.tsel; renderTrainer(body); }));
+
+    const article = document.getElementById('fim-trainer-article');
+    const c = courses.find((x) => x.id === trainerSel);
+    if (!c) { article.innerHTML = '<div class="wiki-empty"><div class="wiki-empty-title">Espace formateur</div><p>Aucun cours pour le moment.</p></div>'; return; }
+    const nQuiz = courseQuiz(c.content).length;
+    article.innerHTML = `
+      <div class="sci-card-actions" style="margin-bottom:16px;">
+        <button class="btn small" id="ft-present">▶ Présenter</button>
+        ${nQuiz ? `<button class="btn ghost small" id="ft-quiz">Quiz projeté (${nQuiz})</button>` : ''}
+        <button class="btn ghost small" id="ft-print">Imprimer la fiche</button>
+        <button class="btn ghost small" id="ft-open">Ouvrir le cours</button>
+        <button class="btn ghost small" id="ft-edit">Modifier / notes</button>
+      </div>
+      ${seanceHtml(c, false)}`;
+    bindCourseLinks(article);
+    document.getElementById('ft-present').addEventListener('click', () => openPresentation(c, 'slides'));
+    document.getElementById('ft-quiz')?.addEventListener('click', () => openPresentation(c, 'quiz'));
+    document.getElementById('ft-print').addEventListener('click', () => printSeance(c));
+    document.getElementById('ft-open').addEventListener('click', () => { courseView = 'read'; courseSel = { kind: 'course', id: c.id }; loadCourses(); });
+    document.getElementById('ft-edit').addEventListener('click', () => { courseView = 'read'; courseSel = { kind: 'edit', id: c.id }; loadCourses(); });
+  }
+
+  function printSeance(c) {
+    const w = window.open('', '_blank');
+    if (!w) { window.showToast('Autorise les fenêtres pop-up pour imprimer.', 'error'); return; }
+    w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Fiche de séance — ${esc(c.title)}</title>
+      <style>
+        body{ font-family:Arial, sans-serif; color:#111; max-width:780px; margin:24px auto; padding:0 16px; font-size:13px; line-height:1.55; }
+        h2{ font-size:20px; margin:6px 0 10px; } h3{ font-size:14px; margin:20px 0 6px; border-bottom:1px solid #999; padding-bottom:3px; text-transform:uppercase; letter-spacing:.04em; }
+        table{ border-collapse:collapse; width:100%; margin:6px 0; } th, td{ border:1px solid #aaa; padding:4px 7px; text-align:left; vertical-align:top; }
+        pre{ background:#f3f3f3; padding:8px; font-size:11px; white-space:pre; overflow:hidden; }
+        .fim-pill{ display:inline-block; border:1px solid #999; padding:1px 7px; margin-right:6px; font-size:11px; }
+        .redacted-text{ background:none; color:#111; }
+        ol li em{ display:block; color:#444; font-size:12px; } ol li{ margin-bottom:6px; }
+        .foot{ margin-top:28px; font-size:10.5px; color:#666; border-top:1px solid #ccc; padding-top:6px; }
+      </style></head><body>${seanceHtml(c, true)}<div class="foot">Commandement FIM · Site-15 · document de formation – diffusion interne</div></body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 300);
+  }
+
+  function ensureTrainerStyle() {
+  if (!document.getElementById('fim-present-style')) {
+    const st = document.createElement('style');
+    st.id = 'fim-present-style';
+    st.textContent = `
+      .fim-present{ position:fixed; inset:0; z-index:9999; background:var(--void, #0B0C10); display:flex; flex-direction:column; color:var(--ink, #E8EAF0); }
+      .fim-present-bar{ display:flex; align-items:center; gap:10px; padding:10px 18px; border-bottom:1px solid var(--line); font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); }
+      .fim-present-bar b{ color:var(--ink); font-family:'Space Grotesk', sans-serif; font-size:14px; margin-right:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .fim-present-main{ flex:1; display:flex; min-height:0; }
+      .fim-present-slide{ flex:1; overflow:auto; padding:5vh 7vw; }
+      .fim-present-slide h1{ font-family:'Space Grotesk', sans-serif; font-size:clamp(26px, 4vw, 46px); margin:0 0 18px; line-height:1.15; }
+      .fim-present-slide .sci-body-rendered{ font-size:clamp(15px, 1.6vw, 21px); line-height:1.65; }
+      .fim-present-slide .sci-body-rendered pre{ font-size:clamp(11px, 1.1vw, 15px); }
+      .fim-present-cover{ display:flex; flex-direction:column; justify-content:center; height:100%; }
+      .fim-present-cover .eyebrow{ font-family:'JetBrains Mono', monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-2); font-size:13px; margin-bottom:14px; }
+      .fim-present-cover p{ font-size:clamp(16px, 1.8vw, 22px); color:var(--ink-dim); max-width:900px; }
+      .fim-present-q{ font-size:clamp(20px, 2.6vw, 34px); line-height:1.4; font-family:'Space Grotesk', sans-serif; }
+      .fim-present-a{ margin-top:4vh; font-size:clamp(18px, 2.2vw, 28px); color:var(--good, #4FD895); border-left:3px solid currentColor; padding-left:16px; }
+      .fim-present-notes{ width:min(380px, 34vw); border-left:1px solid var(--line); overflow:auto; padding:18px; background:var(--void-2); }
+      .fim-present-notes h4{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 10px; }
+      .fim-present-nav{ display:flex; justify-content:space-between; align-items:center; padding:10px 18px; border-top:1px solid var(--line); gap:10px; }
+      .fim-present-dots{ display:flex; gap:4px; flex-wrap:wrap; justify-content:center; }
+      .fim-present-dots i{ width:7px; height:7px; background:var(--line); display:block; }
+      .fim-present-dots i.on{ background:var(--accent-2); }
+      .fim-seance-h{ font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 10px; }
+      .fim-seance-quiz{ padding-left:20px; font-size:13px; color:var(--ink-dim); }
+      .fim-seance-quiz li{ margin-bottom:8px; }
+      .fim-seance-quiz em{ display:block; color:var(--good, #4FD895); font-style:normal; font-size:12.5px; }
+      @media (max-width: 760px){ .fim-present-notes{ position:absolute; inset:auto 0 56px 0; width:auto; max-height:45vh; border-left:none; border-top:1px solid var(--line); } }`;
+    document.head.appendChild(st);
+  }
+  }
+
+  // Présentation plein écran : diaporama (une diapositive par section) ou
+  // quiz projeté (question, puis réponse révélée). Clavier : ← → Espace,
+  // N = notes, F = plein écran, Échap = quitter.
+  function openPresentation(c, mode) {
+    const slides = mode === 'quiz'
+      ? courseQuiz(c.content).map((x, i, all) => ({ kind: 'quiz', title: `Question ${i + 1} / ${all.length}`, q: x.q, a: x.a }))
+      : [{ kind: 'cover' }, ...courseSections(c.content).flatMap((s) => splitSubsections(s).map((x) => ({ kind: 'section', ...x })))];
+    if (!slides.length) { window.showToast('Rien à présenter dans ce cours.', 'error'); return; }
+    ensureTrainerStyle();
+    const ov = document.createElement('div');
+    ov.className = 'fim-present';
+    document.body.appendChild(ov);
+    let i = 0;
+    let revealed = false;
+    let notes = false;
+    const started = Date.now();
+    const clock = () => { const s = Math.floor((Date.now() - started) / 1000); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+    const render = () => {
+      const s = slides[i];
+      let inner;
+      if (s.kind === 'cover') inner = `<div class="fim-present-cover"><div class="eyebrow">Formation FIM · Site-15${c.duration ? ` · ${c.duration} min` : ''}</div><h1>${esc(c.title)}</h1>${c.summary ? `<p>${esc(c.summary)}</p>` : ''}</div>`;
+      else if (s.kind === 'quiz') inner = `<h1 style="font-size:clamp(18px, 2vw, 26px); color:var(--ink-faint);">${esc(s.title)}</h1><div class="fim-present-q">${window.renderMarkdown(s.q)}</div>${revealed ? `<div class="fim-present-a">${esc(s.a)}</div>` : '<button class="btn" data-pv="reveal" style="margin-top:4vh;">Révéler la réponse (Espace)</button>'}`;
+      else inner = `<h1>${esc(s.title)}</h1><div class="sci-body-rendered fim-table">${courseMarkdown(s.body)}</div>`;
+      ov.innerHTML = `
+        <div class="fim-present-bar"><b>${esc(c.title)}</b><span>${i + 1} / ${slides.length}</span><span data-pv-clock>${clock()}</span>
+          ${c.trainerNotes ? `<button class="btn ghost small" data-pv="notes">${notes ? 'Masquer les notes' : 'Notes (N)'}</button>` : ''}
+          <button class="btn ghost small" data-pv="full">Plein écran (F)</button><button class="btn ghost small" data-pv="close">Quitter (Échap)</button></div>
+        <div class="fim-present-main"><div class="fim-present-slide">${inner}</div>${notes && c.trainerNotes ? `<div class="fim-present-notes"><h4>Notes du formateur</h4><div class="sci-body-rendered">${window.renderMarkdown(c.trainerNotes)}</div></div>` : ''}</div>
+        <div class="fim-present-nav"><button class="btn ghost small" data-pv="prev"${i === 0 ? ' disabled' : ''}>← Précédent</button>
+          <div class="fim-present-dots">${slides.length <= 40 ? slides.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('') : ''}</div>
+          <button class="btn small" data-pv="next">${i === slides.length - 1 && (s.kind !== 'quiz' || revealed) ? 'Terminer' : 'Suivant →'}</button></div>`;
+      ov.querySelectorAll('.fim-present-slide [data-clink], .fim-present-slide a[href="#"]').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
+    };
+    const close = () => { document.removeEventListener('keydown', onKey); clearInterval(timer); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); ov.remove(); };
+    const next = () => {
+      if (slides[i].kind === 'quiz' && !revealed) { revealed = true; render(); return; }
+      if (i === slides.length - 1) { close(); return; }
+      i += 1; revealed = false; render();
+    };
+    const prev = () => { if (i > 0) { i -= 1; revealed = false; render(); } };
+    const act = (a) => {
+      if (a === 'next' || a === 'reveal') next();
+      else if (a === 'prev') prev();
+      else if (a === 'close') close();
+      else if (a === 'notes') { notes = !notes; render(); }
+      else if (a === 'full') { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else ov.requestFullscreen?.().catch(() => {}); }
+    };
+    ov.addEventListener('click', (e) => { const b = e.target.closest('[data-pv]'); if (b) act(b.dataset.pv); });
+    const onKey = (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+      else if (e.key === 'Escape' && !document.fullscreenElement) close();
+      else if (e.key === 'n' || e.key === 'N') act('notes');
+      else if (e.key === 'f' || e.key === 'F') act('full');
+    };
+    document.addEventListener('keydown', onKey);
+    const timer = setInterval(() => { const el = ov.querySelector('[data-pv-clock]'); if (el) el.textContent = clock(); }, 1000);
+    render();
   }
 
   // ---------------------------------------------------------------
