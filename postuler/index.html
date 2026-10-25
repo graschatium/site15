@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="icon" href="https://voidline-studio.com/ressources/voidline.ico" type="image/x-icon">
+<link rel="icon" href="/ressources/voidline.ico" type="image/x-icon">
 <style>
   :root{
     --void: #08090C;
@@ -211,7 +211,7 @@
 
 <header>
   <div class="nav-inner">
-    <a href="./" class="wordmark">
+    <a href="/" class="wordmark">
       <img
     src="/ressources/voidline-logo-white.png"
     class="logo-mark"
@@ -222,8 +222,11 @@
     </a>
     <nav>
       <ul>
-        <li><a href="./">Accueil</a></li>
-        <li><a href="./postuler/" class="current">Postuler</a></li>
+        <li><a href="/#top">Accueil</a></li>
+        <li><a href="/#projets">Projets</a></li>
+        <li><a href="/#information">Informations</a></li>
+        <li><a href="/#contact">Contact</a></li>
+        <li><a href="/postuler/" class="current">Postuler</a></li>
         <li class="auth-menu" id="auth-menu"></li>
       </ul>
     </nav>
@@ -290,8 +293,32 @@
     });
     if (res.status === 204) return null;
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    if (!res.ok) {
+      const err = new Error(data.error || `Erreur ${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
     return data;
+  }
+
+  // Messages lisibles pour les codes d'erreur du serveur.
+  const ERROR_MESSAGES = {
+    internal_error: 'Le serveur est momentanément indisponible. Réessaie dans quelques minutes.',
+    not_authenticated: 'Ta session a expiré : reconnecte-toi.',
+    form_not_found: "Ce formulaire de recrutement n'existe pas ou n'est plus ouvert.",
+    already_applied: 'Tu as déjà envoyé une candidature pour ce poste.',
+  };
+  function errorText(err) {
+    if (err instanceof TypeError) return 'Impossible de joindre le serveur (il démarre peut-être). Réessaie dans une minute.';
+    if (/RESOURCE_EXHAUSTED|quota/i.test(err.message)) return ERROR_MESSAGES.internal_error;
+    return ERROR_MESSAGES[err.message] || `Erreur : ${err.message}`;
+  }
+  // Session expirée ou invalide : on repart sur l'écran de connexion.
+  function handleAuthError(err) {
+    if (err.status !== 401) return false;
+    localStorage.removeItem(TOKEN_KEY);
+    renderLoggedOut();
+    return true;
   }
 
   const STATUS_META = {
@@ -305,7 +332,7 @@
     formRoot.innerHTML = `
       <div class="center-card">
         <div class="display">Connexion requise</div>
-        <p>Connecte-toi avec ton compte Discord avant de remplir ce formulaire.<br><br><a href="account.html">Aller à Mon compte</a></p>
+        <p>Connecte-toi avec ton compte Discord avant de remplir ce formulaire.<br><br><a href="/account/">Aller à Mon compte</a></p>
       </div>
     `;
   }
@@ -469,9 +496,11 @@
           body: JSON.stringify({ answers }),
         });
         showToast('Candidature envoyée !', 'success');
-        loadFormAndState();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        loadFormAndState(form.id);
       } catch (err) {
-        showToast(`Erreur : ${err.message}`, 'error');
+        if (handleAuthError(err)) return;
+        showToast(errorText(err), 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Envoyer ma candidature';
       }
@@ -485,11 +514,8 @@
     try {
       data = await apiFetch(`/api/forms/${encodeURIComponent(formId)}`);
     } catch (err) {
-      if (err.message === 'form_not_found') {
-        renderError('Ce formulaire de recrutement n\'existe pas ou n\'est plus ouvert.');
-      } else {
-        renderError(`Erreur : ${err.message}`);
-      }
+      if (handleAuthError(err)) return;
+      renderError(errorText(err));
       return;
     }
 
@@ -539,7 +565,8 @@
     try {
       listData = await apiFetch('/api/forms');
     } catch (err) {
-      renderError(`Erreur : ${err.message}`);
+      if (handleAuthError(err)) return;
+      renderError(errorText(err));
       return;
     }
 
@@ -565,6 +592,6 @@
 
   init();
 </script>
-<script src="assets/auth-menu.js" defer></script>
+<script src="/assets/auth-menu.js" defer></script>
 </body>
 </html>
