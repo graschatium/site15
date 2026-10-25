@@ -1024,12 +1024,25 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     document.addEventListener('click', (e) => { if (!e.target.closest('.fim-gsearch')) res.hidden = true; });
   }
 
+  // Situation tactique partagée entre le bandeau du QG et le guetteur
+  // d'alertes : une seule requête toutes les 20 s au plus.
+  let situationCache = { at: 0, promise: null };
+  function fetchSituation() {
+    if (situationCache.promise && Date.now() - situationCache.at < 20000) return situationCache.promise;
+    const promise = window.apiFetch('/api/rp/fim/situation');
+    situationCache = { at: Date.now(), promise };
+    promise.catch(() => { if (situationCache.promise === promise) situationCache = { at: 0, promise: null }; });
+    return promise;
+  }
+
   // Bandeau en direct du QG : code, brèches, unités déployées, serveurs.
   async function refreshLive(silent) {
     if (!document.getElementById('fim-live')) return stopRefresh();
+    // Onglet du navigateur caché : on ne rafraîchit pas l'affichage
+    if (silent && document.hidden) return;
     let data;
     try {
-      data = await window.apiFetch('/api/rp/fim/situation');
+      data = await fetchSituation();
     } catch (err) {
       const box = document.getElementById('fim-live');
       if (box && !silent) box.innerHTML = `<div class="center-msg">Réseau tactique injoignable : ${esc(err.message)}</div>`;
@@ -5161,7 +5174,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     // Le guetteur ne tourne que tant qu'un terminal FIM est affiché.
     if (!alertsOn() || !document.querySelector('.terminal-tab[data-tab="fim-hq"]')) { stopAlerts(); return; }
     let data;
-    try { data = await window.apiFetch('/api/rp/fim/situation'); } catch (e) { return; }
+    // Tourne aussi onglet caché (c'est son rôle : notifier), via la requête partagée
+    try { data = await fetchSituation(); } catch (e) { return; }
     const state = {};
     (data.servers || []).forEach((s) => { state[s.jobId] = { code: s.alertCode, breaches: s.breaches, nuke: s.nuke, raid: !!(s.raid && s.raid.stage) }; });
     if (alertBaseline) {

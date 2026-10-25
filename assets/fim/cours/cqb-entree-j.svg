@@ -46,7 +46,7 @@
 <text x="412" y="250" class="m">droit devant</text>
 <text x="300" y="182" class="m c">crochet vers</text>
 <text x="300" y="196" class="m c">son angle</text>
-<text x="530" y="288" class="m c">angle opposé</text>
+<text x="545" y="320" class="m c">angle opposé (couvert par le 2)</text>
 <rect x="620" y="100" width="160" height="124" fill="#151821" stroke="#F0525A" stroke-opacity=".7"/>
 <text x="632" y="122" class="mw" style="fill:#F0525A;letter-spacing:1px">ATTENTION</text>
 <text x="632" y="142" class="s">Pendant le crochet,</text>
