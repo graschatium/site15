@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Schéma des 7 étapes d'un reconfinement : alerte, briefing, insertion, localisation, reconfinement, sécurisation, débriefing">
+<title>Reconfinement en 7 étapes</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FD895"/></marker><marker id="ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9297A8"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#F0525A"/></marker></defs>
+<rect x="0" y="0" width="800" height="450" fill="#0E1016" />
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A" stroke-width="1" />
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · EPSILON-11 · PROCÉDURE</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Reconfinement en 7 étapes</text>
+<rect x="607" y="22" width="165" height="26" fill="none" stroke="#6E76FF" stroke-width="1.5" />
+<rect x="617" y="31" width="8" height="8" fill="#6E76FF" />
+<text x="633" y="39" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="1">EPSILON-11 · RENARD</text>
+<rect x="28" y="92" width="160" height="118" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="28" y="92" width="160" height="3" fill="#6E76FF" />
+<rect x="42" y="108" width="26" height="26" fill="#6E76FF" />
+<text x="55" y="126" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<text x="78" y="127" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Alerte</text>
+<text x="42" y="158" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Base des FIM</text>
+<text x="42" y="176" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Quai D-FIM</text>
+<rect x="222" y="92" width="160" height="118" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="222" y="92" width="160" height="3" fill="#6E76FF" />
+<rect x="236" y="108" width="26" height="26" fill="#6E76FF" />
+<text x="249" y="126" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="272" y="127" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Briefing</text>
+<text x="236" y="158" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">2 min maximum</text>
+<text x="236" y="176" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Rôles et objectif</text>
+<rect x="416" y="92" width="160" height="118" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="416" y="92" width="160" height="3" fill="#6E76FF" />
+<rect x="430" y="108" width="26" height="26" fill="#6E76FF" />
+<text x="443" y="126" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="466" y="127" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Insertion</text>
+<text x="430" y="158" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Tram D / ascenseurs</text>
+<text x="430" y="176" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Personne seul</text>
+<text x="430" y="194" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">dans un sas</text>
+<rect x="610" y="92" width="160" height="118" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="610" y="92" width="160" height="3" fill="#6E76FF" />
+<rect x="624" y="108" width="26" height="26" fill="#6E76FF" />
+<text x="637" y="126" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="660" y="127" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Localisation</text>
+<text x="624" y="158" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Caméras, terminaux</text>
+<text x="624" y="176" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Annonce « CONTACT »</text>
+<rect x="610" y="262" width="160" height="118" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="610" y="262" width="160" height="3" fill="#6E76FF" />
+<rect x="624" y="278" width="26" height="26" fill="#6E76FF" />
+<text x="637" y="296" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<text x="660" y="297" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Reconfinement</text>
+<text x="624" y="328" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Kit de confinement</text>
+<text x="624" y="346" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Terminal de cellule</text>
+<rect x="416" y="262" width="160" height="118" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="416" y="262" width="160" height="3" fill="#6E76FF" />
+<rect x="430" y="278" width="26" height="26" fill="#6E76FF" />
+<text x="443" y="296" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
+<text x="466" y="297" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Sécurisation</text>
+<text x="430" y="328" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Fouille, blessés,</text>
+<text x="430" y="346" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">comptage</text>
+<rect x="222" y="262" width="160" height="118" fill="#151821" stroke="#6E76FF" stroke-width="1.5" />
+<rect x="222" y="262" width="160" height="3" fill="#6E76FF" />
+<rect x="236" y="278" width="26" height="26" fill="#6E76FF" />
+<text x="249" y="296" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#FFFFFF" font-weight="700" text-anchor="middle">7</text>
+<text x="272" y="297" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Débriefing</text>
+<text x="236" y="328" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Dans l'heure</text>
+<text x="236" y="346" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Retour d'expérience</text>
+<polyline points="192,151 216,151" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="386,151 410,151" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="580,151 604,151" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="690,214 690,256" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="606,321 582,321" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="412,321 388,321" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="28" y="262" width="160" height="118" fill="none" stroke="#9297A8" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="42" y="286" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">RÈGLE</text>
+<text x="42" y="310" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">Chaque étape est</text>
+<text x="42" y="328" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">annoncée à NID</text>
+<text x="42" y="346" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">par le chef</text>
+<text x="42" y="364" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">d'équipe.</text>
+<rect x="28" y="424" width="12" height="12" fill="#6E76FF" />
+<text x="48" y="434" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Étape numérotée</text>
+<line x1="170" y1="430" x2="184" y2="430" stroke="#4FD895" stroke-width="3" />
+<path d="M182,425 L188,430 L182,435 z" fill="#4FD895"/>
+<text x="194" y="434" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Enchaînement</text>
+<rect x="296" y="424" width="12" height="12" fill="#9297A8" />
+<text x="316" y="434" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Commandement : NID</text>
+</svg>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Schéma simplifié des zones du Site-15 : surface, zone d'entrée, zone de confinement légère, zone de confinement lourde, reliées par la ligne D du métro-tram et le quai D-FIM.">
+<title>Les zones du Site-15</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.b{font:13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:10px "JetBrains Mono",Consolas,monospace;letter-spacing:1.5px}
+.p{fill:#151821;stroke:#2A2E3A}
+.r{fill:#0E1016;stroke:#3A3F4E}
+</style>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · FONDATION</text>
+<text x="28" y="60" class="t">Les zones du Site-15</text>
+
+<!-- Surface -->
+<rect x="28" y="78" width="552" height="60" class="p"/>
+<rect x="28" y="78" width="4" height="60" fill="#5AA9FF"/>
+<text x="46" y="98" class="m" fill="#5AA9FF">NIVEAU 0</text>
+<text x="46" y="120" class="h">Surface</text>
+<rect x="300" y="88" width="56" height="40" class="r"/>
+<circle cx="328" cy="108" r="15" fill="none" stroke="#5AA9FF" stroke-width="1.5"/>
+<text x="328" y="113" class="b" style="font-weight:700;fill:#5AA9FF">H</text>
+<text x="366" y="112" class="s">Héliport</text>
+<rect x="428" y="88" width="66" height="40" class="r"/>
+<text x="461" y="113" class="b">Gate A</text>
+<rect x="504" y="88" width="66" height="40" class="r"/>
+<text x="537" y="113" class="b">Gate B</text>
+
+<!-- Zone d'entrée -->
+<rect x="28" y="148" width="552" height="60" class="p"/>
+<rect x="28" y="148" width="4" height="60" fill="#4FD895"/>
+<text x="46" y="168" class="m" fill="#4FD895">ACCÈS</text>
+<text x="46" y="190" class="h">Zone d'entrée</text>
+<rect x="300" y="158" width="270" height="40" class="r"/>
+<text x="435" y="183" class="b">Réception · Secteur 1</text>
+
+<!-- Zone légère -->
+<rect x="28" y="218" width="552" height="84" class="p"/>
+<rect x="28" y="218" width="4" height="84" fill="#F2D14B"/>
+<text x="46" y="238" class="m" fill="#F2D14B">CONFINEMENT</text>
+<text x="46" y="260" class="h">Zone de confinement légère</text>
+<text x="46" y="280" class="s">Objets Sûrs, recherche</text>
+<rect x="300" y="236" width="130" height="48" class="r"/>
+<text x="365" y="265" class="b">Laboratoires</text>
+<rect x="440" y="236" width="130" height="48" class="r"/>
+<text x="505" y="265" class="b">Bloc Classe-D</text>
+
+<!-- Zone lourde -->
+<rect x="28" y="312" width="552" height="92" class="p"/>
+<rect x="28" y="312" width="4" height="92" fill="#F0525A"/>
+<text x="46" y="332" class="m" fill="#F0525A">CONFINEMENT</text>
+<text x="46" y="354" class="h">Zone de confinement lourde</text>
+<text x="46" y="374" class="s">Accès très restreint</text>
+<rect x="300" y="330" width="170" height="56" class="r"/>
+<text x="385" y="354" class="b">Cellules</text>
+<text x="385" y="372" class="b">Euclide / Keter</text>
+<rect x="480" y="330" width="90" height="56" class="r"/>
+<path d="M525 342L535 360H515Z" fill="none" stroke="#F0A83C" stroke-width="1.5"/>
+<text x="525" y="378" class="b" style="font-size:12px">Réacteur</text>
+
+<!-- Ligne D -->
+<text x="656" y="84" class="m" fill="#9297A8" text-anchor="middle">MÉTRO / TRAM</text>
+<rect x="624" y="92" width="64" height="18" fill="#6E76FF"/>
+<text x="656" y="105" class="m" fill="#0E1016" text-anchor="middle" style="font-weight:700">LIGNE D</text>
+<rect x="653" y="110" width="6" height="286" fill="#6E76FF"/>
+<g stroke="#5A6072" stroke-width="1.5" stroke-dasharray="4 3">
+<line x1="580" y1="128" x2="646" y2="128"/>
+<line x1="580" y1="178" x2="646" y2="178"/>
+<line x1="580" y1="270" x2="646" y2="270"/>
+<line x1="580" y1="358" x2="646" y2="358"/>
+</g>
+<g fill="#0E1016" stroke="#E8EAF0" stroke-width="2">
+<rect x="648" y="122" width="16" height="12"/>
+<rect x="648" y="172" width="16" height="12"/>
+<rect x="648" y="264" width="16" height="12"/>
+<rect x="648" y="352" width="16" height="12"/>
+</g>
+<text x="674" y="132" class="s">Surface</text>
+<text x="674" y="182" class="s">Entrée</text>
+<text x="674" y="274" class="s">Légère</text>
+<text x="674" y="362" class="s">Lourde</text>
+
+<!-- Quai D-FIM -->
+<rect x="644" y="212" width="24" height="18" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/>
+<text x="676" y="219" class="m" fill="#6E76FF" style="font-weight:700">QUAI D-FIM</text>
+<text x="676" y="234" class="s">Base des FIM</text>
+
+<text x="28" y="434" class="s">Schéma simplifié, sans échelle · Métro / tram ligne D – quai D-FIM (Base des FIM).</text>
+</svg>

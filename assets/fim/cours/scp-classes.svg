@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Test de la boîte : Sûr, la boîte reste fermée ; Euclide, la boîte tremble ; Keter, la boîte est brisée.">
+<title>Les classes d'objet</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 24px "Space Grotesk","Segoe UI",Arial,sans-serif;text-anchor:middle}
+.b{font:13.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:10px "JetBrains Mono",Consolas,monospace;letter-spacing:1.5px;fill:#9297A8;text-anchor:middle}
+.p{fill:#151821;stroke:#2A2E3A}
+</style>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · ANOMALIES</text>
+<text x="28" y="60" class="t">Les classes d'objet : le test de la boîte</text>
+
+<!-- SÛR -->
+<rect x="28" y="82" width="236" height="320" class="p"/>
+<rect x="28" y="82" width="236" height="4" fill="#4FD895"/>
+<text x="146" y="118" class="h" fill="#4FD895">SÛR</text>
+<text x="146" y="138" class="m">BOÎTE FERMÉE</text>
+<rect x="90" y="186" width="112" height="16" fill="#0E1016" stroke="#4FD895" stroke-width="2"/>
+<rect x="96" y="202" width="100" height="78" fill="#0E1016" stroke="#4FD895" stroke-width="2"/>
+<rect x="138" y="232" width="16" height="14" fill="none" stroke="#4FD895" stroke-width="2"/>
+<line x1="80" y1="290" x2="212" y2="290" stroke="#2A2E3A" stroke-width="2"/>
+<text x="146" y="324" class="b">On la ferme : rien ne se passe.</text>
+<text x="146" y="344" class="b">Procédures simples.</text>
+<text x="146" y="384" class="m">EX. SCP-999</text>
+
+<!-- EUCLIDE -->
+<rect x="282" y="82" width="236" height="320" class="p"/>
+<rect x="282" y="82" width="236" height="4" fill="#F0A83C"/>
+<text x="400" y="118" class="h" fill="#F0A83C">EUCLIDE</text>
+<text x="400" y="138" class="m">BOÎTE QUI TREMBLE</text>
+<g transform="rotate(-7 400 240)">
+<rect x="344" y="186" width="112" height="16" fill="#0E1016" stroke="#F0A83C" stroke-width="2"/>
+<rect x="350" y="202" width="100" height="78" fill="#0E1016" stroke="#F0A83C" stroke-width="2"/>
+<text x="400" y="257" class="h" fill="#F0A83C" style="font-size:34px">?</text>
+</g>
+<path d="M326 210l-10 8l10 8M318 240l-10 8l10 8M474 200l10 8l-10 8M482 232l10 8l-10 8" fill="none" stroke="#F0A83C" stroke-width="2"/>
+<line x1="334" y1="290" x2="466" y2="290" stroke="#2A2E3A" stroke-width="2"/>
+<text x="400" y="324" class="b">On ne sait pas ce qu'elle fera.</text>
+<text x="400" y="344" class="b">Surveillance constante.</text>
+<text x="400" y="384" class="m">EX. SCP-049</text>
+
+<!-- KETER -->
+<rect x="536" y="82" width="236" height="320" class="p"/>
+<rect x="536" y="82" width="236" height="4" fill="#F0525A"/>
+<text x="654" y="118" class="h" fill="#F0525A">KETER</text>
+<text x="654" y="138" class="m">BOÎTE BRISÉE</text>
+<g transform="rotate(68 740 240)">
+<rect x="690" y="233" width="100" height="14" fill="#0E1016" stroke="#F0525A" stroke-width="2"/>
+</g>
+<path d="M604 210H624L634 222L646 208L658 224L670 210L684 220L704 210V280H604Z" fill="#0E1016" stroke="#F0525A" stroke-width="2"/>
+<path d="M640 280L648 254L640 238M672 280L664 258L674 242" fill="none" stroke="#F0525A" stroke-width="1.5"/>
+<path d="M654 200V176M630 196L618 180M678 196L690 182M600 222L584 216" stroke="#F0525A" stroke-width="2"/>
+<line x1="588" y1="290" x2="720" y2="290" stroke="#2A2E3A" stroke-width="2"/>
+<text x="654" y="324" class="b">Elle s'échappe malgré tout.</text>
+<text x="654" y="344" class="b">Confinement lourd et coûteux.</text>
+<text x="654" y="384" class="m">EX. SCP-682</text>
+
+<text x="400" y="432" class="s" text-anchor="middle">La classe mesure la difficulté de confinement, pas le danger.</text>
+</svg>

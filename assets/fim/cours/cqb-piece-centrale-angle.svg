@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Deux pièces vues de dessus. Entrée centrale : porte au milieu du mur, deux angles morts de part et d'autre. Entrée en angle : porte en bout de mur, un seul angle mort du côté ouvert.">
+<title>Pièce à entrée centrale ou en angle</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.b{font:14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.bb{font:700 14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:11px "JetBrains Mono",Consolas,monospace;fill:#9297A8}
+.mw{font:700 11px "JetBrains Mono",Consolas,monospace;fill:#E8EAF0}
+.n{font:700 13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#FFFFFF;text-anchor:middle}
+.c{text-anchor:middle}
+.r{text-anchor:end}
+.w{stroke:#9297A8;stroke-width:6;stroke-linecap:square;fill:none}
+.f{fill:#151821}
+.mv{stroke:#4FD895;stroke-width:3;fill:none}
+.sec{fill:#6E76FF;fill-opacity:.12;stroke:#6E76FF;stroke-opacity:.5;stroke-dasharray:4 3}
+.dz{fill:#F0525A;fill-opacity:.15}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#4FD895"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#F0525A"/></marker>
+</defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · CQB</text>
+<text x="28" y="60" class="t">Pièce à entrée centrale ou en angle</text>
+<rect x="60" y="100" width="300" height="230" class="f"/>
+<polygon points="210.0,327.0 64.0,104.0 356.0,104.0" class="sec"/>
+<rect x="64" y="254" width="70" height="72" class="dz" stroke="#F0525A" stroke-opacity=".6" stroke-dasharray="4 3"/>
+<text x="99" y="298" class="c" style="font:700 24px 'Space Grotesk','Segoe UI',Arial,sans-serif;fill:#F0525A">?</text>
+<rect x="286" y="254" width="70" height="72" class="dz" stroke="#F0525A" stroke-opacity=".6" stroke-dasharray="4 3"/>
+<text x="321" y="298" class="c" style="font:700 24px 'Space Grotesk','Segoe UI',Arial,sans-serif;fill:#F0525A">?</text>
+<path d="M185,330 L60,330 L60,100 L360,100 L360,330 L235,330" class="w"/>
+<circle cx="210" cy="352" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="210" y="356.6" class="n">1</text>
+<text x="210" y="386" class="bb c">Entrée centrale</text>
+<text x="210" y="403" class="s c">2 angles morts à traiter</text>
+<rect x="440" y="100" width="300" height="230" class="f"/>
+<polygon points="470.0,327.0 444.0,104.0 736.0,104.0 736.0,230.0" class="sec"/>
+<rect x="664" y="254" width="72" height="72" class="dz" stroke="#F0525A" stroke-opacity=".6" stroke-dasharray="4 3"/>
+<text x="700" y="298" class="c" style="font:700 24px 'Space Grotesk','Segoe UI',Arial,sans-serif;fill:#F0525A">?</text>
+<path d="M443,330 L440,330 L440,100 L740,100 L740,330 L495,330" class="w"/>
+<circle cx="470" cy="352" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="470" y="356.6" class="n">1</text>
+<text x="590" y="386" class="bb c">Entrée en angle</text>
+<text x="590" y="403" class="s c">1 seul angle mort, côté ouvert</text>
+<text x="452" y="280" class="m">côté mur :</text>
+<text x="452" y="294" class="m">rien à voir</text>
+<line x1="28" y1="408" x2="772" y2="408" stroke="#2A2E3A"/>
+<circle cx="35" cy="426" r="7" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="48" y="430" class="m">Opérateur FIM</text>
+<path d="M155,432 L173,420 L173,432 Z" class="sec"/>
+<text x="181" y="430" class="m">Champ de vision depuis la porte</text>
+<rect x="408" y="419" width="16" height="13" class="dz" stroke="#F0525A" stroke-opacity=".5"/>
+<text x="432" y="430" class="m">Angle mort (?)</text>
+<path d="M547,426 L563,426" class="w" style="stroke-width:5"/>
+<text x="573" y="430" class="m">Mur</text>
+</svg>

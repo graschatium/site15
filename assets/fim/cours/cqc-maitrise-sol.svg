@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Vue de dessus d'un individu face au sol, bras contrôlé dans le dos : genou sur l'omoplate autorisé, genou sur la nuque interdit ; puis contrôle, menottage et position latérale.">
+<title>Maîtrise au sol</title>
+<defs><marker id="mg" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4FD895"/>
+</marker><marker id="mr" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F0525A"/>
+</marker><marker id="mn" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9297A8"/>
+</marker><marker id="ma" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F0A83C"/>
+</marker><marker id="mb" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#6E76FF"/>
+</marker></defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · CQC</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Maîtrise au sol</text>
+<rect x="28.5" y="84.5" width="363" height="215" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<g transform="translate(28 76)"><line x1="98" y1="122" x2="72" y2="98" stroke="#F0525A" stroke-width="10"/>
+<rect x="88" y="118" width="120" height="44" fill="#F0525A"/>
+<rect x="208" y="121" width="90" height="14" fill="#F0525A"/>
+<rect x="208" y="145" width="90" height="14" fill="#F0525A"/>
+<circle cx="70" cy="140" r="15" fill="#F0525A" stroke="#0E1016" stroke-width="2"/>
+<polyline points="96,160 124,164 152,146" fill="none" stroke="#B53A41" stroke-width="10" stroke-linejoin="miter"/>
+<circle cx="165" cy="74" r="18" fill="#6E76FF"/>
+<line x1="170" y1="92" x2="155" y2="140" stroke="#6E76FF" stroke-width="5"/>
+<rect x="148" y="138" width="12" height="12" fill="#6E76FF"/>
+<line x1="152" y1="86" x2="120" y2="132" stroke="#6E76FF" stroke-width="9"/>
+<rect x="112" y="124" width="16" height="16" fill="#6E76FF"/>
+<rect x="107" y="119" width="26" height="26" fill="none" stroke="#4FD895" stroke-width="2.5"/>
+</g><path d="M46 108 l6 6 l12 -12" fill="none" stroke="#4FD895" stroke-width="4"/>
+<text x="76" y="116" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#4FD895" font-weight="700">À faire : genou sur l'omoplate</text><text x="48" y="268" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12.5" fill="#E8EAF0">Bras plaqué dans le dos, pression dosée :</text><text x="48" y="285" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12.5" fill="#E8EAF0">l'individu doit pouvoir respirer.</text><rect x="408.5" y="84.5" width="363" height="215" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<g transform="translate(408 76)"><line x1="98" y1="122" x2="72" y2="98" stroke="#F0525A" stroke-width="10"/>
+<rect x="88" y="118" width="120" height="44" fill="#F0525A"/>
+<rect x="208" y="121" width="90" height="14" fill="#F0525A"/>
+<rect x="208" y="145" width="90" height="14" fill="#F0525A"/>
+<circle cx="70" cy="140" r="15" fill="#F0525A" stroke="#0E1016" stroke-width="2"/>
+<polyline points="96,160 124,164 152,146" fill="none" stroke="#B53A41" stroke-width="10" stroke-linejoin="miter"/>
+<circle cx="165" cy="74" r="18" fill="#6E76FF"/>
+<line x1="170" y1="92" x2="155" y2="140" stroke="#6E76FF" stroke-width="5"/>
+<rect x="148" y="138" width="12" height="12" fill="#6E76FF"/>
+<line x1="152" y1="86" x2="86" y2="140" stroke="#6E76FF" stroke-width="9"/>
+<rect x="78" y="132" width="16" height="16" fill="#6E76FF"/>
+<rect x="73" y="127" width="26" height="26" fill="none" stroke="#F0525A" stroke-width="2.5"/>
+</g><line x1="428" y1="102" x2="444" y2="118" stroke="#F0525A" stroke-width="4"/>
+<line x1="428" y1="118" x2="444" y2="102" stroke="#F0525A" stroke-width="4"/>
+<text x="456" y="116" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#F0525A" font-weight="700">Jamais : genou sur la nuque</text><text x="428" y="268" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12.5" fill="#E8EAF0">Nuque ou gorge : risque d'asphyxie.</text><text x="428" y="285" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12.5" fill="#E8EAF0">Interdit en toutes circonstances.</text><rect x="28.5" y="318.5" width="231" height="75" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="50" cy="342" r="12" fill="#6E76FF"/>
+<text x="50" y="346.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text><text x="70" y="347" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Contrôle</text><text x="70" y="366" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Bras verrouillé dans le dos,</text><text x="70" y="381" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">genou sur l'omoplate.</text><line x1="264" y1="356" x2="280" y2="356" stroke="#9297A8" stroke-width="2" marker-end="url(#mn)"/>
+<rect x="284.5" y="318.5" width="231" height="75" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="306" cy="342" r="12" fill="#6E76FF"/>
+<text x="306" y="346.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text><text x="326" y="347" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Menottage</text><text x="326" y="366" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Mains dans le dos,</text><text x="326" y="381" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">vérifier le serrage.</text><line x1="520" y1="356" x2="536" y2="356" stroke="#9297A8" stroke-width="2" marker-end="url(#mn)"/>
+<rect x="540.5" y="318.5" width="231" height="75" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="562" cy="342" r="12" fill="#6E76FF"/>
+<text x="562" y="346.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text><text x="582" y="347" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Position latérale</text><text x="582" y="366" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Relever sur le côté : il</text><text x="582" y="381" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">respire, on le surveille.</text>
+<line x1="28" y1="412" x2="772" y2="412" stroke="#2A2E3A" stroke-width="1"/>
+<text x="28" y="433" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12.5" fill="#9297A8">Vue de dessus · la pression sur le dos se relâche dès que l'individu est menotté.</text>
+</svg>

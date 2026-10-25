@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Silhouette de profil en position de garde avec quatre points : menton rentré, mains hautes, genoux fléchis, pieds décalés.">
+<title>La garde</title>
+<defs><marker id="mg" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4FD895"/>
+</marker><marker id="mr" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F0525A"/>
+</marker><marker id="mn" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9297A8"/>
+</marker><marker id="ma" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F0A83C"/>
+</marker><marker id="mb" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#6E76FF"/>
+</marker></defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · CQC</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">La garde</text>
+<line x1="120" y1="368" x2="410" y2="368" stroke="#2A2E3A" stroke-width="2"/>
+<polyline points="239,243 214,302 186,362" fill="none" stroke="#4A51C0" stroke-width="14" stroke-linejoin="miter"/>
+<line x1="172" y1="366" x2="202" y2="366" stroke="#4A51C0" stroke-width="8"/>
+<polyline points="246,158 272,196 286,138" fill="none" stroke="#4A51C0" stroke-width="12" stroke-linejoin="miter"/>
+<rect x="280" y="124" width="14" height="14" fill="#4A51C0"/>
+<polygon points="236,145 266,150 254,246 224,240" fill="#6E76FF"/>
+<polyline points="239,243 282,298 298,362" fill="none" stroke="#6E76FF" stroke-width="14" stroke-linejoin="miter"/>
+<line x1="292" y1="366" x2="326" y2="366" stroke="#6E76FF" stroke-width="8"/>
+<circle cx="262" cy="118" r="17" fill="#6E76FF"/>
+<polyline points="258,156 292,190 303,132" fill="none" stroke="#6E76FF" stroke-width="12" stroke-linejoin="miter"/>
+<rect x="296" y="118" width="15" height="15" fill="#6E76FF"/>
+<line x1="186" y1="388" x2="298" y2="388" stroke="#9297A8" stroke-width="1"/>
+<line x1="186" y1="382" x2="186" y2="394" stroke="#9297A8" stroke-width="1"/>
+<line x1="298" y1="382" x2="298" y2="394" stroke="#9297A8" stroke-width="1"/>
+<text x="242" y="405" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" text-anchor="middle">≈ largeur d'épaules</text><line x1="236" y1="104" x2="246" y2="110" stroke="#9297A8" stroke-width="1.5"/>
+<circle cx="224" cy="100" r="12" fill="#F0A83C"/>
+<text x="224" y="104.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text><line x1="324" y1="114" x2="313" y2="121" stroke="#9297A8" stroke-width="1.5"/>
+<circle cx="336" cy="110" r="12" fill="#F0A83C"/>
+<text x="336" y="114.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text><line x1="310" y1="288" x2="292" y2="294" stroke="#9297A8" stroke-width="1.5"/>
+<circle cx="322" cy="284" r="12" fill="#F0A83C"/>
+<text x="322" y="288.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text><line x1="338" y1="354" x2="327" y2="362" stroke="#9297A8" stroke-width="1.5"/>
+<circle cx="350" cy="348" r="12" fill="#F0A83C"/>
+<text x="350" y="352.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text><rect x="440.5" y="82.5" width="331" height="67" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="468" cy="116" r="13" fill="#F0A83C"/>
+<text x="468" y="120.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text><text x="496" y="106" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#E8EAF0" font-weight="700">Menton rentré</text><text x="496" y="125" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Protège mâchoire et gorge ;</text><text x="496" y="141" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">le regard passe au-dessus des poings.</text><rect x="440.5" y="160.5" width="331" height="67" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="468" cy="194" r="13" fill="#F0A83C"/>
+<text x="468" y="198.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text><text x="496" y="184" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#E8EAF0" font-weight="700">Mains hautes</text><text x="496" y="203" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Poings à hauteur du visage,</text><text x="496" y="219" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">coudes serrés contre les côtes.</text><rect x="440.5" y="238.5" width="331" height="67" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="468" cy="272" r="13" fill="#F0A83C"/>
+<text x="468" y="276.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text><text x="496" y="262" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#E8EAF0" font-weight="700">Genoux fléchis</text><text x="496" y="281" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Poids réparti, centre de gravité bas :</text><text x="496" y="297" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">on encaisse sans perdre l'équilibre.</text><rect x="440.5" y="316.5" width="331" height="67" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="468" cy="350" r="13" fill="#F0A83C"/>
+<text x="468" y="354.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text><text x="496" y="340" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#E8EAF0" font-weight="700">Pieds décalés</text><text x="496" y="359" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Écart largeur d'épaules, pied fort</text><text x="496" y="375" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">en arrière, appui sur l'avant du pied.</text>
+<line x1="28" y1="412" x2="772" y2="412" stroke="#2A2E3A" stroke-width="1"/>
+<text x="28" y="433" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12.5" fill="#9297A8">Vue de profil · bleu foncé = membres arrière. Adopter la garde dès qu'une interpellation peut dégénérer.</text>
+</svg>

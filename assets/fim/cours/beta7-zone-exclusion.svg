@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Schéma d'une zone d'exclusion : zone contaminée, périmètre, point unique d'entrée et de sortie gardé, sas de décontamination, zone propre et médical">
+<title>Zone d'exclusion (Bêta-7)</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FD895"/></marker><marker id="ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9297A8"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#F0525A"/></marker><pattern id="hz" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="12" fill="#151821"/><rect width="4" height="12" fill="#F0525A" fill-opacity=".35"/></pattern></defs>
+<rect x="0" y="0" width="800" height="450" fill="#0E1016" />
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A" stroke-width="1" />
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · BÊTA-7 · NRBC</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Zone d'exclusion (Bêta-7)</text>
+<rect x="614" y="22" width="158" height="26" fill="none" stroke="#E6B43C" stroke-width="1.5" />
+<rect x="624" y="31" width="8" height="8" fill="#E6B43C" />
+<text x="640" y="39" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E6B43C" letter-spacing="1">BÊTA-7 · CHAPELIER</text>
+<rect x="46" y="96" width="288" height="278" fill="url(#hz)" />
+<rect x="46" y="96" width="288" height="278" fill="#F0525A" fill-opacity=".15"/>
+<rect x="92" y="196" width="196" height="74" fill="#0E1016" stroke="#F0525A" stroke-width="1.5" />
+<polygon points="190,206 204,230 176,230" fill="none" stroke="#F0525A" stroke-width="2"/>
+<text x="190" y="228" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#F0525A" font-weight="700" text-anchor="middle">!</text>
+<text x="190" y="250" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#F0525A" font-weight="700" text-anchor="middle">ZONE CONTAMINÉE</text>
+<text x="190" y="264" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" text-anchor="middle">combinaison obligatoire</text>
+<polyline points="346,210 346,84 34,84 34,386 346,386 346,250" fill="none" stroke="#E6B43C" stroke-width="5"/>
+<polyline points="346,210 346,84 34,84 34,386 346,386 346,250" fill="none" stroke="#0E1016" stroke-width="5" stroke-dasharray="8 8"/>
+<circle cx="376" cy="196" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="376" y="200" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<circle cx="376" cy="264" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="376" y="268" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<polyline points="290,230 396,230" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="400" y="200" width="150" height="60" fill="#1C2030" stroke="#9297A8" stroke-width="3" />
+<text x="475" y="190" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E8EAF0" font-weight="700" text-anchor="middle">SAS DE DÉCONTAMINATION</text>
+<text x="475" y="228" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#E8EAF0" text-anchor="middle">Douche · contrôle</text>
+<text x="475" y="246" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">retrait combinaison</text>
+<text x="475" y="286" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E6B43C" font-weight="700" text-anchor="middle">ENTRÉE / SORTIE UNIQUE</text>
+<text x="475" y="302" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" text-anchor="middle">gardée en permanence</text>
+<rect x="590" y="96" width="182" height="150" fill="#4FD895" stroke="#4FD895" stroke-width="1.5" fill-opacity=".08"/>
+<text x="681" y="160" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#4FD895" font-weight="700" text-anchor="middle">ZONE PROPRE</text>
+<text x="681" y="182" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">Accès après contrôle</text>
+<rect x="590" y="276" width="182" height="98" fill="#1C2030" stroke="#E8EAF0" stroke-width="1.5" />
+<rect x="612" y="300" width="22" height="22" fill="none" />
+<rect x="619" y="296" width="8" height="28" fill="#4FD895" />
+<rect x="609" y="306" width="28" height="8" fill="#4FD895" />
+<text x="648" y="310" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#E8EAF0" font-weight="700">Médical</text>
+<text x="608" y="344" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#4FD895" letter-spacing="1">DIVISION BIO</text>
+<text x="608" y="362" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Suivi des exposés</text>
+<polyline points="552,220 586,180" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="552,246 586,300" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="28" y="398" width="744" height="20" fill="#1C2030" stroke="#E6B43C" stroke-width="1" />
+<text x="400" y="413" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0" font-weight="700" text-anchor="middle">Personne n'entre, personne ne sort, sauf par le sas.</text>
+<rect x="28" y="428" width="12" height="12" fill="#F0525A" stroke="#F0525A" stroke-width="1" fill-opacity=".25" stroke-dasharray="3 2"/>
+<text x="48" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Zone contaminée</text>
+<rect x="170" y="428" width="12" height="12" fill="#E6B43C" />
+<text x="190" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Périmètre (rubalise)</text>
+<circle cx="352" cy="434" r="6" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="366" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Garde FIM</text>
+<line x1="448" y1="434" x2="462" y2="434" stroke="#4FD895" stroke-width="3" />
+<path d="M460,429 L466,434 L460,439 z" fill="#4FD895"/>
+<text x="472" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Seul trajet autorisé</text>
+</svg>

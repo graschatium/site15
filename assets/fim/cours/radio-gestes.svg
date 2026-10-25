@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Cinq pictogrammes : stop poing fermé levé, à couvert main à plat vers le bas, je vois regardez index vers les yeux puis la direction, nombre d'hostiles doigts levés, prêt on y va tape sur l'épaule.">
+<title>Signes de main</title>
+<defs><marker id="mg" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4FD895"/>
+</marker><marker id="mr" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F0525A"/>
+</marker><marker id="mn" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9297A8"/>
+</marker><marker id="ma" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F0A83C"/>
+</marker><marker id="mb" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#6E76FF"/>
+</marker></defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · TRANSMISSIONS</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Signes de main</text>
+<rect x="28.5" y="84.5" width="139" height="315" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="48" cy="104" r="11" fill="#6E76FF"/>
+<text x="48" y="108.32" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text><rect x="88" y="170" width="20" height="66" fill="#6E76FF"/>
+<rect x="80" y="128" width="36" height="42" fill="#6E76FF"/>
+<line x1="80" y1="139" x2="100" y2="139" stroke="#0E1016" stroke-width="1.5"/>
+<line x1="80" y1="149" x2="100" y2="149" stroke="#0E1016" stroke-width="1.5"/>
+<line x1="80" y1="159" x2="100" y2="159" stroke="#0E1016" stroke-width="1.5"/>
+<line x1="104" y1="132" x2="104" y2="166" stroke="#0E1016" stroke-width="2"/>
+<text x="98" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700" text-anchor="middle">Stop</text><text x="98" y="304" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">Poing fermé levé :</text><text x="98" y="320" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">tout le monde</text><text x="98" y="336" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">s'immobilise.</text><rect x="179.5" y="84.5" width="139" height="315" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="199" cy="104" r="11" fill="#6E76FF"/>
+<text x="199" y="108.32" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text><rect x="263" y="152" width="40" height="14" fill="#6E76FF"/>
+<rect x="203" y="150" width="62" height="18" fill="#6E76FF"/>
+<line x1="219" y1="186" x2="219" y2="226" stroke="#4FD895" stroke-width="3" marker-end="url(#mg)"/>
+<line x1="249" y1="186" x2="249" y2="226" stroke="#4FD895" stroke-width="3" marker-end="url(#mg)"/>
+<text x="249" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700" text-anchor="middle">À couvert</text><text x="249" y="304" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">Main à plat, vers</text><text x="249" y="320" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">le bas : on se</text><text x="249" y="336" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">met à couvert.</text><rect x="330.5" y="84.5" width="139" height="315" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="350" cy="104" r="11" fill="#6E76FF"/>
+<text x="350" y="108.32" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text><path d="M356 140 Q374 126 392 140 Q374 154 356 140 Z" fill="none" stroke="#E8EAF0" stroke-width="2"/>
+<circle cx="374" cy="140" r="4" fill="#E8EAF0"/>
+<line x1="410" y1="180" x2="394" y2="158" stroke="#6E76FF" stroke-width="7"/>
+<rect x="404" y="176" width="24" height="24" fill="#6E76FF"/>
+<line x1="364" y1="224" x2="440" y2="224" stroke="#4FD895" stroke-width="3" stroke-dasharray="6 4" marker-end="url(#mg)"/>
+<text x="400" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700" text-anchor="middle">Je vois /</text><text x="400" y="298" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700" text-anchor="middle">regardez</text><text x="400" y="322" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">Index vers les</text><text x="400" y="338" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">yeux, puis vers</text><text x="400" y="354" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">la direction.</text><rect x="481.5" y="84.5" width="139" height="315" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="501" cy="104" r="11" fill="#6E76FF"/>
+<text x="501" y="108.32" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text><rect x="529.0" y="144" width="9" height="38" fill="#6E76FF"/>
+<rect x="540.5" y="140" width="9" height="42" fill="#6E76FF"/>
+<rect x="552.0" y="144" width="9" height="38" fill="#6E76FF"/>
+<rect x="563.5" y="168" width="9" height="14" fill="#6E76FF"/>
+<rect x="529" y="182" width="44" height="44" fill="#6E76FF"/>
+<rect x="539" y="226" width="24" height="22" fill="#6E76FF"/>
+<circle cx="591" cy="140" r="12" fill="#F0525A"/>
+<text x="591" y="144.68" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text><text x="551" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700" text-anchor="middle">Nombre</text><text x="551" y="298" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700" text-anchor="middle">d'hostiles</text><text x="551" y="322" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">Doigts levés =</text><text x="551" y="338" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">nombre d'hostiles</text><text x="551" y="354" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">repérés.</text><rect x="632.5" y="84.5" width="139" height="315" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<circle cx="652" cy="104" r="11" fill="#6E76FF"/>
+<text x="652" y="108.32" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text><circle cx="702" cy="135" r="15" fill="#9297A8"/>
+<rect x="662" y="156" width="80" height="60" fill="#9297A8"/>
+<line x1="738" y1="152" x2="764" y2="118" stroke="#6E76FF" stroke-width="8"/>
+<rect x="714" y="148" width="28" height="14" fill="#6E76FF"/>
+<line x1="718" y1="140" x2="714" y2="132" stroke="#4FD895" stroke-width="2.5"/>
+<line x1="728" y1="138" x2="728" y2="129" stroke="#4FD895" stroke-width="2.5"/>
+<line x1="738" y1="140" x2="742" y2="132" stroke="#4FD895" stroke-width="2.5"/>
+<text x="702" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700" text-anchor="middle">Prêt /</text><text x="702" y="298" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700" text-anchor="middle">on y va</text><text x="702" y="322" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">Tape sur l'épaule</text><text x="702" y="338" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">du coéquipier :</text><text x="702" y="354" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8" text-anchor="middle">prêt, on y va.</text>
+<line x1="28" y1="412" x2="772" y2="412" stroke="#2A2E3A" stroke-width="1"/>
+<text x="28" y="433" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12.5" fill="#9297A8">Communication silencieuse · le signe est relayé de proche en proche jusqu'au dernier.</text>
+</svg>

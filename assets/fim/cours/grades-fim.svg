@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Escalier des grades FIM, d'Opérateur à Commandant, avec le seuil Conforme requis à l'évaluation de promotion">
+<title>Parcours de grade FIM</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FD895"/></marker><marker id="ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9297A8"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#F0525A"/></marker></defs>
+<rect x="0" y="0" width="800" height="450" fill="#0E1016" />
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A" stroke-width="1" />
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · PROGRESSION</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Parcours de grade FIM</text>
+<rect x="28" y="330" width="118" height="60" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="28" y="330" width="118" height="4" fill="#6E76FF" fill-opacity="0.35"/>
+<polyline points="73,308 87,300 101,308" fill="none" stroke="#6E76FF" stroke-width="4"/>
+<text x="38" y="354" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Opérateur</text>
+<text x="38" y="374" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="11" fill="#9297A8">Grade d'entrée</text>
+<rect x="152" y="288" width="118" height="102" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="152" y="288" width="118" height="4" fill="#6E76FF" fill-opacity="0.48"/>
+<polyline points="197,262 211,254 225,262" fill="none" stroke="#6E76FF" stroke-width="4"/>
+<polyline points="197,270 211,262 225,270" fill="none" stroke="#6E76FF" stroke-width="4"/>
+<text x="162" y="312" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Caporal</text>
+<text x="162" y="336" font-family="JetBrains Mono, Consolas, monospace" font-size="18" fill="#6E76FF" font-weight="700">60 %</text>
+<text x="162" y="356" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="11" fill="#9297A8">Opérateur confirmé</text>
+<rect x="276" y="246" width="118" height="144" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="276" y="246" width="118" height="4" fill="#6E76FF" fill-opacity="0.61"/>
+<polyline points="321,216 335,208 349,216" fill="none" stroke="#6E76FF" stroke-width="4"/>
+<polyline points="321,224 335,216 349,224" fill="none" stroke="#6E76FF" stroke-width="4"/>
+<polyline points="321,232 335,224 349,232" fill="none" stroke="#6E76FF" stroke-width="4"/>
+<text x="286" y="270" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Sergent</text>
+<text x="286" y="294" font-family="JetBrains Mono, Consolas, monospace" font-size="18" fill="#6E76FF" font-weight="700">65 %</text>
+<text x="286" y="314" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="11" fill="#9297A8">Chef d'équipe</text>
+<rect x="400" y="204" width="118" height="186" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="400" y="204" width="118" height="4" fill="#6E76FF" fill-opacity="0.74"/>
+<rect x="452" y="173" width="14" height="18" fill="#6E76FF" />
+<text x="410" y="228" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Lieutenant</text>
+<text x="410" y="252" font-family="JetBrains Mono, Consolas, monospace" font-size="18" fill="#6E76FF" font-weight="700">70 %</text>
+<text x="410" y="272" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="11" fill="#9297A8">Officier</text>
+<rect x="524" y="162" width="118" height="228" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="524" y="162" width="118" height="4" fill="#6E76FF" fill-opacity="0.87"/>
+<rect x="561" y="131" width="14" height="18" fill="#6E76FF" />
+<rect x="577" y="131" width="14" height="18" fill="#6E76FF" />
+<text x="534" y="186" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Capitaine</text>
+<text x="534" y="210" font-family="JetBrains Mono, Consolas, monospace" font-size="18" fill="#6E76FF" font-weight="700">75 %</text>
+<text x="534" y="230" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="11" fill="#9297A8">Responsable</text>
+<text x="534" y="245" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="11" fill="#9297A8">d'unité</text>
+<rect x="648" y="120" width="118" height="270" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="648" y="120" width="118" height="4" fill="#6E76FF" fill-opacity="1.00"/>
+<polygon points="707.0,86.0 709.9,94.0 718.4,94.3 711.8,99.5 714.1,107.7 707.0,103.0 699.9,107.7 702.2,99.5 695.6,94.3 704.1,94.0" fill="#6E76FF"/>
+<rect x="691" y="112" width="32" height="3" fill="#6E76FF" />
+<text x="658" y="144" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">Commandant</text>
+<text x="658" y="168" font-family="JetBrains Mono, Consolas, monospace" font-size="18" fill="#6E76FF" font-weight="700">80 %</text>
+<text x="658" y="188" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="11" fill="#9297A8">Commandement</text>
+<text x="658" y="203" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="11" fill="#9297A8">FIM</text>
+<polyline points="40,404 760,404" fill="none" stroke="#9297A8" stroke-width="2" stroke-linejoin="miter" marker-end="url(#ahs)"/>
+<text x="28" y="432" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">% = seuil « Conforme » minimal à l'évaluation de promotion vers ce grade</text>
+</svg>

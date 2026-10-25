@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Décomposition du CRQ 15 / A / NOIR-SUPERBLEU : site appelant, priorité de A à E, classes de menace. Un CRQ n'est pas un code d'alerte du Site.">
+<title>Lire un CRQ</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.big{font:700 40px "JetBrains Mono",Consolas,monospace;fill:#E8EAF0;text-anchor:middle}
+.sl{font:700 40px "JetBrains Mono",Consolas,monospace;fill:#6E76FF;text-anchor:middle}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.b{font:13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:10px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.q{font:12px "JetBrains Mono",Consolas,monospace;fill:#E8EAF0}
+.p{fill:#151821;stroke:#2A2E3A}
+.l{fill:none;stroke:#6E76FF;stroke-width:1.5}
+</style>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · COMMUNICATIONS</text>
+<text x="28" y="60" class="t">Lire un CRQ</text>
+
+<text x="400" y="98" class="m" text-anchor="middle" style="fill:#9297A8">EXEMPLE DE CRQ REÇU</text>
+<text x="150" y="152" class="big">15</text>
+<text x="232" y="152" class="sl">/</text>
+<text x="300" y="152" class="big">A</text>
+<text x="370" y="152" class="sl">/</text>
+<text x="575" y="152" class="big">NOIR-SUPERBLEU</text>
+
+<!-- accolades -->
+<path d="M112 168V178H188V168M150 178V206H139V230" class="l"/>
+<path d="M276 168V178H324V168M300 178V206H393V230" class="l"/>
+<path d="M400 168V178H750V168M575 178V206H654V230" class="l"/>
+
+<!-- Site -->
+<rect x="28" y="232" width="222" height="106" class="p"/>
+<text x="42" y="252" class="m">SITE(S)</text>
+<text x="42" y="274" class="h">Qui appelle</text>
+<text x="42" y="298" class="s">Numéro du ou des sites</text>
+<text x="42" y="315" class="s">émetteurs (ici : Site-15).</text>
+
+<!-- Priorité -->
+<rect x="266" y="232" width="254" height="106" class="p"/>
+<text x="280" y="252" class="m">PRIORITÉ</text>
+<text x="280" y="274" class="h">Délai de réponse</text>
+<text x="280" y="298" class="q" xml:space="preserve"><tspan fill="#F0525A">A</tspan> &lt; 1 h   <tspan fill="#F0A83C">B</tspan> &lt; 2 h   <tspan fill="#F2D14B">C</tspan> &lt; 5 h</text>
+<text x="280" y="318" class="q" xml:space="preserve"><tspan fill="#5AA9FF">D</tspan> &lt; 24 h  <tspan fill="#4FD895">E</tspan> &lt; 72 h</text>
+
+<!-- Classes -->
+<rect x="536" y="232" width="236" height="106" class="p"/>
+<text x="550" y="252" class="m">CLASSE(S)</text>
+<text x="550" y="274" class="h">Origine de la menace</text>
+<text x="550" y="298" class="s">Une ou plusieurs couleurs,</text>
+<text x="550" y="315" class="s">reliées par un tiret.</text>
+
+<!-- Avertissement -->
+<rect x="28" y="352" width="744" height="56" fill="#1F1A12" stroke="#F0A83C"/>
+<path d="M44 392L56 368L68 392Z" fill="none" stroke="#F0A83C" stroke-width="2"/>
+<line x1="56" y1="377" x2="56" y2="384" stroke="#F0A83C" stroke-width="2"/>
+<rect x="55" y="386.5" width="2" height="2" fill="#F0A83C"/>
+<text x="84" y="374" class="h" style="fill:#F0A83C">CRQ ≠ code d'alerte du Site</text>
+<text x="84" y="396" class="b">Mêmes couleurs, sens différents : VERT CRQ = biologique · BLANC CRQ = assaut extérieur.</text>
+
+<text x="28" y="434" class="s">Lecture de gauche à droite : qui appelle, en combien de temps, contre quoi.</text>
+</svg>

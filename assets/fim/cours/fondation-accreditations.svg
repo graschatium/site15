@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Escalier des six niveaux d'accréditation, de 0 Usage interne à 5 Thaumiel. Le niveau 2 Confidentiel, celui des opérateurs FIM, est mis en évidence.">
+<title>Niveaux d'accréditation</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.n{font:700 22px "JetBrains Mono",Consolas,monospace;fill:#E8EAF0}
+.b{font:13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.bb{font:700 13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:10px "JetBrains Mono",Consolas,monospace;letter-spacing:0.5px;fill:#9297A8}
+.p{fill:#151821;stroke:#2A2E3A}
+</style>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · FONDATION</text>
+<text x="28" y="60" class="t">Niveaux d'accréditation</text>
+
+<!-- Besoin d'en connaître -->
+<rect x="40" y="88" width="330" height="86" fill="#151821" stroke="#F0A83C"/>
+<rect x="40" y="88" width="4" height="86" fill="#F0A83C"/>
+<text x="58" y="110" class="m" style="fill:#F0A83C;letter-spacing:2px">BESOIN D'EN CONNAÎTRE</text>
+<text x="58" y="134" class="b">Même avec le niveau requis, on n'accède</text>
+<text x="58" y="153" class="b">qu'à ce qui sert la mission en cours.</text>
+
+<!-- Marches : x=40+i*112, haut=370-(50+i*45) -->
+<rect x="40" y="320" width="108" height="50" class="p"/>
+<text x="52" y="344" class="n">0</text>
+<text x="52" y="362" class="b">Usage interne</text>
+
+<rect x="152" y="275" width="108" height="95" class="p"/>
+<text x="164" y="299" class="n">1</text>
+<text x="164" y="317" class="b">Restreint</text>
+
+<rect x="264" y="230" width="108" height="140" fill="#1B1F33" stroke="#6E76FF" stroke-width="2"/>
+<text x="276" y="254" class="n" style="fill:#6E76FF">2</text>
+<text x="276" y="272" class="bb">Confidentiel</text>
+<text x="276" y="292" class="m" style="fill:#E8EAF0">Opérateurs FIM</text>
+<rect x="276" y="340" width="84" height="18" fill="#6E76FF"/>
+<text x="318" y="353" class="m" text-anchor="middle" style="fill:#0E1016;font-weight:700">VOTRE NIVEAU</text>
+
+<rect x="376" y="185" width="108" height="185" class="p"/>
+<text x="388" y="209" class="n">3</text>
+<text x="388" y="227" class="b">Secret</text>
+<text x="388" y="247" class="m">Officiers FIM</text>
+
+<rect x="488" y="140" width="108" height="230" class="p"/>
+<text x="500" y="164" class="n">4</text>
+<text x="500" y="182" class="b">Top Secret</text>
+<text x="500" y="202" class="m">Commandants FIM</text>
+
+<rect x="600" y="95" width="108" height="275" fill="#151821" stroke="#B07CFF"/>
+<text x="612" y="119" class="n" style="fill:#B07CFF">5</text>
+<text x="612" y="137" class="b">Thaumiel</text>
+<text x="612" y="157" class="m">Conseil O5</text>
+
+<line x1="28" y1="370.5" x2="772" y2="370.5" stroke="#2A2E3A"/>
+<line x1="40" y1="392" x2="700" y2="392" stroke="#5A6072" stroke-width="1.5"/>
+<path d="M700 387L710 392L700 397Z" fill="#5A6072"/>
+<text x="40" y="408" class="m">ACCÈS CROISSANT AUX INFORMATIONS SENSIBLES</text>
+
+<text x="28" y="434" class="s">L'accréditation fixe ce que vous pouvez voir ; le besoin d'en connaître fixe ce que vous devez voir.</text>
+</svg>

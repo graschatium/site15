@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Vue de dessus de la Gate A : deux tireurs en hauteur couvrent le parking, deux équipes au sol derrière couvert, équipe de réaction au sas">
+<title>Défense de la Gate A (Nu-7)</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FD895"/></marker><marker id="ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9297A8"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#F0525A"/></marker></defs>
+<rect x="0" y="0" width="800" height="450" fill="#0E1016" />
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A" stroke-width="1" />
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · NU-7 · DÉFENSE</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Défense de la Gate A (Nu-7)</text>
+<rect x="641" y="22" width="131" height="26" fill="none" stroke="#50C878" stroke-width="1.5" />
+<rect x="651" y="31" width="8" height="8" fill="#50C878" />
+<text x="667" y="39" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#50C878" letter-spacing="1">NU-7 · MARTEAU</text>
+<rect x="40" y="72" width="720" height="156" fill="#12141B" />
+<rect x="40" y="231" width="720" height="160" fill="#151821" />
+<line x1="70" y1="160" x2="70" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="122" y1="160" x2="122" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="174" y1="160" x2="174" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="226" y1="160" x2="226" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="278" y1="160" x2="278" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="330" y1="160" x2="330" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="382" y1="160" x2="382" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="434" y1="160" x2="434" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="486" y1="160" x2="486" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="538" y1="160" x2="538" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="590" y1="160" x2="590" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="642" y1="160" x2="642" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="694" y1="160" x2="694" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<line x1="60" y1="212" x2="740" y2="212" stroke="#2A2E3A" stroke-width="2" />
+<text x="52" y="92" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="2">EXTÉRIEUR · PARKING</text>
+<polygon points="110,250 180,76 440,76" fill="#6E76FF" fill-opacity=".12" stroke="#6E76FF" stroke-width="1.5" stroke-dasharray="6 5"/>
+<polygon points="690,250 360,76 620,76" fill="#6E76FF" fill-opacity=".12" stroke="#6E76FF" stroke-width="1.5" stroke-dasharray="6 5"/>
+<circle cx="330" cy="124" r="11" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="478" cy="112" r="11" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="404" y="150" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#F0525A" font-weight="700" text-anchor="middle">MENACES</text>
+<line x1="40" y1="228" x2="360" y2="228" stroke="#9297A8" stroke-width="6" />
+<line x1="440" y1="228" x2="760" y2="228" stroke="#9297A8" stroke-width="6" />
+<line x1="360" y1="228" x2="440" y2="228" stroke="#E6B43C" stroke-width="6" stroke-dasharray="10 5"/>
+<text x="400" y="218" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E6B43C" font-weight="700" text-anchor="middle" letter-spacing="2">GATE A</text>
+<rect x="86" y="228" width="48" height="44" fill="#1C2030" stroke="#9297A8" stroke-width="2" />
+<circle cx="110" cy="250" r="20" fill="none" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="110" cy="250" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="110" y="254" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="10" fill="#FFFFFF" font-weight="700" text-anchor="middle">T1</text>
+<text x="110" y="292" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E8EAF0" text-anchor="middle">◎ TIREUR · POINT HAUT</text>
+<rect x="666" y="228" width="48" height="44" fill="#1C2030" stroke="#9297A8" stroke-width="2" />
+<circle cx="690" cy="250" r="20" fill="none" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="690" cy="250" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="690" y="254" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="10" fill="#FFFFFF" font-weight="700" text-anchor="middle">T2</text>
+<text x="690" y="292" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E8EAF0" text-anchor="middle">◎ TIREUR · POINT HAUT</text>
+<rect x="230" y="244" width="100" height="10" fill="#3A3F4E" stroke="#9297A8" stroke-width="1.5" />
+<circle cx="255" cy="276" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="255" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<circle cx="305" cy="276" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="305" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="280" y="312" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E8EAF0" text-anchor="middle">ÉQUIPE SOL 1</text>
+<rect x="470" y="244" width="100" height="10" fill="#3A3F4E" stroke="#9297A8" stroke-width="1.5" />
+<circle cx="495" cy="276" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="495" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<circle cx="545" cy="276" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="545" y="280" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="520" y="312" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E8EAF0" text-anchor="middle">ÉQUIPE SOL 2</text>
+<text x="400" y="262" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" text-anchor="middle">couvert</text>
+<polyline points="350,328 350,388 450,388 450,328" fill="none" stroke="#9297A8" stroke-width="6"/>
+<line x1="353" y1="328" x2="447" y2="328" stroke="#9297A8" stroke-width="2" stroke-dasharray="6 4"/>
+<circle cx="380" cy="358" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="380" y="362" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<circle cx="420" cy="358" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="420" y="362" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
+<text x="466" y="356" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E8EAF0">SAS · ÉQUIPE DE RÉACTION</text>
+<text x="466" y="372" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">intervient sur ordre de NID</text>
+<text x="52" y="380" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="2">INTÉRIEUR DU SITE</text>
+<rect x="28" y="398" width="744" height="20" fill="#1C2030" stroke="#50C878" stroke-width="1" />
+<text x="400" y="413" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0" font-weight="700" text-anchor="middle">Rapport à NID toutes les 5 min · on ne quitte pas son point sans ordre</text>
+<circle cx="34" cy="434" r="6" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="48" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Opérateur FIM</text>
+<circle cx="163" cy="434" r="6" fill="#F0525A" stroke="#E8EAF0" stroke-width="1"/>
+<text x="177" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Hostile</text>
+<rect x="245" y="428" width="12" height="12" fill="#6E76FF" stroke="#6E76FF" stroke-width="1" fill-opacity=".25" stroke-dasharray="3 2"/>
+<text x="265" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Secteur de tir</text>
+<rect x="380" y="428" width="12" height="12" fill="#3A3F4E" />
+<text x="400" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Couvert</text>
+<rect x="468" y="428" width="12" height="12" fill="#9297A8" />
+<text x="488" y="438" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Mur</text>
+</svg>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Vue de dessus d'un couloir : la tête couvre le secteur avant, le serre-file le secteur arrière ; contre-exemple où la ligne de tir du serre-file traverse la tête, il faut se décaler.">
+<title>Secteurs de tir d'un binôme</title>
+<defs><marker id="mg" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4FD895"/>
+</marker><marker id="mr" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F0525A"/>
+</marker><marker id="mn" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9297A8"/>
+</marker><marker id="ma" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#F0A83C"/>
+</marker><marker id="mb" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M0 0L10 5L0 10z" fill="#6E76FF"/>
+</marker></defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · TIR</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Secteurs de tir d'un binôme</text>
+<rect x="28.5" y="84.5" width="363" height="315" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<line x1="44" y1="140" x2="376" y2="140" stroke="#9297A8" stroke-width="3"/>
+<line x1="44" y1="280" x2="376" y2="280" stroke="#9297A8" stroke-width="3"/>
+<text x="210" y="302" font-family="JetBrains Mono, Consolas, monospace" font-size="10" fill="#9297A8" text-anchor="middle" letter-spacing="1">progression →</text><path d="M46 106 l6 6 l12 -12" fill="none" stroke="#4FD895" stroke-width="4"/>
+<text x="76" y="114" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#4FD895" font-weight="700">Secteurs répartis</text><polygon points="238,195 376,148 376,272" fill="#4FD895" fill-opacity="0.2"/>
+<polygon points="168,240 44,148 44,272" fill="#6E76FF" fill-opacity="0.22"/>
+<text x="328" y="214" font-family="JetBrains Mono, Consolas, monospace" font-size="10" fill="#4FD895" text-anchor="middle" letter-spacing="1">AVANT</text><text x="86" y="214" font-family="JetBrains Mono, Consolas, monospace" font-size="10" fill="#6E76FF" text-anchor="middle" letter-spacing="1">ARRIÈRE</text><line x1="252" y1="195" x2="266" y2="195" stroke="#E8EAF0" stroke-width="3"/>
+<line x1="154" y1="240" x2="140" y2="240" stroke="#E8EAF0" stroke-width="3"/>
+<circle cx="238" cy="195" r="14" fill="#6E76FF"/>
+<text x="238" y="200.04" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text><circle cx="168" cy="240" r="14" fill="#6E76FF"/>
+<text x="168" y="245.04" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text><text x="238" y="226" font-family="JetBrains Mono, Consolas, monospace" font-size="10" fill="#E8EAF0" text-anchor="middle">tête</text><text x="168" y="271" font-family="JetBrains Mono, Consolas, monospace" font-size="10" fill="#E8EAF0" text-anchor="middle">serre-file</text><text x="48" y="340" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">Tête : secteur avant. Serre-file : secteur</text><text x="48" y="358" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">arrière. Aucun angle mort, aucun tir croisé.</text><rect x="408.5" y="84.5" width="363" height="315" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<line x1="424" y1="140" x2="756" y2="140" stroke="#9297A8" stroke-width="3"/>
+<line x1="424" y1="280" x2="756" y2="280" stroke="#9297A8" stroke-width="3"/>
+<text x="590" y="302" font-family="JetBrains Mono, Consolas, monospace" font-size="10" fill="#9297A8" text-anchor="middle" letter-spacing="1">progression →</text><line x1="428" y1="100" x2="444" y2="116" stroke="#F0525A" stroke-width="4"/>
+<line x1="428" y1="116" x2="444" y2="100" stroke="#F0525A" stroke-width="4"/>
+<text x="456" y="114" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="15" fill="#F0525A" font-weight="700">Ligne de tir obstruée</text><line x1="554" y1="210" x2="748" y2="210" stroke="#F0525A" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="678" y="200" font-family="JetBrains Mono, Consolas, monospace" font-size="10" fill="#F0525A" text-anchor="middle">tir à travers 1</text><line x1="574" y1="252" x2="748" y2="252" stroke="#4FD895" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="678" y="270" font-family="JetBrains Mono, Consolas, monospace" font-size="10" fill="#4FD895" text-anchor="middle">après décalage</text><circle cx="560" cy="252" r="14" fill="none" stroke="#6E76FF" stroke-width="1.5" stroke-dasharray="4 3"/>
+<path d="M544 222 Q546 244 546 244" fill="none" stroke="#4FD895" stroke-width="2.5" marker-end="url(#mg)"/>
+<circle cx="618" cy="210" r="14" fill="#6E76FF"/>
+<text x="618" y="215.04" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text><circle cx="538" cy="210" r="14" fill="#6E76FF"/>
+<text x="538" y="215.04" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text><line x1="581" y1="203" x2="595" y2="217" stroke="#F0525A" stroke-width="3.5"/>
+<line x1="581" y1="217" x2="595" y2="203" stroke="#F0525A" stroke-width="3.5"/>
+<text x="428" y="340" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">Le tir de 2 traverse 1 : ligne de tir</text><text x="428" y="358" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">obstruée. Se décaler avant de tirer.</text>
+<line x1="28" y1="412" x2="772" y2="412" stroke="#2A2E3A" stroke-width="1"/>
+<text x="28" y="433" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12.5" fill="#9297A8">Vue de dessus · on ne pointe jamais le canon à travers un coéquipier.</text>
+</svg>

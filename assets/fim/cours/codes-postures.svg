@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Échelle des huit codes d'alerte du Site-15, de VERT Garnison en posture P5 à NOIR Dernier rempart en posture P1.">
+<title>Codes d'alerte du Site-15</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.k{font:700 13px "JetBrains Mono",Consolas,monospace;letter-spacing:1.5px}
+.b{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:10px "JetBrains Mono",Consolas,monospace;letter-spacing:1.5px;fill:#9297A8}
+.q{font:700 14px "JetBrains Mono",Consolas,monospace;text-anchor:middle}
+</style>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · ALERTES</text>
+<text x="28" y="60" class="t">Codes d'alerte du Site-15</text>
+<text x="62" y="80" class="m">CODE</text>
+<text x="170" y="80" class="m">SITUATION</text>
+<text x="731" y="80" class="m" text-anchor="middle">POSTURE</text>
+<rect x="28.5" y="88.5" width="743" height="34" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="88" width="20" height="35" fill="#4FD895"/>
+<text x="62" y="111" class="k" fill="#4FD895">VERT</text>
+<text x="170" y="111" class="b">Garnison</text>
+<text x="330" y="111" class="s">Situation normale · patrouilles et formation</text>
+<rect x="696.5" y="94.5" width="69" height="23" fill="#0E1016" stroke="#4FD895"/>
+<text x="731" y="111" class="q" fill="#4FD895">P5</text>
+<rect x="28.5" y="128.5" width="743" height="34" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="128" width="20" height="35" fill="#F2D14B"/>
+<text x="62" y="151" class="k" fill="#F2D14B">JAUNE</text>
+<text x="170" y="151" class="b">Vigilance</text>
+<text x="330" y="151" class="s">Menace possible · rester joignable et équipé</text>
+<rect x="696.5" y="134.5" width="69" height="23" fill="#0E1016" stroke="#F2D14B"/>
+<text x="731" y="151" class="q" fill="#F2D14B">P4</text>
+<rect x="28.5" y="168.5" width="743" height="34" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="168" width="20" height="35" fill="#F0A83C"/>
+<text x="62" y="191" class="k" fill="#F0A83C">ORANGE</text>
+<text x="170" y="191" class="b">Intervention</text>
+<text x="330" y="191" class="s">Incident localisé · équipes FIM déployées</text>
+<rect x="696.5" y="174.5" width="69" height="23" fill="#0E1016" stroke="#F0A83C"/>
+<text x="731" y="191" class="q" fill="#F0A83C">P3</text>
+<rect x="28.5" y="208.5" width="743" height="34" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="208" width="20" height="35" fill="#5AA9FF"/>
+<text x="62" y="231" class="k" fill="#5AA9FF">BLEU</text>
+<text x="170" y="231" class="b">Escorte</text>
+<text x="330" y="231" class="s">Transfert en cours · couloirs dégagés</text>
+<rect x="696.5" y="214.5" width="69" height="23" fill="#0E1016" stroke="#5AA9FF"/>
+<text x="731" y="231" class="q" fill="#5AA9FF">P3</text>
+<rect x="28.5" y="248.5" width="743" height="34" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="248" width="20" height="35" fill="#F0525A"/>
+<text x="62" y="271" class="k" fill="#F0525A">ROUGE</text>
+<text x="170" y="271" class="b">Reconfinement</text>
+<text x="330" y="271" class="s">Brèche de confinement · reconfinement prioritaire</text>
+<rect x="696.5" y="254.5" width="69" height="23" fill="#0E1016" stroke="#F0525A"/>
+<text x="731" y="271" class="q" fill="#F0525A">P2</text>
+<rect x="28.5" y="288.5" width="743" height="34" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="288" width="20" height="35" fill="#B07CFF"/>
+<text x="62" y="311" class="k" fill="#B07CFF">MAUVE</text>
+<text x="170" y="311" class="b">Défense</text>
+<text x="330" y="311" class="s">Attaque du Site · Nu-7 prend le commandement</text>
+<rect x="696.5" y="294.5" width="69" height="23" fill="#0E1016" stroke="#B07CFF"/>
+<text x="731" y="311" class="q" fill="#B07CFF">P2</text>
+<rect x="28.5" y="328.5" width="743" height="34" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="328" width="20" height="35" fill="#E8EAF0"/>
+<text x="62" y="351" class="k" fill="#E8EAF0">BLANC</text>
+<text x="170" y="351" class="b">Identification</text>
+<text x="330" y="351" class="s">Intrus non identifiés · pas de tir sans ordre</text>
+<rect x="696.5" y="334.5" width="69" height="23" fill="#0E1016" stroke="#E8EAF0"/>
+<text x="731" y="351" class="q" fill="#E8EAF0">P2</text>
+<rect x="28.5" y="368.5" width="743" height="34" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="368" width="20" height="35" fill="#7A7F8E"/>
+<text x="62" y="391" class="k" fill="#7A7F8E">NOIR</text>
+<text x="170" y="391" class="b">Dernier rempart</text>
+<text x="330" y="391" class="s">Perte du Site imminente · Alpha-1 / Conseil O5</text>
+<rect x="696.5" y="374.5" width="69" height="23" fill="#0E1016" stroke="#7A7F8E"/>
+<text x="731" y="391" class="q" fill="#7A7F8E">P1</text>
+<path d="M786 90V400" stroke="#2A2E3A" stroke-width="2"/>
+<path d="M781 390L786 400L791 390Z" fill="#5A6072"/>
+<text x="28" y="434" class="s">Posture P5 → P1 : du plus calme au plus critique. Seul le Commandement annonce ou lève un code.</text>
+</svg>

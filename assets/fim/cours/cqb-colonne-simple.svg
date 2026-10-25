@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Colonne simple : quatre opérateurs alignés du même côté d'une porte dans un couloir. Le 1 couvre la porte, le 2 et le 3 les flancs du couloir, le 4 l'arrière.">
+<title>Colonne simple</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.b{font:14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.bb{font:700 14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:11px "JetBrains Mono",Consolas,monospace;fill:#9297A8}
+.mw{font:700 11px "JetBrains Mono",Consolas,monospace;fill:#E8EAF0}
+.n{font:700 13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#FFFFFF;text-anchor:middle}
+.c{text-anchor:middle}
+.r{text-anchor:end}
+.w{stroke:#9297A8;stroke-width:6;stroke-linecap:square;fill:none}
+.f{fill:#151821}
+.mv{stroke:#4FD895;stroke-width:3;fill:none}
+.sec{fill:#6E76FF;fill-opacity:.12;stroke:#6E76FF;stroke-opacity:.5;stroke-dasharray:4 3}
+.dz{fill:#F0525A;fill-opacity:.15}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#4FD895"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#F0525A"/></marker>
+</defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · CQB</text>
+<text x="28" y="60" class="t">Colonne simple</text>
+<rect x="400" y="90" width="260" height="110" class="f"/>
+<rect x="40" y="200" width="720" height="120" class="f"/>
+<path d="M445,226 L458.9,147.2 A80,80 0 0 1 523.8,212.1 Z" class="sec"/>
+<path d="M410,226 L480.5,251.7 A75,75 0 0 1 416.5,300.7 Z" class="sec"/>
+<path d="M375,226 L368.5,300.7 A75,75 0 0 1 304.5,251.7 Z" class="sec"/>
+<path d="M340,226 L263.0,261.9 A85,85 0 0 1 263.0,190.1 Z" class="sec"/>
+<path d="M400,200 L400,90 L660,90 L660,200" class="w"/>
+<path d="M40,200 L467,200" class="w"/>
+<path d="M533,200 L760,200" class="w"/>
+<path d="M40,320 L760,320" class="w"/>
+<circle cx="445" cy="226" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="445" y="230.6" class="n">1</text>
+<circle cx="410" cy="226" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="410" y="230.6" class="n">2</text>
+<circle cx="375" cy="226" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="375" y="230.6" class="n">3</text>
+<circle cx="340" cy="226" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="340" y="230.6" class="n">4</text>
+<text x="545" y="150" class="mw">1 · porte</text>
+<text x="470" y="312" class="mw">2 · flanc</text>
+<text x="332" y="312" class="mw r">3 · flanc</text>
+<text x="246" y="230" class="mw r">4 · arrière</text>
+<text x="530" y="120" class="m c" style="letter-spacing:2px">PIÈCE</text>
+<text x="690" y="265" class="m c" style="letter-spacing:2px">COULOIR</text>
+<text x="28" y="355" class="s">Tous du même côté, collés au mur. Contact physique (main sur l'épaule) :</text>
+<text x="28" y="375" class="s">le 4 transmet le « prêt » vers l'avant, le 1 déclenche l'entrée.</text>
+<line x1="28" y1="408" x2="772" y2="408" stroke="#2A2E3A"/>
+<circle cx="35" cy="426" r="7" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="48" y="430" class="m">Opérateur (ordre)</text>
+<path d="M181,432 L199,420 L199,432 Z" class="sec"/>
+<text x="207" y="430" class="m">Secteur de chacun</text>
+<path d="M342,426 L358,426" class="w" style="stroke-width:5"/>
+<text x="368" y="430" class="m">Mur</text>
+</svg>

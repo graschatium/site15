@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Entrée en J : le 1 avance de deux ou trois pas droit dans la pièce puis revient en crochet vers l'angle de son côté. Le 2 suit et couvre l'angle opposé. Le dos du 1 est brièvement exposé.">
+<title>Entrée en J</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.b{font:14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.bb{font:700 14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:11px "JetBrains Mono",Consolas,monospace;fill:#9297A8}
+.mw{font:700 11px "JetBrains Mono",Consolas,monospace;fill:#E8EAF0}
+.n{font:700 13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#FFFFFF;text-anchor:middle}
+.c{text-anchor:middle}
+.r{text-anchor:end}
+.w{stroke:#9297A8;stroke-width:6;stroke-linecap:square;fill:none}
+.f{fill:#151821}
+.mv{stroke:#4FD895;stroke-width:3;fill:none}
+.sec{fill:#6E76FF;fill-opacity:.12;stroke:#6E76FF;stroke-opacity:.5;stroke-dasharray:4 3}
+.dz{fill:#F0525A;fill-opacity:.15}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#4FD895"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#F0525A"/></marker>
+</defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · CQB</text>
+<text x="28" y="60" class="t">Entrée en J</text>
+<rect x="200" y="95" width="400" height="205" class="f"/>
+<path d="M400,175 L432.5,85.7 A95,95 0 0 1 489.3,207.5 Z" class="dz"/>
+<text x="470" y="125" class="mw" style="fill:#F0525A">dos exposé</text>
+<path d="M240,262 L268.5,155.7 A110,110 0 0 1 346.3,233.5 Z" class="sec"/>
+<path d="M515,250 L554.0,194.3 A68,68 0 0 1 554.0,305.7 Z" class="sec"/>
+<path d="M367,300 L200,300 L200,95 L600,95 L600,300 L433,300" class="w"/>
+<path d="M318,338 Q422,352 420,298 L503,252" class="mv" marker-end="url(#ah)"/>
+<path d="M360,314 Q396,316 400,288 L400,200 Q400,172 374,184 L256,252" class="mv" marker-end="url(#ah)"/>
+<circle cx="240" cy="262" r="14" fill="#6E76FF" fill-opacity=".35" stroke="#E8EAF0" stroke-width="1.5" stroke-dasharray="3 2"/>
+<text x="240" y="266.6" class="n">1</text>
+<circle cx="515" cy="250" r="14" fill="#6E76FF" fill-opacity=".35" stroke="#E8EAF0" stroke-width="1.5" stroke-dasharray="3 2"/>
+<text x="515" y="254.6" class="n">2</text>
+<circle cx="345" cy="322" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="345" y="326.6" class="n">1</text>
+<circle cx="310" cy="322" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="310" y="326.6" class="n">2</text>
+<text x="412" y="236" class="m">2-3 pas</text>
+<text x="412" y="250" class="m">droit devant</text>
+<text x="300" y="182" class="m c">crochet vers</text>
+<text x="300" y="196" class="m c">son angle</text>
+<text x="530" y="288" class="m c">angle opposé</text>
+<rect x="620" y="100" width="160" height="124" fill="#151821" stroke="#F0525A" stroke-opacity=".7"/>
+<text x="632" y="122" class="mw" style="fill:#F0525A;letter-spacing:1px">ATTENTION</text>
+<text x="632" y="142" class="s">Pendant le crochet,</text>
+<text x="632" y="160" class="s">le dos du 1 est</text>
+<text x="632" y="178" class="s">tourné vers la pièce.</text>
+<text x="632" y="196" class="s">Le 2 doit entrer</text>
+<text x="632" y="214" class="s">sans délai.</text>
+<line x1="28" y1="408" x2="772" y2="408" stroke="#2A2E3A"/>
+<circle cx="35" cy="426" r="7" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="48" y="430" class="m">Opérateur</text>
+<circle cx="135" cy="426" r="7" fill="#6E76FF" fill-opacity=".35" stroke="#E8EAF0" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="148" y="430" class="m">Position finale</text>
+<path d="M268,426 L288,426" class="mv" marker-end="url(#ah)"/>
+<text x="300" y="430" class="m">Trajectoire en J</text>
+<path d="M427,432 L445,420 L445,432 Z" class="sec"/>
+<text x="453" y="430" class="m">Secteur</text>
+<rect x="519" y="419" width="16" height="13" class="dz" stroke="#F0525A" stroke-opacity=".5"/>
+<text x="543" y="430" class="m">Dos exposé</text>
+</svg>

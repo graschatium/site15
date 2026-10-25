@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Six types d'effets anormaux avec la conduite à tenir : visuel, auditif, mémétique, infectieux, contact, cognitif.">
+<title>Les effets anormaux</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 17px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.b{font:700 14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:1px;fill:#9297A8}
+.g{fill:#4FD895}
+.p{fill:#151821;stroke:#2A2E3A}
+.f{fill:#0E1016;stroke:#2A2E3A}
+.i{fill:none;stroke:#B07CFF;stroke-width:2.2}
+</style>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · ANOMALIES</text>
+<text x="28" y="60" class="t">Les effets anormaux</text>
+
+<!-- 1 Visuel -->
+<rect x="28" y="80" width="236" height="158" class="p"/>
+<rect x="46" y="98" width="56" height="56" class="f"/>
+<path d="M50 126Q74 106 98 126Q74 146 50 126Z" class="i"/>
+<circle cx="74" cy="126" r="7" class="i"/>
+<line x1="55" y1="145" x2="93" y2="107" stroke="#F0525A" stroke-width="2.5"/>
+<text x="118" y="122" class="h">Visuel</text>
+<text x="118" y="142" class="m">EX. SCP-096</text>
+<line x1="46" y1="170" x2="246" y2="170" stroke="#2A2E3A"/>
+<text x="46" y="198" class="b"><tspan class="g">→</tspan> Ne jamais regarder</text>
+<text x="46" y="220" class="s">Yeux baissés, visière, caméras.</text>
+
+<!-- 2 Auditif -->
+<rect x="282" y="80" width="236" height="158" class="p"/>
+<rect x="300" y="98" width="56" height="56" class="f"/>
+<path d="M318 120C318 104 344 104 344 120C344 130 334 132 334 142C334 149 325 150 321 144" class="i"/>
+<path d="M326 121C326 113 336 113 336 121C336 126 331 127 331 131" class="i"/>
+<path d="M310 112Q305 126 310 140" stroke="#B07CFF" stroke-width="1.5" fill="none"/>
+<text x="372" y="122" class="h">Auditif</text>
+<text x="372" y="142" class="m">EX. SCP-513</text>
+<line x1="300" y1="170" x2="500" y2="170" stroke="#2A2E3A"/>
+<text x="300" y="198" class="b"><tspan class="g">→</tspan> Protection auditive</text>
+<text x="300" y="220" class="s">Casque fermé, ne pas écouter.</text>
+
+<!-- 3 Mémétique -->
+<rect x="536" y="80" width="236" height="158" class="p"/>
+<rect x="554" y="98" width="56" height="56" class="f"/>
+<path d="M560 108H604V138H580L568 148V138H560Z" class="i"/>
+<text x="582" y="129" font-family="JetBrains Mono, Consolas, monospace" font-size="13" font-weight="700" fill="#B07CFF" text-anchor="middle">Aa</text>
+<text x="626" y="122" class="h">Mémétique</text>
+<text x="626" y="142" class="m">EX. —</text>
+<line x1="554" y1="170" x2="754" y2="170" stroke="#2A2E3A"/>
+<text x="554" y="198" class="b"><tspan class="g">→</tspan> Ne rien lire ni fixer</text>
+<text x="554" y="220" class="s">Textes et images filtrés.</text>
+
+<!-- 4 Infectieux -->
+<rect x="28" y="252" width="236" height="158" class="p"/>
+<rect x="46" y="270" width="56" height="56" class="f"/>
+<circle cx="74" cy="288" r="9" class="i"/>
+<circle cx="65.3" cy="303" r="9" class="i"/>
+<circle cx="82.7" cy="303" r="9" class="i"/>
+<circle cx="74" cy="298" r="3" fill="#B07CFF"/>
+<text x="118" y="294" class="h">Infectieux</text>
+<text x="118" y="314" class="m">EX. SCP-008</text>
+<line x1="46" y1="342" x2="246" y2="342" stroke="#2A2E3A"/>
+<text x="46" y="370" class="b"><tspan class="g">→</tspan> Masque, quarantaine</text>
+<text x="46" y="392" class="s">Tenue NRBC, décontamination.</text>
+
+<!-- 5 Contact -->
+<rect x="282" y="252" width="236" height="158" class="p"/>
+<rect x="300" y="270" width="56" height="56" class="f"/>
+<path d="M318 296V282H322V296M324 296V278H328V296M330 296V279H334V296M336 296V283H340V318H318V304L311 297L314 294L318 298" class="i" stroke-linejoin="miter"/>
+<text x="372" y="294" class="h">Contact</text>
+<text x="372" y="314" class="m">EX. SCP-049</text>
+<line x1="300" y1="342" x2="500" y2="342" stroke="#2A2E3A"/>
+<text x="300" y="370" class="b"><tspan class="g">→</tspan> Garder la distance</text>
+<text x="300" y="392" class="s">Aucun contact physique.</text>
+
+<!-- 6 Cognitif -->
+<rect x="536" y="252" width="236" height="158" class="p"/>
+<rect x="554" y="270" width="56" height="56" class="f"/>
+<path d="M582 298a3 3 0 0 1 6 0a6 6 0 0 1 -12 0a9 9 0 0 1 18 0a12 12 0 0 1 -24 0a15 15 0 0 1 30 0a18 18 0 0 1 -36 0" class="i"/>
+<text x="626" y="294" class="h">Cognitif</text>
+<text x="626" y="314" class="m">EX. SCP-035</text>
+<line x1="554" y1="342" x2="754" y2="342" stroke="#2A2E3A"/>
+<text x="554" y="370" class="b"><tspan class="g">→</tspan> Ne pas dialoguer</text>
+<text x="554" y="392" class="s">Ignorer ses arguments et offres.</text>
+
+<text x="28" y="434" class="s">Identifier le vecteur de l'effet, c'est savoir quelle protection prendre avant d'entrer.</text>
+</svg>

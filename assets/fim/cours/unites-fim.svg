@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Les six unités de la Force d'Intervention Mobile du Site-15 avec surnom, indicatif et spécialité">
+<title>Les unités FIM du Site-15</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FD895"/></marker><marker id="ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9297A8"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#F0525A"/></marker></defs>
+<rect x="0" y="0" width="800" height="450" fill="#0E1016" />
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A" stroke-width="1" />
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · ORGANISATION</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Les unités FIM du Site-15</text>
+<rect x="28" y="80" width="236" height="160" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="28" y="80" width="236" height="8" fill="#E0443F" />
+<text x="246" y="164" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="60" fill="#E0443F" font-weight="700" text-anchor="end" opacity=".9">Α</text>
+<text x="44" y="122" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="20" fill="#E8EAF0" font-weight="700">Alpha-1</text>
+<text x="44" y="146" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#9297A8" font-style="italic">« La Main Droite Rouge »</text>
+<line x1="44" y1="178" x2="248" y2="178" stroke="#2A2E3A" stroke-width="1" />
+<text x="44" y="200" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">INDICATIF</text>
+<text x="128" y="200" font-family="JetBrains Mono, Consolas, monospace" font-size="12" fill="#E0443F" font-weight="700" letter-spacing="1">MAIN</text>
+<text x="44" y="224" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">SPÉCIALITÉ</text>
+<text x="128" y="224" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">Conseil O5</text>
+<rect x="282" y="80" width="236" height="160" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="282" y="80" width="236" height="8" fill="#6E76FF" />
+<text x="500" y="164" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="60" fill="#6E76FF" font-weight="700" text-anchor="end" opacity=".9">Ε</text>
+<text x="298" y="122" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="20" fill="#E8EAF0" font-weight="700">Epsilon-11</text>
+<text x="298" y="146" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#9297A8" font-style="italic">« Les Neuf-Queues »</text>
+<line x1="298" y1="178" x2="502" y2="178" stroke="#2A2E3A" stroke-width="1" />
+<text x="298" y="200" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">INDICATIF</text>
+<text x="382" y="200" font-family="JetBrains Mono, Consolas, monospace" font-size="12" fill="#6E76FF" font-weight="700" letter-spacing="1">RENARD</text>
+<text x="298" y="224" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">SPÉCIALITÉ</text>
+<text x="382" y="224" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">Reconfinement</text>
+<rect x="536" y="80" width="236" height="160" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="536" y="80" width="236" height="8" fill="#50C878" />
+<text x="754" y="164" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="60" fill="#50C878" font-weight="700" text-anchor="end" opacity=".9">Ν</text>
+<text x="552" y="122" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="20" fill="#E8EAF0" font-weight="700">Nu-7</text>
+<text x="552" y="146" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#9297A8" font-style="italic">« Le Marteau Tombe »</text>
+<line x1="552" y1="178" x2="756" y2="178" stroke="#2A2E3A" stroke-width="1" />
+<text x="552" y="200" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">INDICATIF</text>
+<text x="636" y="200" font-family="JetBrains Mono, Consolas, monospace" font-size="12" fill="#50C878" font-weight="700" letter-spacing="1">MARTEAU</text>
+<text x="552" y="224" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">SPÉCIALITÉ</text>
+<text x="636" y="224" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">Haute intensité</text>
+<rect x="28" y="254" width="236" height="160" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="28" y="254" width="236" height="8" fill="#E6B43C" />
+<text x="246" y="338" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="60" fill="#E6B43C" font-weight="700" text-anchor="end" opacity=".9">Β</text>
+<text x="44" y="296" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="20" fill="#E8EAF0" font-weight="700">Bêta-7</text>
+<text x="44" y="320" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#9297A8" font-style="italic">« Les Chapeliers Fous »</text>
+<line x1="44" y1="352" x2="248" y2="352" stroke="#2A2E3A" stroke-width="1" />
+<text x="44" y="374" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">INDICATIF</text>
+<text x="128" y="374" font-family="JetBrains Mono, Consolas, monospace" font-size="12" fill="#E6B43C" font-weight="700" letter-spacing="1">CHAPELIER</text>
+<text x="44" y="398" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">SPÉCIALITÉ</text>
+<text x="128" y="398" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">NRBC</text>
+<rect x="282" y="254" width="236" height="160" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="282" y="254" width="236" height="8" fill="#B07CFF" />
+<text x="500" y="338" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="60" fill="#B07CFF" font-weight="700" text-anchor="end" opacity=".9">Ξ</text>
+<text x="298" y="296" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="20" fill="#E8EAF0" font-weight="700">Xi-8</text>
+<text x="298" y="320" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#9297A8" font-style="italic">« K.N.I »</text>
+<line x1="298" y1="352" x2="502" y2="352" stroke="#2A2E3A" stroke-width="1" />
+<text x="298" y="374" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">INDICATIF</text>
+<text x="382" y="374" font-family="JetBrains Mono, Consolas, monospace" font-size="12" fill="#B07CFF" font-weight="700" letter-spacing="1">XI</text>
+<text x="298" y="398" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">SPÉCIALITÉ</text>
+<text x="382" y="398" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">Menaces sarkiques</text>
+<rect x="536" y="254" width="236" height="160" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="536" y="254" width="236" height="8" fill="#38C6D9" />
+<text x="754" y="338" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="60" fill="#38C6D9" font-weight="700" text-anchor="end" opacity=".9">Σ</text>
+<text x="552" y="296" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="20" fill="#E8EAF0" font-weight="700">Sigma-9</text>
+<text x="552" y="320" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#9297A8" font-style="italic">« Valkyries »</text>
+<line x1="552" y1="352" x2="756" y2="352" stroke="#2A2E3A" stroke-width="1" />
+<text x="552" y="374" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">INDICATIF</text>
+<text x="636" y="374" font-family="JetBrains Mono, Consolas, monospace" font-size="12" fill="#38C6D9" font-weight="700" letter-spacing="1">VALKYRIE</text>
+<text x="552" y="398" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">SPÉCIALITÉ</text>
+<text x="636" y="398" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0">Appui aérien</text>
+<text x="28" y="436" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Indicatif = nom d'appel radio de l'unité · commandement FIM : NID</text>
+</svg>

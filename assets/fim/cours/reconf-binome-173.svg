@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Vue de dessus d'une cellule : un binôme garde le contact visuel avec SCP-173 pendant que le porteur du kit rejoint le terminal">
+<title>Binôme face à SCP-173</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FD895"/></marker><marker id="ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9297A8"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#F0525A"/></marker></defs>
+<rect x="0" y="0" width="800" height="450" fill="#0E1016" />
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A" stroke-width="1" />
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · EPSILON-11 · CAS PRATIQUE</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Binôme face à SCP-173</text>
+<rect x="607" y="22" width="165" height="26" fill="none" stroke="#6E76FF" stroke-width="1.5" />
+<rect x="617" y="31" width="8" height="8" fill="#6E76FF" />
+<text x="633" y="39" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="1">EPSILON-11 · RENARD</text>
+<rect x="40" y="88" width="400" height="242" fill="#151821" />
+<rect x="200" y="330" width="80" height="62" fill="#151821" />
+<polyline points="200,330 40,330 40,88 440,88 440,330 280,330" fill="none" stroke="#9297A8" stroke-width="6"/>
+<polyline points="200,330 200,392 280,392 280,330" fill="none" stroke="#9297A8" stroke-width="6"/>
+<line x1="203" y1="330" x2="277" y2="330" stroke="#9297A8" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="56" y="110" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" letter-spacing="1">CELLULE SCP-173</text>
+<text x="240" y="380" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" text-anchor="middle" letter-spacing="2">SAS</text>
+<rect x="422" y="112" width="14" height="42" fill="#38C6D9" />
+<text x="414" y="108" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" text-anchor="end">TERMINAL</text>
+<rect x="150" y="140" width="30" height="30" fill="#B07CFF" stroke="#E8EAF0" stroke-width="2" />
+<text x="165" y="186" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#B07CFF" font-weight="700" text-anchor="middle">SCP-173</text>
+<line x1="108" y1="268" x2="158" y2="172" stroke="#E8EAF0" stroke-width="2" stroke-dasharray="5 4"/>
+<line x1="284" y1="262" x2="180" y2="166" stroke="#E8EAF0" stroke-width="2" stroke-dasharray="5 4"/>
+<polyline points="240,352 340,320 372,180 408,140" fill="none" stroke="#4FD895" stroke-width="3" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<circle cx="240" cy="352" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="240" y="356" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">K</text>
+<text x="352" y="230" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#4FD895" font-weight="700" text-anchor="end">Porteur du kit</text>
+<circle cx="100" cy="282" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="100" y="286" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<circle cx="292" cy="274" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="292" y="278" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<polygon points="100,298 97.0,300 113.0,300" fill="#1C2030" stroke="#9297A8" stroke-width="1"/>
+<rect x="52" y="300" width="106" height="24" fill="#1C2030" stroke="#9297A8" stroke-width="1" />
+<text x="105.0" y="316" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E8EAF0" font-weight="700" text-anchor="middle">« CLIGNEMENT »</text>
+<polygon points="286,288 224,294 240,294" fill="#1C2030" stroke="#9297A8" stroke-width="1"/>
+<rect x="176" y="294" width="112" height="24" fill="#1C2030" stroke="#9297A8" stroke-width="1" />
+<text x="232" y="310" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#E8EAF0" font-weight="700" text-anchor="middle">« Je regarde »</text>
+<rect x="470" y="88" width="302" height="70" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<circle cx="502" cy="120" r="10" fill="#F0A83C"/>
+<rect x="496" y="131" width="12" height="8" fill="#9297A8" />
+<line x1="487" y1="120" x2="480" y2="120" stroke="#F0A83C" stroke-width="2" />
+<line x1="517" y1="120" x2="524" y2="120" stroke="#F0A83C" stroke-width="2" />
+<line x1="502" y1="105" x2="502" y2="98" stroke="#F0A83C" stroke-width="2" />
+<line x1="491" y1="109" x2="486" y2="104" stroke="#F0A83C" stroke-width="2" />
+<line x1="513" y1="109" x2="518" y2="104" stroke="#F0A83C" stroke-width="2" />
+<text x="536" y="117" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0" font-weight="700">LUMIÈRE OBLIGATOIRE</text>
+<text x="536" y="138" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Lampes allumées en permanence</text>
+<rect x="470" y="170" width="302" height="70" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="496" y="199" width="12" height="20" fill="#9297A8" />
+<circle cx="496" cy="193" r="5" fill="#9297A8" opacity=".6"/><circle cx="506" cy="190" r="6" fill="#9297A8" opacity=".6"/>
+<circle cx="502" cy="205" r="20" fill="none" stroke="#F0525A" stroke-width="3"/>
+<line x1="488" y1="191" x2="516" y2="219" stroke="#F0525A" stroke-width="3" />
+<text x="536" y="199" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#F0525A" font-weight="700">JAMAIS DE FUMIGÈNE</text>
+<text x="536" y="220" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Sans contact visuel, 173 bouge</text>
+<rect x="470" y="252" width="302" height="88" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<path d="M484,290 Q502,274 520,290 Q502,306 484,290 z" fill="none" stroke="#E8EAF0" stroke-width="2"/>
+<circle cx="502" cy="290" r="5" fill="#E8EAF0"/>
+<text x="536" y="278" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#E8EAF0" font-weight="700">PROTOCOLE CLIGNEMENT</text>
+<text x="536" y="299" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">Annoncer « CLIGNEMENT » ;</text>
+<text x="536" y="317" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">le binôme répond</text>
+<text x="536" y="335" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#9297A8">« Je regarde » avant.</text>
+<rect x="470" y="352" width="302" height="40" fill="none" stroke="#6E76FF" stroke-width="1" stroke-dasharray="5 4"/>
+<text x="621" y="377" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="13" fill="#6E76FF" font-weight="700" text-anchor="middle">Toujours un regard sur 173</text>
+<circle cx="34" cy="430" r="6" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="48" y="434" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Opérateur FIM</text>
+<rect x="157" y="424" width="12" height="12" fill="#B07CFF" />
+<text x="177" y="434" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Anomalie</text>
+<line x1="252" y1="430" x2="268" y2="430" stroke="#E8EAF0" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="276" y="434" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Contact visuel</text>
+<line x1="391" y1="430" x2="405" y2="430" stroke="#4FD895" stroke-width="3" />
+<path d="M403,425 L409,430 L403,435 z" fill="#4FD895"/>
+<text x="415" y="434" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Déplacement</text>
+<rect x="510" y="424" width="12" height="12" fill="#38C6D9" />
+<text x="530" y="434" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Terminal</text>
+</svg>

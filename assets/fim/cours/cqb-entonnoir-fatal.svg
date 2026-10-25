@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="L'entonnoir fatal : les champs de tir de toute la pièce convergent sur l'embrasure de la porte. Un opérateur arrêté dans l'embrasure est barré. Ne jamais s'arrêter dans l'embrasure.">
+<title>L'entonnoir fatal</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.b{font:14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.bb{font:700 14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:11px "JetBrains Mono",Consolas,monospace;fill:#9297A8}
+.mw{font:700 11px "JetBrains Mono",Consolas,monospace;fill:#E8EAF0}
+.n{font:700 13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#FFFFFF;text-anchor:middle}
+.c{text-anchor:middle}
+.r{text-anchor:end}
+.w{stroke:#9297A8;stroke-width:6;stroke-linecap:square;fill:none}
+.f{fill:#151821}
+.mv{stroke:#4FD895;stroke-width:3;fill:none}
+.sec{fill:#6E76FF;fill-opacity:.12;stroke:#6E76FF;stroke-opacity:.5;stroke-dasharray:4 3}
+.dz{fill:#F0525A;fill-opacity:.15}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#4FD895"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#F0525A"/></marker>
+</defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · CQB</text>
+<text x="28" y="60" class="t">L'entonnoir fatal</text>
+<rect x="180" y="90" width="440" height="160" class="f"/>
+<polygon points="372.0,247.0 428.0,247.0 617.0,93.0 183.0,93.0" class="dz"/>
+<line x1="215" y1="125" x2="400" y2="246" stroke="#F0525A" stroke-width="1.5" stroke-opacity=".75" stroke-dasharray="5 4"/>
+<line x1="320" y1="112" x2="400" y2="246" stroke="#F0525A" stroke-width="1.5" stroke-opacity=".75" stroke-dasharray="5 4"/>
+<line x1="480" y1="112" x2="400" y2="246" stroke="#F0525A" stroke-width="1.5" stroke-opacity=".75" stroke-dasharray="5 4"/>
+<line x1="585" y1="125" x2="400" y2="246" stroke="#F0525A" stroke-width="1.5" stroke-opacity=".75" stroke-dasharray="5 4"/>
+<line x1="210" y1="220" x2="400" y2="246" stroke="#F0525A" stroke-width="1.5" stroke-opacity=".75" stroke-dasharray="5 4"/>
+<line x1="590" y1="220" x2="400" y2="246" stroke="#F0525A" stroke-width="1.5" stroke-opacity=".75" stroke-dasharray="5 4"/>
+<circle cx="215" cy="125" r="10" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="320" cy="112" r="10" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="480" cy="112" r="10" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="585" cy="125" r="10" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="210" cy="220" r="10" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="590" cy="220" r="10" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<path d="M367,250 L180,250 L180,90 L620,90 L620,250 L433,250" class="w"/>
+<circle cx="400" cy="250" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="400" y="254.6" class="n">1</text>
+<path d="M380,230 L420,270 M420,230 L380,270" stroke="#F0525A" stroke-width="4" stroke-linecap="square"/>
+<text x="400" y="175" class="mw c" style="fill:#F0525A;letter-spacing:2px">ENTONNOIR FATAL</text>
+<text x="400" y="312" class="c" style="font:700 18px 'Space Grotesk','Segoe UI',Arial,sans-serif;fill:#E8EAF0">Ne jamais s'arrêter dans l'embrasure</text>
+<text x="400" y="336" class="s c">Toutes les lignes de tir de la pièce convergent sur la porte :</text>
+<text x="400" y="355" class="s c">on la franchit d'un seul mouvement et on dégage le seuil.</text>
+<rect x="636" y="100" width="140" height="106" fill="#151821" stroke="#F0525A" stroke-opacity=".7"/>
+<text x="648" y="122" class="mw" style="fill:#F0525A;letter-spacing:1px">RAPPEL</text>
+<text x="648" y="142" class="s">Celui qui s'arrête</text>
+<text x="648" y="160" class="s">dans la porte bloque</text>
+<text x="648" y="178" class="s">aussi toute l'équipe</text>
+<text x="648" y="196" class="s">derrière lui.</text>
+<line x1="28" y1="408" x2="772" y2="408" stroke="#2A2E3A"/>
+<circle cx="35" cy="426" r="7" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="48" y="430" class="m">Opérateur</text>
+<circle cx="135" cy="426" r="6" fill="#F0525A"/>
+<text x="148" y="430" class="m">Hostile</text>
+<path d="M214,426 L234,426" stroke="#F0525A" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="244" y="430" class="m">Ligne de tir</text>
+<rect x="344" y="419" width="16" height="13" class="dz" stroke="#F0525A" stroke-opacity=".5"/>
+<text x="368" y="430" class="m">Entonnoir fatal</text>
+</svg>

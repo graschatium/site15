@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Une Valkyrie sur un toit guide une équipe au sol vers deux hostiles cachés derrière un camion, message radio en quatre éléments">
+<title>Guidage depuis un point haut (Sigma-9)</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#4FD895"/></marker><marker id="ahs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9297A8"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#F0525A"/></marker></defs>
+<rect x="0" y="0" width="800" height="450" fill="#0E1016" />
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A" stroke-width="1" />
+<text x="28" y="34" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#6E76FF" letter-spacing="2">FIM · SIGMA-9 · APPUI</text>
+<text x="28" y="60" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="22" fill="#E8EAF0" font-weight="700">Guidage depuis un point haut (Sigma-9)</text>
+<rect x="614" y="22" width="158" height="26" fill="none" stroke="#38C6D9" stroke-width="1.5" />
+<rect x="624" y="31" width="8" height="8" fill="#38C6D9" />
+<text x="640" y="39" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" letter-spacing="1">SIGMA-9 · VALKYRIE</text>
+<line x1="28" y1="392" x2="772" y2="392" stroke="#9297A8" stroke-width="3" />
+<polygon points="144,186 772,290 772,390 560,390" fill="#38C6D9" fill-opacity=".10" stroke="#38C6D9" stroke-width="1.5" stroke-dasharray="6 5"/>
+<rect x="40" y="200" width="160" height="191" fill="#1C2030" stroke="#9297A8" stroke-width="3" />
+<rect x="60" y="226" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="104" y="226" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="148" y="226" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="60" y="266" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="104" y="266" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="148" y="266" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="60" y="306" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="104" y="306" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="148" y="306" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="60" y="346" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="104" y="346" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="148" y="346" width="30" height="20" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<circle cx="144" cy="186" r="14" fill="#38C6D9" stroke="#E8EAF0" stroke-width="2"/><text x="144" y="190" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">V</text>
+<text x="122" y="180" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" font-weight="700" text-anchor="end">VALKYRIE-1</text>
+<rect x="500" y="330" width="120" height="52" fill="#E8EAF0" />
+<polygon points="620,346 650,346 664,364 664,382 620,382" fill="#E8EAF0"/>
+<rect x="632" y="351" width="18" height="12" fill="#1C2030" />
+<circle cx="526" cy="384" r="8" fill="#1C2030" stroke="#9297A8" stroke-width="2"/>
+<circle cx="596" cy="384" r="8" fill="#1C2030" stroke="#9297A8" stroke-width="2"/>
+<circle cx="646" cy="384" r="8" fill="#1C2030" stroke="#9297A8" stroke-width="2"/>
+<text x="560" y="361" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#1C2030" font-weight="700" text-anchor="middle">CAMION BLANC</text>
+<text x="620" y="318" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" text-anchor="middle" letter-spacing="1">PARKING NORD</text>
+<circle cx="694" cy="376" r="12" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<circle cx="728" cy="376" r="12" fill="#F0525A" stroke="#E8EAF0" stroke-width="1.5"/>
+<line x1="158" y1="192" x2="690" y2="366" stroke="#38C6D9" stroke-width="1.5" stroke-dasharray="3 4"/>
+<circle cx="270" cy="378" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="270" y="382" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+<circle cx="310" cy="378" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="2"/><text x="310" y="382" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="290" y="352" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#50C878" font-weight="700" text-anchor="middle">MARTEAU-2</text>
+<line x1="326" y1="372" x2="494" y2="356" stroke="#9297A8" stroke-width="1.5" stroke-dasharray="4 4"/>
+<text x="410" y="380" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8" text-anchor="middle">vue bloquée</text>
+<line x1="488" y1="350" x2="498" y2="362" stroke="#F0525A" stroke-width="2" /><line x1="498" y1="350" x2="488" y2="362" stroke="#F0525A" stroke-width="2" />
+<polygon points="236,112 236,128 160,170" fill="#1C2030" stroke="#38C6D9" stroke-width="1"/>
+<rect x="230" y="74" width="542" height="60" fill="#1C2030" stroke="#38C6D9" stroke-width="1.5" />
+<line x1="237" y1="113" x2="237" y2="127" stroke="#1C2030" stroke-width="3" />
+<text x="244" y="90" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" letter-spacing="2">RADIO</text>
+<text x="300" y="92" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">« VALKYRIE-1 à MARTEAU-2 : deux hostiles,</text>
+<text x="300" y="118" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="14" fill="#E8EAF0" font-weight="700">parking nord, derrière le camion blanc »</text>
+<rect x="230" y="144" width="170" height="40" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="230" y="144" width="3" height="40" fill="#38C6D9" />
+<text x="242" y="160" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" font-weight="700" letter-spacing="1">QUI</text>
+<text x="242" y="177" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#E8EAF0">Valkyrie-1 → Marteau-2</text>
+<rect x="406" y="144" width="118" height="40" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="406" y="144" width="3" height="40" fill="#38C6D9" />
+<text x="418" y="160" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" font-weight="700" letter-spacing="1">COMBIEN</text>
+<text x="418" y="177" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#E8EAF0">deux hostiles</text>
+<rect x="530" y="144" width="118" height="40" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="530" y="144" width="3" height="40" fill="#38C6D9" />
+<text x="542" y="160" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" font-weight="700" letter-spacing="1">OÙ</text>
+<text x="542" y="177" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#E8EAF0">parking nord</text>
+<rect x="654" y="144" width="118" height="40" fill="#151821" stroke="#2A2E3A" stroke-width="1" />
+<rect x="654" y="144" width="3" height="40" fill="#38C6D9" />
+<text x="666" y="160" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#38C6D9" font-weight="700" letter-spacing="1">QUOI</text>
+<text x="666" y="177" font-family="Space Grotesk, Segoe UI, Arial, sans-serif" font-size="12" fill="#E8EAF0">camion blanc</text>
+<circle cx="34" cy="426" r="6" fill="#38C6D9" stroke="#E8EAF0" stroke-width="1"/>
+<text x="48" y="430" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Valkyrie</text>
+<circle cx="129" cy="426" r="6" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="143" y="430" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Équipe au sol</text>
+<circle cx="258" cy="426" r="6" fill="#F0525A" stroke="#E8EAF0" stroke-width="1"/>
+<text x="272" y="430" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Hostile</text>
+<rect x="340" y="420" width="12" height="12" fill="#38C6D9" stroke="#38C6D9" stroke-width="1" fill-opacity=".25" stroke-dasharray="3 2"/>
+<text x="360" y="430" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Champ d'observation</text>
+<line x1="509" y1="426" x2="525" y2="426" stroke="#9297A8" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="533" y="430" font-family="JetBrains Mono, Consolas, monospace" font-size="11" fill="#9297A8">Ligne de vue</text>
+</svg>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Frise des 7 étapes du protocole de brèche : signalement, code, verrouillage, évacuation, intervention FIM, reconfinement, retour à la normale.">
+<title>Protocole de brèche</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.d{font:11.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.m{font:10px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;font-weight:700}
+.n{font:11px "JetBrains Mono",Consolas,monospace;fill:#9297A8}
+</style>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · PROTOCOLES</text>
+<text x="28" y="60" class="t">Protocole de brèche en 7 étapes</text>
+<rect x="28" y="104" width="199" height="24" fill="#151821"/><rect x="28" y="104" width="199" height="3" fill="#F0A83C"/><text x="127.5" y="122" class="m" fill="#F0A83C" text-anchor="middle">DÉTECTER</text>
+<rect x="246" y="104" width="199" height="24" fill="#151821"/><rect x="246" y="104" width="199" height="3" fill="#5AA9FF"/><text x="345.5" y="122" class="m" fill="#5AA9FF" text-anchor="middle">PROTÉGER</text>
+<rect x="464" y="104" width="199" height="24" fill="#151821"/><rect x="464" y="104" width="199" height="3" fill="#F0525A"/><text x="563.5" y="122" class="m" fill="#F0525A" text-anchor="middle">AGIR</text>
+<rect x="682" y="104" width="90" height="24" fill="#151821"/><rect x="682" y="104" width="90" height="3" fill="#4FD895"/><text x="727.0" y="122" class="m" fill="#4FD895" text-anchor="middle">RÉTABLIR</text>
+<rect x="28" y="150" width="90" height="90" fill="#151821" stroke="#F0A83C" stroke-width="1.5"/>
+<text x="36" y="166" class="n">01</text>
+<rect x="64" y="194" width="18" height="28" fill="none" stroke="#F0A83C" stroke-width="2.2"/><rect x="68" y="199" width="10" height="7" fill="none" stroke="#F0A83C" stroke-width="2.2"/><path d="M78 194V181M85 184Q90 190 85 196M89 180Q96 190 89 200" fill="none" stroke="#F0A83C" stroke-width="2.2"/>
+<text x="73" y="264" class="h">Signalement</text>
+<text x="73" y="301" class="d">Qui, quoi, où :</text>
+<text x="73" y="317" class="d">prévenir la</text>
+<text x="73" y="333" class="d">sécurité.</text>
+<path d="M121 195H132M128 191L133 195L128 199" fill="none" stroke="#5A6072" stroke-width="1.5"/>
+<rect x="137" y="150" width="90" height="90" fill="#151821" stroke="#F0A83C" stroke-width="1.5"/>
+<text x="145" y="166" class="n">02</text>
+<path d="M182 184L202 222H162Z" fill="none" stroke="#F0A83C" stroke-width="2.2"/><path d="M182 196V210" fill="none" stroke="#F0A83C" stroke-width="2.2"/><rect x="180.5" y="214" width="3" height="3" fill="#F0A83C"/>
+<text x="182" y="264" class="h">Code</text>
+<text x="182" y="301" class="d">Le Commandement</text>
+<text x="182" y="317" class="d">annonce le code</text>
+<text x="182" y="333" class="d">d'alerte.</text>
+<path d="M230 195H241M237 191L242 195L237 199" fill="none" stroke="#5A6072" stroke-width="1.5"/>
+<rect x="246" y="150" width="90" height="90" fill="#151821" stroke="#5AA9FF" stroke-width="1.5"/>
+<text x="254" y="166" class="n">03</text>
+<rect x="277" y="200" width="28" height="22" fill="none" stroke="#5AA9FF" stroke-width="2.2"/><path d="M283 200V190H299V200" fill="none" stroke="#5AA9FF" stroke-width="2.2"/><rect x="289" y="207" width="4" height="8" fill="#5AA9FF"/>
+<text x="291" y="264" class="h">Verrouillage</text>
+<text x="291" y="301" class="d">Portes et</text>
+<text x="291" y="317" class="d">secteurs</text>
+<text x="291" y="333" class="d">verrouillés.</text>
+<path d="M339 195H350M346 191L351 195L346 199" fill="none" stroke="#5A6072" stroke-width="1.5"/>
+<rect x="355" y="150" width="90" height="90" fill="#151821" stroke="#5AA9FF" stroke-width="1.5"/>
+<text x="363" y="166" class="n">04</text>
+<rect x="382" y="186" width="20" height="36" fill="none" stroke="#5AA9FF" stroke-width="2.2"/><path d="M396 204H416M410 198L417 204L410 210" fill="none" stroke="#5AA9FF" stroke-width="2.2"/>
+<text x="400" y="264" class="h">Évacuation</text>
+<text x="400" y="301" class="d">Le personnel</text>
+<text x="400" y="317" class="d">rejoint les</text>
+<text x="400" y="333" class="d">abris.</text>
+<path d="M448 195H459M455 191L460 195L455 199" fill="none" stroke="#5A6072" stroke-width="1.5"/>
+<rect x="464" y="150" width="90" height="90" fill="#151821" stroke="#F0525A" stroke-width="1.5"/>
+<text x="472" y="166" class="n">05</text>
+<path d="M509 184L525 190V204Q525 218 509 224Q493 218 493 204V190Z" fill="none" stroke="#F0525A" stroke-width="2.2"/><path d="M509 192V216" stroke="#F0525A" stroke-width="1.5"/>
+<text x="509" y="264" class="h">Intervention</text>
+<text x="509" y="281" class="h">FIM</text>
+<text x="509" y="318" class="d">Équipes FIM</text>
+<text x="509" y="334" class="d">engagées sur</text>
+<text x="509" y="350" class="d">la menace.</text>
+<path d="M557 195H568M564 191L569 195L564 199" fill="none" stroke="#5A6072" stroke-width="1.5"/>
+<rect x="573" y="150" width="90" height="90" fill="#151821" stroke="#F0525A" stroke-width="1.5"/>
+<text x="581" y="166" class="n">06</text>
+<rect x="602" y="188" width="32" height="34" fill="none" stroke="#F0525A" stroke-width="2.2"/><path d="M610 188V222M618 188V222M626 188V222" stroke="#F0525A" stroke-width="1.5"/>
+<text x="618" y="264" class="h">Reconfinement</text>
+<text x="618" y="301" class="d">SCP ramené</text>
+<text x="618" y="317" class="d">dans sa</text>
+<text x="618" y="333" class="d">cellule.</text>
+<path d="M666 195H677M673 191L678 195L673 199" fill="none" stroke="#5A6072" stroke-width="1.5"/>
+<rect x="682" y="150" width="90" height="90" fill="#151821" stroke="#4FD895" stroke-width="1.5"/>
+<text x="690" y="166" class="n">07</text>
+<path d="M713 205L723 215L743 193" fill="none" stroke="#4FD895" stroke-width="3"/>
+<text x="727" y="264" class="h">Retour à</text>
+<text x="727" y="281" class="h">la normale</text>
+<text x="727" y="318" class="d">Bilan, rapport,</text>
+<text x="727" y="334" class="d">levée du code.</text>
+<text x="28" y="434" class="s">Ne jamais sauter une étape : chaque code d'alerte déclenche la suivante, jusqu'à la levée par le Commandement.</text>
+</svg>

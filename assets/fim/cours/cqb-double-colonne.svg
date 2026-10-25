@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Double colonne : deux opérateurs de chaque côté de la porte. Un opérateur traverse l'embrasure rapidement sans s'arrêter. Zone de tirs croisés devant la porte.">
+<title>Double colonne</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.b{font:14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.bb{font:700 14px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.s{font:13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.m{font:11px "JetBrains Mono",Consolas,monospace;fill:#9297A8}
+.mw{font:700 11px "JetBrains Mono",Consolas,monospace;fill:#E8EAF0}
+.n{font:700 13px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#FFFFFF;text-anchor:middle}
+.c{text-anchor:middle}
+.r{text-anchor:end}
+.w{stroke:#9297A8;stroke-width:6;stroke-linecap:square;fill:none}
+.f{fill:#151821}
+.mv{stroke:#4FD895;stroke-width:3;fill:none}
+.sec{fill:#6E76FF;fill-opacity:.12;stroke:#6E76FF;stroke-opacity:.5;stroke-dasharray:4 3}
+.dz{fill:#F0525A;fill-opacity:.15}
+</style>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#4FD895"/></marker>
+<marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#F0525A"/></marker>
+</defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · CQB</text>
+<text x="28" y="60" class="t">Double colonne</text>
+<rect x="280" y="90" width="240" height="110" class="f"/>
+<rect x="40" y="200" width="720" height="120" class="f"/>
+<polygon points="370.0,203.0 430.0,203.0 445.0,262.0 355.0,262.0" class="dz"/>
+<path d="M345,212 L445,140" stroke="#F0525A" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+<path d="M455,212 L355,140" stroke="#F0525A" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+<path d="M280,200 L280,90 L520,90 L520,200" class="w"/>
+<path d="M40,200 L367,200" class="w"/>
+<path d="M433,200 L760,200" class="w"/>
+<path d="M40,320 L760,320" class="w"/>
+<circle cx="205" cy="226" r="14" fill="#6E76FF" fill-opacity=".35" stroke="#E8EAF0" stroke-width="1.5" stroke-dasharray="3 2"/>
+<text x="205" y="230.6" class="n">2</text>
+<path d="M220,232 Q400,292 512,236" class="mv" stroke-dasharray="9 6" marker-end="url(#ah)"/>
+<circle cx="345" cy="226" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="345" y="230.6" class="n">1</text>
+<circle cx="310" cy="226" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="310" y="230.6" class="n">3</text>
+<circle cx="455" cy="226" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="455" y="230.6" class="n">4</text>
+<circle cx="525" cy="226" r="14" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1.5"/>
+<text x="525" y="230.6" class="n">2</text>
+<text x="400" y="108" class="mw c" style="fill:#F0525A">tirs croisés :</text>
+<text x="400" y="124" class="m c">risque de tir fratricide</text>
+<text x="205" y="260" class="m c">départ du 2</text>
+<text x="400" y="300" class="mw c" style="fill:#F0A83C">traverser vite, jamais s'arrêter devant la porte</text>
+<text x="292" y="185" class="m" style="letter-spacing:2px">PIÈCE</text>
+<text x="28" y="355" class="s">Une colonne de chaque côté : entrées rapides (crochet), mais chacun doit savoir</text>
+<text x="28" y="375" class="s">où pointe l'arme d'en face. Ne jamais viser le chambranle opposé.</text>
+<line x1="28" y1="408" x2="772" y2="408" stroke="#2A2E3A"/>
+<circle cx="35" cy="426" r="7" fill="#6E76FF" stroke="#E8EAF0" stroke-width="1"/>
+<text x="48" y="430" class="m">Opérateur</text>
+<circle cx="135" cy="426" r="7" fill="#6E76FF" fill-opacity=".35" stroke="#E8EAF0" stroke-width="1" stroke-dasharray="2 2"/>
+<text x="148" y="430" class="m">Avant traversée</text>
+<path d="M268,426 L288,426" class="mv" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+<text x="300" y="430" class="m">Traversée rapide</text>
+<path d="M427,426 L447,426" stroke="#F0525A" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="457" y="430" class="m">Ligne de tir</text>
+<rect x="557" y="419" width="16" height="13" class="dz" stroke="#F0525A" stroke-opacity=".5"/>
+<text x="581" y="430" class="m">Zone de danger</text>
+</svg>
