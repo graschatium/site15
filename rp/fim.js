@@ -4036,8 +4036,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         ${e.strengths || e.improvements ? `<div class="fim-eval-text">${e.strengths ? `<strong>POINTS FORTS</strong>${esc(e.strengths)}` : ''}${e.improvements ? `<strong>AXES DE PROGRÈS</strong>${esc(e.improvements)}` : ''}</div>` : ''}
         <div class="sci-card-actions">
           ${e.public || canDelete ? `<button class="btn ghost small" type="button" data-eval-link="${esc(e.id)}">Copier le lien</button>` : ''}
-          ${canDelete ? `<button class="btn ghost small" type="button" data-eval-pub="${e.public ? '0' : '1'}" data-id="${esc(e.id)}">${e.public ? 'Rendre privée' : e.publishedAt ? 'Rendre publique' : 'Rendre publique et publier'}</button>
-          <button class="btn danger small" data-eval-del="${esc(e.id)}">Supprimer</button>` : ''}
+          ${canDelete || opts.canPublish ? `<button class="btn ghost small" type="button" data-eval-pub="${e.public ? '0' : '1'}" data-id="${esc(e.id)}">${e.public ? 'Rendre privée' : e.publishedAt ? 'Rendre publique' : 'Rendre publique et publier'}</button>` : ''}
+          ${canDelete ? `<button class="btn danger small" data-eval-del="${esc(e.id)}">Supprimer</button>` : ''}
         </div>
       </div>`;
   }
@@ -4046,13 +4046,13 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   async function copyText(text) {
     try { await navigator.clipboard.writeText(text); window.showToast('Lien copié.', 'success'); } catch (e) { window.prompt('Copie ce lien :', text); }
   }
-  function bindEvalCards(root, reload) {
+  function bindEvalCards(root, reload, api = '/api/rp/fim') {
     root.querySelectorAll('[data-eval-link]').forEach((b) => b.addEventListener('click', () => copyText(deepLink('eval', b.dataset.evalLink))));
     root.querySelectorAll('[data-eval-pub]').forEach((b) => b.addEventListener('click', async () => {
       const pub = b.dataset.evalPub === '1';
       if (pub && !confirm('Rendre cette évaluation publique ? Le résultat sera visible de toute la FIM et annoncé sur Discord (une seule fois).')) return;
       try {
-        await window.apiFetch(`/api/rp/fim/evaluations/${encodeURIComponent(b.dataset.id)}/visibility`, { method: 'PATCH', body: JSON.stringify({ public: pub }) });
+        await window.apiFetch(`${api}/evaluations/${encodeURIComponent(b.dataset.id)}/visibility`, { method: 'PATCH', body: JSON.stringify({ public: pub }) });
         window.showToast(pub ? 'Évaluation rendue publique.' : 'Évaluation rendue privée.', 'success');
         reload();
       } catch (err) {
@@ -4248,7 +4248,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   const TRAINING_AUDIENCE = {
     fim: { label: 'FIM uniquement', color: '#9297A8' },
     eri: { label: 'FIM et candidats ERI', color: '#B07CFF' },
-    all: { label: 'Tous les départements (portail)', color: '#5AA9FF' },
+    dept: { label: 'Département organisateur', color: '#F0A83C' },
+    all: { label: 'Tous les départements', color: '#5AA9FF' },
   };
   const audienceOf = (t) => (TRAINING_AUDIENCE[t.audience] ? t.audience : t.openToERI === false ? 'fim' : 'eri');
   const TRAINING_STATUS = {
@@ -4256,23 +4257,28 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     terminee: { label: 'Terminée', color: '#9297A8' },
     annulee: { label: 'Annulée', color: '#F0525A' },
   };
-  async function renderTrainings(body, grids, data, deptId) {
+  // opts.portal : même écran pour le portail interdépartemental (API /api/rp/portal,
+  // droits de gestion par formation, département organisateur au lieu de la grille)
+  async function renderTrainings(body, grids, data, deptId, opts = {}) {
+    const api = opts.portal ? '/api/rp/portal' : '/api/rp/fim';
     body.innerHTML = '<div class="center-msg">Chargement…</div>';
     let r;
     try {
-      r = await window.apiFetch('/api/rp/fim/trainings');
+      r = await window.apiFetch(`${api}/trainings`);
     } catch (err) {
       body.innerHTML = `<div class="center-msg">Erreur : ${esc(err.message)}</div>`;
       return;
     }
     const canManage = !!r.canManage;
+    const canManageT = (t) => (t.canManage === undefined ? canManage : !!t.canManage);
+    const organizers = r.organizers || [];
     const selfKey = r.selfKey || personKey(data.self);
     const list = r.trainings || [];
     const now = Date.now();
     const upcoming = list.filter((t) => t.status === 'planifiee' && (t.at || 0) > now - 86400000).sort((a, b) => a.at - b.at);
     const past = list.filter((t) => !upcoming.includes(t));
     const gridName = (id) => grids.find((g) => g.id === id)?.name || (id === 'standard' ? 'Standard FIM' : '');
-    setSide([[String(upcoming.length), 'À venir'], [String(upcoming.filter((t) => (t.signups || {})[selfKey]).length), 'Inscrit']], upcoming.slice(0, 5).map((t) => [new Date(t.at).toLocaleDateString('fr-FR'), t.title]));
+    if (!opts.portal) setSide([[String(upcoming.length), 'À venir'], [String(upcoming.filter((t) => (t.signups || {})[selfKey]).length), 'Inscrit']], upcoming.slice(0, 5).map((t) => [new Date(t.at).toLocaleDateString('fr-FR'), t.title]));
     if (trainingEditing) {
       const t = trainingEditing;
       body.innerHTML = `
@@ -4282,28 +4288,29 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
             <div class="field-grid">
               <div class="field-row"><label>Intitulé *</label><input id="tr-title" maxlength="100" required value="${esc(t.title || '')}" placeholder="Ex : Formation tireur d'élite — session 3"></div>
               <div class="field-row"><label>Date et heure *</label><input id="tr-at" type="datetime-local" required value="${t.at ? toLocalInput(t.at) : ''}"></div>
-              <div class="field-row"><label>Grille d'évaluation</label><select id="tr-grid"><option value="">— Aucune —</option>${grids.filter((g) => !g.archived).map((g) => `<option value="${esc(g.id)}"${t.gridId === g.id ? ' selected' : ''}>${esc(g.name)}${g.certificate?.enabled ? ' · brevet' : ''}</option>`).join('')}</select></div>
+              ${opts.portal ? `<div class="field-row"><label>Organisateur</label><select id="tr-dept"${t.id ? ' disabled' : ''}>${organizers.map((o) => `<option value="${esc(o.id)}"${(t.deptId || organizers[0]?.id) === o.id ? ' selected' : ''}>${esc(o.name)}</option>`).join('')}</select></div>` : ''}
+              ${opts.portal ? '' : `<div class="field-row"><label>Grille d'évaluation</label><select id="tr-grid"><option value="">— Aucune —</option>${grids.filter((g) => !g.archived).map((g) => `<option value="${esc(g.id)}"${t.gridId === g.id ? ' selected' : ''}>${esc(g.name)}${g.certificate?.enabled ? ' · brevet' : ''}</option>`).join('')}</select></div>`}
               <div class="field-row"><label>Lieu</label><input id="tr-place" maxlength="120" list="fim-places" value="${esc(t.place || '')}" placeholder="Ex : stand de tir"></div>
               <div class="field-row"><label>Instructeur</label><input id="tr-instructor" maxlength="80" value="${esc(t.instructor || data.self || '')}"></div>
               <div class="field-row"><label>Places (0 = illimité)</label><input id="tr-seats" type="number" min="0" max="100" value="${t.seats || 0}"></div>
             </div>
             <datalist id="fim-places">${SITE_PLACES.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
             <div class="field-row"><label>Programme</label><textarea id="tr-desc" rows="4" maxlength="2000">${esc(t.description || '')}</textarea></div>
-            <div class="field-row" style="max-width:420px;"><label>Ouverte à</label><select id="tr-audience">${Object.entries(TRAINING_AUDIENCE).map(([k, a]) => `<option value="${k}"${audienceOf(t) === k ? ' selected' : ''}>${a.label}</option>`).join('')}</select></div>
+            <div class="field-row" style="max-width:420px;"><label>Ouverte à</label><select id="tr-audience">${Object.entries(TRAINING_AUDIENCE).filter(([k]) => !opts.portal || (t.deptId || organizers[0]?.id) === 'fim_mmqbs55q2vge' || ['dept', 'all'].includes(k)).map(([k, a]) => `<option value="${k}"${audienceOf(t) === k ? ' selected' : ''}>${a.label}</option>`).join('')}</select></div>
             <div style="display:flex; gap:10px;"><button class="btn" type="submit">${t.id ? 'Enregistrer' : 'Publier (annoncée sur Discord)'}</button><button class="btn ghost" type="button" id="tr-cancel">Annuler</button></div>
           </form>
         </div>`;
-      document.getElementById('tr-cancel').addEventListener('click', () => { trainingEditing = null; renderTrainings(body, grids, data, deptId); });
+      document.getElementById('tr-cancel').addEventListener('click', () => { trainingEditing = null; renderTrainings(body, grids, data, deptId, opts); });
       document.getElementById('fim-tr-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const v = (id) => document.getElementById(id).value.trim();
-        const payload = { title: v('tr-title'), at: v('tr-at') ? new Date(v('tr-at')).getTime() : null, gridId: v('tr-grid'), place: v('tr-place'), instructor: v('tr-instructor'), seats: Number(v('tr-seats')) || 0, description: v('tr-desc'), audience: v('tr-audience') };
+        const payload = { title: v('tr-title'), at: v('tr-at') ? new Date(v('tr-at')).getTime() : null, gridId: opts.portal ? (t.gridId || null) : v('tr-grid'), deptId: opts.portal ? (document.getElementById('tr-dept')?.value || t.deptId) : undefined, place: v('tr-place'), instructor: v('tr-instructor'), seats: Number(v('tr-seats')) || 0, description: v('tr-desc'), audience: v('tr-audience') };
         try {
-          if (t.id) await window.apiFetch(`/api/rp/fim/trainings/${encodeURIComponent(t.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
-          else await window.apiFetch('/api/rp/fim/trainings', { method: 'POST', body: JSON.stringify(payload) });
+          if (t.id) await window.apiFetch(`${api}/trainings/${encodeURIComponent(t.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
+          else await window.apiFetch(`${api}/trainings`, { method: 'POST', body: JSON.stringify(payload) });
           window.showToast(t.id ? 'Formation modifiée.' : 'Formation publiée.', 'success');
           trainingEditing = null;
-          renderTrainings(body, grids, data, deptId);
+          renderTrainings(body, grids, data, deptId, opts);
         } catch (err) {
           window.showToast(`Erreur : ${err.message}`, 'error');
         }
@@ -4339,7 +4346,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       const signups = entries.map(([, x]) => x);
       const att = t.attendance || {};
       const rolling = trainingRoll && trainingRoll.id === t.id;
-      const canRoll = canManage && t.status !== 'annulee' && (signups.length || t.status === 'terminee') && (t.at || 0) <= Date.now() + 3600000;
+      const canRoll = canManageT(t) && t.status !== 'annulee' && (signups.length || t.status === 'terminee') && (t.at || 0) <= Date.now() + 3600000;
       const mine = !!(t.signups || {})[selfKey];
       const full = t.seats && signups.length >= t.seats;
       const st = TRAINING_STATUS[t.status] || TRAINING_STATUS.planifiee;
@@ -4349,6 +4356,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         <div class="fim-op-meta">
           <span>Le <b>${esc(fmtDate(t.at))}</b> (${esc(relTime(t.at))})</span>
           ${t.place ? `<span>Lieu <b>${esc(t.place)}</b></span>` : ''}
+          ${opts.portal && t.deptName ? `<span>Organisateur <b>${esc(t.deptName)}</b></span>` : ''}
           ${t.instructor ? `<span>Instructeur <b>${esc(withCallsign(t.instructor))}</b></span>` : ''}
           ${g ? `<span>Grille <b>${esc(g)}</b></span>` : ''}
           <span>Places <b>${signups.length}${t.seats ? ` / ${t.seats}` : ''}</b></span>
@@ -4356,12 +4364,12 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         </div>
         ${t.description ? `<div class="fim-op-body">${esc(t.description)}</div>` : ''}
         ${t.attendanceAt ? `<div class="fim-op-meta"><span>Appel <b>${esc(fmtDate(t.attendanceAt))}</b>${t.attendanceBy ? ` par <b>${esc(t.attendanceBy)}</b>` : ''}</span>${attendanceSummary(t)}${att[selfKey] ? `<span>Toi <b style="color:${ATTENDANCE[att[selfKey]].color}">${ATTENDANCE[att[selfKey]].label}</b></span>` : ''}</div>` : ''}
-        ${rolling ? rollPanel(t) : signups.length ? `<div class="fim-op-team">${entries.map(([key, x]) => { const a = ATTENDANCE[att[key]]; return `<span class="fim-chip${a ? ' att' : ''}"${a ? ` style="--c:${a.color}" title="${a.label}"` : ''}>${esc(withCallsign(x.name))}${a ? ` · ${a.label}` : ''}${canManage && t.gridId && att[key] !== 'absent' ? ` <button type="button" class="fim-link" data-tr-eval="${esc(x.name)}" data-grid="${esc(t.gridId)}">évaluer</button>` : ''}</span>`; }).join('')}</div>` : ''}
+        ${rolling ? rollPanel(t) : signups.length ? `<div class="fim-op-team">${entries.map(([key, x]) => { const a = ATTENDANCE[att[key]]; return `<span class="fim-chip${a ? ' att' : ''}"${a ? ` style="--c:${a.color}" title="${a.label}"` : ''}>${esc(withCallsign(x.name))}${a ? ` · ${a.label}` : ''}${!opts.portal && canManageT(t) && t.gridId && att[key] !== 'absent' ? ` <button type="button" class="fim-link" data-tr-eval="${esc(x.name)}" data-grid="${esc(t.gridId)}">évaluer</button>` : ''}</span>`; }).join('')}</div>` : ''}
         <div class="sci-card-actions">
           ${canRoll && !rolling ? `<button class="btn small" type="button" data-tr-roll="${esc(t.id)}">${t.attendanceAt ? "Refaire l'appel" : "Faire l'appel"}</button>` : ''}
           <button class="btn ghost small" type="button" data-tr-link="${esc(t.id)}">Copier le lien</button>
           ${t.status === 'planifiee' ? (mine ? `<button class="btn ghost small" type="button" data-tr-join="0" data-id="${esc(t.id)}">Me désinscrire</button>` : full ? '<span class="post-card-meta">Session complète</span>' : `<button class="btn small" type="button" data-tr-join="1" data-id="${esc(t.id)}">M'inscrire</button>`) : ''}
-          ${canManage ? `
+          ${canManageT(t) ? `
             <button class="btn ghost small" type="button" data-tr-edit="${esc(t.id)}">Modifier</button>
             ${t.status === 'planifiee' ? `<button class="btn ghost small" type="button" data-tr-status="terminee" data-id="${esc(t.id)}">Marquer terminée</button><button class="btn ghost small" type="button" data-tr-status="annulee" data-id="${esc(t.id)}">Annuler</button>` : `<button class="btn ghost small" type="button" data-tr-status="planifiee" data-id="${esc(t.id)}">Rouvrir</button>`}
             <button class="btn danger small" type="button" data-tr-del="${esc(t.id)}">Supprimer</button>` : ''}
@@ -4370,11 +4378,11 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     };
     body.innerHTML = `
       ${canManage ? '<div style="display:flex; justify-content:flex-end; margin-bottom:14px;"><button class="btn small" type="button" id="fim-tr-new">+ Publier une formation</button></div>' : ''}
-      <p class="post-card-meta" style="margin:0 0 14px;">Les formations « Tous les départements » apparaissent aussi sur le portail FIM (/rp/?portail), où n'importe quel personnage peut s'inscrire.</p>
+      ${opts.portal ? '' : `<p class="post-card-meta" style="margin:0 0 14px;">Les formations « Tous les départements » apparaissent aussi sur le portail interdépartemental (/rp/?portail), où n'importe quel personnage peut s'inscrire.</p>`}
       <div class="record-block"><div class="record-block-head"><h2>À venir</h2><span class="count">${upcoming.length}</span></div>
         ${upcoming.length ? upcoming.map(card).join('') : '<div class="empty-row">Aucune formation prévue.</div>'}</div>
       ${past.length ? `<div class="record-block" style="margin-top:24px;"><div class="record-block-head"><h2>Passées et annulées</h2><span class="count">${past.length}</span></div>${past.slice(0, 15).map(card).join('')}</div>` : ''}`;
-    const reload = () => renderTrainings(body, grids, data, deptId);
+    const reload = () => renderTrainings(body, grids, data, deptId, opts);
     const act = async (url, opts, ok) => {
       try {
         await window.apiFetch(url, opts);
@@ -4384,10 +4392,10 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
     };
-    document.getElementById('fim-tr-new')?.addEventListener('click', () => { trainingEditing = { audience: 'eri' }; reload(); });
-    body.querySelectorAll('[data-tr-join]').forEach((b) => b.addEventListener('click', () => act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.id)}/signup`, { method: 'POST', body: JSON.stringify({ join: b.dataset.trJoin === '1' }) }, b.dataset.trJoin === '1' ? 'Inscription enregistrée.' : 'Désinscription enregistrée.')));
-    body.querySelectorAll('[data-tr-status]').forEach((b) => b.addEventListener('click', () => act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.id)}/status`, { method: 'POST', body: JSON.stringify({ status: b.dataset.trStatus }) }, 'Formation mise à jour.')));
-    body.querySelectorAll('[data-tr-del]').forEach((b) => b.addEventListener('click', () => { if (confirm('Supprimer cette formation et ses inscriptions ?')) act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.trDel)}`, { method: 'DELETE' }, 'Formation supprimée.'); }));
+    document.getElementById('fim-tr-new')?.addEventListener('click', () => { trainingEditing = { audience: opts.portal ? 'all' : 'eri' }; reload(); });
+    body.querySelectorAll('[data-tr-join]').forEach((b) => b.addEventListener('click', () => act(`${api}/trainings/${encodeURIComponent(b.dataset.id)}/signup`, { method: 'POST', body: JSON.stringify({ join: b.dataset.trJoin === '1' }) }, b.dataset.trJoin === '1' ? 'Inscription enregistrée.' : 'Désinscription enregistrée.')));
+    body.querySelectorAll('[data-tr-status]').forEach((b) => b.addEventListener('click', () => act(`${api}/trainings/${encodeURIComponent(b.dataset.id)}/status`, { method: 'POST', body: JSON.stringify({ status: b.dataset.trStatus }) }, 'Formation mise à jour.')));
+    body.querySelectorAll('[data-tr-del]').forEach((b) => b.addEventListener('click', () => { if (confirm('Supprimer cette formation et ses inscriptions ?')) act(`${api}/trainings/${encodeURIComponent(b.dataset.trDel)}`, { method: 'DELETE' }, 'Formation supprimée.'); }));
     body.querySelectorAll('[data-tr-edit]').forEach((b) => b.addEventListener('click', () => { trainingEditing = list.find((t) => t.id === b.dataset.trEdit) || null; reload(); }));
     body.querySelectorAll('[data-tr-link]').forEach((b) => b.addEventListener('click', () => copyText(deepLink('formation', b.dataset.trLink))));
     focusDeepTraining(body);
@@ -4431,7 +4439,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         const id = trainingRoll.id;
         const extras = trainingRoll.extras;
         trainingRoll = null;
-        await act(`/api/rp/fim/trainings/${encodeURIComponent(id)}/attendance`, { method: 'POST', body: JSON.stringify({ marks, extras }) }, 'Appel enregistré.');
+        await act(`${api}/trainings/${encodeURIComponent(id)}/attendance`, { method: 'POST', body: JSON.stringify({ marks, extras }) }, 'Appel enregistré.');
       });
     }
     body.querySelectorAll('[data-tr-eval]').forEach((b) => b.addEventListener('click', () => {
@@ -5375,89 +5383,56 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     btn.textContent = alertsOn() ? '🔔 Alertes activées' : '🔕 Activer les alertes';
   }
 
-  // --- Portail FIM : page ouverte à tout personnage RP (tous départements) ---
-  // Formations accessibles (inscription), ses propres évaluations et les
-  // résultats rendus publics. Liens directs : /rp/?portail, ?eval=…, ?formation=…
+  // --- Portail interdépartemental : page ouverte à tout personnage RP ---
+  // Formations publiées par les départements (inscription, et pour ceux qui
+  // en ont le droit : publication, appel, statut), ses propres évaluations et
+  // les résultats rendus publics. Liens directs : /rp/?portail, ?eval=…, ?formation=…
   async function renderPortal(root, onBack, opts = {}) {
-    root.innerHTML = '<div class="center-msg">Chargement du portail FIM…</div>';
+    root.innerHTML = '<div class="center-msg">Chargement du portail…</div>';
     let data;
     try {
-      data = await window.apiFetch('/api/rp/portal/fim');
+      data = await window.apiFetch('/api/rp/portal');
     } catch (err) {
-      root.innerHTML = `<div class="center-msg">${err.status === 403 ? 'Le portail FIM demande un personnage RP actif.' : `Erreur : ${esc(err.message)}`}</div>`;
+      root.innerHTML = `<div class="center-msg">${err.status === 403 ? 'Le portail demande un personnage RP actif (ou un rôle staff avec l’accès Portail).' : `Erreur : ${esc(err.message)}`}</div>`;
       return;
     }
     if (opts.evalId) deepEvalId = opts.evalId;
     if (opts.trainingId) deepTrainingId = opts.trainingId;
-    const status = data.isFim ? 'Opérateur FIM' : data.isEri ? 'Candidat ERI' : 'Personnel du Site-15';
-    const now = Date.now();
-    const trainings = (data.trainings || []).slice().sort((a, b) => {
-      const pa = a.status === 'planifiee' && a.at > now - 3600000 ? 0 : 1;
-      const pb = b.status === 'planifiee' && b.at > now - 3600000 ? 0 : 1;
-      return pa - pb || (pa ? b.at - a.at : a.at - b.at);
-    });
-    const trCard = (t) => {
-      const n = Object.keys(t.signups || {}).length;
-      const mine = !!(t.signups || {})[data.selfKey];
-      const open = t.status === 'planifiee';
-      const full = t.seats && n >= t.seats && !mine;
-      const a = TRAINING_AUDIENCE[t.audience] || TRAINING_AUDIENCE.eri;
-      const att = ATTENDANCE[(t.attendance || {})[data.selfKey]];
-      return `<div class="fim-op fim-training" style="--u:${open ? '#4FD895' : '#9297A8'}" data-training-id="${esc(t.id)}">
-        <div class="fim-op-top"><span class="fim-op-name" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(t.title)}</span>${pill(open ? { label: 'Inscriptions ouvertes', color: '#4FD895' } : { label: 'Terminée', color: '#9297A8' })}${mine ? ' ' + pill({ label: 'Inscrit', color: '#5AA9FF' }) : ''}${att ? ' ' + pill(att) : ''}</div>
-        <div class="fim-op-meta">
-          <span>Le <b>${esc(fmtDate(t.at))}</b> (${esc(relTime(t.at))})</span>
-          ${t.place ? `<span>Lieu <b>${esc(t.place)}</b></span>` : ''}
-          ${t.instructor ? `<span>Instructeur <b>${esc(t.instructor)}</b></span>` : ''}
-          <span>Places <b>${n}${t.seats ? ` / ${t.seats}` : ''}</b></span>
-          <span>Ouverte à <b style="color:${a.color}">${a.label}</b></span>
-        </div>
-        ${t.description ? `<div class="fim-op-body">${esc(t.description)}</div>` : ''}
-        <div class="sci-card-actions">
-          ${open ? (mine ? `<button class="btn ghost small" type="button" data-pt-join="0" data-id="${esc(t.id)}">Me désinscrire</button>` : full ? '<span class="post-card-meta">Session complète</span>' : `<button class="btn small" type="button" data-pt-join="1" data-id="${esc(t.id)}">M'inscrire</button>`) : ''}
-          <button class="btn ghost small" type="button" data-tr-link="${esc(t.id)}">Copier le lien</button>
-        </div>
-      </div>`;
-    };
+    const status = data.isFim ? 'Opérateur FIM' : data.isEri ? 'Candidat ERI' : data.staffLevel && !data.selfKey ? 'Staff' : 'Personnel du Site-15';
+    const rights = data.canManage
+      ? `Gestion des formations : ${(data.organizers || []).map((o) => o.name).join(', ')}`
+      : '';
     const evals = data.evaluations || [];
     const pubs = data.publicEvaluations || [];
     root.innerHTML = `
       <div class="fim-eri-wrap">
         ${onBack ? `<button class="terminal-breadcrumb" id="portal-back" style="margin-bottom:22px;">← SITE-15 // MENU PRINCIPAL</button>` : ''}
         <div class="fim-hero">
-          <div class="fim-hero-eyebrow">Forces d'Intervention Mobile · Portail</div>
-          <h2>Portail FIM</h2>
-          <p>Formations ouvertes à ton profil, tes évaluations et les résultats rendus publics par les instructeurs. Tes évaluations ne sont visibles que de toi et du commandement FIM, sauf si l'instructeur les rend publiques.</p>
+          <div class="fim-hero-eyebrow">Site-15 · Portail interdépartemental</div>
+          <h2>Portail des formations</h2>
+          <p>Formations publiées par les départements et ouvertes à ton profil, tes évaluations et les résultats rendus publics. Tes évaluations ne sont visibles que de toi et du commandement, sauf si l'instructeur les rend publiques.</p>
           <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
             <span class="fim-chip">${esc(data.name)}</span><span class="fim-chip">${esc(status)}</span>
+            ${rights ? `<span class="fim-chip u" style="--u:#4FD895">${esc(rights)}</span>` : ''}
+            ${data.canPublishResults ? '<span class="fim-chip u" style="--u:#4FD895">Résultats publics</span>' : ''}
             <button class="btn ghost small" type="button" id="portal-copy" style="margin-left:auto;">Copier le lien du portail</button>
           </div>
         </div>
-        <div class="record-block" style="margin-top:18px;"><div class="record-block-head"><h2>Formations</h2><span class="count">${trainings.length}</span></div>
-          ${trainings.length ? trainings.map(trCard).join('') : '<div class="empty-row">Aucune formation ouverte à ton profil pour le moment.</div>'}</div>
+        <div class="record-block" style="margin-top:18px;"><div class="record-block-head"><h2>Formations</h2></div><div id="portal-trainings"></div></div>
         <div class="record-block" style="margin-top:24px;"><div class="record-block-head"><h2>Mes évaluations</h2><span class="count">${evals.length}</span></div>
           ${evals.length ? evals.map((e) => evalCard(e, false)).join('') : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}</div>
         <div class="record-block" style="margin-top:24px;"><div class="record-block-head"><h2>Résultats publics</h2><span class="count">${pubs.length}</span></div>
-          ${pubs.length ? pubs.map((e) => evalCard(e, false, { showAgent: true })).join('') : '<div class="empty-row">Aucun résultat public pour le moment.</div>'}</div>
+          ${pubs.length ? pubs.map((e) => evalCard(e, false, { showAgent: true, canPublish: data.canPublishResults })).join('') : '<div class="empty-row">Aucun résultat public pour le moment.</div>'}</div>
         ${credit()}
       </div>`;
     const reload = () => renderPortal(root, onBack);
     root.querySelector('#portal-back')?.addEventListener('click', onBack);
     root.querySelector('#portal-copy').addEventListener('click', () => copyText(`${location.origin}/rp/?portail`));
-    root.querySelectorAll('[data-tr-link]').forEach((b) => b.addEventListener('click', () => copyText(deepLink('formation', b.dataset.trLink))));
-    root.querySelectorAll('[data-pt-join]').forEach((b) => b.addEventListener('click', async () => {
-      try {
-        await window.apiFetch(`/api/rp/portal/trainings/${encodeURIComponent(b.dataset.id)}/signup`, { method: 'POST', body: JSON.stringify({ join: b.dataset.ptJoin === '1' }) });
-        window.showToast(b.dataset.ptJoin === '1' ? 'Inscription enregistrée.' : 'Désinscription enregistrée.', 'success');
-        reload();
-      } catch (err) {
-        window.showToast(`Erreur : ${err.message}`, 'error');
-      }
-    }));
-    bindEvalCards(root, reload);
+    bindEvalCards(root, reload, '/api/rp/portal');
     focusDeepEval(root);
-    focusDeepTraining(root);
     if (deepEvalId) { window.showToast("Cette évaluation n'est pas visible : elle est privée ou n'existe plus.", 'error'); deepEvalId = null; }
+    // Même écran que l'onglet Formations du terminal FIM, en mode portail
+    await renderTrainings(root.querySelector('#portal-trainings'), [], { self: data.name }, null, { portal: true });
     if (deepTrainingId) { window.showToast("Cette formation n'est pas ouverte à ton profil ou n'existe plus.", 'error'); deepTrainingId = null; }
   }
   // Ouvre une cible de lien direct dans le terminal FIM (membre FIM).

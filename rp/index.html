@@ -828,7 +828,7 @@
       card.addEventListener('click', () => window.FIM.renderEriSpace(mainRoot, eri, renderTopChoice));
       grid.appendChild(card);
     });
-    // Portail FIM : formations interdépartementales, évaluations, résultats publics
+    // Portail interdépartemental : formations des départements, évaluations, résultats publics
     {
       const grid = mainRoot.querySelector('.topchoice-grid');
       const card = document.createElement('button');
@@ -836,9 +836,9 @@
       card.id = 'topchoice-fim-portal';
       card.type = 'button';
       card.innerHTML = `
-        <div class="topchoice-eyebrow">${ICONS.badge} Transversal</div>
-        <div class="topchoice-title">Portail FIM</div>
-        <div class="topchoice-desc">Formations ouvertes à tous les départements, tes évaluations et les résultats rendus publics.</div>`;
+        <div class="topchoice-eyebrow">${ICONS.badge} Interdépartemental</div>
+        <div class="topchoice-title">Portail des formations</div>
+        <div class="topchoice-desc">Formations publiées par les départements, inscriptions, appel, tes évaluations et les résultats rendus publics.</div>`;
       card.addEventListener('click', () => window.FIM?.renderPortal(mainRoot, renderTopChoice));
       if (grid && window.FIM) grid.appendChild(card);
     }
@@ -5032,6 +5032,9 @@
       // Membre ERI sans personnage : il garde l'accès à son Espace ERI (rp/fim.js).
       const eri = await window.FIM?.checkEri();
       if (eri) { window.FIM.renderEriSpace(mainRoot, eri, null); return; }
+      // Rôle staff avec l'accès « Portail » (matrice Permissions) sans personnage
+      const portal = await apiFetch('/api/rp/portal').catch(() => null);
+      if (portal && window.FIM) { window.FIM.renderPortal(mainRoot, null); return; }
       renderNoAccess(context);
       return;
     }
@@ -5058,7 +5061,7 @@
       window.FIM.renderPortal(mainRoot, renderTopChoice, deep);
       return true;
     }
-    if (!isFim) { showToast("Le terminal FIM est réservé aux FIM : ouverture du portail.", 'error'); window.FIM.renderPortal(mainRoot, renderTopChoice); return true; }
+    if (!isFim) { showToast("Le terminal FIM est réservé aux FIM : ouverture du portail interdépartemental.", 'error'); window.FIM.renderPortal(mainRoot, renderTopChoice); return true; }
     window.FIM.setDeepLink(deep);
     const tab = deep.evalId || deep.trainingId || deep.fim === 'formations' ? 'fim-evals' : (FIM_TAB_ALIASES[deep.fim] || 'fim-hq');
     if (deep.fim === 'formations') window.FIM.setDeepLink({ view: 'trainings' });
