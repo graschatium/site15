@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  // Liens partageables sans page d'aperçu publiée : /f/<id>/ (formation), /e/<id>/ (évaluation)
+  (function () {
+    var m = location.pathname.match(/^\/(f|e)\/([A-Za-z0-9_-]+)\/?$/);
+    if (m) location.replace('/rp/?' + (m[1] === 'f' ? 'formation' : 'eval') + '=' + encodeURIComponent(m[2]));
+  })();
+</script>
 <title>404 — Document introuvable — SITE-15</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

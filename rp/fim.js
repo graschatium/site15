@@ -4043,9 +4043,10 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   }
   // Lien direct vers une évaluation ou une formation (/rp/?eval=…, /rp/?formation=…)
   const deepLink = (kind, id) => `${location.origin}/rp/?${kind}=${encodeURIComponent(id)}`;
-  // Liens servis par le bot : ils portent l'aperçu Discord (Open Graph) puis redirigent ici
-  const trainingShareLink = (id) => `https://site15-bot.onrender.com/f/${encodeURIComponent(id)}`;
-  const evalShareLink = (id) => `https://site15-bot.onrender.com/e/${encodeURIComponent(id)}`;
+  // Liens partageables : le bot publie /f/<id>/ et /e/<id>/ sur le site avec l'aperçu
+  // Discord (Open Graph) ; sans page publiée, le 404 du site redirige vers le portail
+  const trainingShareLink = (id) => `${location.origin}/f/${encodeURIComponent(id)}/`;
+  const evalShareLink = (id) => `${location.origin}/e/${encodeURIComponent(id)}/`;
   async function copyText(text) {
     try { await navigator.clipboard.writeText(text); window.showToast('Lien copié.', 'success'); } catch (e) { window.prompt('Copie ce lien :', text); }
   }
@@ -4374,6 +4375,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           ${t.status === 'planifiee' ? (mine ? `<button class="btn ghost small" type="button" data-tr-join="0" data-id="${esc(t.id)}">Me désinscrire</button>` : full ? '<span class="post-card-meta">Session complète</span>' : `<button class="btn small" type="button" data-tr-join="1" data-id="${esc(t.id)}">M'inscrire</button>`) : ''}
           ${canManageT(t) ? `
             <button class="btn ghost small" type="button" data-tr-edit="${esc(t.id)}">Modifier</button>
+            ${t.status === 'planifiee' ? `<button class="btn ghost small" type="button" data-tr-announce="${esc(t.id)}">Renvoyer l'annonce</button>` : ''}
             ${t.status === 'planifiee' ? `<button class="btn ghost small" type="button" data-tr-status="terminee" data-id="${esc(t.id)}">Marquer terminée</button><button class="btn ghost small" type="button" data-tr-status="annulee" data-id="${esc(t.id)}">Annuler</button>` : `<button class="btn ghost small" type="button" data-tr-status="planifiee" data-id="${esc(t.id)}">Rouvrir</button>`}
             <button class="btn danger small" type="button" data-tr-del="${esc(t.id)}">Supprimer</button>` : ''}
         </div>
@@ -4400,6 +4402,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     body.querySelectorAll('[data-tr-status]').forEach((b) => b.addEventListener('click', () => act(`${api}/trainings/${encodeURIComponent(b.dataset.id)}/status`, { method: 'POST', body: JSON.stringify({ status: b.dataset.trStatus }) }, 'Formation mise à jour.')));
     body.querySelectorAll('[data-tr-del]').forEach((b) => b.addEventListener('click', () => { if (confirm('Supprimer cette formation et ses inscriptions ?')) act(`${api}/trainings/${encodeURIComponent(b.dataset.trDel)}`, { method: 'DELETE' }, 'Formation supprimée.'); }));
     body.querySelectorAll('[data-tr-edit]').forEach((b) => b.addEventListener('click', () => { trainingEditing = list.find((t) => t.id === b.dataset.trEdit) || null; reload(); }));
+    body.querySelectorAll('[data-tr-announce]').forEach((b) => b.addEventListener('click', () => { if (confirm("Renvoyer l'annonce de cette formation sur Discord (infos à jour et nombre d'inscrits) ?")) act(`${api}/trainings/${encodeURIComponent(b.dataset.trAnnounce)}/announce`, { method: 'POST' }, 'Annonce renvoyée sur Discord.'); }));
     body.querySelectorAll('[data-tr-link]').forEach((b) => b.addEventListener('click', () => copyText(trainingShareLink(b.dataset.trLink))));
     focusDeepTraining(body);
     // Appel : les marques restent en mémoire jusqu'à l'enregistrement
