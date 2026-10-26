@@ -4043,13 +4043,14 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   }
   // Lien direct vers une évaluation ou une formation (/rp/?eval=…, /rp/?formation=…)
   const deepLink = (kind, id) => `${location.origin}/rp/?${kind}=${encodeURIComponent(id)}`;
-  // Lien de formation servi par le bot : il porte l'aperçu Discord (Open Graph) puis redirige ici
+  // Liens servis par le bot : ils portent l'aperçu Discord (Open Graph) puis redirigent ici
   const trainingShareLink = (id) => `https://site15-bot.onrender.com/f/${encodeURIComponent(id)}`;
+  const evalShareLink = (id) => `https://site15-bot.onrender.com/e/${encodeURIComponent(id)}`;
   async function copyText(text) {
     try { await navigator.clipboard.writeText(text); window.showToast('Lien copié.', 'success'); } catch (e) { window.prompt('Copie ce lien :', text); }
   }
   function bindEvalCards(root, reload, api = '/api/rp/fim') {
-    root.querySelectorAll('[data-eval-link]').forEach((b) => b.addEventListener('click', () => copyText(deepLink('eval', b.dataset.evalLink))));
+    root.querySelectorAll('[data-eval-link]').forEach((b) => b.addEventListener('click', () => copyText(evalShareLink(b.dataset.evalLink))));
     root.querySelectorAll('[data-eval-pub]').forEach((b) => b.addEventListener('click', async () => {
       const pub = b.dataset.evalPub === '1';
       if (pub && !confirm('Rendre cette évaluation publique ? Le résultat sera visible de toute la FIM et annoncé sur Discord (une seule fois).')) return;
