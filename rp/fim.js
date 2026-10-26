@@ -4014,14 +4014,14 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     </svg>`;
   }
 
-  function evalCard(e, canDelete) {
+  function evalCard(e, canDelete, opts = {}) {
     const v = VERDICT_META[e.verdict] || VERDICT_META.conforme;
     const r = RECO_META[e.recommendation] || RECO_META.aucune;
     const g = e.grid;
     const cert = certOf(e);
     if (cert) diplomaRegistry.set(e.id, e);
     return `
-      <div class="fim-eval-card">
+      <div class="fim-eval-card" data-eval-id="${esc(e.id)}">
         ${cert ? `<div class="fim-cert-ribbon">${emblemSvg(cert.emblem)}<span>Brevet décerné : <b>${esc(cert.title)}</b> · mention ${esc(certMention(e))}</span><button class="btn small" type="button" data-diploma="${esc(e.id)}" style="background:#D4AF55; border-color:#D4AF55; white-space:nowrap;">Voir le diplôme</button></div>` : ''}
         <div class="fim-eval-card-top">
           <span class="fim-score" style="color:${pctColor(e.percent)}; text-align:left; min-width:0;">${esc(pctInScale(g.scale, e.percent))}</span>
@@ -4029,12 +4029,36 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           ${pill(v)} ${e.recommendation && e.recommendation !== 'aucune' ? pill(r) : ''}
           <span class="fim-pill">${esc(g.name)}</span>
           <span class="fim-pill">${esc(CONTEXT_LABELS[e.context] || e.context)}</span>
-          <span class="post-card-meta" style="margin-left:auto;">${esc(e.evaluatorName)} · ${fmtDate(e.createdAt)}</span>
+          ${e.public ? pill({ label: 'Publique', color: '#4FD895' }) : ''}
+          <span class="post-card-meta" style="margin-left:auto;">${opts.showAgent ? `<b>${esc(e.agentName)}</b> · ` : ''}${esc(e.evaluatorName)} · ${fmtDate(e.createdAt)}</span>
         </div>
         <div class="fim-mini-scores">${g.criteria.map((c) => `<span>${esc(c.label)}${c.weight !== 1 ? ` ×${fr(c.weight, 2)}` : ''} <b style="color:${pctColor(rawPercent(g.scale, e.scores?.[c.id]))}">${esc(rawLabel(g.scale, e.scores?.[c.id]))}</b></span>`).join('')}</div>
         ${e.strengths || e.improvements ? `<div class="fim-eval-text">${e.strengths ? `<strong>POINTS FORTS</strong>${esc(e.strengths)}` : ''}${e.improvements ? `<strong>AXES DE PROGRÈS</strong>${esc(e.improvements)}` : ''}</div>` : ''}
-        ${canDelete ? `<div class="sci-card-actions"><button class="btn danger small" data-eval-del="${esc(e.id)}">Supprimer</button></div>` : ''}
+        <div class="sci-card-actions">
+          ${e.public || canDelete ? `<button class="btn ghost small" type="button" data-eval-link="${esc(e.id)}">Copier le lien</button>` : ''}
+          ${canDelete ? `<button class="btn ghost small" type="button" data-eval-pub="${e.public ? '0' : '1'}" data-id="${esc(e.id)}">${e.public ? 'Rendre privée' : e.publishedAt ? 'Rendre publique' : 'Rendre publique et publier'}</button>
+          <button class="btn danger small" data-eval-del="${esc(e.id)}">Supprimer</button>` : ''}
+        </div>
       </div>`;
+  }
+  // Lien direct vers une évaluation ou une formation (/rp/?eval=…, /rp/?formation=…)
+  const deepLink = (kind, id) => `${location.origin}/rp/?${kind}=${encodeURIComponent(id)}`;
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); window.showToast('Lien copié.', 'success'); } catch (e) { window.prompt('Copie ce lien :', text); }
+  }
+  function bindEvalCards(root, reload) {
+    root.querySelectorAll('[data-eval-link]').forEach((b) => b.addEventListener('click', () => copyText(deepLink('eval', b.dataset.evalLink))));
+    root.querySelectorAll('[data-eval-pub]').forEach((b) => b.addEventListener('click', async () => {
+      const pub = b.dataset.evalPub === '1';
+      if (pub && !confirm('Rendre cette évaluation publique ? Le résultat sera visible de toute la FIM et annoncé sur Discord (une seule fois).')) return;
+      try {
+        await window.apiFetch(`/api/rp/fim/evaluations/${encodeURIComponent(b.dataset.id)}/visibility`, { method: 'PATCH', body: JSON.stringify({ public: pub }) });
+        window.showToast(pub ? 'Évaluation rendue publique.' : 'Évaluation rendue privée.', 'success');
+        reload();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    }));
   }
 
   // En-tête de profil : radar + barres pour UNE grille, moyenne globale en %.
@@ -4072,6 +4096,22 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     return [...map.values()];
   }
 
+  // Liens directs /rp/?eval=… et /rp/?formation=… : cible à mettre en avant une fois affichée
+  let deepEvalId = null;
+  let deepTrainingId = null;
+  function focusTarget(el) {
+    if (!el) return false;
+    el.style.outline = '2px solid var(--accent)';
+    el.style.outlineOffset = '3px';
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+    return true;
+  }
+  function focusDeepEval(root) {
+    if (deepEvalId && focusTarget(root.querySelector(`[data-eval-id="${CSS.escape(deepEvalId)}"]`))) deepEvalId = null;
+  }
+  function focusDeepTraining(root) {
+    if (deepTrainingId && focusTarget(root.querySelector(`[data-training-id="${CSS.escape(deepTrainingId)}"]`))) deepTrainingId = null;
+  }
   let evalSelected = null;
   let evalFormOpen = false;
   let evalView = 'people';
@@ -4134,6 +4174,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       const unitId = me ? unitFromAgent(me) : null;
       const color = unitId ? unitColor(unitId) : '#6E76FF';
       const choices = gridsFromEvals(evaluations);
+      const publicEvals = data.publicEvaluations || [];
+      if (deepEvalId && !evaluations.some((e) => e.id === deepEvalId) && publicEvals.some((e) => e.id === deepEvalId)) evalView = 'public';
       const render = () => {
         const gv = choices.find((g) => g.id === evalGridView.self) || choices[0] || null;
         setSide([[String(evaluations.length), 'Évaluations'], [fmtPct(avgOf(evaluations.map((e) => e.percent).filter((v) => v != null))), 'Moyenne']], evaluations.slice(0, 4).map((e) => [new Date(e.createdAt).toLocaleDateString('fr-FR'), (VERDICT_META[e.verdict] || {}).label || '']));
@@ -4144,23 +4186,34 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
             <p>Les évaluations rédigées par tes officiers après les opérations, exercices et revues périodiques. Seul le commandement peut en rédiger.</p>
           </div>
           <div class="fim-subnav">
-            <button type="button" class="active">Mes évaluations</button>
+            <button type="button" class="${evalView !== 'public' ? 'active' : ''}" data-ev-own>Mes évaluations</button>
+            <button type="button" class="${evalView === 'public' ? 'active' : ''}" data-ev-public>Résultats publics (${publicEvals.length})</button>
             <button type="button" data-ev-view="trainings">Formations</button>
           </div>
-          <div class="fim-eval-profile" style="--u:${color}">
+          ${evalView === 'public' ? `<div class="fim-eval-profile">
+            <p class="post-card-meta" style="margin:0 0 12px;">Résultats rendus publics par les instructeurs. Tes évaluations restent visibles de toi seul et du commandement, sauf si l'instructeur les rend publiques.</p>
+            ${publicEvals.length ? publicEvals.map((e) => evalCard(e, false, { showAgent: true })).join('') : '<div class="empty-row">Aucun résultat public pour le moment.</div>'}
+          </div>` : `<div class="fim-eval-profile" style="--u:${color}">
             <div style="display:flex; justify-content:flex-end; margin:-8px 0 6px;"><button class="btn ghost small" id="fim-export-btn" type="button">Exporter ma fiche</button></div>
             ${profileBlock(data.self || '—', unitId, evaluations, gv, color, choices)}
             <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 12px;">Historique</h3>
             ${evaluations.length ? evaluations.map((e) => evalCard(e, false)).join('') : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}
-          </div>`;
+          </div>`}`;
+        main.querySelector('[data-ev-own]').addEventListener('click', () => { evalView = 'people'; render(); });
+        main.querySelector('[data-ev-public]').addEventListener('click', () => { evalView = 'public'; render(); });
+        bindEvalCards(main, () => loadEvaluations(deptId));
+        focusDeepEval(main);
         document.getElementById('fim-profile-grid')?.addEventListener('change', (ev) => { evalGridView.self = ev.target.value; render(); });
-        document.getElementById('fim-export-btn').addEventListener('click', () => exportFiche({ name: data.self, unit: unitId, tags: [] }, evaluations, null, []));
+        document.getElementById('fim-export-btn')?.addEventListener('click', () => exportFiche({ name: data.self, unit: unitId, tags: [] }, evaluations, null, []));
         main.querySelector('[data-ev-view="trainings"]').addEventListener('click', () => { evalView = 'trainings'; loadEvaluations(deptId); });
       };
       render();
       return;
     }
 
+    if (evalView === 'public') evalView = 'people';
+    const deepEval = deepEvalId && evaluations.find((e) => e.id === deepEvalId);
+    if (deepEval) { evalView = 'people'; evalSelected = deepEval.agentName; evalFormOpen = false; }
     main.innerHTML = `
       <div class="fim-hero">
         <div class="fim-hero-eyebrow">Commandement FIM · réservé aux officiers</div>
@@ -4192,6 +4245,12 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     absent: { label: 'Absent', color: '#F0525A' },
     excuse: { label: 'Excusé', color: '#5AA9FF' },
   };
+  const TRAINING_AUDIENCE = {
+    fim: { label: 'FIM uniquement', color: '#9297A8' },
+    eri: { label: 'FIM et candidats ERI', color: '#B07CFF' },
+    all: { label: 'Tous les départements (portail)', color: '#5AA9FF' },
+  };
+  const audienceOf = (t) => (TRAINING_AUDIENCE[t.audience] ? t.audience : t.openToERI === false ? 'fim' : 'eri');
   const TRAINING_STATUS = {
     planifiee: { label: 'Inscriptions ouvertes', color: '#4FD895' },
     terminee: { label: 'Terminée', color: '#9297A8' },
@@ -4230,7 +4289,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
             </div>
             <datalist id="fim-places">${SITE_PLACES.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
             <div class="field-row"><label>Programme</label><textarea id="tr-desc" rows="4" maxlength="2000">${esc(t.description || '')}</textarea></div>
-            <label style="display:flex; gap:8px; align-items:center; font-size:13px; margin:6px 0 14px;"><input type="checkbox" id="tr-eri"${t.openToERI !== false ? ' checked' : ''} style="width:auto;"> Ouverte aux candidats ERI</label>
+            <div class="field-row" style="max-width:420px;"><label>Ouverte à</label><select id="tr-audience">${Object.entries(TRAINING_AUDIENCE).map(([k, a]) => `<option value="${k}"${audienceOf(t) === k ? ' selected' : ''}>${a.label}</option>`).join('')}</select></div>
             <div style="display:flex; gap:10px;"><button class="btn" type="submit">${t.id ? 'Enregistrer' : 'Publier (annoncée sur Discord)'}</button><button class="btn ghost" type="button" id="tr-cancel">Annuler</button></div>
           </form>
         </div>`;
@@ -4238,7 +4297,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       document.getElementById('fim-tr-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const v = (id) => document.getElementById(id).value.trim();
-        const payload = { title: v('tr-title'), at: v('tr-at') ? new Date(v('tr-at')).getTime() : null, gridId: v('tr-grid'), place: v('tr-place'), instructor: v('tr-instructor'), seats: Number(v('tr-seats')) || 0, description: v('tr-desc'), openToERI: document.getElementById('tr-eri').checked };
+        const payload = { title: v('tr-title'), at: v('tr-at') ? new Date(v('tr-at')).getTime() : null, gridId: v('tr-grid'), place: v('tr-place'), instructor: v('tr-instructor'), seats: Number(v('tr-seats')) || 0, description: v('tr-desc'), audience: v('tr-audience') };
         try {
           if (t.id) await window.apiFetch(`/api/rp/fim/trainings/${encodeURIComponent(t.id)}`, { method: 'PUT', body: JSON.stringify(payload) });
           else await window.apiFetch('/api/rp/fim/trainings', { method: 'POST', body: JSON.stringify(payload) });
@@ -4285,7 +4344,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       const full = t.seats && signups.length >= t.seats;
       const st = TRAINING_STATUS[t.status] || TRAINING_STATUS.planifiee;
       const g = gridName(t.gridId);
-      return `<div class="fim-op fim-training" style="--u:${st.color}">
+      return `<div class="fim-op fim-training" style="--u:${st.color}" data-training-id="${esc(t.id)}">
         <div class="fim-op-top"><span class="fim-op-name" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(t.title)}</span>${pill(st)}${mine ? ' ' + pill({ label: 'Inscrit', color: '#5AA9FF' }) : ''}</div>
         <div class="fim-op-meta">
           <span>Le <b>${esc(fmtDate(t.at))}</b> (${esc(relTime(t.at))})</span>
@@ -4293,13 +4352,14 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           ${t.instructor ? `<span>Instructeur <b>${esc(withCallsign(t.instructor))}</b></span>` : ''}
           ${g ? `<span>Grille <b>${esc(g)}</b></span>` : ''}
           <span>Places <b>${signups.length}${t.seats ? ` / ${t.seats}` : ''}</b></span>
-          ${t.openToERI ? '<span><b style="color:#B07CFF">Ouverte aux ERI</b></span>' : ''}
+          <span>Ouverte à <b style="color:${TRAINING_AUDIENCE[audienceOf(t)].color}">${TRAINING_AUDIENCE[audienceOf(t)].label}</b></span>
         </div>
         ${t.description ? `<div class="fim-op-body">${esc(t.description)}</div>` : ''}
         ${t.attendanceAt ? `<div class="fim-op-meta"><span>Appel <b>${esc(fmtDate(t.attendanceAt))}</b>${t.attendanceBy ? ` par <b>${esc(t.attendanceBy)}</b>` : ''}</span>${attendanceSummary(t)}${att[selfKey] ? `<span>Toi <b style="color:${ATTENDANCE[att[selfKey]].color}">${ATTENDANCE[att[selfKey]].label}</b></span>` : ''}</div>` : ''}
         ${rolling ? rollPanel(t) : signups.length ? `<div class="fim-op-team">${entries.map(([key, x]) => { const a = ATTENDANCE[att[key]]; return `<span class="fim-chip${a ? ' att' : ''}"${a ? ` style="--c:${a.color}" title="${a.label}"` : ''}>${esc(withCallsign(x.name))}${a ? ` · ${a.label}` : ''}${canManage && t.gridId && att[key] !== 'absent' ? ` <button type="button" class="fim-link" data-tr-eval="${esc(x.name)}" data-grid="${esc(t.gridId)}">évaluer</button>` : ''}</span>`; }).join('')}</div>` : ''}
         <div class="sci-card-actions">
           ${canRoll && !rolling ? `<button class="btn small" type="button" data-tr-roll="${esc(t.id)}">${t.attendanceAt ? "Refaire l'appel" : "Faire l'appel"}</button>` : ''}
+          <button class="btn ghost small" type="button" data-tr-link="${esc(t.id)}">Copier le lien</button>
           ${t.status === 'planifiee' ? (mine ? `<button class="btn ghost small" type="button" data-tr-join="0" data-id="${esc(t.id)}">Me désinscrire</button>` : full ? '<span class="post-card-meta">Session complète</span>' : `<button class="btn small" type="button" data-tr-join="1" data-id="${esc(t.id)}">M'inscrire</button>`) : ''}
           ${canManage ? `
             <button class="btn ghost small" type="button" data-tr-edit="${esc(t.id)}">Modifier</button>
@@ -4310,6 +4370,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     };
     body.innerHTML = `
       ${canManage ? '<div style="display:flex; justify-content:flex-end; margin-bottom:14px;"><button class="btn small" type="button" id="fim-tr-new">+ Publier une formation</button></div>' : ''}
+      <p class="post-card-meta" style="margin:0 0 14px;">Les formations « Tous les départements » apparaissent aussi sur le portail FIM (/rp/?portail), où n'importe quel personnage peut s'inscrire.</p>
       <div class="record-block"><div class="record-block-head"><h2>À venir</h2><span class="count">${upcoming.length}</span></div>
         ${upcoming.length ? upcoming.map(card).join('') : '<div class="empty-row">Aucune formation prévue.</div>'}</div>
       ${past.length ? `<div class="record-block" style="margin-top:24px;"><div class="record-block-head"><h2>Passées et annulées</h2><span class="count">${past.length}</span></div>${past.slice(0, 15).map(card).join('')}</div>` : ''}`;
@@ -4323,11 +4384,13 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
     };
-    document.getElementById('fim-tr-new')?.addEventListener('click', () => { trainingEditing = { openToERI: true }; reload(); });
+    document.getElementById('fim-tr-new')?.addEventListener('click', () => { trainingEditing = { audience: 'eri' }; reload(); });
     body.querySelectorAll('[data-tr-join]').forEach((b) => b.addEventListener('click', () => act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.id)}/signup`, { method: 'POST', body: JSON.stringify({ join: b.dataset.trJoin === '1' }) }, b.dataset.trJoin === '1' ? 'Inscription enregistrée.' : 'Désinscription enregistrée.')));
     body.querySelectorAll('[data-tr-status]').forEach((b) => b.addEventListener('click', () => act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.id)}/status`, { method: 'POST', body: JSON.stringify({ status: b.dataset.trStatus }) }, 'Formation mise à jour.')));
     body.querySelectorAll('[data-tr-del]').forEach((b) => b.addEventListener('click', () => { if (confirm('Supprimer cette formation et ses inscriptions ?')) act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.trDel)}`, { method: 'DELETE' }, 'Formation supprimée.'); }));
     body.querySelectorAll('[data-tr-edit]').forEach((b) => b.addEventListener('click', () => { trainingEditing = list.find((t) => t.id === b.dataset.trEdit) || null; reload(); }));
+    body.querySelectorAll('[data-tr-link]').forEach((b) => b.addEventListener('click', () => copyText(deepLink('formation', b.dataset.trLink))));
+    focusDeepTraining(body);
     // Appel : les marques restent en mémoire jusqu'à l'enregistrement
     body.querySelectorAll('[data-tr-roll]').forEach((b) => b.addEventListener('click', () => {
       const t = list.find((x) => x.id === b.dataset.trRoll);
@@ -4487,6 +4550,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           window.showToast(`Erreur : ${err.message}`, 'error');
         }
       }));
+      bindEvalCards(box, () => loadEvaluations(deptId));
+      focusDeepEval(box);
       if (evalFormOpen && !isSelf) renderEvalForm(document.getElementById('fim-eval-zone'), p, activeGrids, deptId);
     };
 
@@ -4556,6 +4621,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           </div>
           <div class="field-row"><label>Points forts</label><textarea id="ev-strengths" rows="3" maxlength="1500"></textarea></div>
           <div class="field-row"><label>Axes de progrès</label><textarea id="ev-improvements" rows="3" maxlength="1500"></textarea></div>
+          <label style="display:flex; gap:8px; align-items:flex-start; font-size:13px; margin:6px 0 14px;"><input type="checkbox" id="ev-public" style="width:auto; margin-top:3px;"> <span>Rendre le résultat public : annonce « Résultat » sur Discord et visible de toute la FIM (les axes de progrès restent privés). Sinon, seuls ${esc(p.name)} et le commandement la voient.</span></label>
           <button class="btn" type="submit">Enregistrer l'évaluation</button>
         </form>`;
       updateTotal();
@@ -4592,7 +4658,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         const missing = grid.criteria.filter((c) => scores[c.id] === undefined);
         if (missing.length) { window.showToast(`Note manquante : ${missing.map((c) => c.label).join(', ')}.`, 'error'); return; }
         const v = (id) => document.getElementById(id).value.trim();
-        const payload = { agentName: p.name, agentDiscordId: p.discordId || null, gridId: grid.id, unit: v('ev-unit'), context: v('ev-context'), scores, verdict: v('ev-verdict'), recommendation: v('ev-reco'), strengths: v('ev-strengths'), improvements: v('ev-improvements') };
+        const payload = { agentName: p.name, agentDiscordId: p.discordId || null, gridId: grid.id, unit: v('ev-unit'), context: v('ev-context'), scores, verdict: v('ev-verdict'), recommendation: v('ev-reco'), strengths: v('ev-strengths'), improvements: v('ev-improvements'), public: document.getElementById('ev-public').checked };
         try {
           await window.apiFetch('/api/rp/fim/evaluations', { method: 'POST', body: JSON.stringify(payload) });
           window.showToast(`Évaluation de ${p.name} enregistrée.`, 'success');
@@ -5309,6 +5375,98 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     btn.textContent = alertsOn() ? '🔔 Alertes activées' : '🔕 Activer les alertes';
   }
 
+  // --- Portail FIM : page ouverte à tout personnage RP (tous départements) ---
+  // Formations accessibles (inscription), ses propres évaluations et les
+  // résultats rendus publics. Liens directs : /rp/?portail, ?eval=…, ?formation=…
+  async function renderPortal(root, onBack, opts = {}) {
+    root.innerHTML = '<div class="center-msg">Chargement du portail FIM…</div>';
+    let data;
+    try {
+      data = await window.apiFetch('/api/rp/portal/fim');
+    } catch (err) {
+      root.innerHTML = `<div class="center-msg">${err.status === 403 ? 'Le portail FIM demande un personnage RP actif.' : `Erreur : ${esc(err.message)}`}</div>`;
+      return;
+    }
+    if (opts.evalId) deepEvalId = opts.evalId;
+    if (opts.trainingId) deepTrainingId = opts.trainingId;
+    const status = data.isFim ? 'Opérateur FIM' : data.isEri ? 'Candidat ERI' : 'Personnel du Site-15';
+    const now = Date.now();
+    const trainings = (data.trainings || []).slice().sort((a, b) => {
+      const pa = a.status === 'planifiee' && a.at > now - 3600000 ? 0 : 1;
+      const pb = b.status === 'planifiee' && b.at > now - 3600000 ? 0 : 1;
+      return pa - pb || (pa ? b.at - a.at : a.at - b.at);
+    });
+    const trCard = (t) => {
+      const n = Object.keys(t.signups || {}).length;
+      const mine = !!(t.signups || {})[data.selfKey];
+      const open = t.status === 'planifiee';
+      const full = t.seats && n >= t.seats && !mine;
+      const a = TRAINING_AUDIENCE[t.audience] || TRAINING_AUDIENCE.eri;
+      const att = ATTENDANCE[(t.attendance || {})[data.selfKey]];
+      return `<div class="fim-op fim-training" style="--u:${open ? '#4FD895' : '#9297A8'}" data-training-id="${esc(t.id)}">
+        <div class="fim-op-top"><span class="fim-op-name" style="font-family:'Space Grotesk', sans-serif; letter-spacing:0;">${esc(t.title)}</span>${pill(open ? { label: 'Inscriptions ouvertes', color: '#4FD895' } : { label: 'Terminée', color: '#9297A8' })}${mine ? ' ' + pill({ label: 'Inscrit', color: '#5AA9FF' }) : ''}${att ? ' ' + pill(att) : ''}</div>
+        <div class="fim-op-meta">
+          <span>Le <b>${esc(fmtDate(t.at))}</b> (${esc(relTime(t.at))})</span>
+          ${t.place ? `<span>Lieu <b>${esc(t.place)}</b></span>` : ''}
+          ${t.instructor ? `<span>Instructeur <b>${esc(t.instructor)}</b></span>` : ''}
+          <span>Places <b>${n}${t.seats ? ` / ${t.seats}` : ''}</b></span>
+          <span>Ouverte à <b style="color:${a.color}">${a.label}</b></span>
+        </div>
+        ${t.description ? `<div class="fim-op-body">${esc(t.description)}</div>` : ''}
+        <div class="sci-card-actions">
+          ${open ? (mine ? `<button class="btn ghost small" type="button" data-pt-join="0" data-id="${esc(t.id)}">Me désinscrire</button>` : full ? '<span class="post-card-meta">Session complète</span>' : `<button class="btn small" type="button" data-pt-join="1" data-id="${esc(t.id)}">M'inscrire</button>`) : ''}
+          <button class="btn ghost small" type="button" data-tr-link="${esc(t.id)}">Copier le lien</button>
+        </div>
+      </div>`;
+    };
+    const evals = data.evaluations || [];
+    const pubs = data.publicEvaluations || [];
+    root.innerHTML = `
+      <div class="fim-eri-wrap">
+        ${onBack ? `<button class="terminal-breadcrumb" id="portal-back" style="margin-bottom:22px;">← SITE-15 // MENU PRINCIPAL</button>` : ''}
+        <div class="fim-hero">
+          <div class="fim-hero-eyebrow">Forces d'Intervention Mobile · Portail</div>
+          <h2>Portail FIM</h2>
+          <p>Formations ouvertes à ton profil, tes évaluations et les résultats rendus publics par les instructeurs. Tes évaluations ne sont visibles que de toi et du commandement FIM, sauf si l'instructeur les rend publiques.</p>
+          <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <span class="fim-chip">${esc(data.name)}</span><span class="fim-chip">${esc(status)}</span>
+            <button class="btn ghost small" type="button" id="portal-copy" style="margin-left:auto;">Copier le lien du portail</button>
+          </div>
+        </div>
+        <div class="record-block" style="margin-top:18px;"><div class="record-block-head"><h2>Formations</h2><span class="count">${trainings.length}</span></div>
+          ${trainings.length ? trainings.map(trCard).join('') : '<div class="empty-row">Aucune formation ouverte à ton profil pour le moment.</div>'}</div>
+        <div class="record-block" style="margin-top:24px;"><div class="record-block-head"><h2>Mes évaluations</h2><span class="count">${evals.length}</span></div>
+          ${evals.length ? evals.map((e) => evalCard(e, false)).join('') : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}</div>
+        <div class="record-block" style="margin-top:24px;"><div class="record-block-head"><h2>Résultats publics</h2><span class="count">${pubs.length}</span></div>
+          ${pubs.length ? pubs.map((e) => evalCard(e, false, { showAgent: true })).join('') : '<div class="empty-row">Aucun résultat public pour le moment.</div>'}</div>
+        ${credit()}
+      </div>`;
+    const reload = () => renderPortal(root, onBack);
+    root.querySelector('#portal-back')?.addEventListener('click', onBack);
+    root.querySelector('#portal-copy').addEventListener('click', () => copyText(`${location.origin}/rp/?portail`));
+    root.querySelectorAll('[data-tr-link]').forEach((b) => b.addEventListener('click', () => copyText(deepLink('formation', b.dataset.trLink))));
+    root.querySelectorAll('[data-pt-join]').forEach((b) => b.addEventListener('click', async () => {
+      try {
+        await window.apiFetch(`/api/rp/portal/trainings/${encodeURIComponent(b.dataset.id)}/signup`, { method: 'POST', body: JSON.stringify({ join: b.dataset.ptJoin === '1' }) });
+        window.showToast(b.dataset.ptJoin === '1' ? 'Inscription enregistrée.' : 'Désinscription enregistrée.', 'success');
+        reload();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    }));
+    bindEvalCards(root, reload);
+    focusDeepEval(root);
+    focusDeepTraining(root);
+    if (deepEvalId) { window.showToast("Cette évaluation n'est pas visible : elle est privée ou n'existe plus.", 'error'); deepEvalId = null; }
+    if (deepTrainingId) { window.showToast("Cette formation n'est pas ouverte à ton profil ou n'existe plus.", 'error'); deepTrainingId = null; }
+  }
+  // Ouvre une cible de lien direct dans le terminal FIM (membre FIM).
+  function setDeepLink({ evalId, trainingId, view }) {
+    if (view) evalView = view;
+    if (evalId) { deepEvalId = evalId; evalView = 'people'; }
+    if (trainingId) { deepTrainingId = trainingId; evalView = 'trainings'; }
+  }
+
   // --- Espace ERI : page à part pour les membres ERI (évaluations + parcours) ---
   async function checkEri() {
     try { return await window.apiFetch('/api/rp/eri/me'); } catch (e) { return null; }
@@ -5440,5 +5598,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     stop: stopRefresh,
     checkEri,
     renderEriSpace,
+    renderPortal,
+    setDeepLink,
   };
 })();

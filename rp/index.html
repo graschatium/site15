@@ -828,6 +828,20 @@
       card.addEventListener('click', () => window.FIM.renderEriSpace(mainRoot, eri, renderTopChoice));
       grid.appendChild(card);
     });
+    // Portail FIM : formations interdépartementales, évaluations, résultats publics
+    {
+      const grid = mainRoot.querySelector('.topchoice-grid');
+      const card = document.createElement('button');
+      card.className = 'topchoice-card';
+      card.id = 'topchoice-fim-portal';
+      card.type = 'button';
+      card.innerHTML = `
+        <div class="topchoice-eyebrow">${ICONS.badge} Transversal</div>
+        <div class="topchoice-title">Portail FIM</div>
+        <div class="topchoice-desc">Formations ouvertes à tous les départements, tes évaluations et les résultats rendus publics.</div>`;
+      card.addEventListener('click', () => window.FIM?.renderPortal(mainRoot, renderTopChoice));
+      if (grid && window.FIM) grid.appendChild(card);
+    }
     document.getElementById('topchoice-directory').addEventListener('click', () => {
       window.open(`/rp/annuaire/?token=${encodeURIComponent(getToken() || '')}`, '_blank');
     });
@@ -5011,7 +5025,10 @@
       return;
     }
 
+    const deep = readDeepLink();
     if (!context.hasAnyAccess) {
+      // Lien direct portail / évaluation / formation : le portail gère seul les droits.
+      if (deep && window.FIM) { window.FIM.renderPortal(mainRoot, null, deep); return; }
       // Membre ERI sans personnage : il garde l'accès à son Espace ERI (rp/fim.js).
       const eri = await window.FIM?.checkEri();
       if (eri) { window.FIM.renderEriSpace(mainRoot, eri, null); return; }
@@ -5019,7 +5036,36 @@
       return;
     }
 
+    if (deep && openDeepLink(deep)) return;
     renderTopChoice();
+  }
+
+  // Liens directs : /rp/?fim (terminal FIM, ?fim=evals|formations|cours|ops|unites|bibliotheque),
+  // /rp/?portail, /rp/?eval=<id>, /rp/?formation=<id>
+  const FIM_TAB_ALIASES = { qg: 'fim-hq', hq: 'fim-hq', ops: 'fim-ops', operations: 'fim-ops', unites: 'fim-units', bibliotheque: 'fim-library', cours: 'fim-courses', evals: 'fim-evals', evaluations: 'fim-evals', formations: 'fim-evals' };
+  function readDeepLink() {
+    const q = new URLSearchParams(location.search);
+    if (q.has('eval')) return { evalId: q.get('eval') };
+    if (q.has('formation')) return { trainingId: q.get('formation') };
+    if (q.has('portail')) return { portal: true };
+    if (q.has('fim')) return { fim: (q.get('fim') || '').toLowerCase() };
+    return null;
+  }
+  function openDeepLink(deep) {
+    if (!window.FIM) return false;
+    const isFim = context.depts.some((d) => d.deptId === FIM_DEPT_ID);
+    if (deep.portal || (!isFim && (deep.evalId || deep.trainingId))) {
+      window.FIM.renderPortal(mainRoot, renderTopChoice, deep);
+      return true;
+    }
+    if (!isFim) { showToast("Le terminal FIM est réservé aux FIM : ouverture du portail.", 'error'); window.FIM.renderPortal(mainRoot, renderTopChoice); return true; }
+    window.FIM.setDeepLink(deep);
+    const tab = deep.evalId || deep.trainingId || deep.fim === 'formations' ? 'fim-evals' : (FIM_TAB_ALIASES[deep.fim] || 'fim-hq');
+    if (deep.fim === 'formations') window.FIM.setDeepLink({ view: 'trainings' });
+    enterTerminal(FIM_DEPT_ID).then(() => {
+      if (tab !== 'fim-hq') document.querySelector(`.terminal-tab[data-tab="${tab}"]`)?.click();
+    });
+    return true;
   }
 
   init();
