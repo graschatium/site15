@@ -4043,6 +4043,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   }
   // Lien direct vers une évaluation ou une formation (/rp/?eval=…, /rp/?formation=…)
   const deepLink = (kind, id) => `${location.origin}/rp/?${kind}=${encodeURIComponent(id)}`;
+  // Lien de formation servi par le bot : il porte l'aperçu Discord (Open Graph) puis redirige ici
+  const trainingShareLink = (id) => `https://site15-bot.onrender.com/f/${encodeURIComponent(id)}`;
   async function copyText(text) {
     try { await navigator.clipboard.writeText(text); window.showToast('Lien copié.', 'success'); } catch (e) { window.prompt('Copie ce lien :', text); }
   }
@@ -4397,7 +4399,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     body.querySelectorAll('[data-tr-status]').forEach((b) => b.addEventListener('click', () => act(`${api}/trainings/${encodeURIComponent(b.dataset.id)}/status`, { method: 'POST', body: JSON.stringify({ status: b.dataset.trStatus }) }, 'Formation mise à jour.')));
     body.querySelectorAll('[data-tr-del]').forEach((b) => b.addEventListener('click', () => { if (confirm('Supprimer cette formation et ses inscriptions ?')) act(`${api}/trainings/${encodeURIComponent(b.dataset.trDel)}`, { method: 'DELETE' }, 'Formation supprimée.'); }));
     body.querySelectorAll('[data-tr-edit]').forEach((b) => b.addEventListener('click', () => { trainingEditing = list.find((t) => t.id === b.dataset.trEdit) || null; reload(); }));
-    body.querySelectorAll('[data-tr-link]').forEach((b) => b.addEventListener('click', () => copyText(deepLink('formation', b.dataset.trLink))));
+    body.querySelectorAll('[data-tr-link]').forEach((b) => b.addEventListener('click', () => copyText(trainingShareLink(b.dataset.trLink))));
     focusDeepTraining(body);
     // Appel : les marques restent en mémoire jusqu'à l'enregistrement
     body.querySelectorAll('[data-tr-roll]').forEach((b) => b.addEventListener('click', () => {
