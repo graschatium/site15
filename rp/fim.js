@@ -202,6 +202,15 @@
   .fim-gsearch-res button:hover{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
   .fim-gsearch-res small{ font:600 10px 'JetBrains Mono', monospace; color:var(--accent-2); letter-spacing:.08em; min-width:92px; padding-top:2px; }
   .fim-training{ border-left:3px solid var(--u, var(--accent)); }
+  .fim-roll{ margin-top:12px; border:1px solid var(--line); background:var(--void-2); }
+  .fim-roll-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 12px; border-bottom:1px dashed var(--line); font-size:13px; }
+  .fim-roll-row .n{ margin-right:auto; }
+  .fim-roll-opts{ display:flex; gap:4px; }
+  .fim-roll-opts button{ font:600 10.5px 'JetBrains Mono', monospace; padding:5px 9px; border:1px solid var(--line); border-radius:0; background:transparent; color:var(--ink-dim); cursor:pointer; }
+  .fim-roll-opts button.on{ background:var(--c); border-color:var(--c); color:#0b0d12; }
+  .fim-roll-foot{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:10px 12px; }
+  .fim-roll-foot input{ flex:1; min-width:160px; }
+  .fim-chip.att{ border-color:var(--c); color:var(--c); }
   .fim-audit-row{ display:grid; grid-template-columns:120px 1fr; gap:10px; padding:7px 0; border-bottom:1px dashed var(--line); font-size:12.5px; }
   .fim-audit-row .t{ font:11px 'JetBrains Mono', monospace; color:var(--ink-faint); }
   @media (max-width:640px){
@@ -4176,6 +4185,13 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
 
   // ---------------- Formations ----------------
   let trainingEditing = null;
+  let trainingRoll = null; // { id, marks: { clé: statut }, extras: [noms] } pendant un appel
+  const ATTENDANCE = {
+    present: { label: 'Présent', color: '#4FD895' },
+    retard: { label: 'Retard', color: '#F0A83C' },
+    absent: { label: 'Absent', color: '#F0525A' },
+    excuse: { label: 'Excusé', color: '#5AA9FF' },
+  };
   const TRAINING_STATUS = {
     planifiee: { label: 'Inscriptions ouvertes', color: '#4FD895' },
     terminee: { label: 'Terminée', color: '#9297A8' },
@@ -4235,8 +4251,36 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       });
       return;
     }
+    const rollPanel = (t) => {
+      const roll = trainingRoll;
+      const rows = Object.entries(t.signups || {}).sort((a, b) => a[1].at - b[1].at);
+      return `<div class="fim-roll" data-roll="${esc(t.id)}">
+        ${rows.map(([key, x]) => `<div class="fim-roll-row"><span class="n">${esc(withCallsign(x.name))}${x.walkIn ? ' <span class="post-card-meta">non inscrit</span>' : ''}</span>
+          <div class="fim-roll-opts">${Object.entries(ATTENDANCE).map(([s, a]) => `<button type="button" style="--c:${a.color}" class="${roll.marks[key] === s ? 'on' : ''}" data-roll-key="${esc(key)}" data-roll-set="${s}">${a.label}</button>`).join('')}</div></div>`).join('')}
+        ${roll.extras.map((n, i) => `<div class="fim-roll-row"><span class="n">${esc(n)} <span class="post-card-meta">non inscrit · présent</span></span><button type="button" class="fim-link" data-roll-unextra="${i}">retirer</button></div>`).join('')}
+        <div class="fim-roll-foot">
+          <input type="text" id="roll-extra" maxlength="80" placeholder="Ajouter un présent non inscrit (nom RP)">
+          <button class="btn ghost small" type="button" id="roll-extra-add">Ajouter</button>
+          <button class="btn ghost small" type="button" id="roll-all">Tous présents</button>
+          <button class="btn small" type="button" id="roll-save">Enregistrer l'appel</button>
+          <button class="btn ghost small" type="button" id="roll-cancel">Annuler</button>
+        </div>
+      </div>`;
+    };
+    const attendanceSummary = (t) => {
+      const vals = Object.values(t.attendance || {});
+      if (!vals.length) return '';
+      return Object.entries(ATTENDANCE).map(([s, a]) => {
+        const n = vals.filter((v) => v === s).length;
+        return n ? `<span>${a.label}${n > 1 && s !== 'retard' ? 's' : ''} <b style="color:${a.color}">${n}</b></span>` : '';
+      }).join('');
+    };
     const card = (t) => {
-      const signups = Object.values(t.signups || {}).sort((a, b) => a.at - b.at);
+      const entries = Object.entries(t.signups || {}).sort((a, b) => a[1].at - b[1].at);
+      const signups = entries.map(([, x]) => x);
+      const att = t.attendance || {};
+      const rolling = trainingRoll && trainingRoll.id === t.id;
+      const canRoll = canManage && t.status !== 'annulee' && (signups.length || t.status === 'terminee') && (t.at || 0) <= Date.now() + 3600000;
       const mine = !!(t.signups || {})[selfKey];
       const full = t.seats && signups.length >= t.seats;
       const st = TRAINING_STATUS[t.status] || TRAINING_STATUS.planifiee;
@@ -4252,8 +4296,10 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           ${t.openToERI ? '<span><b style="color:#B07CFF">Ouverte aux ERI</b></span>' : ''}
         </div>
         ${t.description ? `<div class="fim-op-body">${esc(t.description)}</div>` : ''}
-        ${signups.length ? `<div class="fim-op-team">${signups.map((x) => `<span class="fim-chip">${esc(withCallsign(x.name))}${canManage && t.gridId ? ` <button type="button" class="fim-link" data-tr-eval="${esc(x.name)}" data-grid="${esc(t.gridId)}">évaluer</button>` : ''}</span>`).join('')}</div>` : ''}
+        ${t.attendanceAt ? `<div class="fim-op-meta"><span>Appel <b>${esc(fmtDate(t.attendanceAt))}</b>${t.attendanceBy ? ` par <b>${esc(t.attendanceBy)}</b>` : ''}</span>${attendanceSummary(t)}${att[selfKey] ? `<span>Toi <b style="color:${ATTENDANCE[att[selfKey]].color}">${ATTENDANCE[att[selfKey]].label}</b></span>` : ''}</div>` : ''}
+        ${rolling ? rollPanel(t) : signups.length ? `<div class="fim-op-team">${entries.map(([key, x]) => { const a = ATTENDANCE[att[key]]; return `<span class="fim-chip${a ? ' att' : ''}"${a ? ` style="--c:${a.color}" title="${a.label}"` : ''}>${esc(withCallsign(x.name))}${a ? ` · ${a.label}` : ''}${canManage && t.gridId && att[key] !== 'absent' ? ` <button type="button" class="fim-link" data-tr-eval="${esc(x.name)}" data-grid="${esc(t.gridId)}">évaluer</button>` : ''}</span>`; }).join('')}</div>` : ''}
         <div class="sci-card-actions">
+          ${canRoll && !rolling ? `<button class="btn small" type="button" data-tr-roll="${esc(t.id)}">${t.attendanceAt ? "Refaire l'appel" : "Faire l'appel"}</button>` : ''}
           ${t.status === 'planifiee' ? (mine ? `<button class="btn ghost small" type="button" data-tr-join="0" data-id="${esc(t.id)}">Me désinscrire</button>` : full ? '<span class="post-card-meta">Session complète</span>' : `<button class="btn small" type="button" data-tr-join="1" data-id="${esc(t.id)}">M'inscrire</button>`) : ''}
           ${canManage ? `
             <button class="btn ghost small" type="button" data-tr-edit="${esc(t.id)}">Modifier</button>
@@ -4282,6 +4328,49 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     body.querySelectorAll('[data-tr-status]').forEach((b) => b.addEventListener('click', () => act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.id)}/status`, { method: 'POST', body: JSON.stringify({ status: b.dataset.trStatus }) }, 'Formation mise à jour.')));
     body.querySelectorAll('[data-tr-del]').forEach((b) => b.addEventListener('click', () => { if (confirm('Supprimer cette formation et ses inscriptions ?')) act(`/api/rp/fim/trainings/${encodeURIComponent(b.dataset.trDel)}`, { method: 'DELETE' }, 'Formation supprimée.'); }));
     body.querySelectorAll('[data-tr-edit]').forEach((b) => b.addEventListener('click', () => { trainingEditing = list.find((t) => t.id === b.dataset.trEdit) || null; reload(); }));
+    // Appel : les marques restent en mémoire jusqu'à l'enregistrement
+    body.querySelectorAll('[data-tr-roll]').forEach((b) => b.addEventListener('click', () => {
+      const t = list.find((x) => x.id === b.dataset.trRoll);
+      trainingRoll = { id: t.id, marks: { ...(t.attendance || {}) }, extras: [] };
+      reload();
+    }));
+    const rollBox = body.querySelector('[data-roll]');
+    if (rollBox && trainingRoll) {
+      rollBox.querySelectorAll('[data-roll-set]').forEach((b) => b.addEventListener('click', () => {
+        const key = b.dataset.rollKey;
+        trainingRoll.marks[key] = trainingRoll.marks[key] === b.dataset.rollSet ? undefined : b.dataset.rollSet;
+        rollBox.querySelectorAll(`[data-roll-key="${CSS.escape(key)}"]`).forEach((x) => x.classList.toggle('on', x.dataset.rollSet === trainingRoll.marks[key]));
+      }));
+      rollBox.querySelectorAll('[data-roll-unextra]').forEach((b) => b.addEventListener('click', () => { trainingRoll.extras.splice(Number(b.dataset.rollUnextra), 1); reload(); }));
+      const addExtra = () => {
+        const inp = document.getElementById('roll-extra');
+        const name = inp.value.trim();
+        if (!name) return;
+        const t = list.find((x) => x.id === trainingRoll.id);
+        const known = Object.values(t?.signups || {}).some((x) => personKey(x.name) === personKey(name)) || trainingRoll.extras.some((n) => personKey(n) === personKey(name));
+        if (known) { window.showToast('Déjà dans la liste.', 'error'); return; }
+        trainingRoll.extras.push(name);
+        reload();
+      };
+      document.getElementById('roll-extra-add').addEventListener('click', addExtra);
+      document.getElementById('roll-extra').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addExtra(); } });
+      document.getElementById('roll-all').addEventListener('click', () => {
+        const t = list.find((x) => x.id === trainingRoll.id);
+        Object.keys(t?.signups || {}).forEach((key) => { if (!trainingRoll.marks[key]) trainingRoll.marks[key] = 'present'; });
+        reload();
+      });
+      document.getElementById('roll-cancel').addEventListener('click', () => { trainingRoll = null; reload(); });
+      document.getElementById('roll-save').addEventListener('click', async () => {
+        const t = list.find((x) => x.id === trainingRoll.id);
+        const missing = Object.keys(t?.signups || {}).filter((key) => !trainingRoll.marks[key]).length;
+        if (missing && !confirm(`${missing} inscrit(s) sans marque : ils ne figureront pas dans l'appel. Enregistrer quand même ?`)) return;
+        const marks = Object.fromEntries(Object.entries(trainingRoll.marks).filter(([, s]) => s));
+        const id = trainingRoll.id;
+        const extras = trainingRoll.extras;
+        trainingRoll = null;
+        await act(`/api/rp/fim/trainings/${encodeURIComponent(id)}/attendance`, { method: 'POST', body: JSON.stringify({ marks, extras }) }, 'Appel enregistré.');
+      });
+    }
     body.querySelectorAll('[data-tr-eval]').forEach((b) => b.addEventListener('click', () => {
       evalSelected = b.dataset.trEval;
       lastGridId = b.dataset.grid;
