@@ -44,6 +44,7 @@
       user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.6-3.6 4.6-5.5 7.5-5.5s5.9 1.9 7.5 5.5"/></svg>',
       department: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V6.5L12 3l8 3.5V21"/><path d="M9 21v-6h6v6"/></svg>',
       admin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="3.5"/><path d="M10.5 13l8-8M15 8l2 2M18 5l2 2"/></svg>',
+      scan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 10h8M8 14h5"/></svg>',
       logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
       caret: '<svg class="auth-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>',
     };
@@ -143,6 +144,7 @@
       const data = await res.json();
       renderLoggedIn(data.discord);
       revealAdminLinkIfAllowed(token);
+      revealToolsIfAllowed(token);
     } catch (err) {
       console.error('Erreur vérification connexion:', err);
       renderLoggedOut();
@@ -161,10 +163,28 @@
       const context = await res.json();
       const slot = document.getElementById('auth-admin-slot');
       if (context.isAdminAnywhere && slot) {
-        slot.innerHTML = `<a href="/admin/" role="menuitem">${icon('admin')} Admin</a>`;
+        slot.insertAdjacentHTML('afterbegin', `<a href="/admin/" role="menuitem">${icon('admin')} Admin</a>`);
       }
     } catch (err) {
       console.error('Erreur vérification accès admin:', err);
+    }
+  }
+
+  // Lien "Détecteur d'IA" : directeurs de département, managers et admins
+  // (vérifié côté serveur, cf aiDetectRoutes.js du bot).
+  async function revealToolsIfAllowed(token) {
+    try {
+      const res = await fetch(`${API_BASE}/api/tools/ai-detect/access`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const slot = document.getElementById('auth-admin-slot');
+      if (data.allowed && slot) {
+        slot.insertAdjacentHTML('beforeend', `<a href="/outils/detecteur-ia/" role="menuitem">${icon('scan')} Détecteur d'IA</a>`);
+      }
+    } catch (err) {
+      console.error('Erreur vérification accès outils:', err);
     }
   }
 

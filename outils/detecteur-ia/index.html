@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SITE-15 — Détecteur d'IA</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="/ressources/voidline.ico" type="image/x-icon">
+<style>
+  :root{
+    --void: #08090C; --void-2: #0D0F14; --panel: #12141B; --panel-2: #171A23; --line: #23262F;
+    --accent: #6E76FF; --accent-2: #A78BFA;
+    --ink: #ECEDF1; --ink-dim: #9297A8; --ink-faint: #565B6B;
+    --good: #4FD895; --warn: #F0A83C; --bad: #F0525A;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{
+    background:var(--void); color:var(--ink); font-family:'Inter', sans-serif; min-height:100vh;
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% 0%, rgba(110,118,255,0.10), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 85% 100%, rgba(167,139,250,0.08), transparent 60%);
+  }
+  a{ color:inherit; text-decoration:none; }
+  .wrap{ max-width:1000px; margin:0 auto; padding:56px 16px 80px; }
+  .hero{ text-align:center; margin-bottom:36px; }
+  .hero-eyebrow{ font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent-2); margin-bottom:14px; }
+  .hero-title{ font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:800; margin-bottom:10px; letter-spacing:-0.02em; }
+  .hero-sub{ color:var(--ink-dim); font-size:14px; max-width:620px; margin:0 auto; line-height:1.55; }
+  .who{ display:inline-block; margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-dim); border:1px solid var(--line); border-radius:20px; padding:5px 12px; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 16px 40px rgba(0,0,0,0.25); position:relative; overflow:hidden; }
+  .card::before{ content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); }
+  .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  label.small{ font-size:12px; color:var(--ink-dim); }
+  select, textarea{
+    background:var(--void-2); color:var(--ink); border:1px solid var(--line); border-radius:10px; font-family:inherit; font-size:14px;
+  }
+  select{ padding:8px 10px; }
+  textarea{ width:100%; min-height:260px; padding:14px; line-height:1.6; resize:vertical; margin-top:14px; }
+  textarea:focus, select:focus{ outline:none; border-color:var(--accent); }
+  .counter{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-faint); margin-left:auto; }
+  .counter.bad{ color:var(--bad); }
+  .actions{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .btn{ padding:11px 22px; border-radius:8px; border:1px solid var(--line); background:var(--accent); color:#fff; font-size:13.5px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn:disabled{ opacity:0.5; cursor:default; }
+  .btn.ghost{ background:transparent; color:var(--ink-dim); }
+  .btn.ghost:hover{ color:var(--ink); border-color:var(--accent); }
+
+  #result{ margin-top:22px; display:none; }
+  .verdict{ display:grid; grid-template-columns:170px 1fr; gap:22px; align-items:center; }
+  .gauge{ position:relative; width:170px; height:170px; }
+  .gauge svg{ transform:rotate(-90deg); }
+  .gauge-value{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .gauge-value b{ font-family:'Space Grotesk', sans-serif; font-size:40px; font-weight:800; line-height:1; }
+  .gauge-value span{ font-size:11px; color:var(--ink-dim); margin-top:4px; }
+  .verdict-label{ font-family:'Space Grotesk', sans-serif; font-size:26px; font-weight:700; margin-bottom:6px; }
+  .pill{ display:inline-block; font-family:'JetBrains Mono', monospace; font-size:11px; padding:3px 10px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim); margin-right:6px; margin-bottom:8px; }
+  .summary{ color:var(--ink-dim); font-size:14px; line-height:1.6; }
+  h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; margin:22px 0 10px; }
+  .signals{ list-style:none; display:grid; gap:8px; }
+  .signals li{ background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:13.5px; line-height:1.5; display:flex; gap:10px; }
+  .signals li .tag{ flex:none; font-family:'JetBrains Mono', monospace; font-size:10.5px; padding:2px 8px; border-radius:6px; height:fit-content; margin-top:1px; }
+  .tag.ia{ background:rgba(240,82,90,0.15); color:var(--bad); }
+  .tag.humain{ background:rgba(79,216,149,0.15); color:var(--good); }
+  .annotated{ background:var(--void-2); border:1px solid var(--line); border-radius:10px; padding:14px; font-size:14px; line-height:1.7; white-space:pre-wrap; word-wrap:break-word; max-height:420px; overflow:auto; }
+  mark{ background:rgba(240,82,90,0.22); color:var(--ink); border-bottom:2px solid var(--bad); border-radius:3px; padding:0 2px; cursor:help; }
+  .disclaimer{ margin-top:22px; font-size:12.5px; color:var(--ink-faint); line-height:1.6; border-left:3px solid var(--warn); padding:8px 12px; background:rgba(240,168,60,0.06); border-radius:0 8px 8px 0; }
+  .error{ color:var(--bad); font-size:13.5px; margin-top:12px; }
+  .center-msg{ text-align:center; color:var(--ink-dim); font-size:14px; padding:60px 0; line-height:1.7; }
+  .spinner{ display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:-2px; margin-right:8px; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .back-link{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-dim); padding:8px 16px; border-radius:20px; border:1px solid var(--line); margin-top:28px; }
+  .back-link:hover{ color:var(--ink); border-color:var(--accent); }
+  @media (max-width:640px){
+    .hero-title{ font-size:28px; }
+    .verdict{ grid-template-columns:1fr; justify-items:center; text-align:center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-eyebrow">SITE-15 // Outils de direction</div>
+    <div class="hero-title">Détecteur d'IA</div>
+    <div class="hero-sub">Colle une candidature, un rapport ou une réponse d'examen : l'outil estime si le texte a été écrit par une IA (ChatGPT, Claude, Gemini…) et montre les passages suspects.</div>
+    <div id="who"></div>
+  </div>
+
+  <div id="gate" class="center-msg">Vérification de l'accès…</div>
+
+  <div id="tool" style="display:none">
+    <div class="card">
+      <div class="row">
+        <label class="small" for="context">Type de texte</label>
+        <select id="context">
+          <option value="Candidature à un département">Candidature</option>
+          <option value="Rapport RP">Rapport RP</option>
+          <option value="Réponse d'examen ou de formation">Réponse d'examen</option>
+          <option value="Message ou ticket">Message / ticket</option>
+          <option value="">Autre</option>
+        </select>
+        <span class="counter" id="counter">0 / 15 000</span>
+      </div>
+      <textarea id="text" placeholder="Colle le texte à analyser ici (80 caractères minimum)…"></textarea>
+      <div class="actions">
+        <button class="btn" id="analyze" disabled>Analyser</button>
+        <button class="btn ghost" id="clear">Effacer</button>
+      </div>
+      <div class="error" id="error"></div>
+    </div>
+
+    <div id="result" class="card">
+      <div class="verdict">
+        <div class="gauge">
+          <svg width="170" height="170" viewBox="0 0 170 170">
+            <circle cx="85" cy="85" r="72" fill="none" stroke="#23262F" stroke-width="14"/>
+            <circle id="gauge-arc" cx="85" cy="85" r="72" fill="none" stroke="#6E76FF" stroke-width="14" stroke-linecap="round" stroke-dasharray="452.4" stroke-dashoffset="452.4" style="transition:stroke-dashoffset 0.9s ease, stroke 0.3s"/>
+          </svg>
+          <div class="gauge-value"><b id="score">0</b><span>% IA estimé</span></div>
+        </div>
+        <div>
+          <div class="verdict-label" id="verdict"></div>
+          <div id="pills"></div>
+          <div class="summary" id="summary"></div>
+        </div>
+      </div>
+
+      <div id="passages-block">
+        <h3>Texte annoté</h3>
+        <div class="annotated" id="annotated"></div>
+      </div>
+
+      <h3>Indices relevés</h3>
+      <ul class="signals" id="signals"></ul>
+
+      <div class="disclaimer">
+        Résultat <b>indicatif</b> : aucun détecteur d'IA n'est fiable à 100 %. Un texte soigné écrit à la main peut sortir « IA », et un texte d'IA retouché peut passer. Ne sanctionne jamais sur ce seul score : compare avec les autres écrits du joueur et pose-lui des questions sur ce qu'il a écrit.
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;">
+    <a href="/" class="back-link">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour à l'accueil
+    </a>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'https://site15-bot.onrender.com';
+  const token = localStorage.getItem('vs_token');
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const MIN = 80, MAX = 15000;
+
+  const VERDICTS = {
+    humain: { label: 'Écrit par un humain', color: '#4FD895' },
+    probablement_humain: { label: 'Probablement humain', color: '#8BD86E' },
+    incertain: { label: 'Incertain', color: '#F2CC40' },
+    mixte: { label: 'Mixte : humain + IA', color: '#F0A83C' },
+    probablement_ia: { label: 'Probablement une IA', color: '#F08A3C' },
+    ia: { label: 'Généré par une IA', color: '#F0525A' },
+  };
+  const CONFIDENCE = { faible: 'Confiance faible', moyenne: 'Confiance moyenne', elevee: 'Confiance élevée' };
+  const ERRORS = {
+    too_short: `Texte trop court : ${MIN} caractères minimum.`,
+    too_long: `Texte trop long : ${MAX.toLocaleString('fr-FR')} caractères maximum.`,
+    rate_limited: 'Limite atteinte : 30 analyses par heure. Réessaie plus tard.',
+    forbidden: "Tu n'as pas accès à cet outil.",
+    not_authenticated: 'Session expirée : reconnecte-toi.',
+  };
+
+  async function init() {
+    const gate = $('gate');
+    if (!token) {
+      gate.innerHTML = `Outil réservé aux directeurs de département, managers et administrateurs.<br><br>
+        <a class="btn" href="${API_BASE}/auth/discord/login">Se connecter avec Discord</a>`;
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/api/tools/ai-detect/access`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 401) {
+        localStorage.removeItem('vs_token');
+        gate.innerHTML = `Session expirée.<br><br><a class="btn" href="${API_BASE}/auth/discord/login">Se reconnecter</a>`;
+        return;
+      }
+      const data = await res.json();
+      if (!data.allowed) {
+        gate.innerHTML = '⛔ Accès refusé.<br>Cet outil est réservé aux <b>directeurs de département</b>, aux <b>managers</b> et aux <b>administrateurs</b>.';
+        return;
+      }
+      $('who').innerHTML = `<span class="who">Connecté · ${esc(data.as)}</span>`;
+      gate.style.display = 'none';
+      $('tool').style.display = '';
+    } catch (err) {
+      gate.textContent = 'Impossible de joindre le serveur pour le moment. Réessaie dans une minute (le bot peut être en train de démarrer).';
+    }
+  }
+
+  function updateCounter() {
+    const n = $('text').value.trim().length;
+    $('counter').textContent = `${n.toLocaleString('fr-FR')} / 15 000`;
+    $('counter').classList.toggle('bad', n > MAX);
+    $('analyze').disabled = n < MIN || n > MAX;
+  }
+  $('text').addEventListener('input', updateCounter);
+  $('clear').addEventListener('click', () => { $('text').value = ''; $('result').style.display = 'none'; $('error').textContent = ''; updateCounter(); });
+
+  function annotate(text, passages) {
+    // surligne chaque extrait (première occurrence), sans chevauchement
+    const ranges = [];
+    for (const p of passages) {
+      const start = text.indexOf(p.extrait);
+      if (start < 0) continue;
+      const end = start + p.extrait.length;
+      if (ranges.some((r) => start < r.end && end > r.start)) continue;
+      ranges.push({ start, end, why: p.raison });
+    }
+    ranges.sort((a, b) => a.start - b.start);
+    let html = '', at = 0;
+    for (const r of ranges) {
+      html += esc(text.slice(at, r.start)) + `<mark title="${esc(r.why)}">${esc(text.slice(r.start, r.end))}</mark>`;
+      at = r.end;
+    }
+    return html + esc(text.slice(at));
+  }
+
+  function render(text, data) {
+    const v = VERDICTS[data.verdict] || VERDICTS.incertain;
+    $('result').style.display = '';
+    $('score').textContent = data.score;
+    const arc = $('gauge-arc');
+    arc.style.stroke = v.color;
+    arc.style.strokeDashoffset = 452.4 * (1 - data.score / 100);
+    $('verdict').textContent = v.label;
+    $('verdict').style.color = v.color;
+    const pills = [CONFIDENCE[data.confidence] || ''];
+    if (data.model && data.model.score !== undefined) pills.push(`Analyse IA : ${data.model.score} %`);
+    else pills.push('Analyse statistique seule');
+    pills.push(`Statistiques : ${data.local.score} %`);
+    $('pills').innerHTML = pills.filter(Boolean).map((p) => `<span class="pill">${esc(p)}</span>`).join('');
+    $('summary').textContent = data.summary
+      || "Seuls les indices statistiques ont pu être calculés (analyse approfondie indisponible pour le moment) : le résultat est moins fiable.";
+    $('passages-block').style.display = data.passages.length ? '' : 'none';
+    $('annotated').innerHTML = annotate(text, data.passages);
+    $('signals').innerHTML = data.signals.length
+      ? data.signals.map((s) => `<li><span class="tag ${s.type === 'humain' ? 'humain' : 'ia'}">${s.type === 'humain' ? 'HUMAIN' : 'IA'}</span><span>${esc(s.detail)}</span></li>`).join('')
+      : '<li><span>Aucun indice marquant.</span></li>';
+    $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  $('analyze').addEventListener('click', async () => {
+    const text = $('text').value.trim();
+    const btn = $('analyze');
+    $('error').textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Analyse en cours…';
+    try {
+      const res = await fetch(`${API_BASE}/api/tools/ai-detect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text, context: $('context').value }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(ERRORS[data.error] || 'Erreur du serveur, réessaie.');
+      render(text, data);
+    } catch (err) {
+      $('error').textContent = err.message;
+    } finally {
+      btn.textContent = 'Analyser';
+      updateCounter();
+    }
+  });
+
+  init();
+</script>
+
+</body>
+</html>
