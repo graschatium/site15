@@ -208,6 +208,21 @@
   .fim-rsvp{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px; font-size:11.5px; color:var(--ink-faint); }
   .fim-rsvp button{ font:600 11px 'JetBrains Mono', monospace; letter-spacing:.04em; padding:5px 10px; border:1px solid var(--line); background:transparent; color:var(--ink-dim); border-radius:3px; cursor:pointer; }
   .fim-rsvp button.on{ border-color:var(--c); color:var(--c); background:color-mix(in srgb, var(--c) 12%, transparent); }
+  .fim-att{ margin-top:4px; }
+  .fim-att-list{ margin-top:8px; font-size:12.5px; }
+  .fim-att-list summary{ cursor:pointer; color:var(--ink-dim); font-size:11.5px; font-family:'JetBrains Mono', monospace; }
+  .fim-att-line{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:6px 0; border-bottom:1px dashed var(--line); }
+  .fim-att-line .fim-chip{ border-color:var(--c); min-width:74px; text-align:center; }
+  .fim-att-line > span:last-child{ color:var(--ink-dim); font-size:12px; }
+  .fim-att-line i{ color:var(--ink-faint); }
+  .fim-att-mine{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px; font-size:11.5px; color:var(--ink-faint); }
+  .fim-att-form{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex:1; }
+  .fim-att-form select, .fim-att-form input{ background:var(--void-2); color:var(--ink); border:1px solid var(--line); border-radius:3px; padding:5px 8px; font:inherit; font-size:12px; }
+  .fim-att-form select{ width:auto; flex:none; }
+  .fim-att-form input[data-att-reason]{ width:auto; flex:1; min-width:160px; }
+  .fim-att-form [hidden]{ display:none; }
+  .fim-att-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 12px; border-bottom:1px dashed var(--line); font-size:13px; }
+  .fim-att-row .n{ min-width:160px; }
   .fim-loss{ margin-top:8px; font-size:11.5px; color:#F0525A; font-family:'JetBrains Mono', monospace; }
   .fim-badge{ display:inline-flex; align-items:center; justify-content:center; min-width:16px; height:16px; padding:0 4px; margin-left:6px; border-radius:8px; background:#F0525A; color:#fff; font:700 10px 'JetBrains Mono', monospace; vertical-align:middle; }
   .fim-gsearch{ position:relative; margin:0 0 18px; }
@@ -760,7 +775,10 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     present: { label: 'Présent', color: '#4FD895' },
     retard: { label: 'En retard', color: '#F0A83C' },
     absent: { label: 'Absent', color: '#F0525A' },
+    excuse: { label: 'Excusé', color: '#5AA9FF' },
   };
+  const RSVP_DELAYS = [5, 10, 15, 20, 30, 45, 60];
+  const attManageOpen = new Set(); // ordres dont le panneau « Gérer les présences » est ouvert
   let opTemplates = [];
 
   // ---------------------------------------------------------------
@@ -2342,7 +2360,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       bindOpForm(op, agents);
       return;
     }
-    const ctx = { canCommand, self, debriefOf };
+    const ctx = { canCommand, self, debriefOf, agents };
     if (opsFilter === 'planning') {
       renderPlanning(body, ops, ctx);
       return;
@@ -2466,15 +2484,10 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       opsFilter = 'nouvelle';
       loadOperations();
     }));
-    box.querySelectorAll('[data-rsvp]').forEach((b) => b.addEventListener('click', async () => {
-      try {
-        await window.apiFetch(`/api/rp/fim/operations/${encodeURIComponent(b.dataset.id)}/rsvp`, { method: 'POST', body: JSON.stringify({ status: b.dataset.rsvp }) });
-        window.showToast('Réponse enregistrée.', 'success');
-        loadOperations();
-      } catch (err) {
-        window.showToast(`Erreur : ${err.message}`, 'error');
-      }
-    }));
+    if (!box._attBound) {
+      box._attBound = true;
+      box.addEventListener('click', (e) => onAttendanceClick(e, box));
+    }
     box.querySelectorAll('[data-op-copy]').forEach((b) => b.addEventListener('click', () => {
       editingOp = null;
       copyOp = b.dataset.id;
@@ -2562,17 +2575,130 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
       </div>`;
   }
 
-  // Réponses de l'équipe à un ordre planifié ou en cours.
+  // Présences à un ordre : chaque opérateur donne sa réponse (présent, en
+  // retard de X min, absent, excusé) avec un motif ; le commandement peut
+  // fixer celle de n'importe qui, y compris après l'opération (appel).
+  const rsvpDetail = (r) => [
+    r.status === 'retard' && r.delay ? `+${r.delay} min` : '',
+    r.reason ? `« ${esc(r.reason)} »` : '',
+    r.by ? `<i>fixé par ${esc(r.by)}</i>` : '',
+  ].filter(Boolean).join(' · ');
+  function rsvpForm(o, prefix, current) {
+    const st = current?.status || '';
+    return `
+      <div class="fim-att-form" data-att-form="${prefix}">
+        <div class="fim-roll-opts">${Object.entries(RSVP_META).map(([k, m]) => `<button type="button" style="--c:${m.color}" class="${st === k ? 'on' : ''}" data-att-status="${k}">${m.label}</button>`).join('')}</div>
+        <select data-att-delay ${st === 'retard' ? '' : 'hidden'}>
+          <option value="">Retard prévu…</option>
+          ${RSVP_DELAYS.map((d) => `<option value="${d}" ${current?.delay === d ? 'selected' : ''}>${d} min</option>`).join('')}
+        </select>
+        <input type="text" data-att-reason maxlength="200" placeholder="Motif (facultatif)" value="${esc(current?.reason || '')}" ${st && st !== 'present' ? '' : 'hidden'}>
+        <button type="button" class="btn small" data-att-save data-id="${esc(o.id)}" ${st ? '' : 'disabled'}>Enregistrer</button>
+      </div>`;
+  }
+  // Clics du bloc Présences (délégués : les lignes ajoutées sont dynamiques)
+  async function onAttendanceClick(e, box) {
+    const t = e.target.closest('button');
+    if (!t || !box.contains(t)) return;
+    const form = t.closest('[data-att-form]');
+    if (t.dataset.attStatus !== undefined && form) {
+      form.dataset.status = t.dataset.attStatus;
+      form.querySelectorAll('[data-att-status]').forEach((b) => b.classList.toggle('on', b === t));
+      form.querySelector('[data-att-delay]').hidden = t.dataset.attStatus !== 'retard';
+      form.querySelector('[data-att-reason]').hidden = t.dataset.attStatus === 'present';
+      form.querySelector('[data-att-save]').disabled = false;
+      return;
+    }
+    const opId = t.dataset.id;
+    const send = async (path, body, ok) => {
+      t.disabled = true;
+      try {
+        await window.apiFetch(`/api/rp/fim/operations/${encodeURIComponent(opId)}/${path}`, { method: 'POST', body: JSON.stringify(body) });
+        window.showToast(ok, 'success');
+        loadOperations();
+      } catch (err) {
+        t.disabled = false;
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    };
+    if (t.hasAttribute('data-att-save') && form) {
+      const status = form.dataset.status || form.querySelector('[data-att-status].on')?.dataset.attStatus;
+      if (!status) return;
+      const body = { status, delay: Number(form.querySelector('[data-att-delay]').value) || null, reason: form.querySelector('[data-att-reason]').value.trim() };
+      const row = t.closest('[data-att-name]');
+      if (row) await send('rsvp/manage', { ...body, name: row.dataset.attName }, `Présence de ${row.dataset.attName} enregistrée.`);
+      else await send('rsvp', body, 'Réponse enregistrée.');
+    } else if (t.hasAttribute('data-att-clear')) {
+      const row = t.closest('[data-att-name]');
+      await send('rsvp/manage', { name: row.dataset.attName, status: '' }, 'Réponse effacée.');
+    } else if (t.hasAttribute('data-att-manage')) {
+      if (attManageOpen.has(opId)) attManageOpen.delete(opId); else attManageOpen.add(opId);
+      loadOperations();
+    } else if (t.hasAttribute('data-att-add-btn')) {
+      const input = t.parentElement.querySelector('[data-att-add]');
+      const name = input.value.trim();
+      const panel = t.closest('.fim-att-manage');
+      if (!name) return;
+      if ([...panel.querySelectorAll('[data-att-name]')].some((r) => personKey(r.dataset.attName) === personKey(name))) {
+        window.showToast('Déjà dans la liste.', 'error');
+        return;
+      }
+      const o = (box._ops || []).find((x) => x.id === opId) || { id: opId };
+      t.closest('.fim-roll-foot').insertAdjacentHTML('beforebegin', `
+        <div class="fim-att-row" data-att-name="${esc(name)}">
+          <span class="n">${esc(withCallsign(name))}</span>
+          ${rsvpForm(o, `m-${personKey(name)}`, null)}
+        </div>`);
+      input.value = '';
+    }
+  }
+
   function rsvpBlock(o, ctx, mine) {
-    const answers = Object.values(o.rsvp || {});
+    const rsvp = o.rsvp || {};
+    const answers = Object.values(rsvp);
     const open = o.status === 'planifiee' || o.status === 'en_cours';
-    if (!answers.length && !(open && mine)) return '';
-    const myAnswer = (o.rsvp || {})[personKey(ctx.self)]?.status;
+    const canManage = ctx.canCommand && o.status !== 'annulee';
+    const selfKey = personKey(ctx.self);
+    if (!answers.length && !open && !canManage) return '';
     const count = (k) => answers.filter((a) => a.status === k).length;
-    return `<div class="fim-rsvp">
-      <span>Réponses</span>
-      ${Object.entries(RSVP_META).map(([k, m]) => (count(k) ? `<span class="fim-chip" style="color:${m.color}" title="${esc(answers.filter((a) => a.status === k).map((a) => a.name).join(', '))}">${m.label} · ${count(k)}</span>` : '')).join('')}
-      ${open && mine ? `<span style="margin-left:auto;">Ma réponse</span>${Object.entries(RSVP_META).map(([k, m]) => `<button type="button" class="${myAnswer === k ? 'on' : ''}" style="--c:${m.color}" data-rsvp="${k}" data-id="${esc(o.id)}">${m.label}</button>`).join('')}` : ''}
+    const order = Object.keys(RSVP_META);
+    const sorted = Object.entries(rsvp).sort((a, b) => order.indexOf(a[1].status) - order.indexOf(b[1].status) || String(a[1].name).localeCompare(b[1].name));
+    const managing = canManage && attManageOpen.has(o.id);
+    // Panneau du commandement : équipe prévue + toute personne ayant répondu
+    let manage = '';
+    if (managing) {
+      const people = new Map();
+      [o.leader, ...(o.team || []).map((m) => m.name)].filter(Boolean).forEach((n) => people.set(personKey(n), n));
+      Object.entries(rsvp).forEach(([k, r]) => { if (!people.has(k)) people.set(k, r.name); });
+      const roster = (ctx.agents || []).map((a) => a.name || a.username).filter(Boolean);
+      manage = `
+        <div class="fim-roll fim-att-manage">
+          ${[...people].map(([key, name]) => `
+            <div class="fim-att-row" data-att-name="${esc(name)}">
+              <span class="n">${esc(withCallsign(name))}</span>
+              ${rsvpForm(o, `m-${key}`, rsvp[key])}
+              ${rsvp[key] ? `<button type="button" class="fim-link" data-att-clear data-id="${esc(o.id)}">effacer</button>` : ''}
+            </div>`).join('') || '<div class="fim-roll-row">Aucune équipe prévue : ajoute un opérateur ci-dessous.</div>'}
+          <div class="fim-roll-foot">
+            <input type="text" list="fim-att-roster-${esc(o.id)}" data-att-add placeholder="Ajouter un opérateur (nom RP)…">
+            <datalist id="fim-att-roster-${esc(o.id)}">${roster.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
+            <button type="button" class="btn ghost small" data-att-add-btn data-id="${esc(o.id)}">Ajouter</button>
+          </div>
+        </div>`;
+    }
+    return `<div class="fim-att" data-att-op="${esc(o.id)}">
+      <div class="fim-rsvp">
+        <span>Présences</span>
+        ${order.map((k) => (count(k) ? `<span class="fim-chip" style="color:${RSVP_META[k].color}">${RSVP_META[k].label} · ${count(k)}</span>` : '')).join('') || '<span class="fim-chip">Aucune réponse</span>'}
+        ${canManage ? `<button type="button" class="fim-link" style="margin-left:auto;" data-att-manage data-id="${esc(o.id)}">${managing ? 'Fermer' : 'Gérer les présences'}</button>` : ''}
+      </div>
+      ${sorted.length && !managing ? `
+        <details class="fim-att-list">
+          <summary>Détail des réponses (${sorted.length})</summary>
+          ${sorted.map(([, r]) => `<div class="fim-att-line"><span class="fim-chip" style="--c:${RSVP_META[r.status]?.color};color:var(--c)">${RSVP_META[r.status]?.label || r.status}</span><b>${esc(withCallsign(r.name))}</b><span>${rsvpDetail(r)}</span></div>`).join('')}
+        </details>` : ''}
+      ${open && !managing ? `<div class="fim-att-mine"><span>Ma réponse${mine ? '' : ' (hors équipe)'}</span>${rsvpForm(o, 'self', rsvp[selfKey])}</div>` : ''}
+      ${manage}
     </div>`;
   }
 
