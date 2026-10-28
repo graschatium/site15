@@ -13,6 +13,25 @@
   .fim-hero-eyebrow{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-2); }
   .fim-hero h2{ font-family:'Space Grotesk', sans-serif; font-size:21px; margin:6px 0 6px; }
   .fim-hero p{ color:var(--ink-dim); font-size:13px; line-height:1.65; max-width:640px; }
+  .fim-g-kpis{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:18px; }
+  .fim-g-kpi{ background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--c, var(--accent)); border-radius:3px; padding:14px 16px; }
+  .fim-g-kpi b{ display:block; font-family:'Space Grotesk', sans-serif; font-size:26px; color:var(--c, var(--ink)); line-height:1.1; }
+  .fim-g-kpi span{ font-size:11.5px; color:var(--ink-dim); }
+  .fim-g-period{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-faint); margin-bottom:14px; font-family:'Inter', sans-serif; letter-spacing:0; text-transform:none; }
+  .fim-editor-section .fim-g-period{ margin:0 0 0 auto; }
+  .fim-g-period button{ font:600 10.5px 'JetBrains Mono', monospace; padding:4px 9px; border:1px solid var(--line); background:transparent; color:var(--ink-dim); border-radius:3px; cursor:pointer; }
+  .fim-g-period button.on{ border-color:var(--accent); color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, transparent); }
+  .fim-hq-row.clickable{ cursor:pointer; } .fim-hq-row.clickable:hover{ background:var(--panel-raised); }
+  .fim-hq-row .meta b{ font-weight:600; }
+  .fim-link-name{ background:none; border:0; padding:0; color:var(--ink); font:600 12.5px 'Inter', sans-serif; cursor:pointer; text-align:left; }
+  .fim-link-name:hover{ color:var(--accent-2); text-decoration:underline; }
+  .fim-g-rate{ display:inline-block; vertical-align:middle; width:70px; height:6px; background:var(--line); border-radius:3px; overflow:hidden; margin-right:8px; }
+  .fim-g-rate div{ height:100%; }
+  .fim-g-absform{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .fim-g-absform input[type=text]{ flex:1; min-width:180px; width:auto; }
+  .fim-g-absform label{ display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-dim); }
+  .fim-g-absform input[type=date]{ width:auto; }
+  .fim-g-abs-now{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:space-between; background:color-mix(in srgb, #F0525A 8%, transparent); border-left:3px solid #F0525A; padding:10px 14px; font-size:13px; }
   .fim-dispo{ display:flex; align-items:center; gap:14px 18px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--good); border-radius:3px; padding:14px 18px; margin:-8px 0 22px; }
   .fim-dispo:empty{ display:none; }
   .fim-dispo.away{ border-left-color:var(--bad); }
@@ -142,6 +161,7 @@
   .fim-hq-row{ display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--void-2); border-left:2px solid var(--u); border-radius:2px; }
   .fim-hq-row .nm{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:12px; letter-spacing:.04em; }
   .fim-hq-row .meta{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--ink-faint); margin-right:auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fim-g-grid .fim-hq-row{ flex-wrap:wrap; row-gap:2px; } .fim-g-grid .fim-hq-row .nm{ white-space:nowrap; } .fim-g-grid .fim-hq-row .meta{ white-space:normal; overflow:visible; line-height:1.5; }
   .fim-hq-todo{ display:flex; flex-direction:column; gap:2px; text-align:left; cursor:pointer; color:inherit; font-family:'Inter', sans-serif; font-size:12.5px;
     padding:9px 11px; background:var(--void-2); border:1px solid transparent; border-radius:2px; }
   .fim-hq-todo:hover{ border-color:var(--accent); }
@@ -1985,6 +2005,403 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     document.getElementById('fim-staff-search').addEventListener('input', (e) => { staffSearch = e.target.value; render(); });
     render();
     renderDossier();
+  }
+
+  // ---------------------------------------------------------------
+  // Gestion : absences, assiduité et dossiers des opérateurs.
+  // Onglet réservé aux officiers, à la direction et au BDO (vérifié par le bot).
+  // ---------------------------------------------------------------
+  let gestionView = 'apercu';
+  let gestionSelected = null;
+  let gestionSearch = '';
+  let gestionPeriod = 30;
+  let gestionAllowed = null; // null : pas encore vérifié
+  async function checkGestionTab() {
+    const tab = document.querySelector('.terminal-tab[data-tab="fim-gestion"]');
+    if (!tab) return;
+    if (gestionAllowed === null) {
+      tab.style.display = 'none';
+      try {
+        gestionAllowed = !!(await window.apiFetch('/api/rp/fim/gestion/access')).allowed;
+      } catch (e) {
+        gestionAllowed = false;
+      }
+    }
+    tab.style.display = gestionAllowed ? '' : 'none';
+  }
+
+  const GESTION_STATUS = {
+    present: { label: 'Présent', color: '#4FD895' },
+    retard: { label: 'Retard', color: '#F0A83C' },
+    excuse: { label: 'Excusé', color: '#5AA9FF' },
+    absent: { label: 'Absent', color: '#F0525A' },
+    silence: { label: 'Sans nouvelles', color: '#E0443F' },
+  };
+  // Assiduité d'un opérateur sur les opérations closes de la période :
+  // convoqué = dans l'équipe (chef compris) ou a répondu ; présent en jeu
+  // compte comme présent même sans réponse ; convoqué sans réponse ni
+  // présence = « sans nouvelles ».
+  function attendanceOf(name, ops) {
+    const key = personKey(name);
+    const rows = [];
+    for (const o of ops) {
+      const r = (o.rsvp || {})[key];
+      const convoked = !!roleIn(o, name) || !!r;
+      const minutes = presenceMinutes(o, name);
+      if (!convoked && !minutes) continue;
+      const closed = o.status === 'terminee';
+      let status = r?.status || null;
+      if (minutes > 0 && (!status || status === 'absent' || status === 'excuse')) status = status === 'retard' ? 'retard' : 'present';
+      if (!status && closed) status = 'silence';
+      rows.push({ op: o, status, rsvp: r || null, minutes, closed });
+    }
+    const counts = Object.fromEntries(Object.keys(GESTION_STATUS).map((k) => [k, rows.filter((x) => x.status === k).length]));
+    const judged = rows.filter((x) => x.closed && x.status && x.status !== 'excuse'); // une absence excusée ne pénalise pas
+    const ok = judged.filter((x) => x.status === 'present' || x.status === 'retard').length;
+    const rate = judged.length ? Math.round((ok / judged.length) * 100) : null;
+    return { rows, counts, rate, judged: judged.length };
+  }
+  const rateColor = (r) => (r == null ? 'var(--ink-faint)' : r >= 80 ? '#4FD895' : r >= 60 ? '#F0A83C' : '#F0525A');
+  const opDate = (o) => o.scheduledAt || o.createdAt || 0;
+  const dayFr = (t) => new Date(t).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+
+  async function loadGestion() {
+    const main = mainEl();
+    main.innerHTML = '<div class="center-msg">Chargement du panneau de gestion…</div>';
+    let data;
+    try {
+      [data] = await Promise.all([window.apiFetch('/api/rp/fim/gestion'), loadPersonnel()]);
+    } catch (err) {
+      main.innerHTML = `<div class="center-msg">${err.message === 'gestion_only' ? 'Panneau réservé aux officiers, à la direction et au Bureau des opérations.' : `Erreur : ${esc(err.message)}`}</div>`;
+      return;
+    }
+    if (mainEl() !== main) return;
+    const since = Date.now() - gestionPeriod * 86400000;
+    const periodOps = data.ops.filter((o) => opDate(o) >= since && opDate(o) <= Date.now() + 60000);
+    const people = data.people.map((p) => ({ ...p, att: attendanceOf(p.name, periodOps) }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+    const absentNow = people.filter((p) => p.absence);
+    const watch = people.filter((p) => (p.att.counts.absent + p.att.counts.silence) >= 2 || (p.att.rate != null && p.att.rate < 60 && p.att.judged >= 3));
+    const upcoming = data.ops.filter((o) => o.status === 'planifiee' && opDate(o) >= Date.now() - 3600000).sort((a, b) => opDate(a) - opDate(b));
+    const ctx = { data, people, periodOps, absentNow, watch, upcoming, main };
+
+    setSide(
+      [[String(people.length), 'Opérateurs'], [String(absentNow.length), 'Absents'], [String(watch.length), 'À surveiller'], [String(people.filter((p) => p.bdo).length), 'BDO']],
+      absentNow.slice(0, 5).map((p) => [p.absence.until ? `→ ${dayFr(p.absence.until)}` : 'Absent', p.name])
+    );
+    main.innerHTML = `
+      <div class="fim-hero">
+        <div class="fim-hero-eyebrow">Gestion du personnel · accès ${esc(data.as)}</div>
+        <h2>Gestion</h2>
+        <p>Absences, assiduité aux opérations et dossiers des opérateurs. Réservé aux officiers, à la direction et au Bureau des opérations. Toute action est inscrite à l'audit.</p>
+      </div>
+      ${subTabs([['apercu', 'Vue d’ensemble'], ['absences', `Absences (${absentNow.length})`], ['assiduite', 'Assiduité'], ['dossiers', 'Dossiers'], ['bdo', 'BDO']], gestionView, 'data-gv')}
+      <div id="fim-gestion-body"></div>`;
+    main.querySelectorAll('[data-gv]').forEach((b) => b.addEventListener('click', () => { gestionView = b.dataset.gv; loadGestion(); }));
+    const body = document.getElementById('fim-gestion-body');
+    if (gestionView === 'absences') renderGestionAbsences(body, ctx);
+    else if (gestionView === 'assiduite') renderGestionAttendance(body, ctx);
+    else if (gestionView === 'dossiers') renderGestionDossiers(body, ctx);
+    else if (gestionView === 'bdo') renderGestionBdo(body, ctx);
+    else renderGestionOverview(body, ctx);
+  }
+
+  const periodPicker = () => `<div class="fim-g-period">Période : ${[30, 90, 180].map((d) => `<button type="button" data-gp="${d}" class="${gestionPeriod === d ? 'on' : ''}">${d} j</button>`).join('')}</div>`;
+  function bindPeriod(body) {
+    body.querySelectorAll('[data-gp]').forEach((b) => b.addEventListener('click', () => { gestionPeriod = Number(b.dataset.gp); loadGestion(); }));
+  }
+  function openDossier(name) {
+    gestionSelected = name;
+    gestionView = 'dossiers';
+    loadGestion();
+  }
+  function bindOpenDossier(body) {
+    body.querySelectorAll('[data-gopen]').forEach((el) => el.addEventListener('click', () => openDossier(el.dataset.gopen)));
+  }
+
+  function renderGestionOverview(body, { people, absentNow, watch, upcoming, periodOps }) {
+    const answered = (o) => Object.keys(o.rsvp || {}).length;
+    const convoked = (o) => new Set([o.leader, ...(o.team || []).map((m) => m.name)].filter(Boolean).map(personKey));
+    const missing = (o) => [...convoked(o)].filter((k) => !(o.rsvp || {})[k]).length;
+    const absentAt = (o) => people.filter((p) => p.absence && (!p.absence.until || p.absence.until >= opDate(o)) && convoked(o).has(p.key));
+    const closed = periodOps.filter((o) => o.status === 'terminee');
+    const all = people.map((p) => p.att).filter((a) => a.judged);
+    const globalRate = all.length ? Math.round(all.reduce((s, a) => s + a.rate * a.judged, 0) / all.reduce((s, a) => s + a.judged, 0)) : null;
+    body.innerHTML = `
+      ${periodPicker()}
+      <div class="fim-g-kpis">
+        <div class="fim-g-kpi"><b>${people.length}</b><span>Opérateurs actifs</span></div>
+        <div class="fim-g-kpi" style="--c:#F0525A"><b>${absentNow.length}</b><span>Absents en ce moment</span></div>
+        <div class="fim-g-kpi" style="--c:${rateColor(globalRate)}"><b>${globalRate == null ? '—' : `${globalRate} %`}</b><span>Assiduité (${gestionPeriod} j)</span></div>
+        <div class="fim-g-kpi"><b>${closed.length}</b><span>Opérations closes (${gestionPeriod} j)</span></div>
+        <div class="fim-g-kpi" style="--c:#F0A83C"><b>${watch.length}</b><span>À surveiller</span></div>
+      </div>
+      <div class="fim-hq-grid fim-g-grid">
+        <div class="fim-hq-card">
+          <div class="fim-hq-card-head"><b>Absents en ce moment</b><button class="fim-link" data-gjump="absences">Tout voir</button></div>
+          <div class="fim-hq-card-body">${absentNow.length ? absentNow.slice(0, 6).map((p) => `
+            <div class="fim-hq-row clickable" style="--u:#F0525A" data-gopen="${esc(p.name)}"><span class="nm">${esc(p.name)}</span><span class="meta">${p.absence.until ? `jusqu'au ${esc(dayFr(p.absence.until))}` : 'sans date'}${p.absence.reason ? ` · ${esc(p.absence.reason)}` : ''}</span></div>`).join('') : '<div class="empty-row">Personne n’est déclaré absent.</div>'}</div>
+        </div>
+        <div class="fim-hq-card">
+          <div class="fim-hq-card-head"><b>À surveiller</b><button class="fim-link" data-gjump="assiduite">Assiduité</button></div>
+          <div class="fim-hq-card-body">${watch.length ? watch.slice(0, 6).map((p) => `
+            <div class="fim-hq-row clickable" style="--u:#F0A83C" data-gopen="${esc(p.name)}"><span class="nm">${esc(p.name)}</span><span class="meta">${p.att.counts.absent} absence(s), ${p.att.counts.silence} sans nouvelles · <b style="color:${rateColor(p.att.rate)}">${p.att.rate == null ? '—' : `${p.att.rate} %`}</b></span></div>`).join('') : '<div class="empty-row">Aucun opérateur à surveiller sur la période.</div>'}</div>
+          <div style="font-size:11px; color:var(--ink-faint);">Au moins 2 absences non excusées ou sans nouvelles, ou moins de 60 % de présence sur 3 opérations ou plus.</div>
+        </div>
+        <div class="fim-hq-card">
+          <div class="fim-hq-card-head"><b>Opérations à venir</b></div>
+          <div class="fim-hq-card-body">${upcoming.length ? upcoming.slice(0, 6).map((o) => { const abs = absentAt(o); return `
+            <div class="fim-hq-row" style="--u:${unitColor(o.unit)}"><span class="nm">${esc(o.codeName)}</span><span class="meta">${o.scheduledAt ? esc(fmtDate(o.scheduledAt)) : 'non datée'} · ${answered(o)} réponse(s)${missing(o) ? ` · <b style="color:#F0A83C">${missing(o)} sans réponse</b>` : ''}${abs.length ? ` · <b style="color:#F0525A">${abs.length} absent(s) dans l'équipe</b>` : ''}</span></div>`; }).join('') : '<div class="empty-row">Aucune opération planifiée.</div>'}</div>
+        </div>
+      </div>`;
+    bindPeriod(body);
+    bindOpenDossier(body);
+    body.querySelectorAll('[data-gjump]').forEach((b) => b.addEventListener('click', () => { gestionView = b.dataset.gjump; loadGestion(); }));
+  }
+
+  function absenceForm(prefix, people, preset) {
+    const todayIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    return `
+      <form class="fim-g-absform" id="${prefix}-form">
+        ${preset ? `<input type="hidden" id="${prefix}-name" value="${esc(preset)}">` : `
+          <input type="text" id="${prefix}-name" list="${prefix}-list" placeholder="Opérateur (nom RP)" required>
+          <datalist id="${prefix}-list">${people.map((p) => `<option value="${esc(p.name)}">`).join('')}</datalist>`}
+        <label>Retour prévu <input type="date" id="${prefix}-until" min="${todayIso}"></label>
+        <input type="text" id="${prefix}-reason" maxlength="200" placeholder="Motif (vacances, examens, suspension…)">
+        <button class="btn small" type="submit">Déclarer absent</button>
+      </form>`;
+  }
+  function bindAbsenceForm(prefix) {
+    document.getElementById(`${prefix}-form`)?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById(`${prefix}-name`).value.trim();
+      const date = document.getElementById(`${prefix}-until`).value;
+      if (!name) return;
+      try {
+        await window.apiFetch('/api/rp/fim/gestion/absence', { method: 'PUT', body: JSON.stringify({ name, until: date ? new Date(`${date}T23:59:59`).getTime() : null, reason: document.getElementById(`${prefix}-reason`).value.trim() }) });
+        window.showToast(`${name} est déclaré absent : il ne sera plus mentionné dans les rappels.`, 'success');
+        loadGestion();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+  }
+  async function liftAbsence(name) {
+    if (!confirm(`Lever l'absence de ${name} ?`)) return;
+    try {
+      await window.apiFetch(`/api/rp/fim/gestion/absence?name=${encodeURIComponent(name)}`, { method: 'DELETE' });
+      window.showToast('Absence levée.', 'success');
+      loadGestion();
+    } catch (err) {
+      window.showToast(`Erreur : ${err.message}`, 'error');
+    }
+  }
+
+  function renderGestionAbsences(body, { people, absentNow, periodOps }) {
+    const opAbs = [];
+    periodOps.forEach((o) => Object.values(o.rsvp || {}).forEach((r) => {
+      if (r.status !== 'present') opAbs.push({ o, r });
+    }));
+    opAbs.sort((a, b) => opDate(b.o) - opDate(a.o));
+    body.innerHTML = `
+      <div class="fim-editor-section">Absences déclarées en cours</div>
+      <div class="fim-staff-wrap"><table class="fim-staff"><thead><tr><th>Opérateur</th><th>Unité</th><th>Depuis</th><th>Retour prévu</th><th>Motif</th><th>Déclarée par</th><th></th></tr></thead><tbody>
+        ${absentNow.length ? absentNow.map((p) => `<tr>
+          <td><button class="fim-link-name" data-gopen="${esc(p.name)}">${esc(p.name)}</button></td>
+          <td>${p.unit ? `<span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>` : '—'}</td>
+          <td>${esc(dayFr(p.absence.since))}</td>
+          <td>${p.absence.until ? `${esc(dayFr(p.absence.until))} <span style="color:var(--ink-faint); font-size:11px;">(${esc(relTime(p.absence.until))})</span>` : '<span style="color:var(--ink-faint);">non précisé</span>'}</td>
+          <td>${esc(p.absence.reason || '—')}</td>
+          <td>${esc(p.absence.by || 'lui-même')}</td>
+          <td><button class="btn ghost small" data-glift="${esc(p.name)}">Lever</button></td>
+        </tr>`).join('') : '<tr><td colspan="7" class="empty-row">Aucune absence déclarée.</td></tr>'}
+      </tbody></table></div>
+      <div class="fim-editor-section">Déclarer une absence pour un opérateur</div>
+      ${absenceForm('g-abs', people)}
+      <div style="font-size:11.5px; color:var(--ink-faint); margin-top:6px;">L'opérateur n'est plus mentionné dans les rappels Discord ; l'absence se lève seule à la date de retour.</div>
+      <div class="fim-editor-section" style="display:flex; align-items:center; gap:12px;">Absences et retards aux opérations ${periodPicker()}</div>
+      <div class="fim-staff-wrap"><table class="fim-staff"><thead><tr><th>Date</th><th>Opération</th><th>Opérateur</th><th>Statut</th><th>Motif</th><th>Saisi par</th></tr></thead><tbody>
+        ${opAbs.length ? opAbs.map(({ o, r }) => { const m = GESTION_STATUS[r.status] || GESTION_STATUS.absent; return `<tr>
+          <td>${esc(dayFr(opDate(o)))}</td>
+          <td><span style="font-family:'JetBrains Mono', monospace;">${esc(o.codeName)}</span></td>
+          <td><button class="fim-link-name" data-gopen="${esc(r.name)}">${esc(r.name)}</button></td>
+          <td>${pill(m)}${r.status === 'retard' && r.delay ? ` <span style="font-size:11px; color:var(--ink-dim);">+${r.delay} min</span>` : ''}</td>
+          <td>${esc(r.reason || '—')}</td>
+          <td>${esc(r.by || 'lui-même')}</td>
+        </tr>`; }).join('') : '<tr><td colspan="6" class="empty-row">Aucune absence ni retard sur la période.</td></tr>'}
+      </tbody></table></div>`;
+    bindAbsenceForm('g-abs');
+    bindPeriod(body);
+    bindOpenDossier(body);
+    body.querySelectorAll('[data-glift]').forEach((b) => b.addEventListener('click', () => liftAbsence(b.dataset.glift)));
+  }
+
+  function renderGestionAttendance(body, { people }) {
+    const rows = people.filter((p) => p.att.rows.length).sort((a, b) => (a.att.rate ?? 101) - (b.att.rate ?? 101) || b.att.counts.silence - a.att.counts.silence);
+    const idle = people.filter((p) => !p.att.rows.length);
+    body.innerHTML = `
+      ${periodPicker()}
+      <div class="fim-staff-wrap"><table class="fim-staff"><thead><tr><th>Opérateur</th><th>Unité</th>${Object.values(GESTION_STATUS).map((m) => `<th style="color:${m.color}">${m.label}</th>`).join('')}<th>Assiduité</th></tr></thead><tbody>
+        ${rows.length ? rows.map((p) => `<tr class="clickable" data-gopen="${esc(p.name)}">
+          <td><b>${esc(p.name)}</b>${p.absence ? ' <span class="fim-chip" style="color:#F0525A">absent</span>' : ''}</td>
+          <td>${p.unit ? `<span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>` : '—'}</td>
+          ${Object.keys(GESTION_STATUS).map((k) => `<td style="font-family:'JetBrains Mono', monospace;${p.att.counts[k] ? '' : ' color:var(--ink-faint);'}">${p.att.counts[k]}</td>`).join('')}
+          <td><div class="fim-g-rate"><div style="width:${p.att.rate ?? 0}%; background:${rateColor(p.att.rate)}"></div></div><span style="font-family:'JetBrains Mono', monospace; color:${rateColor(p.att.rate)}">${p.att.rate == null ? '—' : `${p.att.rate} %`}</span></td>
+        </tr>`).join('') : `<tr><td colspan="${Object.keys(GESTION_STATUS).length + 3}" class="empty-row">Aucune opération sur la période.</td></tr>`}
+      </tbody></table></div>
+      <div style="font-size:11.5px; color:var(--ink-faint); margin-top:8px; line-height:1.6;">
+        Calculé sur les opérations closes de la période où l'opérateur était convoqué (dans l'équipe) ou a répondu. Présent en jeu = présent, même sans réponse. « Sans nouvelles » : convoqué, aucune réponse, jamais vu en jeu. Une absence excusée ne fait pas baisser le taux.
+      </div>
+      ${idle.length ? `<div class="fim-editor-section">Aucune opération sur la période (${idle.length})</div>
+        <div class="fim-roster">${idle.map((p) => `<button class="fim-chip" data-gopen="${esc(p.name)}" style="cursor:pointer;">${esc(p.name)}</button>`).join('')}</div>` : ''}`;
+    bindPeriod(body);
+    bindOpenDossier(body);
+  }
+
+  function renderGestionDossiers(body, { data, people }) {
+    const p = people.find((x) => personKey(x.name) === personKey(gestionSelected));
+    const list = () => {
+      const q = norm(gestionSearch);
+      const shown = q ? people.filter((x) => [x.name, x.rank, x.callsign, x.unit && unitLabel(x.unit)].some((v) => norm(v).includes(q))) : people;
+      document.getElementById('g-dos-body').innerHTML = shown.map((x) => `<tr class="clickable${p && x.key === p.key ? ' sel' : ''}" data-gopen="${esc(x.name)}">
+        <td><b>${esc(x.name)}</b>${x.bdo ? ' <span class="fim-chip" style="color:var(--accent-2)">BDO</span>' : ''}</td>
+        <td style="font-family:'JetBrains Mono', monospace; font-size:11.5px;">${esc(x.callsign || '—')}</td>
+        <td>${esc(x.rank || '—')}</td>
+        <td>${x.unit ? `<span class="fim-chip u" style="--u:${unitColor(x.unit)}">${esc(unitLabel(x.unit))}</span>` : '—'}</td>
+        <td>${x.absence ? '<span style="color:#F0525A">Absent</span>' : '<span style="color:#4FD895">Disponible</span>'}</td>
+        <td style="font-family:'JetBrains Mono', monospace; color:${rateColor(x.att.rate)}">${x.att.rate == null ? '—' : `${x.att.rate} %`}</td>
+        <td style="font-family:'JetBrains Mono', monospace;">${(x.notes || []).length}</td>
+      </tr>`).join('') || '<tr><td colspan="7" class="empty-row">Aucun opérateur.</td></tr>';
+      bindOpenDossier(document.getElementById('g-dos-body'));
+    };
+    body.innerHTML = `
+      <div id="g-dossier"></div>
+      <input type="text" id="g-dos-search" class="fim-search" placeholder="Rechercher un opérateur, un indicatif, un grade, une unité…" value="${esc(gestionSearch)}">
+      <div class="fim-staff-wrap"><table class="fim-staff"><thead><tr><th>Opérateur</th><th>Indicatif</th><th>Grade</th><th>Unité</th><th>Statut</th><th>Assiduité ${gestionPeriod} j</th><th>Notes</th></tr></thead><tbody id="g-dos-body"></tbody></table></div>`;
+    document.getElementById('g-dos-search').addEventListener('input', (e) => { gestionSearch = e.target.value; list(); });
+    list();
+    if (!p) return;
+
+    const color = p.unit ? unitColor(p.unit) : '#6E76FF';
+    const notes = [...(p.notes || [])].sort((a, b) => b.at - a.at);
+    const isSelf = personKey(p.name) === personKey(data.self);
+    const hist = [...p.att.rows].sort((a, b) => opDate(b.op) - opDate(a.op));
+    const box = document.getElementById('g-dossier');
+    box.innerHTML = `
+      <div class="fim-dossier" style="--u:${color}; margin:0 0 18px;">
+        <div class="fim-dossier-head" style="color:${color}">
+          ${p.unit ? crest((UNITS.find((u) => u.id === p.unit) || {}).letter || '?') : ''}
+          <div style="color:var(--ink); flex:1;">
+            <h3>${esc(p.name)}${p.callsign ? ` <span style="color:${color}">« ${esc(p.callsign)} »</span>` : ''}</h3>
+            <div class="fim-motto">${esc(p.rank || 'Opérateur')} · ${p.unit ? `FIM ${esc(unitLabel(p.unit))}` : 'sans unité'}${p.bdo ? ' · Bureau des opérations' : ''}${p.linked ? '' : ' · compte Discord non lié'}</div>
+          </div>
+          <button class="btn ghost small" type="button" id="g-dos-full">Dossier complet</button>
+          <button class="btn ghost small" type="button" id="g-dos-close">Fermer</button>
+        </div>
+        <div class="fim-facts">
+          <div class="fim-fact"><b>Statut</b><span style="color:${p.absence ? '#F0525A' : '#4FD895'}">${p.absence ? `Absent${p.absence.until ? ` → ${esc(dayFr(p.absence.until))}` : ''}` : 'Disponible'}</span></div>
+          <div class="fim-fact"><b>Assiduité (${gestionPeriod} j)</b><span style="color:${rateColor(p.att.rate)}">${p.att.rate == null ? '—' : `${p.att.rate} %`} · ${p.att.judged} op.</span></div>
+          ${Object.entries(GESTION_STATUS).map(([k, m]) => `<div class="fim-fact"><b>${m.label}</b><span style="color:${p.att.counts[k] ? m.color : 'var(--ink-faint)'}">${p.att.counts[k]}</span></div>`).join('')}
+          <div class="fim-fact"><b>Félicitations / avert.</b><span>${notes.filter((n) => n.kind === 'felicitation').length} / ${notes.filter((n) => n.kind === 'avertissement').length}</span></div>
+        </div>
+
+        <div class="fim-editor-section">Absence</div>
+        ${p.absence ? `
+          <div class="fim-g-abs-now">
+            <span><b style="color:#F0525A">Absent</b>${p.absence.until ? ` jusqu'au ${esc(dayFr(p.absence.until))}` : ', sans date de retour'}${p.absence.reason ? ` · « ${esc(p.absence.reason)} »` : ''} · déclarée ${p.absence.by ? `par ${esc(p.absence.by)}` : 'par lui-même'} le ${esc(dayFr(p.absence.since))}</span>
+            <button class="btn ghost small" id="g-dos-lift">Lever l'absence</button>
+          </div>` : absenceForm('g-dos-abs', people, p.name)}
+
+        <div class="fim-editor-section">Historique des opérations (${gestionPeriod} j)</div>
+        ${hist.length ? hist.map((x) => { const m = GESTION_STATUS[x.status]; return `
+          <div class="fim-hq-row" style="--u:${unitColor(x.op.unit)}; margin-bottom:6px;">
+            <span class="nm">${esc(x.op.codeName)}</span>
+            <span class="meta">${esc(dayFr(opDate(x.op)))} · ${esc(roleIn(x.op, p.name) || 'hors équipe')}${x.minutes ? ` · ${fr(x.minutes, 0)} min en jeu` : ''}${x.rsvp?.reason ? ` · « ${esc(x.rsvp.reason)} »` : ''}${x.rsvp?.status === 'retard' && x.rsvp.delay ? ` · +${x.rsvp.delay} min` : ''}</span>
+            ${m ? pill(m) : pill({ label: x.closed ? '—' : 'À venir', color: '#9297A8' })}
+          </div>`; }).join('') : '<div class="empty-row" style="padding:12px;">Aucune opération sur la période.</div>'}
+
+        <div class="fim-editor-section">Notes au dossier</div>
+        ${notes.length ? notes.map((n) => `
+          <div class="fim-note" style="--c:${(NOTE_META[n.kind] || NOTE_META.observation).color}">
+            <div class="fim-note-head">${pill(NOTE_META[n.kind] || NOTE_META.observation)}<span>${esc(n.by)} · ${fmtDate(n.at)}</span></div>
+            <div class="fim-note-text">${esc(n.text)}</div>
+          </div>`).join('') : '<div class="empty-row" style="padding:12px;">Aucune note au dossier.</div>'}
+        ${isSelf ? '' : `
+          <form id="g-note-form" style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+            <select id="g-note-kind" style="width:auto;">${Object.entries(NOTE_META).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('')}</select>
+            <input type="text" id="g-note-text" maxlength="1000" placeholder="Motif, contexte, opération concernée…" style="flex:1; min-width:220px;">
+            <button class="btn small" type="submit">Ajouter au dossier</button>
+          </form>`}
+
+        ${data.canEditBdo ? `
+          <div class="fim-editor-section">Bureau des opérations</div>
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <span style="font-size:13px; color:var(--ink-dim);">${p.bdo ? 'Membre du BDO : accès au panneau Gestion.' : 'Pas membre du BDO.'}</span>
+            <button class="btn ${p.bdo ? 'ghost' : ''} small" id="g-dos-bdo">${p.bdo ? 'Retirer du BDO' : 'Ajouter au BDO'}</button>
+          </div>` : ''}
+      </div>`;
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('g-dos-close').addEventListener('click', () => { gestionSelected = null; loadGestion(); });
+    document.getElementById('g-dos-full').addEventListener('click', () => { unitsView = 'effectifs'; staffSelected = p.name; goTab('fim-units'); });
+    document.getElementById('g-dos-lift')?.addEventListener('click', () => liftAbsence(p.name));
+    bindAbsenceForm('g-dos-abs');
+    document.getElementById('g-note-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = document.getElementById('g-note-text').value.trim();
+      if (!text) return;
+      try {
+        await window.apiFetch('/api/rp/fim/gestion/notes', { method: 'POST', body: JSON.stringify({ name: p.name, kind: document.getElementById('g-note-kind').value, text }) });
+        window.showToast('Note ajoutée au dossier.', 'success');
+        loadGestion();
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+    });
+    document.getElementById('g-dos-bdo')?.addEventListener('click', () => setBdoMember(p.name, !p.bdo));
+  }
+
+  async function setBdoMember(name, member) {
+    try {
+      await window.apiFetch('/api/rp/fim/gestion/bdo', { method: 'POST', body: JSON.stringify({ name, member }) });
+      window.showToast(member ? `${name} rejoint le Bureau des opérations.` : `${name} quitte le Bureau des opérations.`, 'success');
+      loadGestion();
+    } catch (err) {
+      window.showToast(`Erreur : ${err.message}`, 'error');
+    }
+  }
+  function renderGestionBdo(body, { data, people }) {
+    const members = people.filter((p) => p.bdo);
+    body.innerHTML = `
+      <div style="font-size:13px; color:var(--ink-dim); line-height:1.6; margin-bottom:14px;">
+        Les membres du <b>Bureau des opérations</b> accèdent au panneau Gestion sans être officiers. Les officiers et la direction y ont accès d'office.
+        Voir le cours « Le Bureau des opérations : rôle et organisation » dans l'onglet Cours.
+      </div>
+      <div class="fim-staff-wrap"><table class="fim-staff"><thead><tr><th>Membre</th><th>Grade</th><th>Unité</th><th>Statut</th>${data.canEditBdo ? '<th></th>' : ''}</tr></thead><tbody>
+        ${members.length ? members.map((p) => `<tr>
+          <td><button class="fim-link-name" data-gopen="${esc(p.name)}">${esc(p.name)}</button></td>
+          <td>${esc(p.rank || '—')}</td>
+          <td>${p.unit ? `<span class="fim-chip u" style="--u:${unitColor(p.unit)}">${esc(unitLabel(p.unit))}</span>` : '—'}</td>
+          <td>${p.absence ? '<span style="color:#F0525A">Absent</span>' : '<span style="color:#4FD895">Disponible</span>'}</td>
+          ${data.canEditBdo ? `<td><button class="btn ghost small" data-gbdo-rm="${esc(p.name)}">Retirer</button></td>` : ''}
+        </tr>`).join('') : `<tr><td colspan="${data.canEditBdo ? 5 : 4}" class="empty-row">Aucun membre désigné.</td></tr>`}
+      </tbody></table></div>
+      ${data.canEditBdo ? `
+        <form id="g-bdo-form" style="display:flex; gap:8px; margin-top:12px; max-width:520px;">
+          <input type="text" id="g-bdo-name" list="g-bdo-list" placeholder="Ajouter un opérateur (nom RP)" style="flex:1;" required>
+          <datalist id="g-bdo-list">${people.filter((p) => !p.bdo).map((p) => `<option value="${esc(p.name)}">`).join('')}</datalist>
+          <button class="btn small" type="submit">Ajouter au BDO</button>
+        </form>` : '<div style="font-size:11.5px; color:var(--ink-faint); margin-top:8px;">Seuls les officiers et la direction peuvent modifier la liste.</div>'}`;
+    bindOpenDossier(body);
+    body.querySelectorAll('[data-gbdo-rm]').forEach((b) => b.addEventListener('click', () => {
+      if (confirm(`Retirer ${b.dataset.gbdoRm} du BDO ?`)) setBdoMember(b.dataset.gbdoRm, false);
+    }));
+    document.getElementById('g-bdo-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('g-bdo-name').value.trim();
+      const p = people.find((x) => personKey(x.name) === personKey(name));
+      if (!p) { window.showToast('Opérateur introuvable dans le roster FIM.', 'error'); return; }
+      setBdoMember(p.name, true);
+    });
   }
 
   // Activité : bilan des opérations par unité et par opérateur.
@@ -5768,12 +6185,14 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       { id: 'fim-library', label: 'Savoir', icon: 'folder' },
       { id: 'fim-courses', label: 'Cours', icon: 'document' },
       { id: 'fim-evals', label: 'Évaluations', icon: 'badge' },
+      { id: 'fim-gestion', label: 'Gestion', icon: 'people' },
     ],
     async load(tabId, deptId) {
       stopRefresh();
       mainOverride = null;
       currentDeptId = deptId;
       startAlerts();
+      checkGestionTab();
       const main = document.getElementById('terminal-main');
       if (main && !unitDefsAt) main.innerHTML = '<div class="center-msg">Chargement…</div>';
       await loadUnitDefs();
@@ -5784,6 +6203,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       else if (tabId === 'fim-library') loadLibrary();
       else if (tabId === 'fim-courses') loadCourses();
       else if (tabId === 'fim-evals') loadEvaluations(deptId);
+      else if (tabId === 'fim-gestion') loadGestion();
       markSeen(tabId);
       refreshBadges(tabId).catch(() => {});
     },
