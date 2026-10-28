@@ -50,14 +50,40 @@
   .btn.ghost:hover{ color:var(--ink); border-color:var(--accent); }
 
   #result{ margin-top:22px; display:none; }
-  .verdict{ display:grid; grid-template-columns:170px 1fr; gap:22px; align-items:center; }
-  .gauge{ position:relative; width:170px; height:170px; }
-  .gauge svg{ transform:rotate(-90deg); }
-  .gauge-value{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .gauge-value b{ font-family:'Space Grotesk', sans-serif; font-size:40px; font-weight:800; line-height:1; }
-  .gauge-value span{ font-size:11px; color:var(--ink-dim); margin-top:4px; }
-  .verdict-label{ font-family:'Space Grotesk', sans-serif; font-size:26px; font-weight:700; margin-bottom:6px; }
+  .verdict{ display:grid; grid-template-columns:260px 1fr; gap:28px; align-items:center; }
+  .gauge{ position:relative; width:260px; }
+  .gauge svg{ display:block; width:100%; height:auto; overflow:visible; }
+  .gauge-value{ position:absolute; left:0; right:0; bottom:6px; text-align:center; }
+  .gauge-value b{ font-family:'Space Grotesk', sans-serif; font-size:58px; font-weight:800; line-height:1; letter-spacing:-0.03em; font-variant-numeric:tabular-nums; }
+  .gauge-value b small{ font-size:24px; font-weight:700; margin-left:2px; opacity:0.8; }
+  .gauge-value span{ display:block; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-dim); margin-top:6px; }
+  .verdict-badge{ display:inline-flex; align-items:center; gap:10px; font-family:'Space Grotesk', sans-serif; font-size:24px; font-weight:700; padding:8px 16px 8px 12px; border-radius:12px; margin-bottom:12px; border:1px solid; }
+  .verdict-badge .dot{ width:12px; height:12px; border-radius:50%; background:currentColor; box-shadow:0 0 12px currentColor; }
+  .conf{ display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-dim); margin-bottom:12px; }
+  .conf i{ width:22px; height:6px; border-radius:3px; background:var(--line); }
+  .conf i.on{ background:var(--accent); }
+  .conf span{ margin-left:4px; }
   .pill{ display:inline-block; font-family:'JetBrains Mono', monospace; font-size:11px; padding:3px 10px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim); margin-right:6px; margin-bottom:8px; }
+  .zones{ margin-top:24px; }
+  .zones-bar{ position:relative; display:flex; height:10px; }
+  .zones-bar div{ height:100%; opacity:0.25; transition:opacity 0.3s; }
+  .zones-bar div:first-child{ border-radius:6px 0 0 6px; }
+  .zones-bar div:nth-child(5){ border-radius:0 6px 6px 0; }
+  .zones-bar div.on{ opacity:1; }
+  .zones-marker{ position:absolute; top:-7px; left:0; width:4px; height:24px; background:var(--ink); border-radius:2px; box-shadow:0 0 0 3px var(--panel); transform:translateX(-50%); transition:left 1.1s cubic-bezier(.2,.8,.2,1); }
+  .zones-labels{ display:flex; margin-top:9px; font-size:11px; color:var(--ink-faint); }
+  .zones-labels span{ text-align:center; transition:color 0.3s; }
+  .zones-labels span.on{ color:var(--ink); font-weight:600; }
+  .breakdown{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px; }
+  .bd{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .bd-head{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:12.5px; color:var(--ink-dim); margin-bottom:8px; }
+  .bd-head b{ font-family:'Space Grotesk', sans-serif; font-size:20px; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .bd-bar{ height:6px; background:var(--line); border-radius:3px; overflow:hidden; }
+  .bd-bar div{ height:100%; width:0; border-radius:3px; transition:width 1.1s cubic-bezier(.2,.8,.2,1); }
+  .bd-foot{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:var(--ink-faint); margin-top:7px; }
+  .bd.off{ opacity:0.55; }
+  .result-actions{ display:flex; justify-content:flex-end; margin-top:14px; }
+  .btn.small{ padding:7px 14px; font-size:12.5px; }
   .summary{ color:var(--ink-dim); font-size:14px; line-height:1.6; }
   h3{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; margin:22px 0 10px; }
   .signals{ list-style:none; display:grid; gap:8px; }
@@ -77,6 +103,10 @@
   @media (max-width:640px){
     .hero-title{ font-size:28px; }
     .verdict{ grid-template-columns:1fr; justify-items:center; text-align:center; }
+    .gauge{ width:min(260px, 100%); }
+    .conf{ justify-content:center; }
+    .breakdown{ grid-template-columns:1fr; }
+    .zones-labels span{ font-size:9.5px; }
   }
 </style>
 </head>
@@ -116,17 +146,50 @@
     <div id="result" class="card">
       <div class="verdict">
         <div class="gauge">
-          <svg width="170" height="170" viewBox="0 0 170 170">
-            <circle cx="85" cy="85" r="72" fill="none" stroke="#23262F" stroke-width="14"/>
-            <circle id="gauge-arc" cx="85" cy="85" r="72" fill="none" stroke="#6E76FF" stroke-width="14" stroke-linecap="round" stroke-dasharray="452.4" stroke-dashoffset="452.4" style="transition:stroke-dashoffset 0.9s ease, stroke 0.3s"/>
+          <svg viewBox="0 0 240 136" aria-hidden="true">
+            <defs>
+              <linearGradient id="gauge-grad" x1="20" y1="0" x2="220" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#4FD895"/>
+                <stop offset="0.45" stop-color="#F2CC40"/>
+                <stop offset="0.75" stop-color="#F08A3C"/>
+                <stop offset="1" stop-color="#F0525A"/>
+              </linearGradient>
+            </defs>
+            <path d="M20 120 A100 100 0 0 1 220 120" fill="none" stroke="#23262F" stroke-width="16" stroke-linecap="round"/>
+            <path id="gauge-arc" d="M20 120 A100 100 0 0 1 220 120" fill="none" stroke="url(#gauge-grad)" stroke-width="16" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+            <g id="gauge-ticks" stroke="#565B6B" stroke-width="2" stroke-linecap="round"></g>
+            <circle id="gauge-knob" cx="20" cy="120" r="9" fill="#08090C" stroke="#ECEDF1" stroke-width="3"/>
           </svg>
-          <div class="gauge-value"><b id="score">0</b><span>% IA estimé</span></div>
+          <div class="gauge-value"><b id="score">0<small>%</small></b><span>probabilité IA</span></div>
         </div>
         <div>
-          <div class="verdict-label" id="verdict"></div>
+          <div class="verdict-badge" id="verdict"><span class="dot"></span><span id="verdict-text"></span></div>
+          <div class="conf" id="conf"></div>
           <div id="pills"></div>
           <div class="summary" id="summary"></div>
         </div>
+      </div>
+
+      <div class="zones">
+        <div class="zones-bar" id="zones-bar"></div>
+        <div class="zones-labels" id="zones-labels"></div>
+      </div>
+
+      <div class="breakdown">
+        <div class="bd" id="bd-model">
+          <div class="bd-head"><span id="bd-model-label">Analyse par IA</span><b id="bd-model-score">—</b></div>
+          <div class="bd-bar"><div id="bd-model-bar"></div></div>
+          <div class="bd-foot" id="bd-model-foot">Compte pour 75 % du score</div>
+        </div>
+        <div class="bd" id="bd-local">
+          <div class="bd-head"><span>Statistiques d'écriture</span><b id="bd-local-score">—</b></div>
+          <div class="bd-bar"><div id="bd-local-bar"></div></div>
+          <div class="bd-foot" id="bd-local-foot">Compte pour 25 % du score</div>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn ghost small" id="copy">Copier le résultat</button>
       </div>
 
       <div id="passages-block">
@@ -166,7 +229,56 @@
     probablement_ia: { label: 'Probablement une IA', color: '#F08A3C' },
     ia: { label: 'Généré par une IA', color: '#F0525A' },
   };
-  const CONFIDENCE = { faible: 'Confiance faible', moyenne: 'Confiance moyenne', elevee: 'Confiance élevée' };
+  const CONFIDENCE = { faible: ['Confiance faible', 1], moyenne: ['Confiance moyenne', 2], elevee: ['Confiance élevée', 3] };
+  // mêmes seuils que verdictOf côté bot
+  const ZONES = [
+    { to: 20, key: 'humain', label: 'Humain' },
+    { to: 40, key: 'probablement_humain', label: 'Prob. humain' },
+    { to: 65, key: 'incertain', label: 'Incertain' },
+    { to: 85, key: 'probablement_ia', label: 'Prob. IA' },
+    { to: 101, key: 'ia', label: 'IA' },
+  ];
+  const zoneOf = (score) => ZONES.find((z) => score < z.to) || ZONES[ZONES.length - 1];
+  const UNAVAILABLE = {
+    api_error: 'Les serveurs de Google sont saturés : réessaie dans quelques minutes pour une analyse complète.',
+    rate_limited: 'Quota gratuit de Google atteint : réessaie plus tard pour une analyse complète.',
+    refusal: "L'IA a refusé d'analyser ce texte.",
+    no_key: 'Analyse par IA non configurée sur le serveur.',
+    bad_key: "Clé d'API refusée par le fournisseur.",
+    empty: "L'IA n'a pas renvoyé de réponse.",
+  };
+  const engineName = (e) => !e ? 'IA' : /^gemini/i.test(e) ? 'Gemini ' + e.replace(/^gemini-/i, '').replace(/-/g, ' ') : /claude/i.test(e) ? 'Claude' : e;
+  let lastResult = null;
+
+  // graduations aux seuils des verdicts + barre des zones
+  (function drawScale() {
+    const g = $('gauge-ticks');
+    for (const t of [20, 40, 65, 85]) {
+      const a = Math.PI * t / 100;
+      const x = (r) => (120 - r * Math.cos(a)).toFixed(1), y = (r) => (120 - r * Math.sin(a)).toFixed(1);
+      g.insertAdjacentHTML('beforeend', `<line x1="${x(112)}" y1="${y(112)}" x2="${x(119)}" y2="${y(119)}"/>`);
+    }
+    let from = 0;
+    const widths = ZONES.map((z) => { const w = Math.min(z.to, 100) - from; from = Math.min(z.to, 100); return w; });
+    $('zones-bar').innerHTML = ZONES.map((z, i) => `<div style="flex:${widths[i]};background:${VERDICTS[z.key].color}"></div>`).join('') + '<span class="zones-marker" id="zones-marker"></span>';
+    $('zones-labels').innerHTML = ZONES.map((z, i) => `<span style="flex:${widths[i]}">${z.label}</span>`).join('');
+  })();
+
+  function animateGauge(target) {
+    const arc = $('gauge-arc'), knob = $('gauge-knob'), num = $('score');
+    const t0 = performance.now(), dur = 1100;
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const v = target * (1 - Math.pow(1 - p, 3));
+      arc.style.strokeDashoffset = 314.16 * (1 - v / 100);
+      const a = Math.PI * v / 100;
+      knob.setAttribute('cx', (120 - 100 * Math.cos(a)).toFixed(2));
+      knob.setAttribute('cy', (120 - 100 * Math.sin(a)).toFixed(2));
+      num.innerHTML = `${Math.round(v)}<small>%</small>`;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
   const ERRORS = {
     too_short: `Texte trop court : ${MIN} caractères minimum.`,
     too_long: `Texte trop long : ${MAX.toLocaleString('fr-FR')} caractères maximum.`,
@@ -232,20 +344,49 @@
 
   function render(text, data) {
     const v = VERDICTS[data.verdict] || VERDICTS.incertain;
-    $('result').style.display = '';
-    $('score').textContent = data.score;
-    const arc = $('gauge-arc');
-    arc.style.stroke = v.color;
-    arc.style.strokeDashoffset = 452.4 * (1 - data.score / 100);
-    $('verdict').textContent = v.label;
-    $('verdict').style.color = v.color;
-    const pills = [CONFIDENCE[data.confidence] || ''];
-    if (data.model && data.model.score !== undefined) pills.push(`Analyse IA : ${data.model.score} %`);
-    else pills.push('Analyse statistique seule');
-    pills.push(`Statistiques : ${data.local.score} %`);
-    $('pills').innerHTML = pills.filter(Boolean).map((p) => `<span class="pill">${esc(p)}</span>`).join('');
+    lastResult = data;
+    $('result').style.display = 'block';
+    animateGauge(data.score);
+    $('score').style.color = v.color;
+
+    const badge = $('verdict');
+    badge.style.color = v.color;
+    badge.style.borderColor = v.color + '55';
+    badge.style.background = v.color + '14';
+    $('verdict-text').textContent = v.label;
+
+    const [confLabel, level] = CONFIDENCE[data.confidence] || CONFIDENCE.faible;
+    $('conf').innerHTML = [1, 2, 3].map((i) => `<i class="${i <= level ? 'on' : ''}"></i>`).join('') + `<span>${confLabel}</span>`;
+
+    const zone = zoneOf(data.score);
+    $('zones-bar').querySelectorAll('div').forEach((el, i) => el.classList.toggle('on', ZONES[i] === zone));
+    $('zones-labels').querySelectorAll('span').forEach((el, i) => el.classList.toggle('on', ZONES[i] === zone));
+    $('zones-marker').style.left = `${data.score}%`;
+
+    const hasModel = data.model && data.model.score !== undefined;
+    $('pills').innerHTML = `<span class="pill">${data.text_length.toLocaleString('fr-FR')} caractères</span>`
+      + `<span class="pill">${hasModel ? 'Analyse complète' : 'Statistiques seules'}</span>`;
     $('summary').textContent = data.summary
-      || "Seuls les indices statistiques ont pu être calculés (analyse approfondie indisponible pour le moment) : le résultat est moins fiable.";
+      || `${UNAVAILABLE[data.model && data.model.unavailable] || 'Analyse par IA indisponible pour le moment.'} Seuls les indices statistiques ont été calculés : le résultat est moins fiable.`;
+
+    const bar = (id, score) => {
+      const el = $(id);
+      el.style.transition = 'none';
+      el.style.width = '0';
+      el.style.background = VERDICTS[zoneOf(score).key].color;
+      void el.offsetWidth;
+      el.style.transition = '';
+      el.style.width = `${score}%`;
+    };
+    $('bd-model').classList.toggle('off', !hasModel);
+    $('bd-model-label').textContent = hasModel ? `Analyse par ${engineName(data.model.engine)}` : 'Analyse par IA';
+    $('bd-model-score').textContent = hasModel ? `${data.model.score} %` : '—';
+    $('bd-model-foot').textContent = hasModel ? 'Compte pour 75 % du score' : 'Indisponible : non comptée';
+    bar('bd-model-bar', hasModel ? data.model.score : 0);
+    $('bd-local-score').textContent = `${data.local.score} %`;
+    $('bd-local-foot').textContent = hasModel ? 'Compte pour 25 % du score' : 'Compte pour 100 % du score';
+    bar('bd-local-bar', data.local.score);
+
     $('passages-block').style.display = data.passages.length ? '' : 'none';
     $('annotated').innerHTML = annotate(text, data.passages);
     $('signals').innerHTML = data.signals.length
@@ -253,6 +394,29 @@
       : '<li><span>Aucun indice marquant.</span></li>';
     $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  // résumé prêt à coller sur Discord
+  $('copy').addEventListener('click', async () => {
+    const d = lastResult;
+    if (!d) return;
+    const v = VERDICTS[d.verdict] || VERDICTS.incertain;
+    const hasModel = d.model && d.model.score !== undefined;
+    const lines = [
+      `**Détecteur d'IA — ${$('context').selectedOptions[0].text}**`,
+      `Score : **${d.score} %** · ${v.label} (${(CONFIDENCE[d.confidence] || CONFIDENCE.faible)[0].toLowerCase()})`,
+      hasModel ? `Analyse IA : ${d.model.score} % · Statistiques : ${d.local.score} %` : `Statistiques seules : ${d.local.score} %`,
+      d.summary ? `> ${d.summary}` : null,
+      '_Résultat indicatif, à confirmer en discutant avec le joueur._',
+    ].filter(Boolean);
+    const btn = $('copy');
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'));
+      btn.textContent = 'Copié ✓';
+    } catch {
+      btn.textContent = 'Copie impossible';
+    }
+    setTimeout(() => { btn.textContent = 'Copier le résultat'; }, 1800);
+  });
 
   $('analyze').addEventListener('click', async () => {
     const text = $('text').value.trim();
@@ -268,7 +432,7 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(ERRORS[data.error] || 'Erreur du serveur, réessaie.');
-      render(text, data);
+      render(text, { ...data, text_length: text.length });
     } catch (err) {
       $('error').textContent = err.message;
     } finally {
