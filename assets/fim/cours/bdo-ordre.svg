@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 452" width="800" height="452" role="img" aria-label="Exemple d'ordre de mission ÉCHO annoté : nom de code, chef nommé, heure de ralliement, RDE, objectif en phases et équipe.">
+<title>Anatomie d'un ordre de mission</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="452" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="451" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · BUREAU DES OPÉRATIONS</text>
+<text x="28" y="60" class="t">Anatomie d'un ordre de mission</text>
+<rect x="28" y="84" width="430" height="350" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="84" width="430" height="3" fill="#F0525A"/>
+<text x="46" y="112" class="h" style="font:700 15px JetBrains Mono,monospace;letter-spacing:1px">OPÉRATION ÉCHO</text>
+<rect x="300" y="98" width="70" height="20" fill="none" stroke="#F0525A"/><text x="335" y="112" class="mc" style="font-size:9px" fill="#F0525A">CRITIQUE</text>
+<rect x="376" y="98" width="70" height="20" fill="none" stroke="#5B6072"/><text x="411" y="112" class="mc" style="font-size:9px" fill="#9297A8">PLANIFIÉE</text>
+<text x="46" y="142" class="m" style="font-size:9.5px" fill="#5B6072">UNITÉ</text>
+<text x="150" y="142" class="s" fill="#E8EAF0">Epsilon-11</text>
+<text x="46" y="164" class="m" style="font-size:9.5px" fill="#5B6072">CHEF</text>
+<text x="150" y="164" class="s" fill="#E8EAF0">Sgt Durand</text>
+<text x="46" y="186" class="m" style="font-size:9.5px" fill="#5B6072">HEURE</text>
+<text x="150" y="186" class="s" fill="#E8EAF0">21 h 00 (ralliement)</text>
+<text x="46" y="208" class="m" style="font-size:9.5px" fill="#5B6072">RALLIEMENT</text>
+<text x="150" y="208" class="s" fill="#E8EAF0">Checkpoint</text>
+<text x="46" y="230" class="m" style="font-size:9.5px" fill="#5B6072">ZONE</text>
+<text x="150" y="230" class="s" fill="#E8EAF0">Zone de confinement lourde</text>
+<text x="46" y="252" class="m" style="font-size:9.5px" fill="#5B6072">CIBLE</text>
+<text x="150" y="252" class="s" fill="#E8EAF0">SCP-939</text>
+<text x="46" y="274" class="m" style="font-size:9.5px" fill="#5B6072">RDE</text>
+<text x="150" y="274" class="s" fill="#E8EAF0">RDE-2 Neutralisation</text>
+<line x1="46" y1="302" x2="440" y2="302" stroke="#2A2E3A"/>
+<text x="46" y="324" class="s" fill="#E8EAF0">Phase 1 : sécuriser le sas de la ZCL.</text>
+<text x="46" y="344" class="s" fill="#E8EAF0">Phase 2 : progression en binômes, silence radio.</text>
+<text x="46" y="364" class="s" fill="#E8EAF0">Phase 3 : repousser 939, verrouiller, rapport.</text>
+<line x1="46" y1="384" x2="440" y2="384" stroke="#2A2E3A"/>
+<text x="46" y="406" class="f">Leroy · tête   Moreau · kit   Petit · serre-file</text>
+<line x1="458" y1="108" x2="500" y2="108" stroke="#6E76FF" stroke-width="1.5"/><circle cx="500" cy="108" r="3" fill="#6E76FF"/>
+<text x="512" y="112" class="s" fill="#E8EAF0">Nom de code : un mot neutre</text>
+<line x1="458" y1="138" x2="500" y2="138" stroke="#F0A83C" stroke-width="1.5"/><circle cx="500" cy="138" r="3" fill="#F0A83C"/>
+<text x="512" y="142" class="s" fill="#E8EAF0">Toujours un chef nommé</text>
+<line x1="458" y1="182" x2="500" y2="182" stroke="#F0A83C" stroke-width="1.5"/><circle cx="500" cy="182" r="3" fill="#F0A83C"/>
+<text x="512" y="186" class="s" fill="#E8EAF0">L'heure de ralliement, pas</text>
+<text x="512" y="203" class="s">de départ</text>
+<line x1="458" y1="270" x2="500" y2="270" stroke="#F0525A" stroke-width="1.5"/><circle cx="500" cy="270" r="3" fill="#F0525A"/>
+<text x="512" y="274" class="s" fill="#E8EAF0">Toujours une RDE (défaut :</text>
+<text x="512" y="291" class="s">RDE-1 Riposte)</text>
+<line x1="458" y1="330" x2="500" y2="330" stroke="#4FD895" stroke-width="1.5"/><circle cx="500" cy="330" r="3" fill="#4FD895"/>
+<text x="512" y="334" class="s" fill="#E8EAF0">Objectif en phases</text>
+<text x="512" y="351" class="s">vérifiables, une action par ligne</text>
+<line x1="458" y1="402" x2="500" y2="402" stroke="#5AA9FF" stroke-width="1.5"/><circle cx="500" cy="402" r="3" fill="#5AA9FF"/>
+<text x="512" y="406" class="s" fill="#E8EAF0">Les noms et les rôles</text>
+</svg>

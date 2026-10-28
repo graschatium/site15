@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Chaîne FIM du Conseil O5 aux opérateurs, avec le Bureau des opérations entre le Commandement et les chefs ; Alpha-1 passe hors BDO ; les cinq postes du Bureau.">
+<title>Le BDO dans la chaîne FIM</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · BUREAU DES OPÉRATIONS</text>
+<text x="28" y="60" class="t">Le BDO dans la chaîne FIM</text>
+<rect x="60" y="84" width="300" height="52" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<rect x="60" y="84" width="3" height="52" fill="#5B6072"/>
+<text x="78" y="106" class="m" fill="#9297A8">CONSEIL O5</text>
+<text x="78" y="124" class="s">Autorité suprême</text>
+<line x1="210" y1="137" x2="210" y2="154" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="60" y="156" width="300" height="52" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<rect x="60" y="156" width="3" height="52" fill="#A78BFA"/>
+<text x="78" y="178" class="m" fill="#A78BFA">COMMANDEMENT FIM</text>
+<text x="78" y="196" class="s">Priorités, valide le Critique</text>
+<line x1="210" y1="209" x2="210" y2="226" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="60" y="228" width="300" height="52" fill="#151821" stroke="#6E76FF" stroke-width="2"/>
+<rect x="60" y="228" width="3" height="52" fill="#6E76FF"/>
+<text x="78" y="250" class="m" fill="#6E76FF">BUREAU DES OPÉRATIONS</text>
+<text x="78" y="268" class="s">Planifie, coordonne, suit</text>
+<line x1="210" y1="281" x2="210" y2="298" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="60" y="300" width="300" height="52" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<rect x="60" y="300" width="3" height="52" fill="#F0A83C"/>
+<text x="78" y="322" class="m" fill="#F0A83C">CHEFS D'UNITÉ / D'OPÉRATION</text>
+<text x="78" y="340" class="s">Commandent sur le terrain</text>
+<line x1="210" y1="353" x2="210" y2="370" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="60" y="372" width="300" height="52" fill="#151821" stroke="#2A2E3A" stroke-width="1"/>
+<rect x="60" y="372" width="3" height="52" fill="#4FD895"/>
+<text x="78" y="394" class="m" fill="#4FD895">OPÉRATEURS</text>
+<text x="78" y="412" class="s">Exécutent, rendent compte</text>
+<path d="M60 110 L30 110 L30 400 L58 400" fill="none" stroke="#F0525A" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+<text x="22" y="260" class="m" fill="#F0525A" transform="rotate(-90 22 260)" text-anchor="middle">ALPHA-1 : HORS BDO</text>
+<line x1="361" y1="254" x2="420" y2="254" stroke="#6E76FF" stroke-width="1.5"/>
+<line x1="420" y1="104" x2="420" y2="404" stroke="#6E76FF" stroke-width="1.5"/>
+<text x="440" y="96" class="m" fill="#6E76FF">LES POSTES DU BUREAU</text>
+<line x1="420" y1="134" x2="436" y2="134" stroke="#6E76FF" stroke-width="1.5"/>
+<rect x="436" y="112" width="336" height="46" fill="#151821" stroke="#2A2E3A"/>
+<text x="450" y="132" class="h" style="font-size:13.5px">Chef du BDO</text>
+<text x="450" y="149" class="s">Arbitre les priorités</text>
+<text x="760" y="132" class="m" fill="#5B6072" text-anchor="end">CAPITAINE +</text>
+<line x1="420" y1="194" x2="436" y2="194" stroke="#6E76FF" stroke-width="1.5"/>
+<rect x="436" y="172" width="336" height="46" fill="#151821" stroke="#2A2E3A"/>
+<text x="450" y="192" class="h" style="font-size:13.5px">Officier de planification</text>
+<text x="450" y="209" class="s">Rédige les ordres</text>
+<text x="760" y="192" class="m" fill="#5B6072" text-anchor="end">LIEUTENANT +</text>
+<line x1="420" y1="254" x2="436" y2="254" stroke="#6E76FF" stroke-width="1.5"/>
+<rect x="436" y="232" width="336" height="46" fill="#151821" stroke="#2A2E3A"/>
+<text x="450" y="252" class="h" style="font-size:13.5px">Opérateur de salle</text>
+<text x="450" y="269" class="s">Radio et journal</text>
+<text x="760" y="252" class="m" fill="#5B6072" text-anchor="end">SERGENT +</text>
+<line x1="420" y1="314" x2="436" y2="314" stroke="#6E76FF" stroke-width="1.5"/>
+<rect x="436" y="292" width="336" height="46" fill="#151821" stroke="#2A2E3A"/>
+<text x="450" y="312" class="h" style="font-size:13.5px">Officier de liaison</text>
+<text x="450" y="329" class="s">Autres départements</text>
+<text x="760" y="312" class="m" fill="#5B6072" text-anchor="end">LIEUTENANT +</text>
+<line x1="420" y1="374" x2="436" y2="374" stroke="#6E76FF" stroke-width="1.5"/>
+<rect x="436" y="352" width="336" height="46" fill="#151821" stroke="#2A2E3A"/>
+<text x="450" y="372" class="h" style="font-size:13.5px">Analyste</text>
+<text x="450" y="389" class="s">Débriefings, statistiques</text>
+<text x="760" y="372" class="m" fill="#5B6072" text-anchor="end">TOUT MEMBRE FORMÉ</text>
+</svg>

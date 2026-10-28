@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" width="800" height="440" role="img" aria-label="Quelle unité engager selon la situation : Epsilon-11, Nu-7, Bêta-7, Sigma-9, Xi-8, et Alpha-1 hors BDO, avec leurs indicatifs.">
+<title>Choisir l'unité</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="440" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="439" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · BUREAU DES OPÉRATIONS</text>
+<text x="28" y="60" class="t">Choisir l'unité</text>
+<rect x="28" y="92" width="240" height="134" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="92" width="240" height="3" fill="#F08A3C"/>
+<text x="44" y="122" class="h" style="font-size:17px" fill="#F08A3C">EPSILON-11</text>
+<text x="252" y="122" class="m" fill="#5B6072" text-anchor="end">RENARD</text>
+<text x="44" y="160" class="m" fill="#5B6072">QUAND</text>
+<text x="44" y="182" class="s" fill="#E8EAF0">Reconfinement</text>
+<text x="44" y="202" class="s">Code ORANGE et plus</text>
+<rect x="280" y="92" width="240" height="134" fill="#151821" stroke="#2A2E3A"/><rect x="280" y="92" width="240" height="3" fill="#5AA9FF"/>
+<text x="296" y="122" class="h" style="font-size:17px" fill="#5AA9FF">NU-7</text>
+<text x="504" y="122" class="m" fill="#5B6072" text-anchor="end">MARTEAU</text>
+<text x="296" y="160" class="m" fill="#5B6072">QUAND</text>
+<text x="296" y="182" class="s" fill="#E8EAF0">Défense, Insurrection</text>
+<text x="296" y="202" class="s">Gate A, code MAUVE</text>
+<rect x="532" y="92" width="240" height="134" fill="#151821" stroke="#2A2E3A"/><rect x="532" y="92" width="240" height="3" fill="#4FD895"/>
+<text x="548" y="122" class="h" style="font-size:17px" fill="#4FD895">BÊTA-7</text>
+<text x="756" y="122" class="m" fill="#5B6072" text-anchor="end">CHAPELIER</text>
+<text x="548" y="160" class="m" fill="#5B6072">QUAND</text>
+<text x="548" y="182" class="s" fill="#E8EAF0">Contamination</text>
+<text x="548" y="202" class="s">Radiations, code BLANC</text>
+<rect x="28" y="242" width="240" height="134" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="242" width="240" height="3" fill="#A78BFA"/>
+<text x="44" y="272" class="h" style="font-size:17px" fill="#A78BFA">SIGMA-9</text>
+<text x="252" y="272" class="m" fill="#5B6072" text-anchor="end">VALKYRIE</text>
+<text x="44" y="310" class="m" fill="#5B6072">QUAND</text>
+<text x="44" y="332" class="s" fill="#E8EAF0">Observation, appui</text>
+<text x="44" y="352" class="s">Tir et guidage en hauteur</text>
+<rect x="280" y="242" width="240" height="134" fill="#151821" stroke="#2A2E3A"/><rect x="280" y="242" width="240" height="3" fill="#F2CC40"/>
+<text x="296" y="272" class="h" style="font-size:17px" fill="#F2CC40">XI-8</text>
+<text x="504" y="272" class="m" fill="#5B6072" text-anchor="end">XI</text>
+<text x="296" y="310" class="m" fill="#5B6072">QUAND</text>
+<text x="296" y="332" class="s" fill="#E8EAF0">Menace sarkique</text>
+<text x="296" y="352" class="s">Artéfacts biologiques</text>
+<rect x="532" y="242" width="240" height="134" fill="#151821" stroke="#2A2E3A"/><rect x="532" y="242" width="240" height="3" fill="#E0443F"/>
+<text x="548" y="272" class="h" style="font-size:17px" fill="#E0443F">ALPHA-1</text>
+<text x="756" y="272" class="m" fill="#5B6072" text-anchor="end">MAIN</text>
+<text x="548" y="310" class="m" fill="#5B6072">QUAND</text>
+<text x="548" y="332" class="s" fill="#E8EAF0">Ordre du Conseil O5</text>
+<text x="548" y="352" class="s">Hors BDO</text>
+<text x="400" y="420" class="qc">Plusieurs unités engagées ensemble : ordre INTER-UNITÉS, un chef d'opération désigné.</text>
+</svg>

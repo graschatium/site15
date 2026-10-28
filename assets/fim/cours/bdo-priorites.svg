@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 455" width="800" height="455" role="img" aria-label="Les quatre priorités d'un ordre (routine, prioritaire, critique, oméga) : quand les utiliser, exemples et qui les valide.">
+<title>Fixer la priorité</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="455" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="454" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · BUREAU DES OPÉRATIONS</text>
+<text x="28" y="60" class="t">Fixer la priorité</text>
+<rect x="28" y="96" width="176" height="300" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="96" width="176" height="3" fill="#9297A8"/>
+<text x="42" y="124" class="m" fill="#E8EAF0">ROUTINE</text>
+<text x="42" y="150" class="s" fill="#E8EAF0">Rien d'urgent, planifié</text>
+<text x="42" y="186" class="m" fill="#5B6072">EXEMPLES</text>
+<text x="42" y="208" class="s">· Patrouille</text>
+<text x="42" y="228" class="s">· Escorte prévue</text>
+<text x="42" y="248" class="s">· Exercice</text>
+<line x1="42" y1="300" x2="190" y2="300" stroke="#2A2E3A"/>
+<text x="42" y="324" class="m" fill="#5B6072">VALIDATION</text>
+<text x="42" y="346" class="s" fill="#E8EAF0">BDO</text>
+<rect x="42" y="370" width="12" height="8" fill="#9297A8"/>
+<rect x="58" y="370" width="12" height="8" fill="#2A2E3A"/>
+<rect x="74" y="370" width="12" height="8" fill="#2A2E3A"/>
+<rect x="90" y="370" width="12" height="8" fill="#2A2E3A"/>
+<rect x="216" y="96" width="176" height="300" fill="#151821" stroke="#2A2E3A"/><rect x="216" y="96" width="176" height="3" fill="#5AA9FF"/>
+<text x="230" y="124" class="m" fill="#5AA9FF">PRIORITAIRE</text>
+<text x="230" y="150" class="s" fill="#E8EAF0">Incident réel, maîtrisé</text>
+<text x="230" y="186" class="m" fill="#5B6072">EXEMPLES</text>
+<text x="230" y="208" class="s">· Brèche Euclide isolée</text>
+<text x="230" y="228" class="s">· Intrusion limitée</text>
+<line x1="230" y1="300" x2="378" y2="300" stroke="#2A2E3A"/>
+<text x="230" y="324" class="m" fill="#5B6072">VALIDATION</text>
+<text x="230" y="346" class="s" fill="#E8EAF0">BDO</text>
+<rect x="230" y="370" width="12" height="8" fill="#5AA9FF"/>
+<rect x="246" y="370" width="12" height="8" fill="#5AA9FF"/>
+<rect x="262" y="370" width="12" height="8" fill="#2A2E3A"/>
+<rect x="278" y="370" width="12" height="8" fill="#2A2E3A"/>
+<rect x="404" y="96" width="176" height="300" fill="#151821" stroke="#2A2E3A"/><rect x="404" y="96" width="176" height="3" fill="#F0525A"/>
+<text x="418" y="124" class="m" fill="#F0525A">CRITIQUE</text>
+<text x="418" y="150" class="s" fill="#E8EAF0">Danger grave</text>
+<text x="418" y="186" class="m" fill="#5B6072">EXEMPLES</text>
+<text x="418" y="208" class="s">· Brèche Keter</text>
+<text x="418" y="228" class="s">· Brèches multiples</text>
+<text x="418" y="248" class="s">· Code MAUVE</text>
+<line x1="418" y1="300" x2="566" y2="300" stroke="#2A2E3A"/>
+<text x="418" y="324" class="m" fill="#5B6072">VALIDATION</text>
+<text x="418" y="346" class="s" fill="#E8EAF0">Commandement FIM</text>
+<rect x="418" y="370" width="12" height="8" fill="#F0525A"/>
+<rect x="434" y="370" width="12" height="8" fill="#F0525A"/>
+<rect x="450" y="370" width="12" height="8" fill="#F0525A"/>
+<rect x="466" y="370" width="12" height="8" fill="#2A2E3A"/>
+<rect x="592" y="96" width="176" height="300" fill="#151821" stroke="#2A2E3A"/><rect x="592" y="96" width="176" height="3" fill="#E0443F"/>
+<text x="606" y="124" class="m" fill="#E0443F">OMÉGA</text>
+<text x="606" y="150" class="s" fill="#E8EAF0">Menace pour tout le Site</text>
+<text x="606" y="186" class="m" fill="#5B6072">EXEMPLES</text>
+<text x="606" y="208" class="s">· Code NOIR</text>
+<text x="606" y="228" class="s">· Fin du Site</text>
+<line x1="606" y1="300" x2="754" y2="300" stroke="#2A2E3A"/>
+<text x="606" y="324" class="m" fill="#5B6072">VALIDATION</text>
+<text x="606" y="346" class="s" fill="#E8EAF0">Commandement / O5</text>
+<rect x="606" y="370" width="12" height="8" fill="#E0443F"/>
+<rect x="622" y="370" width="12" height="8" fill="#E0443F"/>
+<rect x="638" y="370" width="12" height="8" fill="#E0443F"/>
+<rect x="654" y="370" width="12" height="8" fill="#E0443F"/>
+<line x1="40" y1="418" x2="760" y2="418" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="40" y="438" class="q">Plus la priorité est haute, plus elle prend les moyens : une Critique prend les renforts d'une Routine, jamais l'inverse.</text>
+</svg>

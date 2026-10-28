@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 445" width="800" height="445" role="img" aria-label="Les neuf étapes d'une opération, de la demande à l'analyse, avec les statuts du terminal : planifiée, en cours, terminée.">
+<title>Le cycle de vie d'une opération</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="445" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="444" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · BUREAU DES OPÉRATIONS</text>
+<text x="28" y="60" class="t">Le cycle de vie d'une opération</text>
+<rect x="28" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="28" y="120" width="74" height="3" fill="#6E76FF"/>
+<text x="36" y="146" class="n" fill="#6E76FF">01</text>
+<text x="36" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">DEMANDE</text>
+<text x="36" y="230" class="f" style="font-size:11px">Incident,</text>
+<text x="36" y="246" class="f" style="font-size:11px">ordre</text>
+<line x1="102" y1="195" x2="110" y2="195" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="110" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="110" y="120" width="74" height="3" fill="#6E76FF"/>
+<text x="118" y="146" class="n" fill="#6E76FF">02</text>
+<text x="118" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">PLANIFI-</text>
+<text x="118" y="191" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">CATION</text>
+<text x="118" y="230" class="f" style="font-size:11px">Unité,</text>
+<text x="118" y="246" class="f" style="font-size:11px">équipe</text>
+<line x1="184" y1="195" x2="192" y2="195" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="192" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="192" y="120" width="74" height="3" fill="#A78BFA"/>
+<text x="200" y="146" class="n" fill="#A78BFA">03</text>
+<text x="200" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">ORDRE</text>
+<text x="200" y="191" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">PUBLIÉ</text>
+<text x="200" y="230" class="f" style="font-size:11px">Onglet</text>
+<text x="200" y="246" class="f" style="font-size:11px">Opérations</text>
+<line x1="266" y1="195" x2="274" y2="195" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="274" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="274" y="120" width="74" height="3" fill="#A78BFA"/>
+<text x="282" y="146" class="n" fill="#A78BFA">04</text>
+<text x="282" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">ANNONCE</text>
+<text x="282" y="230" class="f" style="font-size:11px">Discord,</text>
+<text x="282" y="246" class="f" style="font-size:11px">présences</text>
+<line x1="348" y1="195" x2="356" y2="195" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="356" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="356" y="120" width="74" height="3" fill="#F0A83C"/>
+<text x="364" y="146" class="n" fill="#F0A83C">05</text>
+<text x="364" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">LANCEMENT</text>
+<text x="364" y="230" class="f" style="font-size:11px">Au</text>
+<text x="364" y="246" class="f" style="font-size:11px">ralliement</text>
+<line x1="430" y1="195" x2="438" y2="195" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="438" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="438" y="120" width="74" height="3" fill="#F0A83C"/>
+<text x="446" y="146" class="n" fill="#F0A83C">06</text>
+<text x="446" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">CONDUITE</text>
+<text x="446" y="230" class="f" style="font-size:11px">Radio,</text>
+<text x="446" y="246" class="f" style="font-size:11px">journal</text>
+<line x1="512" y1="195" x2="520" y2="195" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="520" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="520" y="120" width="74" height="3" fill="#4FD895"/>
+<text x="528" y="146" class="n" fill="#4FD895">07</text>
+<text x="528" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">CLÔTURE</text>
+<text x="528" y="230" class="f" style="font-size:11px">Compte</text>
+<text x="528" y="246" class="f" style="font-size:11px">final</text>
+<line x1="594" y1="195" x2="602" y2="195" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="602" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="602" y="120" width="74" height="3" fill="#4FD895"/>
+<text x="610" y="146" class="n" fill="#4FD895">08</text>
+<text x="610" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">DÉBRIEF.</text>
+<text x="610" y="230" class="f" style="font-size:11px">Rapport</text>
+<text x="610" y="246" class="f" style="font-size:11px">après action</text>
+<line x1="676" y1="195" x2="684" y2="195" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="684" y="120" width="74" height="150" fill="#151821" stroke="#2A2E3A"/>
+<rect x="684" y="120" width="74" height="3" fill="#5AA9FF"/>
+<text x="692" y="146" class="n" fill="#5AA9FF">09</text>
+<text x="692" y="176" class="m" style="font-size:9.5px;letter-spacing:1px" fill="#E8EAF0">ANALYSE</text>
+<text x="692" y="230" class="f" style="font-size:11px">Leçons,</text>
+<text x="692" y="246" class="f" style="font-size:11px">doctrine</text>
+<text x="28" y="104" class="m" fill="#5B6072">STATUT DANS LE TERMINAL</text>
+<rect x="192" y="290" width="156" height="30" fill="#9297A8" fill-opacity=".14" stroke="#9297A8" stroke-opacity=".6"/>
+<text x="270.0" y="310" class="mc" fill="#E8EAF0">PLANIFIÉE</text>
+<rect x="356" y="290" width="156" height="30" fill="#F0A83C" fill-opacity=".14" stroke="#F0A83C" stroke-opacity=".6"/>
+<text x="434.0" y="310" class="mc" fill="#F0A83C">EN COURS</text>
+<rect x="520" y="290" width="156" height="30" fill="#4FD895" fill-opacity=".14" stroke="#4FD895" stroke-opacity=".6"/>
+<text x="598.0" y="310" class="mc" fill="#4FD895">TERMINÉE</text>
+<rect x="28" y="344" width="744" height="78" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="344" width="3" height="78" fill="#6E76FF"/>
+<text x="46" y="368" class="m" fill="#6E76FF">POUR LE BDO</text>
+<text x="46" y="390" class="s">Une opération n'est finie qu'une fois clôturée ET débriefée. Le terminal affiche « à rédiger »</text>
+<text x="46" y="408" class="s">tant que le débriefing manque. L'analyse transforme les leçons en doctrine et en cours.</text>
+</svg>
