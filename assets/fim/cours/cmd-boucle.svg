@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 475" width="800" height="475" role="img" aria-label="Cycle en cinq étapes : comprendre, préparer, décider, ordonner, contrôler, puis on recommence à chaque information nouvelle.">
+<title>La boucle du chef</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="475" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="474" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · COMMANDEMENT</text>
+<text x="28" y="60" class="t">La boucle du chef</text>
+<path d="M448.6 155.8 A138 138 0 0 1 507.8 198.9" fill="none" stroke="#5B6072" stroke-width="2" marker-end="url(#ar)"/>
+<path d="M537.9 291.3 A138 138 0 0 1 515.2 360.9" fill="none" stroke="#5B6072" stroke-width="2" marker-end="url(#ar)"/>
+<path d="M436.6 418.1 A138 138 0 0 1 363.4 418.1" fill="none" stroke="#5B6072" stroke-width="2" marker-end="url(#ar)"/>
+<path d="M284.8 360.9 A138 138 0 0 1 262.1 291.3" fill="none" stroke="#5B6072" stroke-width="2" marker-end="url(#ar)"/>
+<path d="M292.2 198.9 A138 138 0 0 1 351.4 155.8" fill="none" stroke="#5B6072" stroke-width="2" marker-end="url(#ar)"/>
+<circle cx="400" cy="285" r="62" fill="#151821" stroke="#2A2E3A"/>
+<text x="400" y="279" class="mc" fill="#E8EAF0">LA BOUCLE</text>
+<text x="400" y="297" class="mc" fill="#E8EAF0">DU CHEF</text>
+<circle cx="400.0" cy="147.0" r="30" fill="#151821" stroke="#6E76FF" stroke-width="2"/>
+<text x="400.0" y="152.0" class="mc" style="font-size:14px" fill="#6E76FF">01</text>
+<text x="400.0" y="89.0" class="m" fill="#6E76FF" text-anchor="middle">COMPRENDRE</text>
+<text x="400.0" y="107.0" class="s" text-anchor="middle">Objectif, moyens, risques</text>
+<circle cx="531.2" cy="242.4" r="30" fill="#151821" stroke="#A78BFA" stroke-width="2"/>
+<text x="531.2" y="247.4" class="mc" style="font-size:14px" fill="#A78BFA">02</text>
+<text x="573.2" y="238.4" class="m" fill="#A78BFA" text-anchor="start">PRÉPARER</text>
+<text x="573.2" y="256.4" class="s" text-anchor="start">Rôles, matériel, radio</text>
+<circle cx="481.1" cy="396.6" r="30" fill="#151821" stroke="#F0A83C" stroke-width="2"/>
+<text x="481.1" y="401.6" class="mc" style="font-size:14px" fill="#F0A83C">03</text>
+<text x="523.1" y="392.6" class="m" fill="#F0A83C" text-anchor="start">DÉCIDER</text>
+<text x="523.1" y="410.6" class="s" text-anchor="start">Choisir, garder un repli</text>
+<circle cx="318.9" cy="396.6" r="30" fill="#151821" stroke="#F0525A" stroke-width="2"/>
+<text x="318.9" y="401.6" class="mc" style="font-size:14px" fill="#F0525A">04</text>
+<text x="276.9" y="392.6" class="m" fill="#F0525A" text-anchor="end">ORDONNER</text>
+<text x="276.9" y="410.6" class="s" text-anchor="end">Ordre en 5 temps</text>
+<circle cx="268.8" cy="242.4" r="30" fill="#151821" stroke="#4FD895" stroke-width="2"/>
+<text x="268.8" y="247.4" class="mc" style="font-size:14px" fill="#4FD895">05</text>
+<text x="226.8" y="238.4" class="m" fill="#4FD895" text-anchor="end">CONTRÔLER</text>
+<text x="226.8" y="256.4" class="s" text-anchor="end">Compter, comptes rendus</text>
+<text x="400" y="455" class="qc">À chaque information nouvelle (contact, blessé, code), on repart de « Comprendre ».</text>
+</svg>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 452" width="800" height="452" role="img" aria-label="Recadrage en quatre temps : les faits, l'effet, l'attente, la suite, avec ce qu'il faut éviter et ce qu'il faut faire.">
+<title>Recadrer en quatre temps</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="452" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="451" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · COMMANDEMENT</text>
+<text x="28" y="60" class="t">Recadrer en quatre temps</text>
+<rect x="28" y="92" width="172" height="128" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="92" width="172" height="3" fill="#6E76FF"/>
+<text x="42" y="118" class="n" fill="#6E76FF">01</text>
+<text x="72" y="118" class="m" fill="#6E76FF">LES FAITS</text>
+<text x="42" y="156" class="q">« Tu as ouvert le feu</text>
+<text x="42" y="175" class="q">sans annonce. »</text>
+<line x1="203" y1="156" x2="215" y2="156" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="218" y="92" width="172" height="128" fill="#151821" stroke="#2A2E3A"/><rect x="218" y="92" width="172" height="3" fill="#F0A83C"/>
+<text x="232" y="118" class="n" fill="#F0A83C">02</text>
+<text x="262" y="118" class="m" fill="#F0A83C">L'EFFET</text>
+<text x="232" y="156" class="q">« Moreau était dans</text>
+<text x="232" y="175" class="q">ton secteur. »</text>
+<line x1="393" y1="156" x2="405" y2="156" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="408" y="92" width="172" height="128" fill="#151821" stroke="#2A2E3A"/><rect x="408" y="92" width="172" height="3" fill="#5AA9FF"/>
+<text x="422" y="118" class="n" fill="#5AA9FF">03</text>
+<text x="452" y="118" class="m" fill="#5AA9FF">L'ATTENTE</text>
+<text x="422" y="156" class="q">« La prochaine fois,</text>
+<text x="422" y="175" class="q">tu annonces. »</text>
+<line x1="583" y1="156" x2="595" y2="156" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)"/>
+<rect x="598" y="92" width="172" height="128" fill="#151821" stroke="#2A2E3A"/><rect x="598" y="92" width="172" height="3" fill="#4FD895"/>
+<text x="612" y="118" class="n" fill="#4FD895">04</text>
+<text x="642" y="118" class="m" fill="#4FD895">LA SUITE</text>
+<text x="612" y="156" class="q">« Je compte sur toi. »</text>
+<text x="400" y="246" class="qc">En privé, après l'opération, une fois calme. Laisse-le répondre avant de fixer l'attente.</text>
+<rect x="28" y="268" width="365" height="162" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="268" width="365" height="3" fill="#F0525A"/>
+<rect x="407" y="268" width="365" height="162" fill="#151821" stroke="#2A2E3A"/><rect x="407" y="268" width="365" height="3" fill="#4FD895"/>
+<text x="44" y="294" class="m" fill="#F0525A">À ÉVITER</text>
+<text x="423" y="294" class="m" fill="#4FD895">À FAIRE</text>
+<text x="44" y="322" class="s">✕  « T'es nul »</text>
+<text x="423" y="322" class="s" fill="#E8EAF0">✓  « Ce tir-là était dangereux »</text>
+<text x="44" y="348" class="s">✕  Recadrer devant toute l'équipe</text>
+<text x="423" y="348" class="s" fill="#E8EAF0">✓  Le prendre à part</text>
+<text x="44" y="374" class="s">✕  Ressortir toutes ses erreurs passées</text>
+<text x="423" y="374" class="s" fill="#E8EAF0">✓  Un fait précis et récent</text>
+<text x="44" y="400" class="s">✕  Exploser après trois oublis</text>
+<text x="423" y="400" class="s" fill="#E8EAF0">✓  Recadrer calmement dès la première fois</text>
+</svg>

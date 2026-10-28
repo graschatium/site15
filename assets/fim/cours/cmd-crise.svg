@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" width="800" height="460" role="img" aria-label="Les cinq réflexes en crise (stop, sécurité, une priorité, ordre court, rendre compte) et la pyramide des priorités : vie, confinement, objectif, matériel.">
+<title>Décider sous pression</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="460" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="459" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · COMMANDEMENT</text>
+<text x="28" y="60" class="t">Décider sous pression</text>
+<rect x="28" y="88" width="390" height="54" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="88" width="3" height="54" fill="#F0A83C"/>
+<text x="46" y="121" class="n" fill="#F0A83C">1</text>
+<text x="70" y="112" class="m" fill="#F0A83C">STOP</text>
+<text x="70" y="130" class="s">1 seconde pour respirer, pas plus</text>
+<line x1="223" y1="144" x2="223" y2="152" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="28" y="154" width="390" height="54" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="154" width="3" height="54" fill="#F0A83C"/>
+<text x="46" y="187" class="n" fill="#F0A83C">2</text>
+<text x="70" y="178" class="m" fill="#F0A83C">SÉCURITÉ</text>
+<text x="70" y="196" class="s">Mettre l'équipe à couvert</text>
+<line x1="223" y1="210" x2="223" y2="218" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="28" y="220" width="390" height="54" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="220" width="3" height="54" fill="#F0A83C"/>
+<text x="46" y="253" class="n" fill="#F0A83C">3</text>
+<text x="70" y="244" class="m" fill="#F0A83C">UNE PRIORITÉ</text>
+<text x="70" y="262" class="s">La seule chose à faire maintenant</text>
+<line x1="223" y1="276" x2="223" y2="284" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="28" y="286" width="390" height="54" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="286" width="3" height="54" fill="#F0A83C"/>
+<text x="46" y="319" class="n" fill="#F0A83C">4</text>
+<text x="70" y="310" class="m" fill="#F0A83C">ORDRE COURT</text>
+<text x="70" y="328" class="s">Un ordre par personne, nominatif</text>
+<line x1="223" y1="342" x2="223" y2="350" stroke="#5B6072" stroke-width="1.5"/>
+<rect x="28" y="352" width="390" height="54" fill="#151821" stroke="#2A2E3A"/><rect x="28" y="352" width="3" height="54" fill="#F0A83C"/>
+<text x="46" y="385" class="n" fill="#F0A83C">5</text>
+<text x="70" y="376" class="m" fill="#F0A83C">RENDRE COMPTE</text>
+<text x="70" y="394" class="s">SITREP, puis on reprend la boucle</text>
+<text x="600" y="100" class="mc" fill="#E8EAF0">PRIORITÉS EN CRISE</text>
+<path d="M544 118 L656 118 L686 182 L514 182 Z" fill="#F0525A" fill-opacity=".14" stroke="#F0525A" stroke-opacity=".7"/>
+<text x="600" y="148" class="mc" fill="#F0525A">1 · LA VIE</text>
+<text x="600" y="166" class="sc">opérateurs et personnel</text>
+<path d="M514 192 L686 192 L716 256 L484 256 Z" fill="#F0A83C" fill-opacity=".14" stroke="#F0A83C" stroke-opacity=".7"/>
+<text x="600" y="222" class="mc" fill="#F0A83C">2 · LE CONFINEMENT</text>
+<text x="600" y="240" class="sc">de l'anomalie</text>
+<path d="M484 266 L716 266 L746 330 L454 330 Z" fill="#5AA9FF" fill-opacity=".14" stroke="#5AA9FF" stroke-opacity=".7"/>
+<text x="600" y="296" class="mc" fill="#5AA9FF">3 · L'OBJECTIF</text>
+<text x="600" y="314" class="sc">de la mission</text>
+<path d="M454 340 L746 340 L776 404 L424 404 Z" fill="#5B6072" fill-opacity=".14" stroke="#5B6072" stroke-opacity=".7"/>
+<text x="600" y="370" class="mc" fill="#9297A8">4 · LE MATÉRIEL</text>
+<text x="600" y="388" class="sc">en dernier</text>
+<text x="400" y="440" class="qc">Le chef ne part pas seul au contact : l'équipe a besoin d'un chef, pas d'un tireur de plus.</text>
+</svg>

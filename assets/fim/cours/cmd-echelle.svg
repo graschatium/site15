@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Escalier de la réponse disciplinaire : remarque orale, observation, avertissement, signalement au commandement ; les sanctions lourdes sont décidées par le commandement.">
+<title>L'échelle de réponse</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · COMMANDEMENT</text>
+<text x="28" y="60" class="t">L'échelle de réponse</text>
+<rect x="40" y="330" width="164" height="74" fill="#151821" stroke="#2A2E3A"/>
+<rect x="40" y="330" width="164" height="3" fill="#4FD895"/>
+<text x="52" y="354" class="m" fill="#4FD895">REMARQUE ORALE</text>
+<text x="52" y="376" class="s" fill="#E8EAF0">1re erreur, sans gravité</text>
+<text x="52" y="396" class="f">Chef d'équipe</text>
+<rect x="216" y="268" width="164" height="136" fill="#151821" stroke="#2A2E3A"/>
+<rect x="216" y="268" width="164" height="3" fill="#5AA9FF"/>
+<text x="228" y="292" class="m" fill="#5AA9FF">OBSERVATION</text>
+<text x="228" y="314" class="s" fill="#E8EAF0">Erreur répétée</text>
+<text x="228" y="334" class="f">Chef / officier</text>
+<rect x="392" y="206" width="164" height="198" fill="#151821" stroke="#2A2E3A"/>
+<rect x="392" y="206" width="164" height="3" fill="#F0A83C"/>
+<text x="404" y="230" class="m" fill="#F0A83C">AVERTISSEMENT</text>
+<text x="404" y="252" class="s" fill="#E8EAF0">Faute réelle ou récidive</text>
+<text x="404" y="272" class="f">Officier</text>
+<rect x="568" y="144" width="164" height="260" fill="#151821" stroke="#2A2E3A"/>
+<rect x="568" y="144" width="164" height="3" fill="#F0525A"/>
+<text x="580" y="168" class="m" fill="#F0525A">SIGNALEMENT</text>
+<text x="580" y="190" class="s" fill="#E8EAF0">Faute grave, récidive</text>
+<text x="580" y="210" class="f">Officier → commandement</text>
+<line x1="40" y1="96" x2="40" y2="380" stroke="#5B6072" stroke-width="1.5" marker-start="url(#ar)" opacity="0"/>
+<line x1="56" y1="140" x2="540" y2="140" stroke="#5B6072" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#ar)" opacity="0"/>
+<text x="40" y="104" class="m" fill="#5B6072">GRAVITÉ ET RÉCIDIVE  →</text>
+<rect x="40" y="122" width="330" height="96" fill="#151821" stroke="#2A2E3A"/><rect x="40" y="122" width="3" height="96" fill="#A78BFA"/>
+<text x="56" y="146" class="m" fill="#A78BFA">SANCTIONS LOURDES</text>
+<text x="56" y="170" class="s">Rétrogradation, exclusion : le chef les propose,</text>
+<text x="56" y="188" class="s">le commandement décide.</text>
+<text x="40" y="424" class="q">Problème réel hors RP (insultes, troll, harcèlement) : ce n'est plus du commandement → signalement au staff.</text>
+</svg>

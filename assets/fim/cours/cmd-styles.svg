@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 460" width="800" height="460" role="img" aria-label="Quatre styles de commandement du plus directif au plus délégatif : formule type, quand l'utiliser, danger si on en abuse.">
+<title>Les quatre styles de commandement</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="460" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="459" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · COMMANDEMENT</text>
+<text x="28" y="60" class="t">Les quatre styles de commandement</text>
+<line x1="60" y1="104" x2="740" y2="104" stroke="#5B6072" stroke-width="1.5" marker-end="url(#ar)" marker-start="url(#ar)"/>
+<text x="60" y="94" class="m" fill="#9297A8">LE CHEF DÉCIDE SEUL</text>
+<text x="740" y="94" class="m" fill="#9297A8" text-anchor="end">L'ÉQUIPE DÉCIDE</text>
+<rect x="40" y="124" width="170" height="290" fill="#151821" stroke="#2A2E3A"/><rect x="40" y="124" width="170" height="3" fill="#F0525A"/>
+<text x="54" y="152" class="m" fill="#F0525A">DIRECTIF</text>
+<text x="54" y="182" class="q">« Fais ceci, maintenant. »</text>
+<text x="54" y="240" class="m" fill="#5B6072">QUAND</text>
+<text x="54" y="262" class="s" fill="#E8EAF0">Crise, contact,</text>
+<text x="54" y="280" class="s" fill="#E8EAF0">brèche, danger</text>
+<line x1="54" y1="320" x2="196" y2="320" stroke="#2A2E3A"/>
+<text x="54" y="344" class="m" fill="#5B6072">DANGER SI ABUS</text>
+<text x="54" y="366" class="s">Équipe passive</text>
+<rect x="225" y="124" width="170" height="290" fill="#151821" stroke="#2A2E3A"/><rect x="225" y="124" width="170" height="3" fill="#F0A83C"/>
+<text x="239" y="152" class="m" fill="#F0A83C">PERSUASIF</text>
+<text x="239" y="182" class="q">« Je décide et</text>
+<text x="239" y="199" class="q">j'explique pourquoi. »</text>
+<text x="239" y="240" class="m" fill="#5B6072">QUAND</text>
+<text x="239" y="262" class="s" fill="#E8EAF0">Mission nouvelle</text>
+<text x="239" y="280" class="s" fill="#E8EAF0">ou difficile</text>
+<line x1="239" y1="320" x2="381" y2="320" stroke="#2A2E3A"/>
+<text x="239" y="344" class="m" fill="#5B6072">DANGER SI ABUS</text>
+<text x="239" y="366" class="s">Lenteur en action</text>
+<rect x="410" y="124" width="170" height="290" fill="#151821" stroke="#2A2E3A"/><rect x="410" y="124" width="170" height="3" fill="#5AA9FF"/>
+<text x="424" y="152" class="m" fill="#5AA9FF">PARTICIPATIF</text>
+<text x="424" y="182" class="q">« Votre avis,</text>
+<text x="424" y="199" class="q">puis je tranche. »</text>
+<text x="424" y="240" class="m" fill="#5B6072">QUAND</text>
+<text x="424" y="262" class="s" fill="#E8EAF0">Préparation,</text>
+<text x="424" y="280" class="s" fill="#E8EAF0">entraînement, débrief</text>
+<line x1="424" y1="320" x2="566" y2="320" stroke="#2A2E3A"/>
+<text x="424" y="344" class="m" fill="#5B6072">DANGER SI ABUS</text>
+<text x="424" y="366" class="s">Chef qui ne tranche pas</text>
+<rect x="595" y="124" width="170" height="290" fill="#151821" stroke="#2A2E3A"/><rect x="595" y="124" width="170" height="3" fill="#4FD895"/>
+<text x="609" y="152" class="m" fill="#4FD895">DÉLÉGATIF</text>
+<text x="609" y="182" class="q">« Voici l'objectif,</text>
+<text x="609" y="199" class="q">à vous de jouer. »</text>
+<text x="609" y="240" class="m" fill="#5B6072">QUAND</text>
+<text x="609" y="262" class="s" fill="#E8EAF0">Équipe expérimentée,</text>
+<text x="609" y="280" class="s" fill="#E8EAF0">tâche maîtrisée</text>
+<line x1="609" y1="320" x2="751" y2="320" stroke="#2A2E3A"/>
+<text x="609" y="344" class="m" fill="#5B6072">DANGER SI ABUS</text>
+<text x="609" y="366" class="s">Équipe livrée à elle-même</text>
+<text x="400" y="438" class="qc">Le bon chef change de style selon la situation.</text>
+</svg>

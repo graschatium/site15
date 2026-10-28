@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450" role="img" aria-label="Temple du respect : sur le socle du grade, quatre piliers (exemplarité, compétence, justice, calme) portent le respect.">
+<title>Les quatre piliers du respect</title>
+<style>
+.e{font:11px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;fill:#6E76FF}
+.t{font:700 22px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.h{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0}
+.hc{font:700 15px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#E8EAF0;text-anchor:middle}
+.s{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+.sc{font:12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8;text-anchor:middle}
+.q{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6}
+.qc{font:italic 12.5px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#C9CCD6;text-anchor:middle}
+.m{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px}
+.mc{font:700 10.5px "JetBrains Mono",Consolas,monospace;letter-spacing:2px;text-anchor:middle}
+.n{font:700 13px "JetBrains Mono",Consolas,monospace}
+.f{font:12px "Space Grotesk","Segoe UI",Arial,sans-serif;fill:#9297A8}
+</style>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5B6072"/></marker></defs>
+<rect width="800" height="450" fill="#0E1016"/>
+<rect x="0.5" y="0.5" width="799" height="449" fill="none" stroke="#2A2E3A"/>
+<text x="28" y="34" class="e">FIM · COMMANDEMENT</text>
+<text x="28" y="60" class="t">Les quatre piliers du respect</text>
+<path d="M80 150 L400 92 L720 150 Z" fill="#151821" stroke="#6E76FF" stroke-width="1.5"/>
+<text x="400" y="136" class="mc" fill="#6E76FF">LE RESPECT</text>
+<rect x="100" y="162" width="135" height="176" fill="#151821" stroke="#2A2E3A"/>
+<rect x="100" y="162" width="135" height="3" fill="#4FD895"/>
+<rect x="110" y="176" width="6" height="150" fill="#4FD895" opacity=".18"/><rect x="219" y="176" width="6" height="150" fill="#4FD895" opacity=".18"/>
+<text x="167.5" y="210" class="mc" fill="#4FD895">EXEMPLARITÉ</text>
+<text x="167.5" y="248" class="sc">Je fais ce</text>
+<text x="167.5" y="266" class="sc">que j'exige</text>
+<rect x="255" y="162" width="135" height="176" fill="#151821" stroke="#2A2E3A"/>
+<rect x="255" y="162" width="135" height="3" fill="#5AA9FF"/>
+<rect x="265" y="176" width="6" height="150" fill="#5AA9FF" opacity=".18"/><rect x="374" y="176" width="6" height="150" fill="#5AA9FF" opacity=".18"/>
+<text x="322.5" y="210" class="mc" fill="#5AA9FF">COMPÉTENCE</text>
+<text x="322.5" y="248" class="sc">Je connais</text>
+<text x="322.5" y="266" class="sc">les procédures</text>
+<rect x="410" y="162" width="135" height="176" fill="#151821" stroke="#2A2E3A"/>
+<rect x="410" y="162" width="135" height="3" fill="#A78BFA"/>
+<rect x="420" y="176" width="6" height="150" fill="#A78BFA" opacity=".18"/><rect x="529" y="176" width="6" height="150" fill="#A78BFA" opacity=".18"/>
+<text x="477.5" y="210" class="mc" fill="#A78BFA">JUSTICE</text>
+<text x="477.5" y="248" class="sc">Même règle</text>
+<text x="477.5" y="266" class="sc">pour tous</text>
+<rect x="565" y="162" width="135" height="176" fill="#151821" stroke="#2A2E3A"/>
+<rect x="565" y="162" width="135" height="3" fill="#F0A83C"/>
+<rect x="575" y="176" width="6" height="150" fill="#F0A83C" opacity=".18"/><rect x="684" y="176" width="6" height="150" fill="#F0A83C" opacity=".18"/>
+<text x="632.5" y="210" class="mc" fill="#F0A83C">CALME</text>
+<text x="632.5" y="248" class="sc">Plus bas, plus lent</text>
+<text x="632.5" y="266" class="sc">quand ça chauffe</text>
+<rect x="80" y="346" width="640" height="34" fill="#151821" stroke="#2A2E3A"/>
+<text x="400" y="368" class="mc" fill="#9297A8">SOCLE : LE GRADE (le droit de commander)</text>
+<text x="400" y="414" class="qc">Le grade donne le droit de commander. Les quatre piliers donnent le respect.</text>
+</svg>
