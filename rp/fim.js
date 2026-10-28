@@ -13,6 +13,20 @@
   .fim-hero-eyebrow{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-2); }
   .fim-hero h2{ font-family:'Space Grotesk', sans-serif; font-size:21px; margin:6px 0 6px; }
   .fim-hero p{ color:var(--ink-dim); font-size:13px; line-height:1.65; max-width:640px; }
+  .fim-dispo{ display:flex; align-items:center; gap:14px 18px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--good); border-radius:3px; padding:14px 18px; margin:-8px 0 22px; }
+  .fim-dispo:empty{ display:none; }
+  .fim-dispo.away{ border-left-color:var(--bad); }
+  .fim-dispo.editing{ border-left-color:var(--accent); }
+  .fim-dispo-title{ width:100%; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:-6px; }
+  .fim-dispo-state{ display:flex; align-items:center; gap:12px; flex:1; min-width:220px; }
+  .fim-dispo-state i{ flex:none; width:10px; height:10px; border-radius:50%; background:var(--good); box-shadow:0 0 10px var(--good); }
+  .fim-dispo.away .fim-dispo-state i{ background:var(--bad); box-shadow:0 0 10px var(--bad); }
+  .fim-dispo-state b{ display:block; font-family:'Space Grotesk', sans-serif; font-size:15px; }
+  .fim-dispo-state span{ display:block; font-size:12.5px; color:var(--ink-dim); margin-top:2px; line-height:1.5; }
+  .fim-dispo-form{ display:grid; grid-template-columns:200px 1fr; gap:12px; flex:1; min-width:240px; }
+  .fim-dispo-form .field-row{ margin:0; }
+  .fim-dispo-actions{ display:flex; gap:8px; }
+  @media (max-width:640px){ .fim-dispo-form{ grid-template-columns:1fr; } .fim-dispo > .btn, .fim-dispo-actions{ width:100%; } .fim-dispo-actions .btn{ flex:1; } }
   .fim-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:14px; }
   .fim-unit-card{ display:flex; flex-direction:column; gap:12px; text-align:left; cursor:pointer; color:inherit; font-family:'Inter', sans-serif;
     background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--u); border-radius:3px; padding:18px;
@@ -2182,6 +2196,75 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     renfort: { label: 'Renfort', color: '#5AA9FF' },
     repli: { label: 'Repli', color: '#F0A83C' },
   };
+  // Ma disponibilité : un opérateur absent n'est plus mentionné dans les
+  // rappels Discord des ordres de mission (l'absence se lève à la date prévue).
+  async function renderAvailability(el, editing = false) {
+    if (!el) return;
+    let absence = null;
+    try {
+      absence = (await window.apiFetch('/api/rp/fim/me/availability')).absence;
+    } catch (e) {
+      el.innerHTML = '';
+      return;
+    }
+    if (!el.isConnected) return;
+    const day = (t) => new Date(t).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const todayIso = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    let html;
+    if (absence) {
+      html = `
+        <div class="fim-dispo-state"><i></i><div>
+          <b>Absent${absence.until ? ` jusqu'au ${esc(day(absence.until))}` : ''}</b>
+          <span>Tu n'es pas mentionné dans les rappels des opérations.${absence.reason ? ` Motif : ${esc(absence.reason)}` : ''}</span>
+        </div></div>
+        <button class="btn small" id="fim-dispo-back">Je suis de retour</button>`;
+    } else if (editing) {
+      html = `
+        <div class="fim-dispo-form">
+          <div class="field-row"><label>Retour prévu (facultatif)</label><input id="fim-dispo-until" type="date" min="${todayIso}"></div>
+          <div class="field-row"><label>Motif (facultatif)</label><input id="fim-dispo-reason" type="text" maxlength="200" placeholder="Vacances, examens…"></div>
+        </div>
+        <div class="fim-dispo-actions">
+          <button class="btn ghost small" id="fim-dispo-cancel">Annuler</button>
+          <button class="btn small" id="fim-dispo-ok">Confirmer</button>
+        </div>`;
+    } else {
+      html = `
+        <div class="fim-dispo-state"><i></i><div>
+          <b>Disponible</b>
+          <span>Tu es mentionné dans les rappels Discord des opérations, 30 min avant l'heure prévue.</span>
+        </div></div>
+        <button class="btn ghost small" id="fim-dispo-away">Je serai absent</button>`;
+    }
+    el.className = `fim-dispo${absence ? ' away' : ''}${editing && !absence ? ' editing' : ''}`;
+    el.innerHTML = `<div class="fim-dispo-title">Ma disponibilité</div>${html}`;
+
+    el.querySelector('#fim-dispo-away')?.addEventListener('click', () => renderAvailability(el, true));
+    el.querySelector('#fim-dispo-cancel')?.addEventListener('click', () => renderAvailability(el));
+    el.querySelector('#fim-dispo-ok')?.addEventListener('click', async (e) => {
+      const date = el.querySelector('#fim-dispo-until').value;
+      const until = date ? new Date(`${date}T23:59:59`).getTime() : null; // fin de journée, heure locale
+      e.currentTarget.disabled = true;
+      try {
+        await window.apiFetch('/api/rp/fim/me/absence', { method: 'PUT', body: JSON.stringify({ until, reason: el.querySelector('#fim-dispo-reason').value.trim() }) });
+        window.showToast('Absence enregistrée : tu ne seras plus mentionné dans les rappels.', 'success');
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+      renderAvailability(el);
+    });
+    el.querySelector('#fim-dispo-back')?.addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true;
+      try {
+        await window.apiFetch('/api/rp/fim/me/absence', { method: 'DELETE' });
+        window.showToast('Bon retour parmi nous !', 'success');
+      } catch (err) {
+        window.showToast(`Erreur : ${err.message}`, 'error');
+      }
+      renderAvailability(el);
+    });
+  }
+
   async function loadOperations() {
     const root = document.getElementById('terminal-main');
     mainOverride = null;
@@ -2230,9 +2313,11 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         <h2>Opérations</h2>
         <p>Le commandement émet les ordres : chef d'opération, équipe, heure, point de ralliement et règles d'engagement. Pendant l'opération, chaque opérateur alimente le journal de bord. Une fois clôturée, elle se termine par un débriefing.</p>
       </div>
+      <div id="fim-dispo"></div>
       ${subTabs(tabs, opsFilter, 'data-f')}
       <div id="fim-ops-body"></div>
     `;
+    renderAvailability(document.getElementById('fim-dispo'));
     root.querySelectorAll('[data-f]').forEach((b) => b.addEventListener('click', () => {
       if (b.dataset.f !== 'nouvelle') { editingOp = null; copyOp = null; }
       opsFilter = b.dataset.f;
