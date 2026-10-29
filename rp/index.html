@@ -5045,7 +5045,7 @@
 
   // Liens directs : /rp/?fim (terminal FIM, ?fim=evals|formations|cours|ops|dispo|unites|bibliotheque),
   // /rp/?portail, /rp/?eval=<id>, /rp/?formation=<id>
-  const FIM_TAB_ALIASES = { qg: 'fim-hq', hq: 'fim-hq', ops: 'fim-ops', operations: 'fim-ops', dispo: 'fim-ops', absence: 'fim-ops', unites: 'fim-units', bibliotheque: 'fim-library', cours: 'fim-courses', evals: 'fim-evals', evaluations: 'fim-evals', formations: 'fim-evals', formation: 'fim-library', savoir: 'fim-library', personnel: 'fim-units', gestion: 'fim-gestion' };
+  const FIM_TAB_ALIASES = { qg: 'fim-hq', hq: 'fim-hq', ops: 'fim-ops', operations: 'fim-ops', dispo: 'fim-ops', absence: 'fim-ops', unites: 'fim-units', bibliotheque: 'fim-library', cours: 'fim-courses', evals: 'fim-evals', evaluations: 'fim-evals', formations: 'fim-evals', formation: 'fim-library', savoir: 'fim-library', personnel: 'fim-units', gestion: 'fim-gestion', effectifs: 'fim-effectifs', dossiers: 'fim-effectifs' };
   function readDeepLink() {
     const q = new URLSearchParams(location.search);
     if (q.has('eval')) return { evalId: q.get('eval') };

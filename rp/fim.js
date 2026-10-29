@@ -902,6 +902,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   const TAB_GROUPS = {
     'fim-units': [
       { id: 'fim-units', label: 'Unités', icon: 'shield' },
+      { id: 'fim-effectifs', label: 'Effectifs', icon: 'badge' },
       { id: 'fim-gestion', label: 'Gestion', icon: 'people', gestion: true },
     ],
     'fim-formation': [
@@ -1218,6 +1219,8 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   let selectedUnit = 'EPSILON-11';
   let unitsView = 'bataille';
   function loadUnits(deptId) {
+    // Effectifs et dossiers : section à part de l'onglet Personnel
+    if (unitsView === 'effectifs') { unitsView = 'bataille'; goTab('fim-effectifs'); return; }
     const root = rootEl();
     mainOverride = null;
     root.innerHTML = `
@@ -1226,7 +1229,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         <h2>Forces d'Intervention Mobiles du Site-15</h2>
         <p>${UNITS.length} unités, chacune avec sa spécialité, son indicatif et ses règles${unitsCanManage ? ' : en tant qu’officier, tu peux modifier leurs fiches, en créer ou en archiver' : ''}. L'unité d'un opérateur vient de l'unité imposée dans son dossier, sinon de son rôle d'unité sur le Discord FIM, sinon de sa division.</p>
       </div>
-      ${subTabs([['direction', 'Direction'], ['bataille', 'Ordre de bataille'], ['effectifs', 'Effectifs et dossiers'], ['activite', 'Activité']], unitsView, 'data-uv')}
+      ${subTabs([['direction', 'Direction'], ['bataille', 'Ordre de bataille'], ['activite', 'Activité']], unitsView, 'data-uv')}
       <div id="fim-units-body"></div>`;
     root.querySelectorAll('[data-uv]').forEach((b) => b.addEventListener('click', () => {
       unitsView = b.dataset.uv;
@@ -1234,7 +1237,6 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     }));
     mainOverride = document.getElementById('fim-units-body');
     if (unitsView === 'direction') loadDirection();
-    else if (unitsView === 'effectifs') loadStaff();
     else if (unitsView === 'activite') loadActivity();
     else loadBattleOrder();
   }
@@ -6251,6 +6253,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       else if (tabId === 'fim-courses') loadCourses();
       else if (tabId === 'fim-evals') loadEvaluations(deptId);
       else if (tabId === 'fim-gestion') loadGestion();
+      else if (tabId === 'fim-effectifs') { mainOverride = null; loadStaff(); }
       markSeen(tabId);
       refreshBadges(tabId).catch(() => {});
     },
