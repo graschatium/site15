@@ -4711,6 +4711,49 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
   .fim-zones i{ display:block; height:100%; }
   .fim-zones-legend{ display:flex; justify-content:space-between; font-family:'JetBrains Mono', monospace; font-size:9.5px; color:var(--ink-faint); }
   .fim-editor-section{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-2); margin:20px 0 10px; padding-left:8px; border-left:2px solid var(--accent); }
+  .fim-pn{ margin-top:4px; }
+  .fim-pn-tabs{ display:flex; gap:0; border:1px solid var(--line); border-radius:3px; overflow:hidden; width:max-content; max-width:100%; margin-bottom:12px; }
+  .fim-pn-tabs button{ padding:7px 14px; border:0; border-right:1px solid var(--line); background:var(--void-2); color:var(--ink-dim); font:600 12px 'Inter', sans-serif; cursor:pointer; white-space:nowrap; }
+  .fim-pn-tabs button:last-child{ border-right:0; }
+  .fim-pn-tabs button.on{ background:var(--accent); color:#fff; }
+  .fim-pn-pane[hidden]{ display:none; }
+  .fim-pn-table{ border:1px solid var(--line); border-radius:3px; overflow-x:auto; background:var(--panel); margin-bottom:12px; }
+  .fim-pn-table table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .fim-pn-table caption{ caption-side:top; text-align:left; padding:8px 12px; font:700 12.5px 'Space Grotesk', sans-serif; background:color-mix(in srgb, var(--accent) 14%, var(--panel)); border-bottom:1px solid var(--line); }
+  .fim-pn-table caption small{ font:500 11px 'Inter', sans-serif; color:var(--ink-dim); margin-left:6px; }
+  .fim-pn-table th{ font:600 10px 'JetBrains Mono', monospace; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-faint); background:var(--void-2); padding:7px 10px; border-bottom:1px solid var(--line); border-right:1px solid var(--line); text-align:center; white-space:nowrap; }
+  .fim-pn-table th:first-child{ text-align:left; }
+  .fim-pn-table td{ padding:7px 10px; border-bottom:1px solid var(--line); border-right:1px solid var(--line); text-align:center; vertical-align:middle; }
+  .fim-pn-table th:last-child, .fim-pn-table td:last-child{ border-right:0; }
+  .fim-pn-table tbody tr:nth-child(even){ background:color-mix(in srgb, var(--void-2) 55%, transparent); }
+  .fim-pn-table tfoot td{ background:var(--void-2); font-weight:700; border-bottom:0; }
+  .fim-pn-table td.mat{ text-align:left; border-left:4px solid var(--c); min-width:170px; }
+  .fim-pn-table td.mat b{ display:block; font-weight:600; }
+  .fim-pn-table td.mat small{ display:block; font-size:10.5px; color:var(--ink-faint); }
+  .fim-pn-table td.moy{ font:700 15px 'Space Grotesk', sans-serif; }
+  .fim-pn-table td.dim{ color:var(--ink-dim); font-family:'JetBrains Mono', monospace; font-size:11.5px; }
+  .fim-pn-table td.notes{ text-align:left; }
+  .fim-pn-note{ display:inline-flex; flex-direction:column; align-items:center; margin:2px 3px 2px 0; padding:3px 7px; min-width:44px; border:1px solid var(--line); border-bottom:2px solid var(--c); border-radius:2px; background:var(--void-2); color:var(--ink); cursor:pointer; }
+  .fim-pn-note:hover{ border-color:var(--c); }
+  .fim-pn-note b{ font:700 12.5px 'Space Grotesk', sans-serif; color:var(--c); }
+  .fim-pn-note small{ font:9.5px 'JetBrains Mono', monospace; color:var(--ink-faint); }
+  .fim-pn-dot{ display:inline-grid; place-items:center; width:18px; height:18px; border-radius:50%; background:var(--c); color:#0b0d12; font:800 12px 'Inter', sans-serif; line-height:1; vertical-align:middle; }
+  .fim-pn-dot.none{ background:none; color:var(--ink-faint); font-weight:400; }
+  .fim-pn-legend{ display:flex; gap:8px 16px; flex-wrap:wrap; font-size:11px; color:var(--ink-dim); margin:2px 0 12px; }
+  .fim-pn-legend span{ display:flex; align-items:center; gap:6px; }
+  .fim-pn-legend .fim-pn-dot{ width:14px; height:14px; font-size:10px; }
+  .fim-pn-crit{ text-align:left !important; min-width:180px; }
+  .fim-pn-crit small{ color:var(--accent-2); font-family:'JetBrains Mono', monospace; font-size:10px; margin-left:4px; }
+  .fim-pn-date{ font:600 10px 'JetBrains Mono', monospace; color:var(--ink-faint); line-height:1.3; }
+  .fim-pn-date b{ display:block; color:var(--ink-dim); font-weight:600; }
+  .fim-pn-mode{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px; }
+  .fim-pn-mode .fim-pn-tabs{ margin:0; }
+  .fim-pn-class tbody tr{ cursor:pointer; }
+  .fim-pn-class tbody tr:hover{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
+  .fim-pn-class td.who{ text-align:left; white-space:nowrap; border-left:3px solid var(--u, var(--line)); }
+  .fim-pn-class td.who small{ display:block; font-size:10.5px; color:var(--ink-faint); }
+  .fim-pn-class td.n20{ font:700 13px 'Space Grotesk', sans-serif; }
+  .fim-pn-class th.sortable{ cursor:pointer; } .fim-pn-class th.sortable:hover, .fim-pn-class th.on{ color:var(--accent-2); }
   @media (max-width:900px){ .fim-eval-layout, .fim-eval-head{ grid-template-columns:1fr; } .fim-eval-list{ position:static; } .fim-radar{ margin:0 auto; }
     .fim-editor-row{ grid-template-columns:1fr 1fr; } .fim-crit-row{ grid-template-columns:1fr; } .fim-rate{ justify-content:flex-start; } }
   `;
@@ -4844,6 +4887,135 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         window.showToast(`Erreur : ${err.message}`, 'error');
       }
     }));
+  }
+
+  // ---- Présentation façon Pronote : relevé de notes, compétences, tableau ----
+  const MASTERY = [
+    { min: 75, label: 'Très bonne maîtrise', mark: '+', color: '#1FA463' },
+    { min: 50, label: 'Maîtrise satisfaisante', mark: '', color: '#4FD895' },
+    { min: 25, label: 'Maîtrise fragile', mark: '', color: '#F2CC40' },
+    { min: 0, label: 'Maîtrise insuffisante', mark: '', color: '#F0525A' },
+  ];
+  const on20 = (p) => (p == null ? '—' : fr(p / 5, 2));
+  const shortDate = (t) => (t ? new Date(t).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '');
+  function masteryDot(p, title) {
+    if (p == null) return '<span class="fim-pn-dot none">—</span>';
+    const m = MASTERY.find((x) => p >= x.min);
+    return `<span class="fim-pn-dot" style="--c:${m.color}" title="${esc(title ? `${title} · ` : '')}${m.label}">${m.mark}</span>`;
+  }
+  // Statistiques de la promotion par grille : moyenne, plus basse, plus haute
+  // (sur les moyennes de chaque opérateur).
+  function gridStatsOf(people) {
+    const per = new Map();
+    people.forEach((p) => {
+      const by = new Map();
+      p.evals.forEach((e) => { if (e.percent != null) by.set(e.gridId, [...(by.get(e.gridId) || []), e.percent]); });
+      by.forEach((vals, g) => per.set(g, [...(per.get(g) || []), avgOf(vals)]));
+    });
+    const out = new Map();
+    per.forEach((vals, g) => out.set(g, { avg: avgOf(vals), min: Math.min(...vals), max: Math.max(...vals), n: vals.length }));
+    return out;
+  }
+  function releveBlock(evals, stats) {
+    const grids = gridsFromEvals(evals);
+    if (!grids.length) return '<div class="empty-row">Aucune note pour le moment.</div>';
+    const overall = avgOf(evals.map((e) => e.percent).filter((v) => v != null));
+    const rows = grids.map((g) => {
+      const mine = evals.filter((e) => e.gridId === g.id).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      const avg = avgOf(mine.map((e) => e.percent).filter((v) => v != null));
+      const st = stats?.get(g.id);
+      const last = mine[mine.length - 1];
+      return `<tr>
+        <td class="mat" style="--c:${pctColor(avg)}"><b>${esc(g.name)}</b><small>${mine.length} note${mine.length > 1 ? 's' : ''} · ${esc(scaleSummary(g.scale))}</small></td>
+        <td class="moy" style="color:${pctColor(avg)}">${on20(avg)}</td>
+        <td class="dim">${st ? on20(st.avg) : '—'}</td>
+        <td class="dim">${st ? on20(st.min) : '—'}</td>
+        <td class="dim">${st ? on20(st.max) : '—'}</td>
+        <td class="notes">${mine.map((e) => `<button type="button" class="fim-pn-note" data-pn-goto="${esc(e.id)}" style="--c:${pctColor(e.percent)}" title="${esc(`${fmtDate(e.createdAt)} · ${CONTEXT_LABELS[e.context] || e.context || ''} · ${e.evaluatorName || ''} · ${on20(e.percent)}/20`)}"><b>${esc(pctInScale(g.scale, e.percent))}</b><small>${shortDate(e.createdAt)}</small></button>`).join('')}</td>
+        <td>${last ? pill(VERDICT_META[last.verdict] || VERDICT_META.conforme) : ''}</td>
+      </tr>`;
+    }).join('');
+    const statAll = stats ? avgOf([...stats.values()].map((x) => x.avg)) : null;
+    return `<div class="fim-pn-table"><table>
+      <caption>Relevé de notes<small>moyennes ramenées sur 20 · clique une note pour le détail</small></caption>
+      <thead><tr><th>Grille</th><th>Moyenne</th><th>Moy. FIM</th><th>+ basse</th><th>+ haute</th><th>Notes</th><th>Dernier avis</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td style="text-align:left;">Moyenne générale</td><td class="moy" style="color:${pctColor(overall)}">${on20(overall)}</td><td class="dim">${statAll == null ? '—' : on20(statAll)}</td><td colspan="4"></td></tr></tfoot>
+    </table></div>`;
+  }
+  function competencesBlock(evals) {
+    const grids = gridsFromEvals(evals);
+    if (!grids.length) return '<div class="empty-row">Aucune compétence évaluée.</div>';
+    const legend = `<div class="fim-pn-legend">${MASTERY.map((m) => `<span>${masteryDot(m.min + 1)}${m.label}</span>`).join('')}</div>`;
+    return legend + grids.map((g) => {
+      const list = evals.filter((e) => e.gridId === g.id).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).slice(-8);
+      return `<div class="fim-pn-table"><table>
+        <caption>${esc(g.name)}<small>${list.length} évaluation${list.length > 1 ? 's' : ''}${list.length === 8 ? ' (8 dernières)' : ''}</small></caption>
+        <thead><tr><th>Compétence</th>${list.map((e) => `<th><span class="fim-pn-date"><b>${shortDate(e.createdAt)}</b>${esc((CONTEXT_LABELS[e.context] || '').slice(0, 10))}</span></th>`).join('')}<th>Bilan</th></tr></thead>
+        <tbody>${g.criteria.map((c) => {
+          const vals = list.map((e) => rawPercent(e.grid.scale, e.scores?.[c.id]));
+          return `<tr><td class="fim-pn-crit">${esc(c.label)}${c.weight !== 1 ? `<small>×${fr(c.weight, 2)}</small>` : ''}</td>
+            ${list.map((e, i) => `<td>${masteryDot(vals[i], `${c.label} : ${rawLabel(e.grid.scale, e.scores?.[c.id])}`)}</td>`).join('')}
+            <td>${masteryDot(avgOf(vals.filter((v) => v != null)), `${c.label} : moyenne`)}</td></tr>`;
+        }).join('')}</tbody>
+      </table></div>`;
+    }).join('');
+  }
+  // Onglets Relevé / Compétences / Évaluations détaillées (clics délégués plus bas).
+  let notesTab = 'releve';
+  function notesBlock(evals, cardsHtml, stats) {
+    const tab = deepEvalId ? 'detail' : notesTab;
+    const panes = [['releve', 'Relevé de notes', () => releveBlock(evals, stats)], ['competences', 'Compétences', () => competencesBlock(evals)], ['detail', 'Évaluations détaillées', () => cardsHtml]];
+    return `<div class="fim-pn">
+      <div class="fim-pn-tabs">${panes.map(([k, l]) => `<button type="button" data-pn-tab="${k}" class="${k === tab ? 'on' : ''}">${l}</button>`).join('')}</div>
+      ${panes.map(([k, , html]) => `<div class="fim-pn-pane" data-pn-pane="${k}" ${k === tab ? '' : 'hidden'}>${html()}</div>`).join('')}
+    </div>`;
+  }
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-pn-tab], [data-pn-goto]');
+    if (!t) return;
+    const box = t.closest('.fim-pn');
+    if (!box) return;
+    const show = (k) => {
+      notesTab = k;
+      box.querySelectorAll('[data-pn-tab]').forEach((b) => b.classList.toggle('on', b.dataset.pnTab === k));
+      box.querySelectorAll('[data-pn-pane]').forEach((x) => { x.hidden = x.dataset.pnPane !== k; });
+    };
+    if (t.dataset.pnTab) { show(t.dataset.pnTab); return; }
+    show('detail');
+    focusTarget(box.querySelector(`[data-eval-id="${CSS.escape(t.dataset.pnGoto)}"]`));
+  });
+  // Tableau des notes de la FIM (vue commandement) : une ligne par opérateur.
+  let evalPeopleMode = 'fiches';
+  let classSort = 'name';
+  function classTable(list) {
+    const people = list.filter((p) => p.evals.length);
+    if (!people.length) return '<div class="empty-row">Aucune évaluation enregistrée.</div>';
+    const count = new Map();
+    people.forEach((p) => p.evals.forEach((e) => count.set(e.gridId, (count.get(e.gridId) || 0) + 1)));
+    const grids = gridsFromEvals(people.flatMap((p) => p.evals)).sort((a, b) => count.get(b.id) - count.get(a.id)).slice(0, 8);
+    const rows = people.map((p) => {
+      const by = {};
+      grids.forEach((g) => { by[g.id] = avgOf(p.evals.filter((e) => e.gridId === g.id && e.percent != null).map((e) => e.percent)); });
+      return { p, by, general: avgOf(p.evals.map((e) => e.percent).filter((v) => v != null)), last: Math.max(...p.evals.map((e) => e.createdAt || 0)) };
+    });
+    const ranked = rows.filter((r) => r.general != null).sort((a, b) => b.general - a.general);
+    rows.forEach((r) => { r.rank = r.general == null ? null : ranked.findIndex((x) => x.general === r.general) + 1; });
+    rows.sort((a, b) => (classSort === 'avg' ? (b.general ?? -1) - (a.general ?? -1) : a.p.name.localeCompare(b.p.name, 'fr')));
+    const col = (vals) => vals.filter((v) => v != null);
+    const foot = (label, fn) => `<tr><td style="text-align:left;">${label}</td>${grids.map((g) => { const v = col(rows.map((r) => r.by[g.id])); return `<td>${v.length ? on20(fn(v)) : '—'}</td>`; }).join('')}<td>${(() => { const v = col(rows.map((r) => r.general)); return v.length ? on20(fn(v)) : '—'; })()}</td><td colspan="2"></td></tr>`;
+    return `<div class="fim-pn-table fim-pn-class"><table>
+      <caption>Tableau des notes<small>${rows.length} opérateur${rows.length > 1 ? 's' : ''} évalué${rows.length > 1 ? 's' : ''} · moyennes sur 20 · clique une ligne pour ouvrir la fiche</small></caption>
+      <thead><tr><th class="sortable${classSort === 'name' ? ' on' : ''}" data-class-sort="name">Opérateur</th>${grids.map((g) => `<th title="${esc(g.name)}">${esc(g.name.length > 14 ? `${g.name.slice(0, 13)}…` : g.name)}</th>`).join('')}<th class="sortable${classSort === 'avg' ? ' on' : ''}" data-class-sort="avg">Moy. gén.</th><th>Rang</th><th>Dernière</th></tr></thead>
+      <tbody>${rows.map((r) => `<tr data-class-person="${esc(r.p.name)}">
+        <td class="who" style="--u:${r.p.unit ? unitColor(r.p.unit) : 'var(--line)'}">${esc(r.p.name)}<small>${esc(r.p.unit ? unitLabel(r.p.unit) : r.p.tags.filter((t) => t !== 'FIM').join(' · ') || 'Sans unité')}</small></td>
+        ${grids.map((g) => `<td class="n20" style="color:${pctColor(r.by[g.id])}">${on20(r.by[g.id])}</td>`).join('')}
+        <td class="n20" style="color:${pctColor(r.general)}; font-size:14.5px;">${on20(r.general)}</td>
+        <td class="dim">${r.rank ? `${r.rank}<sup>${r.rank === 1 ? 'er' : 'e'}</sup>` : '—'}</td>
+        <td class="dim">${shortDate(r.last)}</td>
+      </tr>`).join('')}</tbody>
+      <tfoot>${foot('Moyenne FIM', avgOf)}${foot('+ basse', (v) => Math.min(...v))}${foot('+ haute', (v) => Math.max(...v))}</tfoot>
+    </table></div>`;
   }
 
   // En-tête de profil : radar + barres pour UNE grille, moyenne globale en %.
@@ -4981,8 +5153,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
           </div>` : `<div class="fim-eval-profile" style="--u:${color}">
             <div style="display:flex; justify-content:flex-end; margin:-8px 0 6px;"><button class="btn ghost small" id="fim-export-btn" type="button">Exporter ma fiche</button></div>
             ${profileBlock(data.self || '—', unitId, evaluations, gv, color, choices)}
-            <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 12px;">Historique</h3>
-            ${evaluations.length ? evaluations.map((e) => evalCard(e, false)).join('') : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}
+            <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 12px;">Résultats</h3>
+            ${evaluations.length ? notesBlock(evaluations, evaluations.map((e) => evalCard(e, false)).join(''), null) : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}
           </div>`}`;
         main.querySelector('[data-ev-own]').addEventListener('click', () => { evalView = 'people'; render(); });
         main.querySelector('[data-ev-public]').addEventListener('click', () => { evalView = 'public'; render(); });
@@ -5102,19 +5274,44 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       });
       return;
     }
+    // Feuille d'appel façon Pronote : on ne coche que les absents, retards et
+    // excusés ; à la validation, toute ligne non cochée est marquée présente.
+    const ROLL_COLS = [['absent', 'Abs.', 'A'], ['retard', 'Ret.', 'R'], ['excuse', 'Exc.', 'E']];
     const rollPanel = (t) => {
       const roll = trainingRoll;
       const rows = Object.entries(t.signups || {}).sort((a, b) => a[1].at - b[1].at);
-      return `<div class="fim-roll" data-roll="${esc(t.id)}">
-        ${rows.map(([key, x]) => `<div class="fim-roll-row"><span class="n">${esc(withCallsign(x.name))}${x.walkIn ? ' <span class="post-card-meta">non inscrit</span>' : ''}</span>
-          <div class="fim-roll-opts">${Object.entries(ATTENDANCE).map(([s, a]) => `<button type="button" style="--c:${a.color}" class="${roll.marks[key] === s ? 'on' : ''}" data-roll-key="${esc(key)}" data-roll-set="${s}">${a.label}</button>`).join('')}</div></div>`).join('')}
-        ${roll.extras.map((n, i) => `<div class="fim-roll-row"><span class="n">${esc(n)} <span class="post-card-meta">non inscrit · présent</span></span><button type="button" class="fim-link" data-roll-unextra="${i}">retirer</button></div>`).join('')}
-        <div class="fim-roll-foot">
-          <input type="text" id="roll-extra" maxlength="80" placeholder="Ajouter un présent non inscrit (nom RP)">
+      const mark = (key) => (roll.marks[key] && roll.marks[key] !== 'present' ? roll.marks[key] : '');
+      const n = (s) => rows.filter(([key]) => (mark(key) || 'present') === s).length + (s === 'present' ? roll.extras.length : 0);
+      const initials = (name) => String(name).split(/\s+/).map((w) => w[0] || '').join('').slice(0, 2).toUpperCase();
+      return `<div class="fim-sheet" data-roll="${esc(t.id)}">
+        <div class="fim-sheet-head">
+          <h4>Feuille d'appel<small>${esc(t.title)} · ${esc(fmtDate(t.at))}</small></h4>
+          <span class="fim-sheet-state" style="--c:${t.attendanceAt ? '#4FD895' : '#F0A83C'}">${t.attendanceAt ? `Appel fait${t.attendanceBy ? ` · ${esc(t.attendanceBy)}` : ''} · ${esc(fmtDate(t.attendanceAt))}` : 'Appel non fait'}</span>
+          <div class="fim-sheet-count" data-roll-count>${[['present', 'Présents'], ['absent', 'Absents'], ['retard', 'Retards'], ['excuse', 'Excusés']].map(([k, l]) => `<span style="--c:${ATTENDANCE[k].color}">${l} <b>${n(k)}</b></span>`).join('')}</div>
+        </div>
+        <div class="fim-sheet-scroll"><table>
+          <thead><tr><th class="num">N°</th><th>Stagiaire</th><th>Inscription</th>${ROLL_COLS.map(([k, l]) => `<th class="c" title="${ATTENDANCE[k].label}">${l}</th>`).join('')}</tr></thead>
+          <tbody>
+            ${rows.map(([key, x], i) => { const st = mark(key); return `<tr data-st="${st}" data-orig="${t.attendance?.[key] && t.attendance[key] !== 'present' ? t.attendance[key] : ''}">
+              <td class="num">${i + 1}</td>
+              <td><div class="fim-sheet-who"><span class="fim-sheet-ava">${esc(initials(x.name))}</span><div><b>${esc(withCallsign(x.name))}${x.walkIn ? '<span class="fim-sheet-tag" style="--c:#9297A8">NON INSCRIT</span>' : ''}</b><small>${esc(x.rank || '')}</small></div></div></td>
+              <td><span class="fim-sheet-ig">${x.at ? esc(new Date(x.at).toLocaleDateString('fr-FR')) : '—'}</span></td>
+              ${ROLL_COLS.map(([s, , letter]) => `<td class="c"><button type="button" class="fim-sheet-box ${st === s ? 'on' : ''}" style="--c:${ATTENDANCE[s].color}" data-roll-key="${esc(key)}" data-roll-set="${s}" title="${ATTENDANCE[s].label}">${st === s ? letter : ''}</button></td>`).join('')}
+            </tr>`; }).join('')}
+            ${roll.extras.map((name, i) => `<tr>
+              <td class="num">${rows.length + i + 1}</td>
+              <td><div class="fim-sheet-who"><span class="fim-sheet-ava">${esc(initials(name))}</span><div><b>${esc(name)}<span class="fim-sheet-tag" style="--c:#9297A8">NON INSCRIT</span></b><small>ajouté à l'appel · présent</small></div></div></td>
+              <td colspan="${1 + ROLL_COLS.length}" style="text-align:right;"><button type="button" class="fim-link" data-roll-unextra="${i}">retirer</button></td>
+            </tr>`).join('')}
+            ${rows.length || roll.extras.length ? '' : `<tr><td colspan="${3 + ROLL_COLS.length}" style="text-align:center;color:var(--ink-faint);padding:14px;">Aucun inscrit : ajoute les présents ci-dessous.</td></tr>`}
+          </tbody>
+        </table></div>
+        <div class="fim-sheet-foot">
+          <input type="text" id="roll-extra" maxlength="80" placeholder="Ajouter un présent non inscrit (nom RP)…">
           <button class="btn ghost small" type="button" id="roll-extra-add">Ajouter</button>
-          <button class="btn ghost small" type="button" id="roll-all">Tous présents</button>
-          <button class="btn small" type="button" id="roll-save">Enregistrer l'appel</button>
+          <button class="btn small" type="button" id="roll-save">Valider l'appel</button>
           <button class="btn ghost small" type="button" id="roll-cancel">Annuler</button>
+          <span class="hint">Coche uniquement les absents, retards et excusés : à la validation, toute ligne non cochée est marquée présente.</span>
         </div>
       </div>`;
     };
@@ -5194,10 +5391,27 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     }));
     const rollBox = body.querySelector('[data-roll]');
     if (rollBox && trainingRoll) {
+      const rollCount = () => {
+        const t = list.find((x) => x.id === trainingRoll.id);
+        const keys = Object.keys(t?.signups || {});
+        const st = (k) => (trainingRoll.marks[k] && trainingRoll.marks[k] !== 'present' ? trainingRoll.marks[k] : 'present');
+        rollBox.querySelector('[data-roll-count]').innerHTML = [['present', 'Présents'], ['absent', 'Absents'], ['retard', 'Retards'], ['excuse', 'Excusés']]
+          .map(([k, l]) => `<span style="--c:${ATTENDANCE[k].color}">${l} <b>${keys.filter((x) => st(x) === k).length + (k === 'present' ? trainingRoll.extras.length : 0)}</b></span>`).join('');
+      };
       rollBox.querySelectorAll('[data-roll-set]').forEach((b) => b.addEventListener('click', () => {
         const key = b.dataset.rollKey;
-        trainingRoll.marks[key] = trainingRoll.marks[key] === b.dataset.rollSet ? undefined : b.dataset.rollSet;
-        rollBox.querySelectorAll(`[data-roll-key="${CSS.escape(key)}"]`).forEach((x) => x.classList.toggle('on', x.dataset.rollSet === trainingRoll.marks[key]));
+        const cur = trainingRoll.marks[key] && trainingRoll.marks[key] !== 'present' ? trainingRoll.marks[key] : '';
+        const next = cur === b.dataset.rollSet ? '' : b.dataset.rollSet;
+        trainingRoll.marks[key] = next || 'present';
+        const tr = b.closest('tr');
+        tr.dataset.st = next;
+        tr.classList.toggle('dirty', next !== tr.dataset.orig);
+        tr.querySelectorAll('[data-roll-set]').forEach((x) => {
+          const on = x.dataset.rollSet === next;
+          x.classList.toggle('on', on);
+          x.textContent = on ? ROLL_COLS.find(([s]) => s === next)[2] : '';
+        });
+        rollCount();
       }));
       rollBox.querySelectorAll('[data-roll-unextra]').forEach((b) => b.addEventListener('click', () => { trainingRoll.extras.splice(Number(b.dataset.rollUnextra), 1); reload(); }));
       const addExtra = () => {
@@ -5212,21 +5426,14 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       };
       document.getElementById('roll-extra-add').addEventListener('click', addExtra);
       document.getElementById('roll-extra').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addExtra(); } });
-      document.getElementById('roll-all').addEventListener('click', () => {
-        const t = list.find((x) => x.id === trainingRoll.id);
-        Object.keys(t?.signups || {}).forEach((key) => { if (!trainingRoll.marks[key]) trainingRoll.marks[key] = 'present'; });
-        reload();
-      });
       document.getElementById('roll-cancel').addEventListener('click', () => { trainingRoll = null; reload(); });
       document.getElementById('roll-save').addEventListener('click', async () => {
         const t = list.find((x) => x.id === trainingRoll.id);
-        const missing = Object.keys(t?.signups || {}).filter((key) => !trainingRoll.marks[key]).length;
-        if (missing && !confirm(`${missing} inscrit(s) sans marque : ils ne figureront pas dans l'appel. Enregistrer quand même ?`)) return;
-        const marks = Object.fromEntries(Object.entries(trainingRoll.marks).filter(([, s]) => s));
+        const marks = Object.fromEntries(Object.keys(t?.signups || {}).map((key) => [key, trainingRoll.marks[key] || 'present']));
         const id = trainingRoll.id;
         const extras = trainingRoll.extras;
         trainingRoll = null;
-        await act(`${api}/trainings/${encodeURIComponent(id)}/attendance`, { method: 'POST', body: JSON.stringify({ marks, extras }) }, 'Appel enregistré.');
+        await act(`${api}/trainings/${encodeURIComponent(id)}/attendance`, { method: 'POST', body: JSON.stringify({ marks, extras }) }, 'Appel validé.');
       });
     }
     body.querySelectorAll('[data-tr-eval]').forEach((b) => b.addEventListener('click', () => {
@@ -5278,8 +5485,27 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     );
     if (!evalSelected || !people.has(norm(evalSelected))) evalSelected = list[0]?.name || null;
     const activeGrids = grids.filter((g) => !g.archived);
+    const gridStats = gridStatsOf(list);
+    const modeBar = `<div class="fim-pn-mode"><div class="fim-pn-tabs">${[['fiches', 'Fiches individuelles'], ['tableau', 'Tableau des notes']].map(([k, l]) => `<button type="button" data-people-mode="${k}" class="${evalPeopleMode === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>`;
+    const bindMode = () => body.querySelectorAll('[data-people-mode]').forEach((b) => b.addEventListener('click', () => {
+      evalPeopleMode = b.dataset.peopleMode;
+      renderPeople(body, data, grids, evaluations, agents, extra, proposals, deptId);
+    }));
+    if (evalPeopleMode === 'tableau' && !deepEvalId) {
+      body.innerHTML = `${modeBar}${classTable(list)}`;
+      bindMode();
+      body.querySelectorAll('[data-class-sort]').forEach((th) => th.addEventListener('click', () => { classSort = th.dataset.classSort; renderPeople(body, data, grids, evaluations, agents, extra, proposals, deptId); }));
+      body.querySelectorAll('[data-class-person]').forEach((tr) => tr.addEventListener('click', () => {
+        evalSelected = tr.dataset.classPerson;
+        evalFormOpen = false;
+        evalPeopleMode = 'fiches';
+        renderPeople(body, data, grids, evaluations, agents, extra, proposals, deptId);
+      }));
+      return;
+    }
 
     body.innerHTML = `
+      ${modeBar}
       <div class="fim-eval-layout">
         <div class="fim-eval-list">
           <input type="text" id="fim-eval-search" placeholder="Rechercher un opérateur ou une unité…">
@@ -5288,6 +5514,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         </div>
         <div class="fim-eval-profile" id="fim-eval-profile"></div>
       </div>`;
+    bindMode();
 
     let filter = '';
     const renderList = () => {
@@ -5326,10 +5553,10 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
         ${profileBlock(p.name, p.unit, p.evals, gv, color, choices, p.tags)}
         ${showPath ? pathwayBlock(status, personProposals, { canPropose: true }) : ''}
         <div style="display:flex; justify-content:space-between; align-items:center; margin:22px 0 12px; gap:10px; flex-wrap:wrap;">
-          <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px;">${evalFormOpen ? 'Nouvelle évaluation' : 'Historique'}</h3>
+          <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px;">${evalFormOpen ? 'Nouvelle évaluation' : 'Résultats'}</h3>
           ${isSelf ? '<span class="post-card-meta">Auto-évaluation impossible</span>' : `<button class="btn small${evalFormOpen ? ' ghost' : ''}" id="fim-eval-toggle" type="button">${evalFormOpen ? 'Annuler' : '+ Évaluer'}</button>`}
         </div>
-        <div id="fim-eval-zone">${evalFormOpen && !isSelf ? '' : (p.evals.length ? p.evals.map((e) => evalCard(e, true)).join('') : '<div class="empty-row">Jamais évalué.</div>')}</div>
+        <div id="fim-eval-zone">${evalFormOpen && !isSelf ? '' : (p.evals.length ? notesBlock(p.evals, p.evals.map((e) => evalCard(e, true)).join(''), gridStats) : '<div class="empty-row">Jamais évalué.</div>')}</div>
       `;
       document.getElementById('fim-profile-grid')?.addEventListener('change', (ev) => { evalGridView[norm(p.name)] = ev.target.value; renderProfile(); });
       document.getElementById('fim-eval-toggle')?.addEventListener('click', () => { evalFormOpen = !evalFormOpen; renderProfile(); });
@@ -6261,8 +6488,8 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
             </div>`; }).join('')}</div>` : ''}
           <div class="fim-eval-profile" style="--u:#B07CFF; margin-top:18px;">
             ${profileBlock(data.name, null, evals, gv, '#B07CFF', choices, data.roles)}
-            <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 12px;">Historique</h3>
-            ${evals.length ? evals.map((e) => evalCard(e, false)).join('') : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}
+            <h3 style="font-family:'Space Grotesk', sans-serif; font-size:14.5px; margin:22px 0 12px;">Résultats</h3>
+            ${evals.length ? notesBlock(evals, evals.map((e) => evalCard(e, false)).join(''), null) : '<div class="empty-row">Aucune évaluation pour le moment.</div>'}
           </div>
           ${credit()}
         </div>`;
