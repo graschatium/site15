@@ -263,6 +263,44 @@
   .fim-roll-opts{ display:flex; gap:4px; }
   .fim-roll-opts button{ font:600 10.5px 'JetBrains Mono', monospace; padding:5px 9px; border:1px solid var(--line); border-radius:0; background:transparent; color:var(--ink-dim); cursor:pointer; }
   .fim-roll-opts button.on{ background:var(--c); border-color:var(--c); color:#0b0d12; }
+  .fim-sheet{ margin-top:12px; border:1px solid var(--line); border-radius:3px; overflow:hidden; background:var(--panel); }
+  .fim-sheet-head{ display:flex; align-items:center; gap:10px 16px; flex-wrap:wrap; padding:10px 14px; background:color-mix(in srgb, var(--accent) 14%, var(--panel)); border-bottom:1px solid var(--line); }
+  .fim-sheet-head h4{ font:700 13px 'Space Grotesk', sans-serif; margin:0; }
+  .fim-sheet-head h4 small{ font:500 11px 'Inter', sans-serif; color:var(--ink-dim); margin-left:6px; }
+  .fim-sheet-state{ font:600 10.5px 'JetBrains Mono', monospace; letter-spacing:.04em; padding:3px 8px; border-radius:3px; border:1px solid var(--c); color:var(--c); }
+  .fim-sheet-count{ display:flex; gap:12px; margin-left:auto; font:600 11px 'JetBrains Mono', monospace; color:var(--ink-dim); }
+  .fim-sheet-count b{ color:var(--c); }
+  .fim-sheet-scroll{ overflow-x:auto; }
+  .fim-sheet table{ width:100%; border-collapse:collapse; font-size:12.5px; min-width:640px; }
+  .fim-sheet th{ font:600 10px 'JetBrains Mono', monospace; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); background:var(--void-2); padding:7px 8px; border-bottom:1px solid var(--line); border-right:1px solid var(--line); text-align:left; }
+  .fim-sheet th.c, .fim-sheet td.c{ text-align:center; width:46px; padding-left:0; padding-right:0; }
+  .fim-sheet td{ padding:6px 8px; border-bottom:1px solid var(--line); border-right:1px solid var(--line); vertical-align:middle; }
+  .fim-sheet th:last-child, .fim-sheet td:last-child{ border-right:0; }
+  .fim-sheet tbody tr:nth-child(even){ background:color-mix(in srgb, var(--void-2) 55%, transparent); }
+  .fim-sheet tr[data-st="absent"]{ background:color-mix(in srgb, #F0525A 14%, transparent) !important; }
+  .fim-sheet tr[data-st="retard"]{ background:color-mix(in srgb, #F0A83C 13%, transparent) !important; }
+  .fim-sheet tr[data-st="excuse"]{ background:color-mix(in srgb, #5AA9FF 12%, transparent) !important; }
+  .fim-sheet tr.dirty td:first-child{ box-shadow:inset 3px 0 0 var(--accent); }
+  .fim-sheet .num{ width:30px; text-align:center; font:11px 'JetBrains Mono', monospace; color:var(--ink-faint); }
+  .fim-sheet-who{ display:flex; align-items:center; gap:10px; }
+  .fim-sheet-ava{ flex:none; width:28px; height:32px; border-radius:2px; display:grid; place-items:center; background:var(--void-2); border:1px solid var(--line); font:700 11px 'Space Grotesk', sans-serif; color:var(--ink-dim); }
+  .fim-sheet-who b{ display:block; font-weight:600; }
+  .fim-sheet-who small{ display:block; font-size:11px; color:var(--ink-faint); }
+  .fim-sheet-tag{ display:inline-block; margin-left:6px; font:700 9.5px 'JetBrains Mono', monospace; padding:1px 5px; border-radius:2px; background:var(--c); color:#0b0d12; vertical-align:middle; }
+  .fim-sheet-ig{ font:11px 'JetBrains Mono', monospace; color:var(--ink-faint); white-space:nowrap; }
+  .fim-sheet-ig.on{ color:#4FD895; }
+  .fim-sheet-box{ width:20px; height:20px; border:1.5px solid var(--ink-faint); border-radius:2px; background:var(--void); cursor:pointer; padding:0; display:inline-grid; place-items:center; color:#0b0d12; font:800 13px 'Inter', sans-serif; line-height:1; }
+  .fim-sheet-box:hover{ border-color:var(--c); }
+  .fim-sheet-box.on{ background:var(--c); border-color:var(--c); }
+  .fim-sheet-motif{ display:flex; gap:6px; align-items:center; }
+  .fim-sheet-motif input, .fim-sheet-motif select{ background:var(--void-2); color:var(--ink); border:1px solid var(--line); border-radius:3px; padding:4px 7px; font:inherit; font-size:12px; }
+  .fim-sheet-motif input{ flex:1; min-width:120px; width:auto; }
+  .fim-sheet-motif select{ width:auto; flex:none; }
+  .fim-sheet-motif [hidden]{ display:none; }
+  .fim-sheet-motif .by{ font-size:10.5px; color:var(--ink-faint); white-space:nowrap; }
+  .fim-sheet-foot{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:10px 14px; border-top:1px solid var(--line); background:var(--void-2); }
+  .fim-sheet-foot input{ flex:1; min-width:180px; }
+  .fim-sheet-foot .hint{ width:100%; font-size:11px; color:var(--ink-faint); }
   .fim-roll-foot{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:10px 12px; }
   .fim-roll-foot input{ flex:1; min-width:160px; }
   .fim-chip.att{ border-color:var(--c); color:var(--c); }
@@ -3050,6 +3088,47 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   async function onAttendanceClick(e, box) {
     const t = e.target.closest('button');
     if (!t || !box.contains(t)) return;
+    if (t.dataset.sheetSt) {
+      const tr = t.closest('tr');
+      const st = tr.dataset.st === t.dataset.sheetSt ? '' : t.dataset.sheetSt;
+      tr.dataset.st = st;
+      tr.classList.toggle('dirty', st !== tr.dataset.orig);
+      tr.querySelectorAll('[data-sheet-st]').forEach((b) => {
+        const on = b.dataset.sheetSt === st;
+        b.classList.toggle('on', on);
+        b.textContent = on ? SHEET_COLS.find(([k]) => k === st)[2] : '';
+      });
+      tr.querySelector('[data-att-delay]').hidden = st !== 'retard';
+      tr.querySelector('[data-att-reason]').hidden = !st;
+      return;
+    }
+    if (t.hasAttribute('data-sheet-validate')) {
+      const sheet = t.closest('.fim-sheet');
+      const live = !!sheet.dataset.live;
+      const changes = [...sheet.querySelectorAll('tbody tr[data-att-name]')].map((tr) => {
+        const reason = tr.querySelector('[data-att-reason]').value.trim();
+        const delay = Number(tr.querySelector('[data-att-delay]').value) || null;
+        let status = tr.dataset.st;
+        if (!status && live) status = 'present';
+        const touched = status !== tr.dataset.orig || tr.querySelector('[data-att-reason]').defaultValue !== reason
+          || String(tr.querySelector('[data-att-delay] option[selected]')?.value || '') !== String(delay || '');
+        return touched ? { name: tr.dataset.attName, status, reason: status === 'present' ? '' : reason, delay: status === 'retard' ? delay : null } : null;
+      }).filter(Boolean);
+      if (!changes.length) { window.showToast('Aucune modification.'); return; }
+      t.disabled = true;
+      let failed = 0;
+      for (const c of changes) {
+        try {
+          await window.apiFetch(`/api/rp/fim/operations/${encodeURIComponent(t.dataset.id)}/rsvp/manage`, { method: 'POST', body: JSON.stringify(c) });
+        } catch (err) {
+          failed += 1;
+        }
+      }
+      if (failed) window.showToast(`${failed} ligne(s) non enregistrée(s), réessaie.`, 'error');
+      else window.showToast(live ? `Appel validé (${changes.length} ligne(s)).` : `${changes.length} ligne(s) enregistrée(s).`, 'success');
+      loadOperations();
+      return;
+    }
     const form = t.closest('[data-att-form]');
     if (t.dataset.attStatus !== undefined && form) {
       form.dataset.status = t.dataset.attStatus;
@@ -3094,13 +3173,75 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
         return;
       }
       const o = (box._ops || []).find((x) => x.id === opId) || { id: opId };
-      t.closest('.fim-roll-foot').insertAdjacentHTML('beforebegin', `
-        <div class="fim-att-row" data-att-name="${esc(name)}">
-          <span class="n">${esc(withCallsign(name))}</span>
-          ${rsvpForm(o, `m-${personKey(name)}`, null)}
-        </div>`);
+      const body = panel.querySelector('tbody');
+      body.querySelector('tr.empty')?.remove();
+      body.insertAdjacentHTML('beforeend', sheetRow(o, { agents: box._agents || [] }, name, null, body.children.length));
+      body.lastElementChild.classList.add('dirty');
       input.value = '';
     }
+  }
+
+  // Feuille d'appel du commandement (façon Pronote) : une ligne par opérateur,
+  // on ne coche que les absents, retards et excusés ; « Valider l'appel »
+  // marque présents tous ceux qui ne sont pas cochés.
+  const SHEET_COLS = [['absent', 'Abs.', 'A'], ['retard', 'Ret.', 'R'], ['excuse', 'Exc.', 'E']];
+  function sheetRow(o, ctx, name, r, i) {
+    const st = r?.status || '';
+    const agent = (ctx.agents || []).find((a) => norm(a.name || a.username) === norm(name));
+    const role = name === o.leader ? 'Chef d’opération' : (o.team || []).find((m) => norm(m.name) === norm(name))?.role || (r ? 'Hors équipe' : '');
+    const mins = presenceMinutes(o, name);
+    const initials = String(name).split(/\s+/).map((w) => w[0] || '').join('').slice(0, 2).toUpperCase();
+    const tag = st && st !== 'present' ? `<span class="fim-sheet-tag" style="--c:${RSVP_META[st].color}">${RSVP_META[st].label.toUpperCase()}</span>` : '';
+    return `
+      <tr data-att-name="${esc(name)}" data-st="${st}" data-orig="${st}">
+        <td class="num">${i + 1}</td>
+        <td><div class="fim-sheet-who"><span class="fim-sheet-ava">${esc(initials)}</span><div><b>${esc(withCallsign(name))}${tag}</b><small>${esc([agent?.rank, role].filter(Boolean).join(' · '))}</small></div></div></td>
+        <td><span class="fim-sheet-ig ${mins ? 'on' : ''}">${mins ? `● ${mins} min` : '—'}</span></td>
+        ${SHEET_COLS.map(([k, , letter]) => `<td class="c"><button type="button" class="fim-sheet-box ${st === k ? 'on' : ''}" style="--c:${RSVP_META[k].color}" data-sheet-st="${k}" title="${RSVP_META[k].label}">${st === k ? letter : ''}</button></td>`).join('')}
+        <td><div class="fim-sheet-motif">
+          <select data-att-delay ${st === 'retard' ? '' : 'hidden'}><option value="">Minutes…</option>${RSVP_DELAYS.map((d) => `<option value="${d}" ${r?.delay === d ? 'selected' : ''}>${d} min</option>`).join('')}</select>
+          <input type="text" data-att-reason maxlength="200" placeholder="Motif" value="${esc(r?.reason || '')}" ${st && st !== 'present' ? '' : 'hidden'}>
+          ${r?.by ? `<span class="by">par ${esc(r.by)}</span>` : ''}
+        </div></td>
+      </tr>`;
+  }
+  function callSheet(o, ctx) {
+    const rsvp = o.rsvp || {};
+    const people = new Map();
+    [o.leader, ...(o.team || []).map((m) => m.name)].filter(Boolean).forEach((n) => people.set(personKey(n), n));
+    Object.entries(rsvp).forEach(([k, r]) => { if (!people.has(k)) people.set(k, r.name); });
+    const roster = (ctx.agents || []).map((a) => a.name || a.username).filter(Boolean);
+    const rows = [...people];
+    const live = o.status === 'en_cours' || o.status === 'terminee';
+    const done = rows.length > 0 && rows.every(([k]) => rsvp[k]);
+    const lastAt = Math.max(0, ...Object.values(rsvp).filter((r) => r.by).map((r) => r.at || 0));
+    const lastBy = Object.values(rsvp).find((r) => r.by && r.at === lastAt)?.by;
+    const state = done
+      ? `<span class="fim-sheet-state" style="--c:#4FD895">Appel fait${lastBy ? ` · ${esc(lastBy)}` : ''}${lastAt ? ` · ${fmtDate(lastAt)}` : ''}</span>`
+      : `<span class="fim-sheet-state" style="--c:#F0A83C">${live ? 'Appel non fait' : 'Avant opération'}</span>`;
+    const n = (k) => rows.filter(([key]) => rsvp[key]?.status === k).length;
+    const counts = [['present', 'Présents'], ['absent', 'Absents'], ['retard', 'Retards'], ['excuse', 'Excusés']]
+      .map(([k, l]) => `<span style="--c:${RSVP_META[k].color}">${l} <b>${n(k)}</b></span>`).join('')
+      + `<span>Non renseignés <b style="--c:var(--ink)">${rows.filter(([k]) => !rsvp[k]).length}</b></span>`;
+    return `
+      <div class="fim-sheet fim-att-manage" data-live="${live ? 1 : ''}">
+        <div class="fim-sheet-head">
+          <h4>Feuille d'appel<small>${esc(o.codeName || '')} · ${fmtDate(o.scheduledAt || o.createdAt)}</small></h4>
+          ${state}
+          <div class="fim-sheet-count">${counts}</div>
+        </div>
+        <div class="fim-sheet-scroll"><table>
+          <thead><tr><th class="num">N°</th><th>Opérateur</th><th>En jeu</th>${SHEET_COLS.map(([k, l]) => `<th class="c" title="${RSVP_META[k].label}">${l}</th>`).join('')}<th>Motif / retard</th></tr></thead>
+          <tbody>${rows.map(([key, name], i) => sheetRow(o, ctx, name, rsvp[key], i)).join('') || `<tr class="empty"><td colspan="${4 + SHEET_COLS.length}" style="text-align:center;color:var(--ink-faint);padding:14px;">Aucune équipe prévue : ajoute un opérateur ci-dessous.</td></tr>`}</tbody>
+        </table></div>
+        <div class="fim-sheet-foot">
+          <input type="text" list="fim-att-roster-${esc(o.id)}" data-att-add placeholder="Ajouter un opérateur à l'appel (nom RP)…">
+          <datalist id="fim-att-roster-${esc(o.id)}">${roster.map((x) => `<option value="${esc(x)}">`).join('')}</datalist>
+          <button type="button" class="btn ghost small" data-att-add-btn data-id="${esc(o.id)}">Ajouter</button>
+          <button type="button" class="btn small" data-sheet-validate data-id="${esc(o.id)}">${live ? 'Valider l’appel' : 'Enregistrer'}</button>
+          <span class="hint">${live ? 'Coche uniquement les absents, retards et excusés : à la validation, toute ligne non cochée est marquée présente.' : 'Avant l’opération : seules les lignes modifiées sont enregistrées (absences et retards annoncés).'}</span>
+        </div>
+      </div>`;
   }
 
   function rsvpBlock(o, ctx, mine) {
@@ -3114,28 +3255,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
     const order = Object.keys(RSVP_META);
     const sorted = Object.entries(rsvp).sort((a, b) => order.indexOf(a[1].status) - order.indexOf(b[1].status) || String(a[1].name).localeCompare(b[1].name));
     const managing = canManage && attManageOpen.has(o.id);
-    // Panneau du commandement : équipe prévue + toute personne ayant répondu
-    let manage = '';
-    if (managing) {
-      const people = new Map();
-      [o.leader, ...(o.team || []).map((m) => m.name)].filter(Boolean).forEach((n) => people.set(personKey(n), n));
-      Object.entries(rsvp).forEach(([k, r]) => { if (!people.has(k)) people.set(k, r.name); });
-      const roster = (ctx.agents || []).map((a) => a.name || a.username).filter(Boolean);
-      manage = `
-        <div class="fim-roll fim-att-manage">
-          ${[...people].map(([key, name]) => `
-            <div class="fim-att-row" data-att-name="${esc(name)}">
-              <span class="n">${esc(withCallsign(name))}</span>
-              ${rsvpForm(o, `m-${key}`, rsvp[key])}
-              ${rsvp[key] ? `<button type="button" class="fim-link" data-att-clear data-id="${esc(o.id)}">effacer</button>` : ''}
-            </div>`).join('') || '<div class="fim-roll-row">Aucune équipe prévue : ajoute un opérateur ci-dessous.</div>'}
-          <div class="fim-roll-foot">
-            <input type="text" list="fim-att-roster-${esc(o.id)}" data-att-add placeholder="Ajouter un opérateur (nom RP)…">
-            <datalist id="fim-att-roster-${esc(o.id)}">${roster.map((n) => `<option value="${esc(n)}">`).join('')}</datalist>
-            <button type="button" class="btn ghost small" data-att-add-btn data-id="${esc(o.id)}">Ajouter</button>
-          </div>
-        </div>`;
-    }
+    const manage = managing ? callSheet(o, ctx) : '';
     return `<div class="fim-att" data-att-op="${esc(o.id)}">
       <div class="fim-rsvp">
         <span>Présences</span>
