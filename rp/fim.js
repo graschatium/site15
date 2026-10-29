@@ -13,6 +13,12 @@
   .fim-hero-eyebrow{ font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-2); }
   .fim-hero h2{ font-family:'Space Grotesk', sans-serif; font-size:21px; margin:6px 0 6px; }
   .fim-hero p{ color:var(--ink-dim); font-size:13px; line-height:1.65; max-width:640px; }
+  .fim-sections{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px; }
+  .fim-sections button{ display:flex; align-items:center; gap:7px; padding:7px 14px; border:1px solid var(--line); border-radius:3px; background:var(--panel);
+    color:var(--ink-dim); font:600 12px 'Inter', sans-serif; cursor:pointer; transition:border-color .15s ease, color .15s ease; }
+  .fim-sections button svg{ width:14px; height:14px; }
+  .fim-sections button:hover{ color:var(--ink); border-color:var(--ink-faint); }
+  .fim-sections button.active{ color:var(--accent-2); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--panel)); }
   .fim-g-kpis{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:18px; }
   .fim-g-kpi{ background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--c, var(--accent)); border-radius:3px; padding:14px 16px; }
   .fim-g-kpi b{ display:block; font-family:'Space Grotesk', sans-serif; font-size:26px; color:var(--c, var(--ink)); line-height:1.1; }
@@ -830,9 +836,16 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   // Un onglet à sous-navigation (Unités, Savoir, Opérations) rend ses vues
   // dans un conteneur à lui : mainEl() le renvoie tant qu'il est affiché.
   let mainOverride = null;
+  // Onglet regroupé (Personnel, Formation) : la section choisie est rendue
+  // sous le sélecteur de sections, dans ce conteneur.
+  let sectionRoot = null;
+  function rootEl() {
+    if (sectionRoot && document.body.contains(sectionRoot)) return sectionRoot;
+    return document.getElementById('terminal-main');
+  }
   function mainEl() {
     if (mainOverride && document.body.contains(mainOverride)) return mainOverride;
-    return document.getElementById('terminal-main');
+    return rootEl();
   }
   function subTabs(items, current, attr) {
     return `<div class="fim-subnav">${items.map(([k, l]) => `<button type="button" ${attr}="${k}" class="${k === current ? 'active' : ''}">${l}</button>`).join('')}</div>`;
@@ -884,8 +897,29 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   }
 
   // Ouvre un onglet FIM du terminal (après avoir réglé sa vue).
+  // Onglets regroupés : chaque section garde son identifiant d'origine
+  // (badges, liens profonds, goTab('fim-library')...).
+  const TAB_GROUPS = {
+    'fim-units': [
+      { id: 'fim-units', label: 'Unités', icon: 'shield' },
+      { id: 'fim-gestion', label: 'Gestion', icon: 'people', gestion: true },
+    ],
+    'fim-formation': [
+      { id: 'fim-library', label: 'Savoir', icon: 'folder' },
+      { id: 'fim-courses', label: 'Cours', icon: 'document' },
+      { id: 'fim-evals', label: 'Évaluations', icon: 'badge' },
+    ],
+  };
+  const groupSection = { 'fim-units': 'fim-units', 'fim-formation': 'fim-library' };
+  function groupOf(id) {
+    return Object.keys(TAB_GROUPS).find((g) => TAB_GROUPS[g].some((x) => x.id === id)) || id;
+  }
   function goTab(id) {
-    document.querySelector(`.terminal-tab[data-tab="${id}"]`)?.click();
+    const group = groupOf(id);
+    if (group !== id || TAB_GROUPS[id]) groupSection[group] = id;
+    const tab = document.querySelector(`.terminal-tab[data-tab="${group}"]`);
+    if (tab?.classList.contains('active')) window.FIM.load(group, currentDeptId);
+    else tab?.click();
   }
   function credit() {
     return `<div class="fim-credit">Contenu d'univers inspiré de la <a href="https://scp-wiki.wikidot.com/" target="_blank" rel="noopener">Fondation SCP</a> (CC BY-SA 3.0), adapté au Site-15.</div>`;
@@ -1184,7 +1218,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   let selectedUnit = 'EPSILON-11';
   let unitsView = 'bataille';
   function loadUnits(deptId) {
-    const root = document.getElementById('terminal-main');
+    const root = rootEl();
     mainOverride = null;
     root.innerHTML = `
       <div class="fim-hero">
@@ -2017,17 +2051,14 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   let gestionPeriod = 30;
   let gestionAllowed = null; // null : pas encore vérifié
   async function checkGestionTab() {
-    const tab = document.querySelector('.terminal-tab[data-tab="fim-gestion"]');
-    if (!tab) return;
     if (gestionAllowed === null) {
-      tab.style.display = 'none';
       try {
         gestionAllowed = !!(await window.apiFetch('/api/rp/fim/gestion/access')).allowed;
       } catch (e) {
         gestionAllowed = false;
       }
     }
-    tab.style.display = gestionAllowed ? '' : 'none';
+    return gestionAllowed;
   }
 
   const GESTION_STATUS = {
@@ -2701,7 +2732,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   }
 
   async function loadOperations() {
-    const root = document.getElementById('terminal-main');
+    const root = rootEl();
     mainOverride = null;
     root.innerHTML = '<div class="center-msg">Chargement…</div>';
     let ops = [];
@@ -3483,7 +3514,7 @@ Aucun opérateur ne quitte son poste d'escorte tant que l'abri n'est pas fermé.
   // ---------------------------------------------------------------
   let libView = 'doctrine';
   function loadLibrary() {
-    const root = document.getElementById('terminal-main');
+    const root = rootEl();
     mainOverride = null;
     root.innerHTML = `
       ${subTabs([['doctrine', 'Doctrine et notes'], ['scp', 'Fiches de reconfinement']], libView, 'data-lv')}
@@ -6141,10 +6172,11 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     const m = seenMap();
     m[tabId] = Date.now();
     try { localStorage.setItem(SEEN_KEY, JSON.stringify(m)); } catch (e) { /* stockage indisponible */ }
-    setBadge(tabId, 0);
+    // Savoir ou Cours ne vident pas le badge des évaluations de l'onglet Formation
+    if (groupOf(tabId) === tabId || tabId === 'fim-evals') setBadge(tabId, 0);
   }
   function setBadge(tabId, n) {
-    const tab = document.querySelector(`.terminal-tab[data-tab="${tabId}"]`);
+    const tab = document.querySelector(`.terminal-tab[data-tab="${groupOf(tabId)}"]`);
     if (!tab) return;
     let b = tab.querySelector('.fim-badge');
     if (!n) { b?.remove(); return; }
@@ -6181,22 +6213,37 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     tabs: [
       { id: 'fim-hq', label: 'QG', icon: 'siren' },
       { id: 'fim-ops', label: 'Opérations', icon: 'radio' },
-      { id: 'fim-units', label: 'Unités', icon: 'shield' },
-      { id: 'fim-library', label: 'Savoir', icon: 'folder' },
-      { id: 'fim-courses', label: 'Cours', icon: 'document' },
-      { id: 'fim-evals', label: 'Évaluations', icon: 'badge' },
-      { id: 'fim-gestion', label: 'Gestion', icon: 'people' },
+      { id: 'fim-units', label: 'Personnel', icon: 'shield' },
+      { id: 'fim-formation', label: 'Formation', icon: 'document' },
     ],
     async load(tabId, deptId) {
       stopRefresh();
       mainOverride = null;
       currentDeptId = deptId;
       startAlerts();
-      checkGestionTab();
+      sectionRoot = null;
       const main = document.getElementById('terminal-main');
       if (main && !unitDefsAt) main.innerHTML = '<div class="center-msg">Chargement…</div>';
       await loadUnitDefs();
-      if (!document.querySelector(`.terminal-tab.active[data-tab="${tabId}"]`)) return;
+      const group = tabId;
+      if (TAB_GROUPS[group]) {
+        if (group === 'fim-units') await checkGestionTab();
+        if (!document.querySelector(`.terminal-tab.active[data-tab="${group}"]`)) return;
+        const items = TAB_GROUPS[group].filter((x) => !x.gestion || gestionAllowed);
+        if (!items.some((x) => x.id === groupSection[group])) groupSection[group] = items[0].id;
+        tabId = groupSection[group];
+        if (items.length > 1) {
+          main.innerHTML = `
+            <div class="fim-sections">${items.map((x) => `<button type="button" data-sec="${x.id}" class="${x.id === tabId ? 'active' : ''}">${typeof ICONS !== 'undefined' ? ICONS[x.icon] || '' : ''}${x.label}</button>`).join('')}</div>
+            <div id="fim-section-body"></div>`;
+          main.querySelectorAll('[data-sec]').forEach((b) => b.addEventListener('click', () => {
+            groupSection[group] = b.dataset.sec;
+            window.FIM.load(group, deptId);
+          }));
+          sectionRoot = document.getElementById('fim-section-body');
+        }
+      }
+      if (!document.querySelector(`.terminal-tab.active[data-tab="${group}"]`)) return;
       if (tabId === 'fim-hq') loadHQ(deptId);
       else if (tabId === 'fim-ops') loadOperations();
       else if (tabId === 'fim-units') loadUnits(deptId);
@@ -6208,6 +6255,7 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
       refreshBadges(tabId).catch(() => {});
     },
     stop: stopRefresh,
+    goTab,
     checkEri,
     renderEriSpace,
     renderPortal,
