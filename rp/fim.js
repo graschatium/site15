@@ -6231,11 +6231,14 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
     }
     const pct = Math.round((status.done / status.total) * 100);
     const pending = proposals.find((p) => p.status === 'proposee');
+    // Intégration acceptée : le parcours est clos, plus de nouvelle proposition.
+    const accepted = proposals.find((p) => p.status === 'acceptee');
     return `
       <div class="fim-path">
         <div class="fim-path-head">
           <h4>Parcours d'intégration ERI</h4>
           <span class="fim-pill" style="--c:${status.complete ? '#4FD895' : 'var(--accent-2)'}">${status.done} / ${status.total} modules${status.complete ? ' · complet' : ''}</span>
+          ${accepted ? pill({ label: 'Intégré à la FIM', color: '#4FD895' }) : ''}
         </div>
         <div class="fim-progress"><i style="width:${pct}%"></i></div>
         <div class="fim-modules">${status.modules.map((m) => `
@@ -6249,9 +6252,10 @@ Le code le plus grave entre tous les serveurs est affiché dans l'onglet *QG*.`;
             <span>par ${esc(p.proposedBy)} · ${fmtDate(p.createdAt)}${p.decidedBy ? ` — décision de ${esc(p.decidedBy)} · ${fmtDate(p.decidedAt)}` : ''}</span>
             ${p.note ? `<span style="width:100%; color:var(--ink-faint);">« ${esc(p.note)} »</span>` : ''}
             ${p.decisionNote ? `<span style="width:100%; color:var(--ink-faint);">Décision : « ${esc(p.decisionNote)} »</span>` : ''}
-            ${opts.canPropose && p.status === 'proposee' ? `<span style="margin-left:auto; display:flex; gap:6px;"><button class="btn small" data-prop-decide="acceptee" data-id="${esc(p.id)}">Accepter</button><button class="btn danger small" data-prop-decide="refusee" data-id="${esc(p.id)}">Refuser</button></span>` : ''}
+            ${opts.canPropose && p.status === 'proposee' && !accepted ? `<span style="margin-left:auto; display:flex; gap:6px;"><button class="btn small" data-prop-decide="acceptee" data-id="${esc(p.id)}">Accepter</button><button class="btn danger small" data-prop-decide="refusee" data-id="${esc(p.id)}">Refuser</button></span>` : ''}
           </div>`).join('')}
-        ${opts.canPropose && status.complete && !pending ? '<div style="margin-top:12px;"><button class="btn small" id="fim-propose-btn" type="button">Proposer l\'intégration FIM</button></div>' : ''}
+        ${opts.canPropose && status.complete && !pending && !accepted ? '<div style="margin-top:12px;"><button class="btn small" id="fim-propose-btn" type="button">Proposer l\'intégration FIM</button></div>' : ''}
+        ${accepted ? `<div style="margin-top:10px; font-size:12.5px; color:#4FD895;">Intégration à la FIM acceptée par ${esc(accepted.decidedBy || 'le commandement')}${accepted.decidedAt ? ` le ${fmtDate(accepted.decidedAt)}` : ''}.</div>` : ''}
         ${!opts.canPropose && status.complete && !proposals.length ? '<div style="margin-top:10px; font-size:12.5px; color:#4FD895;">Tous les modules sont validés : le commandement peut proposer ton intégration.</div>' : ''}
       </div>`;
   }
